@@ -779,39 +779,7 @@
         exitIntentPopup: undefined,
         onloadPopup: undefined,
       });
-    </script>
-    <script src="https://cdn.dorik.com/common/jquery-3.5.1.min.js"></script>
-    <script type="text/javascript">
-      (function () {
-        var elem = $("#uvjm8n6w");
-        function triggerSpinner(el, status) {
-          el.find(".spinner").css("display", status ? "inline-block" : "none");
-        }
-        (function injectUniqId(elem) {
-          const uniqId = Math.random().toString(36).substring(2, 8);
-          var input = document.createElement("input");
-          input.type = "hidden";
-          input.value = uniqId;
-          input.name = "_uid";
-          elem.append(input);
-        })(elem);
-        $(elem).on("submit", function (e) {
-          e.preventDefault();
-          function verifyLegitimateUser() {
-            const honeyPotIdentifier = `confirm_uvjm8n6w`;
-            const honeyPotField = document.querySelector(
-              `input[id="${honeyPotIdentifier}"]`
-            );
-            return !honeyPotField?.value;
-          }
-
-          const isLegitimateUser = verifyLegitimateUser();
-          if (!isLegitimateUser) return;
-
-          var that = this;
-          triggerSpinner(elem, true);
-          $(that).find(".success-message").remove();
-          $(that).find(".error-message").remove();
+    
 
           const data = $(this).serialize().replace("&confirm_uvjm8n6w=", "");
 
