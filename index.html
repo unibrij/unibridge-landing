@@ -936,6 +936,45 @@ $(document).ready(function () {
     margin-bottom: 20px !important;
   }
 }
+    /* Full-width hero fix for laptop screens */
+@media (min-width: 1024px) {
+
+  /* 1. السماح للهيرو أنه يمتد عرضياً */
+  .hero,
+  .hero-image,
+  .hero-image img {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 2. إزالة القيود التي تحشر الصورة */
+  .container.hero,
+  .row.hero,
+  section.hero {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* 3. تحديد ارتفاع حقيقي للهيرو */
+  .hero-image img {
+    height: 620px !important;    /* ← زوّدته أكتر لحتى يظهر كله */
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  /* 4. تقليل المسافة من تحت وفوق */
+  .hero {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    margin-top: 0 !important;
+    margin-bottom: 20px !important;
+  }
+
+}
+    
     </style>
   </body>
 </html>
