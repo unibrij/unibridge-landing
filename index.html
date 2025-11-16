@@ -876,6 +876,49 @@ $(document).ready(function () {
   }
 }
     </style>
+
+  <style>
+/* Fix medium screens (laptops 1024–1440px) */
+@media (min-width: 1024px) and (max-width: 1440px) {
+
+    /* Scale entire page a bit up */
+    body {
+        zoom: 0.92 !important;
+        -moz-transform: scale(0.92);
+        -moz-transform-origin: top center;
+    }
+
+    /* Fix hero image height */
+    .hero-image img,
+    .hero-image {
+        max-width: 100% !important;
+        height: auto !important;
+        margin-top: 0 !important;
+    }
+
+    /* Reduce left/right whitespace */
+    .container,
+    .row,
+    .col,
+    section {
+        max-width: 1100px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Titles slightly larger for laptop screens */
+    h1, h2 {
+        font-size: 40px !important;
+        line-height: 48px !important;
+    }
+
+    /* Reduce top/bottom section padding */
+    section {
+        padding-top: 30px !important;
+        padding-bottom: 30px !important;
+    }
+}
+  </style>
     
   </body>
 </html>
