@@ -844,12 +844,6 @@ $(document).ready(function () {
 /* Fix desktop scaling */
 @media (min-width: 1024px) {
 
-  body {
-    zoom: 0.85 !important;
-    -moz-transform: scale(0.85);
-    -moz-transform-origin: 0 0;
-  }
-
   /* Make containers wider */
   .container, .row, .col, section, div {
     max-width: 1200px !important;
@@ -973,6 +967,23 @@ $(document).ready(function () {
     margin-bottom: 20px !important;
   }
 
+}
+    /* Fix hero size on laptop screens */
+@media (min-width: 1024px) and (max-width: 1600px) {
+  .hero-image,
+  .hero-image img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 480px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  /* إصلاح الهامش تحت العنوان */
+  .hero {
+    margin-top: 20px !important;
+    margin-bottom: 30px !important;
+  }
 }
     
     </style>
