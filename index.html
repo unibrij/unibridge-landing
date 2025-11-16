@@ -779,41 +779,58 @@
         exitIntentPopup: undefined,
         onloadPopup: undefined,
       });
-    
-
-          const data = $(this).serialize().replace("&confirm_uvjm8n6w=", "");
-
-          $.ajax({
-  url: "/api/contact",
-  method: "POST",
-  data: {
-    name: $("input[name='name']").val(),
-    email: $("input[name='email']").val(),
-    subject: $("input[name='company']").val(),
-    message: $("textarea[name='message']").val(),
-  },
-  success: function (data) {
-
-                class: msgClass,
-                html: message,
-              });
-              $(that).append($div);
-              triggerSpinner(elem, false);
-
-              that.reset();
-            },
-            error: function (error) {
-              var $div = $("<div>", {
-                class: "error-message",
-                html: error.message || "Something went wrong! Check the fields",
-              });
-              $(that).append($div);
-              triggerSpinner(elem, false);
-            },
-          });
-        });
-      })();
     </script>
+          <script type="text/javascript">
+$(document).ready(function () {
+
+  // 🔥 امسك الفورم — ID من Dorik نفسه
+  $("#uvjm8n6w").on("submit", function (e) {
+    e.preventDefault();
+
+    // 🔄 شيل رسائل سابقة
+    $(".success-message").remove();
+    $(".error-message").remove();
+
+    // ⏳ Optional: فيك تفعل سبينر إذا بدك
+    // $(".spinner").show();
+
+    // 📨 إرسال الطلب لـ /api/contact
+    $.ajax({
+      url: "/api/contact",
+      method: "POST",
+      data: {
+        name: $("input[name='name']").val(),
+        email: $("input[name='email']").val(),
+        subject: $("input[name='company']").val(),
+        message: $("textarea[name='message']").val(),
+      },
+
+      success: function (data) {
+        const div = $("<div>", {
+          class: "success-message",
+          html: "Thank you! We will get back to you shortly.",
+        });
+        $("#uvjm8n6w").append(div);
+
+        // $(".spinner").hide();
+        $("#uvjm8n6w")[0].reset();
+      },
+
+      error: function (err) {
+        const div = $("<div>", {
+          class: "error-message",
+          html: err.responseJSON?.message || "Something went wrong!",
+        });
+        $("#uvjm8n6w").append(div);
+
+        // $(".spinner").hide();
+      },
+    });
+  });
+
+});
+</script>
+
 
     <style>
       @media (min-width: 1024px) {
