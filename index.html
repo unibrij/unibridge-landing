@@ -816,17 +816,16 @@
           const data = $(this).serialize().replace("&confirm_uvjm8n6w=", "");
 
           $.ajax({
-            data,
-            url: "/v2/sites/action/contact",
-            method: "POST",
-            success: function (data) {
-              var msgClass =
-                data.success === true ? "success-message" : "error-message";
-              var message =
-                data.success === true
-                  ? "Thank you for your interest! Our engineering team will review your request and get in touch within 48 hours."
-                  : data.message;
-              var $div = $("<div>", {
+  url: "/api/contact",
+  method: "POST",
+  data: {
+    name: $("input[name='name']").val(),
+    email: $("input[name='email']").val(),
+    subject: $("input[name='company']").val(),
+    message: $("textarea[name='message']").val(),
+  },
+  success: function (data) {
+
                 class: msgClass,
                 html: message,
               });
