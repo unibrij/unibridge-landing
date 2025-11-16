@@ -918,7 +918,24 @@ $(document).ready(function () {
         padding-bottom: 30px !important;
     }
 }
-  </style>
-    
+  
+    /* Increase hero height on laptop screens */
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .hero-image,
+  .hero-image img {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 520px !important; /* ← زودنا الارتفاع */
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  /* خفّضنا الهوامش تحت العنوان لرفع الصورة لفوق شوي */
+  .hero {
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+  }
+}
+    </style>
   </body>
 </html>
