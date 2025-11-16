@@ -987,7 +987,37 @@ $(document).ready(function () {
 }
     
     </style>
-  
+  <style>
+/* ===== Fix video hero size properly ===== */
+
+/* Default mobile/tablet (خليه كويس) */
+.dorik-section-jczn5hzy video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Laptop/Desktop */
+@media (min-width: 1024px) {
+  .dorik-section-jczn5hzy {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .dorik-section-jczn5hzy video {
+    height: 480px !important;   /* ارفعه شوي */
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1440px) {
+  .dorik-section-jczn5hzy video {
+    height: 560px !important;   /* أعلى لشاشات أكبر */
+  }
+}
+  </style>
     
   </body>
 </html>
