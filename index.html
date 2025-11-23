@@ -1359,10 +1359,17 @@ window.addEventListener("hashchange", updateContactText);
 window.addEventListener("load", updateContactText);
 
     </script>
+    <script>
+document.getElementById("contactForm").addEventListener("submit", function (e) {
+    this.method = "POST";
+    this.action = "/api/contact";
+});
+</script>
 </body>
 
 
 </html>
+
 
 
 
