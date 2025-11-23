@@ -1265,18 +1265,31 @@ switch (hash) {
             console.log('=== updateContactText() completed ===');
         }
 
-        // Simple navigation click handler
         function setupNavigation() {
-            console.log('Setting up navigation...');
+    console.log('Setting up navigation...');
 
-            document.querySelectorAll('a[href="#contact-us"], a[href="#support"], a[href="#request-access"]').forEach(link => {
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    console.log('Link clicked:', this.getAttribute('href'));
-                    window.location.hash = this.getAttribute('href');
-                });
+    document.querySelectorAll(
+        'a[href="#contact-us"], a[href="#support"], a[href="#request-access"]'
+    ).forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const target = this.getAttribute('href');  // "#support"
+            const cleanHash = target.replace('#', ''); // "support"
+
+            console.log('Link clicked ->', cleanHash);
+
+            // غير الهاش
+            window.location.hash = cleanHash;
+
+            // انزل للسيكشن مباشرة
+            document.getElementById('contact').scrollIntoView({
+                behavior: 'smooth'
             });
-        }
+        });
+    });
+}
+
 
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function () {
@@ -1333,6 +1346,7 @@ switch (hash) {
 
 
 </html>
+
 
 
 
