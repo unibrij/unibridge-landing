@@ -1219,30 +1219,48 @@ Transparent pay-as-you-go pricing starting at 0.1% per transaction — no setup 
 
             console.log('Before switch - hash:', hash);
 
-            // Update based on hash
-            switch (hash) {
-                case '#contact-us':
-                    console.log('Switching to CONTACT mode');
-                    contactTitle.textContent = 'Contact UniBridge';
-                    contactSubtitle.textContent = 'Get in touch with our team';
-                    dynamicText.innerHTML = '<strong>For general inquiries, please use the form below.</strong>';
-                    submitButton.textContent = 'Send Message';
-                    break;
-                case '#support':
-                    console.log('Switching to SUPPORT mode');
-                    contactTitle.textContent = 'Technical Support';
-                    contactSubtitle.textContent = 'We\'re here to help with integration and technical questions';
-                    dynamicText.innerHTML = '<strong>For technical issues or integration questions, our support team is here to help.</strong>';
-                    submitButton.textContent = 'Get Support';
-                    break;
-                case '#request-access':
-                    console.log('Switching to REQUEST ACCESS mode');
-                    // Keep default values
-                    break;
-                default:
-                    console.log('No matching hash found, using defaults');
-                    break;
-            }
+            // Reset default (Early Access)
+contactTitle.textContent = 'Request UniBridge Early Access';
+contactSubtitle.textContent = 'Exclusive access for fintech partners building on Stellar rails';
+dynamicText.innerHTML = '';
+submitButton.textContent = 'Request API Access';
+
+switch (hash) {
+
+    // ============================
+    // CONTACT MODE
+    // ============================
+    case '#contact-us':
+        contactTitle.textContent = 'Contact UniBridge';
+        contactSubtitle.textContent = 'Get in touch with our team';
+        dynamicText.innerHTML = 
+            '<strong>For general inquiries, please use the form below.</strong>';
+        submitButton.textContent = 'Send Message';
+        break;
+
+    // ============================
+    // SUPPORT MODE
+    // ============================
+    case '#support':
+        contactTitle.textContent = 'Technical Support';
+        contactSubtitle.textContent = 
+            'We’re here to help with integration and technical issues';
+        dynamicText.innerHTML = 
+            '<strong>For technical issues or integration questions, our support team is ready to assist.</strong>';
+        submitButton.textContent = 'Get Support';
+        break;
+
+    // ============================
+    // REQUEST ACCESS MODE
+    // ============================
+    case '#request-access':
+        // Keep default Early Access state
+        break;
+
+    default:
+        // Default = Early Access
+        break;
+}
 
             console.log('=== updateContactText() completed ===');
         }
@@ -1315,6 +1333,7 @@ Transparent pay-as-you-go pricing starting at 0.1% per transaction — no setup 
 
 
 </html>
+
 
 
 
