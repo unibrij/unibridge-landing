@@ -1083,29 +1083,65 @@
                     <p><strong>Invite-only. Apply below for early access.</strong></p>
                 </div>
                 <div class="contact-form fade-in">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Full name</label>
-                            <input type="text" id="name" name="name" class="form-control"
-                                placeholder="Enter your full name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Work Email</label>
-                            <input type="email" id="email" name="email" class="form-control"
-                                placeholder="yourname@company.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="company">Company / Project</label>
-                            <input type="text" id="company" name="company" class="form-control"
-                                placeholder="e.g. StellarWallet, FinPay Ltd">
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Integration Goal / Use Case</label>
-                            <textarea id="message" name="message" class="form-control" rows="4"
-                                placeholder="Describe what you want to achieve"></textarea>
-                        </div>
-                        <button type="submit" class="submit-button" id="submit-button">Request API Access</button>
-                    </form>
+                    <form 
+    id="contactForm"
+    method="POST"
+    action="/api/contact"
+>
+                
+>
+    <input type="hidden" name="_t" value="Y2VvQHVuaWJyaWouaW8=" />
+    <input type="hidden" name="_sub" value="New Technical Preview Request — UniBridge" />
+
+    <div class="form-group">
+        <label for="name">Full name</label>
+        <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            class="form-control"
+            placeholder="Enter your full name" 
+            required
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="email">Work Email</label>
+        <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control"
+            placeholder="yourname@company.com" 
+            required
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="company">Company / Project</label>
+        <input 
+            type="text" 
+            id="company" 
+            name="company"
+            class="form-control"
+            placeholder="e.g. StellarWallet, FinPay Ltd" 
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="message">Integration Goal / Use Case</label>
+        <textarea 
+            id="message" 
+            name="message" 
+            class="form-control" 
+            rows="4"
+            placeholder="Describe what you want to achieve..."
+        ></textarea>
+    </div>
+
+    <button type="submit" class="submit-button">Submit</button>
+</form>
+
                 </div>
             </div>
         </div>
@@ -1281,5 +1317,6 @@
         });
     </script>
 </body>
+
 
 </html>
