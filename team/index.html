@@ -332,46 +332,78 @@
     fill: #0A66C2 !important;  /* غيّر اللون يلي بدك ياه */
 }
   
-<style>
-/* ============================
-   TEAM PAGE — MOBILE FIXES
-   ============================ */
+/* ===========================================
+   FIX TEAM PAGE MOBILE LAYOUT (STACK + SPACING)
+   =========================================== */
 
-/* 1) Fix stretched / cropped team photos */
-.dorik-image-ryw0gh1s img,
-.dorik-image-hbvuw1hw img {
-    width: 100% !important;
-    height: auto !important;
-    object-fit: cover !important;
-    border-radius: 6px;
-}
-
-/* 2) Better vertical spacing under each member */
 @media (max-width: 767px) {
+
+    /* ضع الصور فوق النصوص */
     .dorik-row-go9xdox1,
     .dorik-row-alcbphd5 {
-        margin-bottom: 32px !important;
+        flex-direction: column !important;
     }
-}
 
-/* 3) Remove stray bullet dot under LinkedIn icon */
-.dorik-socialIcon-m5j3vjtx li::marker,
-.dorik-socialIcon-khgos1j6 li::marker {
-    content: "" !important;
-}
+    /* جعل الأعمدة 100% فوق بعض */
+    .dorik-column-zffp6ca2,
+    .dorik-column-txoanf7x,
+    .dorik-column-idv8lcl5,
+    .dorik-column-9vg4inh3 {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        text-align: center !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
 
-/* 4) Ensure social icons align properly */
-.dorik-socialIcon-m5j3vjtx,
-.dorik-socialIcon-khgos1j6 {
-    list-style: none !important;
-    padding-left: 0 !important;
-}
+    /* الصور: full width + rounded + proper aspect ratio */
+    .dorik-image-ryw0gh1s img,
+    .dorik-image-hbvuw1hw img {
+        width: 100% !important;
+        height: auto !important;
+        object-fit: cover !important;
+        border-radius: 10px !important;
+        display: block !important;
+        margin: 0 auto 16px auto !important;
+    }
 
-/* 5) Reduce top gap on mobile for cleaner layout */
-@media (max-width: 767px) {
-    .dorik-heading-lq3d55xp,
-    .dorik-heading-f1lbhkuf {
-        margin-top: 12px !important;
+    /* تعديل النصوص */
+    .dorik-text-yfm8d4i7,
+    .dorik-text-opdmg0ah,
+    .dorik-text-dusgyyyz,
+    .dorik-text-zfafrq5a {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* العناوين في الوسط */
+    .dorik-heading-bbjmrono,
+    .dorik-heading-0q5mtwp0 {
+        text-align: center !important;
+    }
+
+    /* تصغير LinkedIn icon */
+    .dorik-socialIcon-m5j3vjtx li svg,
+    .dorik-socialIcon-khgos1j6 li svg {
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    /* وضع الآيكون تحت النص بشكل جميل */
+    .dorik-socialIcon-m5j3vjtx,
+    .dorik-socialIcon-khgos1j6 {
+        justify-content: center !important;
+        margin-top: 8px !important;
+        margin-bottom: 24px !important;
+    }
+
+    /* تنظيف الفراغ الهائل */
+    .dorik-section-n4yvzfaa,
+    .dorik-section-1mhfvn0d {
+        padding-bottom: 20px !important;
     }
 }
 
