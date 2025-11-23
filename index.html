@@ -1280,12 +1280,12 @@ switch (hash) {
             console.log('Link clicked ->', cleanHash);
 
             // غيّر الهاش فقط
-            window.location.hash = cleanHash;
-
+            window.location.hash = '#' + cleanHash;
+            
             // شغّل التحديث بعد 50ms
             setTimeout(() => {
                 updateContactText();
-            }, 50);
+            }, 100);
 
             // انزل للسيكشن
             document.getElementById('contact').scrollIntoView({
@@ -1351,6 +1351,7 @@ switch (hash) {
 
 
 </html>
+
 
 
 
