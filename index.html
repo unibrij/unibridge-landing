@@ -1,4 +1,4 @@
-window.location.hash<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" dir="ltr">
 
 <head>
@@ -1274,13 +1274,18 @@ switch (hash) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
 
-            const target = this.getAttribute('href'); 
-            const cleanHash = target.replace('#', '');
+            const target = this.getAttribute('href');   // "#support"
+            const cleanHash = target.replace('#', ''); // "support"
 
             console.log('Link clicked ->', cleanHash);
 
             // غيّر الهاش فقط
             window.location.hash = cleanHash;
+
+            // شغّل التحديث بعد 50ms
+            setTimeout(() => {
+                updateContactText();
+            }, 50);
 
             // انزل للسيكشن
             document.getElementById('contact').scrollIntoView({
@@ -1346,6 +1351,7 @@ switch (hash) {
 
 
 </html>
+
 
 
 
