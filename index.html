@@ -1343,11 +1343,31 @@ switch (hash) {
             console.log('=== Window Loaded ===');
             updateContactText();
         });
+        function updateContactText() {
+    const hash = window.location.hash;
+    const dynamicText = document.querySelector(".dynamic-text");
+
+    if (!dynamicText) return;
+
+    if (hash === "#contact-us") {
+        dynamicText.textContent = "Reach out to our team — we're here to help you integrate on Stellar rails.";
+    } else if (hash === "#support") {
+        dynamicText.textContent = "Support for technical teams and integration partners.";
+    } else if (hash === "#request-access") {
+        dynamicText.textContent = "Exclusive access for fintech partners building on Stellar rails.";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", updateContactText);
+window.addEventListener("hashchange", updateContactText);
+window.addEventListener("load", updateContactText);
+
     </script>
 </body>
 
 
 </html>
+
 
 
 
