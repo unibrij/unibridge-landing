@@ -886,19 +886,28 @@
 .toast.show {
   opacity: 1;
 }
-    /* ==== Fix Industry Logos Size ==== */
+    /* === Fix Trust Logos Layout === */
+.trust-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;              /* مسافة بين اللوجوهات */
+    flex-wrap: wrap;        /* حتى لو الشاشة صغيرة ينزلوا سطر جديد */
+    padding: 20px 0;
+}
+
 .trust-logos img {
-    width: 110px !important;    /* عرض مناسب */
+    width: 130px !important;     /* كبرنا العرض */
     height: auto !important;
     object-fit: contain !important;
-    margin: 0 25px !important;  /* تباعد أنظف */
     opacity: 0.9;
-    transition: opacity 0.2s ease;
+    transition: 0.2s ease;
 }
 
 .trust-logos img:hover {
     opacity: 1;
 }
+
 </style>
 
     
@@ -1472,6 +1481,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
     
 
 </html>
+
 
 
 
