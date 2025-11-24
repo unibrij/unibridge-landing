@@ -1360,10 +1360,45 @@ window.addEventListener("hashchange", updateContactText);
 window.addEventListener("load", updateContactText);
 
     </script>
+    <script>
+document.getElementById("contactForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    console.log("=== Form Submitted ===", data);
+
+    try {
+        const res = await fetch("/api/contact", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+        console.log("=== API Response ===", json);
+
+        if (json.success) {
+            alert("Thank you for your request! We will contact you shortly.");
+            this.reset();
+        } else {
+            alert("Error: " + json.message);
+        }
+    } catch (err) {
+        console.error("=== FETCH ERROR ===", err);
+        alert("Something went wrong. Please try again.");
+    }
+});
+    </script>
+    
 </body>
 
 
 </html>
+
 
 
 
