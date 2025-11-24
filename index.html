@@ -1417,21 +1417,25 @@ document.getElementById("contactForm").addEventListener("submit", async function
         if (json.success) {
             showToast("Thank you for your request! We will contact you shortly.");
             this.reset();
-        } else {
-    showToast("Error: " + json.message);
-}
+        } 
+        else {
+            showToast("Error: " + json.message);
         }
+
     } catch (err) {
         console.error("=== FETCH ERROR ===", err);
         showToast("Something went wrong. Please try again.");
     }
 });
-    </script>
-    <div id="toast" class="toast"></div>
+</script>
+
+<div id="toast" class="toast"></div>
+
 </body>
     
 
 </html>
+
 
 
 
