@@ -6,7 +6,7 @@ VERSION="2.0.0"
 # ---------------------------------------------------------
 ORG_NAME="UniBridge Technologies Inc"
 ORG_URL="https://www.unibrij.io"
-ORG_LOGO="https://unibrij.io/unibrij-logo.png"
+ORG_LOGO="https://www.unibrij.io/unibrij-logo.png"
 
 ORG_DESCRIPTION="UniBridge Technologies Inc builds the UniBridge Protocol, a non-custodial cross-border payment routing layer enabling wallets to integrate with anchors such as MoneyGram using a standardized bridge key directory."
 
