@@ -886,27 +886,6 @@
 .toast.show {
   opacity: 1;
 }
-    /* === Fix Trust Logos Layout === */
-.trust-logos {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;              /* مسافة بين اللوجوهات */
-    flex-wrap: wrap;        /* حتى لو الشاشة صغيرة ينزلوا سطر جديد */
-    padding: 20px 0;
-}
-
-.trust-logos img {
-    width: 130px !important;     /* كبرنا العرض */
-    height: auto !important;
-    object-fit: contain !important;
-    opacity: 0.9;
-    transition: 0.2s ease;
-}
-
-.trust-logos img:hover {
-    opacity: 1;
-}
 
 </style>
 
@@ -1095,17 +1074,20 @@ Transparent pay-as-you-go pricing starting at 0.1% per transaction — no setup 
                 </p>
             </div>
         <div class="trust-logos fade-in">
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115119-3HwE.webp"
-         class="trust-logo" alt="Stellar">
+    
+<!-- ✨ Industry Partners Block (New) -->
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115119-3HWeE.png" 
+         alt="Stellar" class="partner-logo">
 
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115117-kBzci.png"
-         class="trust-logo" alt="OpenID">
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115117-kBzci.png" 
+         alt="OpenID" class="partner-logo">
 
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115116-5p3mt.png"
-         class="trust-logo" alt="ISO 20022">
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115116-5p3mt.png" 
+         alt="ISO 20022" class="partner-logo">
 
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115118-oXPC5.jpg"
-         class="trust-logo light-logo" alt="FinCEN">
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115118-oXPc5.jpg" 
+         alt="FinCEN" class="partner-logo">
+<!-- ✨ End Industry Partners Block -->
 </div>
 
         </div>
@@ -1457,21 +1439,6 @@ document.getElementById("contactForm").addEventListener("submit", async function
 
 <p><strong>Invite-only. Apply below for early access.</strong></p>
 
-<!-- ✨ Industry Partners Block (New) -->
-<div class="industry-partners">
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115119-3HWeE.png" 
-         alt="Stellar" class="partner-logo">
-
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115117-kBzci.png" 
-         alt="OpenID" class="partner-logo">
-
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115116-5p3mt.png" 
-         alt="ISO 20022" class="partner-logo">
-
-    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115118-oXPc5.jpg" 
-         alt="FinCEN" class="partner-logo">
-</div>
-<!-- ✨ End Industry Partners Block -->
 
 
 <div class="contact-form fade-in">
@@ -1481,6 +1448,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
     
 
 </html>
+
 
 
 
