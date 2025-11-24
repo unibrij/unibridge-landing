@@ -1382,22 +1382,23 @@ document.getElementById("contactForm").addEventListener("submit", async function
         console.log("=== API Response ===", json);
 
         if (json.success) {
-            alert("Thank you for your request! We will contact you shortly.");
+            showToast("Thank you for your request! We will contact you shortly.");
             this.reset();
         } else {
             alert("Error: " + json.message);
         }
     } catch (err) {
         console.error("=== FETCH ERROR ===", err);
-        alert("Something went wrong. Please try again.");
+        showToast("Something went wrong. Please try again.");
     }
 });
     </script>
-    
+    <div id="toast" class="toast"></div>
 </body>
-
+    
 
 </html>
+
 
 
 
