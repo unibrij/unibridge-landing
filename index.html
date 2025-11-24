@@ -1418,7 +1418,8 @@ document.getElementById("contactForm").addEventListener("submit", async function
             showToast("Thank you for your request! We will contact you shortly.");
             this.reset();
         } else {
-            alert("Error: " + json.message);
+    showToast("Error: " + json.message);
+}
         }
     } catch (err) {
         console.error("=== FETCH ERROR ===", err);
@@ -1431,6 +1432,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
     
 
 </html>
+
 
 
 
