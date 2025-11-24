@@ -1,32 +1,35 @@
 NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
 VERSION="2.0.0"
 
-# --------------------------------------------------
-# Key ownership (required for SEP-10 / MoneyGram)
-# --------------------------------------------------
+# -----------------------------------------------------
+# Key ownership (required for SEP-10)
+# -----------------------------------------------------
 SIGNING_KEY="GB5IDLQEBVN7HUDFG2XKC7CAAKIRRRGJ4TN7STOWLQROHBJRNX6LZTZP"
 
 ACCOUNTS=[
   "GB5IDLQEBVN7HUDFG2XKC7CAAKIRRRGJ4TN7STOWLQROHBJRNX6LZTZP"
 ]
 
-# --------------------------------------------------
-# Documentation (recommended by SEP-1)
-# --------------------------------------------------
+# -----------------------------------------------------
+# Documentation (recommended)
+# -----------------------------------------------------
 [DOCUMENTATION]
-ORG_NAME="UniBridge Technologies Inc"
-ORG_URL="https://www.unibrij.io"
-ORG_LOGO="https://www.unibrij.io/unibrij-logo.png"
-ORG_DESCRIPTION="UniBridge Technologies Inc builds the UniBridge Protocol, a non-custodial cross-border payment routing layer on Stellar."
-ORG_OFFICIAL_EMAIL="ceo@unibrij.io"
-ORG_SUPPORT_EMAIL="ceo@unibrij.io"
-# اذا حابب، فيك تضيف:
-# ORG_PHYSICAL_ADDRESS="..."
-# ORG_TWITTER="..."
-# ORG_GITHUB="..."
-# إلخ.
+ORG_NAME="UniBrij Protocol"
+ORG_DBA="UniBrij"
+ORG_URL="https://unibrij.io"
+ORG_LOGO="https://unibrij.io/images/unibridge-logo2.png"
+ORG_DESCRIPTION="Cross-border directory infrastructure (BKD) enabling wallet-to-anchor routing and settlement."
+ORG_GITHUB="https://github.com/unibridge-tech"
+ORG_TWITTER="https://twitter.com/unibrij"
+ORG_EMAIL="ceo@unibrij.io"
 
-# --------------------------------------------------
-# Currencies (فاضي حالياً وهذا مسموح)
-# --------------------------------------------------
-CURRENCIES=[]
+# -----------------------------------------------------
+# No currencies for MVP (skip to avoid warnings)
+# -----------------------------------------------------
+
+# -----------------------------------------------------
+# Web authentication (SEP-10)
+# -----------------------------------------------------
+[WEB_AUTH]
+ENDPOINT="https://unibrij.io/api/auth"
+SIGNING_KEY="GB5IDLQEBVN7HUDFG2XKC7CAAKIRRRGJ4TN7STOWLQROHBJRNX6LZTZP"
