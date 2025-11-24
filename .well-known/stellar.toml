@@ -10,7 +10,7 @@ ORG_LOGO="https://www.unibrij.io/logo.png"
 
 ORG_DESCRIPTION="UniBridge Technologies Inc builds the UniBridge Protocol, a non-custodial cross-border payment routing layer enabling wallets to integrate with anchors such as MoneyGram using a standardized bridge key directory."
 
-ORG_SUPPORT_EMAIL="support@unibrij.io"
+ORG_SUPPORT_EMAIL="ceo@unibrij.io"
 ORG_SUPPORT_PHONE="+1"
 
 # ---------------------------------------------------------
