@@ -1,35 +1,32 @@
 NETWORK_PASSPHRASE="Test SDF Network ; September 2015"
 VERSION="2.0.0"
 
-# ---------------------------------------------------------
-# Basic Wallet / Business Info
-# ---------------------------------------------------------
-ORG_NAME="UniBridge Technologies Inc"
-ORG_URL="https://www.unibrij.io"
-ORG_LOGO="https://www.unibrij.io/unibrij-logo.png"
-
-ORG_DESCRIPTION="UniBridge Technologies Inc builds the UniBridge Protocol, a non-custodial cross-border payment routing layer enabling wallets to integrate with anchors such as MoneyGram using a standardized bridge key directory."
-
-ORG_SUPPORT_EMAIL="ceo@unibrij.io"
-ORG_SUPPORT_PHONE="+1"
-
-# ---------------------------------------------------------
-# Key ownership (required for SEP-10)
-# ---------------------------------------------------------
+# --------------------------------------------------
+# Key ownership (required for SEP-10 / MoneyGram)
+# --------------------------------------------------
 SIGNING_KEY="GB5IDLQEBVN7HUDFG2XKC7CAAKIRRRGJ4TN7STOWLQROHBJRNX6LZTZP"
 
-# You can repeat same key or add more public keys if needed
 ACCOUNTS=[
   "GB5IDLQEBVN7HUDFG2XKC7CAAKIRRRGJ4TN7STOWLQROHBJRNX6LZTZP"
 ]
 
-# ---------------------------------------------------------
-# Currencies (optional for now; can stay empty)
-# ---------------------------------------------------------
-CURRENCIES=[]
+# --------------------------------------------------
+# Documentation (recommended by SEP-1)
+# --------------------------------------------------
+[DOCUMENTATION]
+ORG_NAME="UniBridge Technologies Inc"
+ORG_URL="https://www.unibrij.io"
+ORG_LOGO="https://www.unibrij.io/unibrij-logo.png"
+ORG_DESCRIPTION="UniBridge Technologies Inc builds the UniBridge Protocol, a non-custodial cross-border payment routing layer on Stellar."
+ORG_OFFICIAL_EMAIL="ceo@unibrij.io"
+ORG_SUPPORT_EMAIL="ceo@unibrij.io"
+# اذا حابب، فيك تضيف:
+# ORG_PHYSICAL_ADDRESS="..."
+# ORG_TWITTER="..."
+# ORG_GITHUB="..."
+# إلخ.
 
-# ---------------------------------------------------------
-# Stellar.toml compliance for MoneyGram
-# ---------------------------------------------------------
-# Non-custodial wallet requires that SIGNING_KEY exists
-# MoneyGram reads this file during onboarding
+# --------------------------------------------------
+# Currencies (فاضي حالياً وهذا مسموح)
+# --------------------------------------------------
+CURRENCIES=[]
