@@ -886,8 +886,22 @@
 .toast.show {
   opacity: 1;
 }
+    /* ==== Fix Industry Logos Size ==== */
+.trust-logos img {
+    width: 110px !important;    /* عرض مناسب */
+    height: auto !important;
+    object-fit: contain !important;
+    margin: 0 25px !important;  /* تباعد أنظف */
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.trust-logos img:hover {
+    opacity: 1;
+}
 </style>
 
+    
 </head>
 
 <body>
@@ -1071,7 +1085,20 @@ Transparent pay-as-you-go pricing starting at 0.1% per transaction — no setup 
                 <p>Infrastructure designed for financial institutions and fintechs building on open, interoperable global standards.
                 </p>
             </div>
-        
+        <div class="trust-logos fade-in">
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115119-3HwE.webp"
+         class="trust-logo" alt="Stellar">
+
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115117-kBzci.png"
+         class="trust-logo" alt="OpenID">
+
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115116-5p3mt.png"
+         class="trust-logo" alt="ISO 20022">
+
+    <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000115118-oXPC5.jpg"
+         class="trust-logo light-logo" alt="FinCEN">
+</div>
+
         </div>
     </section>
 
@@ -1445,6 +1472,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
     
 
 </html>
+
 
 
 
