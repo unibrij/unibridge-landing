@@ -1361,6 +1361,18 @@ window.addEventListener("load", updateContactText);
 
     </script>
     <script>
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+</script>
+
+    <script>
 document.getElementById("contactForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -1398,6 +1410,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
     
 
 </html>
+
 
 
 
