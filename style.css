@@ -5004,7 +5004,21 @@ color: #94a3b8;
 	.dorik-text-tn4a2kb7 {
 	   
 	}
-	
+	/* Footer Social Icons */
+.footer-social {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.footer-social .social-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    display: inline-block;
+}
+
 
 
 
