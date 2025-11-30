@@ -5018,6 +5018,17 @@ color: #94a3b8;
     object-fit: contain;
     display: inline-block;
 }
+/* FIX SOCIAL ICONS FOR FOOTER */
+.footer-social img.social-icon {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    object-fit: contain !important;
+    display: inline-block !important;
+}
 
 
 
