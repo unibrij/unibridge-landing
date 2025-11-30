@@ -16,7 +16,8 @@ export default async function handler(req, res) {
     });
 
     await transporter.sendMail({
-      from: `"UniBridge Contact" <${process.env.MAIL_USER}>`,
+      from: `"${name} via UniBridge" <${process.env.MAIL_USER}>`,
+replyTo: email,
       to: process.env.TO_EMAIL,
       subject: `New API Access Request - ${subject}`,
       text: `
