@@ -37,7 +37,7 @@ Message: ${message}
     //
     const autoReplyHTML = `
       <div style="font-family:Arial, sans-serif; line-height:1.6; padding:20px;">
-        <img src="https://unibrij.io/images/unibridge-logo2.png" 
+        <img src="https://www.unibrij.io/unibrij-logo.png" 
              alt="UniBridge Logo" 
              style="width:70px; margin-bottom:20px;" />
 
