@@ -496,9 +496,10 @@
             filter: brightness(0) invert(1);
             /* This makes dark logos white */
         }
-        .trust-logo.stellar {
-  height: 80px;
-        }
+        ..trust-logo.stellar {
+  max-height: 64px;
+  object-fit: contain;
+}
 
         /* For logos that are already light/white, override the filter */
         .trust-logo.light-logo {
