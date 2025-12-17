@@ -489,12 +489,15 @@
         }
 
         .trust-logo {
-            height: 90px;
+            height: 64px;
             opacity: 0.8;
             transition: opacity 0.3s ease;
             /* Let the logos display in their original colors but ensure visibility */
             filter: brightness(0) invert(1);
             /* This makes dark logos white */
+        }
+        .trust-logo.stellar {
+  transform: scale(1.3);
         }
 
         /* For logos that are already light/white, override the filter */
