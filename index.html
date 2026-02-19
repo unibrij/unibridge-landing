@@ -1074,6 +1074,10 @@ This creates a structural gap: transactions settle before their results are trul
 <section class="architectural-verdict fade-in">
 
 <style>
+<section class="architectural-verdict fade-in">
+
+<style>
+/* ===== Section ===== */
 .architectural-verdict {
   position: relative;
   padding: 160px 0;
@@ -1082,11 +1086,12 @@ This creates a structural gap: transactions settle before their results are trul
   overflow: hidden;
 }
 
-/* ===== Fade-in motion مثل باقي الصفحة ===== */
+/* ===== Fade-in motion (نفس نظام الصفحة) ===== */
 .architectural-verdict.fade-in {
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(.22,.61,.36,1);
+  transition: opacity 0.9s ease,
+              transform 0.9s cubic-bezier(.22,.61,.36,1);
 }
 
 .architectural-verdict.fade-in.visible {
@@ -1104,21 +1109,20 @@ This creates a structural gap: transactions settle before their results are trul
   line-height: 1.35;
 }
 
-/* ===== Subtle breathing motion (الفرق الحقيقي) ===== */
+/* ===== Awareness line (subtle motion) ===== */
 .architectural-verdict .verdict-bridge {
   font-size: 1.15rem;
   color: #5A6C7D;
   max-width: 720px;
   margin: 0 auto 28px;
   line-height: 1.6;
-
   animation: verdictBreath 6s ease-in-out infinite;
 }
 
 @keyframes verdictBreath {
-  0%   { opacity: 0.75; transform: translateY(0px); }
+  0%   { opacity: 0.75; transform: translateY(0); }
   50%  { opacity: 1;    transform: translateY(-2px); }
-  100% { opacity: 0.75; transform: translateY(0px); }
+  100% { opacity: 0.75; transform: translateY(0); }
 }
 
 /* ===== Final explanation ===== */
@@ -1130,13 +1134,14 @@ This creates a structural gap: transactions settle before their results are trul
   line-height: 1.7;
 }
 
-/* Mobile */
-@media (max-width:768px){
-  .architectural-verdict{
-    padding:110px 0;
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  .architectural-verdict {
+    padding: 110px 0;
   }
-  .architectural-verdict h2{
-    font-size:2rem;
+
+  .architectural-verdict h2 {
+    font-size: 2rem;
   }
 }
 </style>
@@ -1158,6 +1163,7 @@ This creates a structural gap: transactions settle before their results are trul
   </p>
 
 </div>
+
 </section>
     
     <!-- SOLUTIONS SECTION -->
