@@ -1010,91 +1010,26 @@ This creates a structural gap: transactions settle before their results are trul
         </div>
     </section>
     
-<section class="architectural-verdict">
-  <style>
-    .architectural-verdict {
-      position: relative;
-      padding: 160px 0;
-      background: #ffffff;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    /* Glow خفيف (اللون الثالث) خلف العنوان — الخيار الأقوى */
-    .architectural-verdict h2 {
-      font-size: 2.4rem;
-      font-weight: 600;
-      color: #003366; /* نفس section titles */
-      max-width: 760px;
-      margin: 0 auto 24px;
-      line-height: 1.35;
-      position: relative;
-      z-index: 1;
-    }
-
-    .architectural-verdict h2::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      bottom: -18px;
-      transform: translateX(-50%);
-      width: 160px;
-      height: 26px;
-      background: radial-gradient(
-        rgba(0, 212, 170, 0.28),
-        transparent 70%
-      );
-      filter: blur(14px);
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    /* سطر الإدراك */
-    .architectural-verdict .verdict-bridge {
-      font-size: 1.15rem;
-      color: #5A6C7D;
-      max-width: 720px;
-      margin: 0 auto 28px;
-      line-height: 1.6;
-    }
-
-    /* الشرح النهائي */
-    .architectural-verdict p {
-      font-size: 1.05rem;
-      color: #6b7682;
-      max-width: 620px;
-      margin: 0 auto;
-      line-height: 1.7;
-    }
-
-    /* موبايل */
-    @media (max-width: 768px) {
-      .architectural-verdict {
-        padding: 110px 0;
-<section class="architectural-verdict fade-in">
+<section class="architectural-verdict" id="architecturalVerdict">
 
 <style>
-<section class="architectural-verdict fade-in">
-
-<style>
-/* ===== Section ===== */
 .architectural-verdict {
   position: relative;
   padding: 160px 0;
   background: #ffffff;
   text-align: center;
   overflow: hidden;
-}
 
-/* ===== Fade-in motion (نفس نظام الصفحة) ===== */
-.architectural-verdict.fade-in {
+  /* الحالة الابتدائية (مخفي) */
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity 0.9s ease,
-              transform 0.9s cubic-bezier(.22,.61,.36,1);
+  transition:
+    opacity 0.9s ease,
+    transform 0.9s cubic-bezier(.22,.61,.36,1);
 }
 
-.architectural-verdict.fade-in.visible {
+/* عند الظهور */
+.architectural-verdict.visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1109,23 +1044,16 @@ This creates a structural gap: transactions settle before their results are trul
   line-height: 1.35;
 }
 
-/* ===== Awareness line (subtle motion) ===== */
+/* سطر الإدراك */
 .architectural-verdict .verdict-bridge {
   font-size: 1.15rem;
   color: #5A6C7D;
   max-width: 720px;
   margin: 0 auto 28px;
   line-height: 1.6;
-  animation: verdictBreath 6s ease-in-out infinite;
 }
 
-@keyframes verdictBreath {
-  0%   { opacity: 0.75; transform: translateY(0); }
-  50%  { opacity: 1;    transform: translateY(-2px); }
-  100% { opacity: 0.75; transform: translateY(0); }
-}
-
-/* ===== Final explanation ===== */
+/* الشرح النهائي */
 .architectural-verdict p {
   font-size: 1.05rem;
   color: #6b7682;
@@ -1134,14 +1062,13 @@ This creates a structural gap: transactions settle before their results are trul
   line-height: 1.7;
 }
 
-/* ===== Mobile ===== */
-@media (max-width: 768px) {
-  .architectural-verdict {
-    padding: 110px 0;
+/* Mobile */
+@media (max-width:768px){
+  .architectural-verdict{
+    padding:110px 0;
   }
-
-  .architectural-verdict h2 {
-    font-size: 2rem;
+  .architectural-verdict h2{
+    font-size:2rem;
   }
 }
 </style>
@@ -1163,6 +1090,26 @@ This creates a structural gap: transactions settle before their results are trul
   </p>
 
 </div>
+
+<script>
+/* ===== Fade-in داخلي مستقل ===== */
+(function () {
+  const section = document.getElementById('architecturalVerdict');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        section.classList.add('visible');
+        observer.disconnect(); // يظهر مرة واحدة فقط مثل باقي الصفحة
+      }
+    });
+  }, {
+    threshold: 0.18
+  });
+
+  observer.observe(section);
+})();
+</script>
 
 </section>
     
