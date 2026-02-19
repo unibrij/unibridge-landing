@@ -1009,35 +1009,35 @@ This creates a structural gap: transactions settle before their results are trul
             </div>
         </div>
     </section>
-    
+
 <!-- ===== ARCHITECTURAL VERDICT ===== -->
 <section class="architectural-verdict">
 
 <style>
-.architectural-verdict {
-  padding: 140px 0;
-  background: #ffffff;
-  text-align: center;
+.architectural-verdict{
+  padding:140px 0;
+  background:#ffffff;
+  text-align:center;
 }
 
-/* ===== CARD (العنصر الذي يعمل عليه الفيد) ===== */
-.verdict-card {
-  position: relative;
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 64px 48px;
-  background: #ffffff;
-  border-radius: 18px;
+/* ===== CARD (عنصر الفيد الحقيقي) ===== */
+.verdict-card{
+  position:relative;
+  max-width:780px;
+  margin:0 auto;
+  padding:64px 48px;
+  background:#ffffff;
+  border-radius:18px;
 
   box-shadow:
     0 10px 30px rgba(0,0,0,0.05),
     0 2px 8px rgba(0,51,102,0.06);
 
-  overflow: hidden;
+  overflow:hidden;
 }
 
-/* ===== إدخال اللون الثالث بهدوء ===== */
-.verdict-card::before {
+/* ===== Accent line (إدخال اللون الثالث) ===== */
+.verdict-card::before{
   content:"";
   position:absolute;
   top:0;
@@ -1046,7 +1046,8 @@ This creates a structural gap: transactions settle before their results are trul
   width:120px;
   height:4px;
   border-radius:4px;
-  background: linear-gradient(
+
+  background:linear-gradient(
     90deg,
     transparent,
     #00D4AA,
@@ -1055,8 +1056,38 @@ This creates a structural gap: transactions settle before their results are trul
   opacity:.9;
 }
 
+/* ===== Subtle identity glow ===== */
+.verdict-card::after{
+  content:"";
+  position:absolute;
+  top:-70px;
+  left:50%;
+  transform:translateX(-50%);
+  width:240px;
+  height:140px;
+
+  background:radial-gradient(
+    ellipse at center,
+    rgba(0,212,170,0.22) 0%,
+    rgba(0,212,170,0.08) 40%,
+    rgba(0,212,170,0) 70%
+  );
+
+  filter:blur(24px);
+  opacity:.45;
+  pointer-events:none;
+
+  animation:verdictGlow 6s ease-in-out infinite;
+}
+
+@keyframes verdictGlow{
+  0%   {opacity:.25; transform:translateX(-50%) scale(.95);}
+  50%  {opacity:.6;  transform:translateX(-50%) scale(1.05);}
+  100% {opacity:.25; transform:translateX(-50%) scale(.95);}
+}
+
 /* ===== TITLE ===== */
-.verdict-card h2 {
+.verdict-card h2{
   font-size:2.4rem;
   font-weight:600;
   color:#003366;
@@ -1065,7 +1096,7 @@ This creates a structural gap: transactions settle before their results are trul
 }
 
 /* ===== BRIDGE LINE ===== */
-.verdict-bridge {
+.verdict-bridge{
   font-size:1.15rem;
   color:#5A6C7D;
   margin-bottom:26px;
@@ -1073,7 +1104,7 @@ This creates a structural gap: transactions settle before their results are trul
 }
 
 /* ===== FINAL TEXT ===== */
-.verdict-card p {
+.verdict-card p{
   font-size:1.05rem;
   color:#6b7682;
   line-height:1.7;
@@ -1099,7 +1130,7 @@ This creates a structural gap: transactions settle before their results are trul
 
 <div class="container">
 
-  <!-- الفيد الحقيقي هنا -->
+  <!-- نفس fade-in system تبع الموقع -->
   <div class="verdict-card fade-in">
 
     <h2>
