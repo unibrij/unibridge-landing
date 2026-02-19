@@ -1010,107 +1010,115 @@ This creates a structural gap: transactions settle before their results are trul
         </div>
     </section>
     
-<section class="architectural-verdict" id="architecturalVerdict">
+<!-- ===== ARCHITECTURAL VERDICT ===== -->
+<section class="architectural-verdict">
 
 <style>
 .architectural-verdict {
-  position: relative;
-  padding: 160px 0;
+  padding: 140px 0;
   background: #ffffff;
   text-align: center;
+}
+
+/* ===== CARD (العنصر الذي يعمل عليه الفيد) ===== */
+.verdict-card {
+  position: relative;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 64px 48px;
+  background: #ffffff;
+  border-radius: 18px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.05),
+    0 2px 8px rgba(0,51,102,0.06);
+
   overflow: hidden;
-
-  /* الحالة الابتدائية (مخفي) */
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity 0.9s ease,
-    transform 0.9s cubic-bezier(.22,.61,.36,1);
 }
 
-/* عند الظهور */
-.architectural-verdict.visible {
-  opacity: 1;
-  transform: translateY(0);
+/* ===== إدخال اللون الثالث بهدوء ===== */
+.verdict-card::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:120px;
+  height:4px;
+  border-radius:4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #00D4AA,
+    transparent
+  );
+  opacity:.9;
 }
 
-/* ===== Title ===== */
-.architectural-verdict h2 {
-  font-size: 2.4rem;
-  font-weight: 600;
-  color: #003366;
-  max-width: 760px;
-  margin: 0 auto 24px;
-  line-height: 1.35;
+/* ===== TITLE ===== */
+.verdict-card h2 {
+  font-size:2.4rem;
+  font-weight:600;
+  color:#003366;
+  margin-bottom:22px;
+  line-height:1.35;
 }
 
-/* سطر الإدراك */
-.architectural-verdict .verdict-bridge {
-  font-size: 1.15rem;
-  color: #5A6C7D;
-  max-width: 720px;
-  margin: 0 auto 28px;
-  line-height: 1.6;
+/* ===== BRIDGE LINE ===== */
+.verdict-bridge {
+  font-size:1.15rem;
+  color:#5A6C7D;
+  margin-bottom:26px;
+  line-height:1.6;
 }
 
-/* الشرح النهائي */
-.architectural-verdict p {
-  font-size: 1.05rem;
-  color: #6b7682;
-  max-width: 620px;
-  margin: auto;
-  line-height: 1.7;
+/* ===== FINAL TEXT ===== */
+.verdict-card p {
+  font-size:1.05rem;
+  color:#6b7682;
+  line-height:1.7;
+  max-width:620px;
+  margin:0 auto;
 }
 
-/* Mobile */
+/* ===== MOBILE ===== */
 @media (max-width:768px){
   .architectural-verdict{
-    padding:110px 0;
+    padding:100px 0;
   }
-  .architectural-verdict h2{
-    font-size:2rem;
+
+  .verdict-card{
+    padding:46px 26px;
+  }
+
+  .verdict-card h2{
+    font-size:1.9rem;
   }
 }
 </style>
 
 <div class="container">
 
-  <h2>
-    The failure is not operational — it is architectural.
-  </h2>
+  <!-- الفيد الحقيقي هنا -->
+  <div class="verdict-card fade-in">
 
-  <div class="verdict-bridge">
-    Once settlement becomes irreversible, coordination must happen
-    before execution — not after.
+    <h2>
+      The failure is not operational — it is architectural.
+    </h2>
+
+    <div class="verdict-bridge">
+      Once settlement becomes irreversible, coordination must happen
+      before execution — not after.
+    </div>
+
+    <p>
+      No infrastructure defines or commits a shared transaction state
+      before execution begins.
+    </p>
+
   </div>
 
-  <p>
-    No infrastructure defines or commits a shared transaction state
-    before execution begins.
-  </p>
-
 </div>
-
-<script>
-/* ===== Fade-in داخلي مستقل ===== */
-(function () {
-  const section = document.getElementById('architecturalVerdict');
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        section.classList.add('visible');
-        observer.disconnect(); // يظهر مرة واحدة فقط مثل باقي الصفحة
-      }
-    });
-  }, {
-    threshold: 0.18
-  });
-
-  observer.observe(section);
-})();
-</script>
-
 </section>
     
     <!-- SOLUTIONS SECTION -->
