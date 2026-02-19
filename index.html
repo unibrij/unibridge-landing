@@ -1071,46 +1071,94 @@ This creates a structural gap: transactions settle before their results are trul
     @media (max-width: 768px) {
       .architectural-verdict {
         padding: 110px 0;
-      }
+<section class="architectural-verdict fade-in">
 
-      .architectural-verdict h2 {
-        font-size: 2rem;
-        margin-bottom: 18px;
-      }
+<style>
+.architectural-verdict {
+  position: relative;
+  padding: 160px 0;
+  background: #ffffff;
+  text-align: center;
+  overflow: hidden;
+}
 
-      .architectural-verdict h2::after {
-        width: 130px;
-        height: 22px;
-        bottom: -16px;
-        filter: blur(12px);
-      }
+/* ===== Fade-in motion مثل باقي الصفحة ===== */
+.architectural-verdict.fade-in {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(.22,.61,.36,1);
+}
 
-      .architectural-verdict .verdict-bridge {
-        font-size: 1.05rem;
-        margin-bottom: 22px;
-      }
+.architectural-verdict.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-      .architectural-verdict p {
-        font-size: 1rem;
-      }
-    }
-  </style>
+/* ===== Title ===== */
+.architectural-verdict h2 {
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #003366;
+  max-width: 760px;
+  margin: 0 auto 24px;
+  line-height: 1.35;
+}
 
-  <div class="container">
-    <h2>The failure is not operational — it is architectural.</h2>
+/* ===== Subtle breathing motion (الفرق الحقيقي) ===== */
+.architectural-verdict .verdict-bridge {
+  font-size: 1.15rem;
+  color: #5A6C7D;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
 
-    <div class="verdict-bridge">
-      Once settlement becomes irreversible, coordination must happen
-      before execution — not after.
-    </div>
+  animation: verdictBreath 6s ease-in-out infinite;
+}
 
-    <p>
-      No infrastructure defines or commits a shared transaction state
-      before execution begins.
-    </p>
+@keyframes verdictBreath {
+  0%   { opacity: 0.75; transform: translateY(0px); }
+  50%  { opacity: 1;    transform: translateY(-2px); }
+  100% { opacity: 0.75; transform: translateY(0px); }
+}
+
+/* ===== Final explanation ===== */
+.architectural-verdict p {
+  font-size: 1.05rem;
+  color: #6b7682;
+  max-width: 620px;
+  margin: auto;
+  line-height: 1.7;
+}
+
+/* Mobile */
+@media (max-width:768px){
+  .architectural-verdict{
+    padding:110px 0;
+  }
+  .architectural-verdict h2{
+    font-size:2rem;
+  }
+}
+</style>
+
+<div class="container">
+
+  <h2>
+    The failure is not operational — it is architectural.
+  </h2>
+
+  <div class="verdict-bridge">
+    Once settlement becomes irreversible, coordination must happen
+    before execution — not after.
   </div>
+
+  <p>
+    No infrastructure defines or commits a shared transaction state
+    before execution begins.
+  </p>
+
+</div>
 </section>
-```0
     
     <!-- SOLUTIONS SECTION -->
     <section class="solutions-section" id="solutions">
