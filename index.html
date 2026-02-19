@@ -1006,47 +1006,50 @@ This creates a structural gap: transactions settle before their results are trul
         </div>
     </section>
 
-<!-- ARCHITECTURAL INSIGHT -->
-<section class="architectural-insight" id="trust">
+<!-- ARCHITECTURAL BREAK -->
+<section class="architectural-break">
 
-  <style>
-    .architectural-insight {
-      padding: 90px 0;
-      text-align: center;
-      background: #f8fafc;
-    }
+<style>
+.architectural-break {
+  padding: 110px 0;
+  text-align: center;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0%,
+    #f3f6f9 100%
+  );
+}
 
-    .architectural-insight h2 {
-      margin-bottom: 35px;
-      font-weight: 600;
-    }
+.architectural-break .statement {
+  max-width: 720px;
+  margin: auto;
+}
 
-    .architectural-insight p {
-      max-width: 680px;
-      margin: 18px auto;
-      font-size: 1.1rem;
-      line-height: 1.8;
-      color: #555;
-    }
+.architectural-break .statement p {
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: #666;
+  margin: 18px 0;
+}
 
-    .architectural-insight .core-line {
-      font-weight: 600;
-      color: #111;
-      font-size: 1.2rem;
-    }
-  </style>
+.architectural-break .core {
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: #0b1f3a;
+  margin: 28px 0;
+}
+</style>
 
-  <div class="container">
-
-    <h2>The Failure Is Architectural — Not Operational</h2>
+<div class="container">
+  <div class="statement">
 
     <p>
       Each participant operates correctly within its own mandate.
     </p>
 
-    <p class="core-line">
+    <div class="core">
       The failure is not operational — it is architectural.
-    </p>
+    </div>
 
     <p>
       No infrastructure defines or commits a shared transaction state
@@ -1054,6 +1057,7 @@ This creates a structural gap: transactions settle before their results are trul
     </p>
 
   </div>
+</div>
 
 </section>
     
