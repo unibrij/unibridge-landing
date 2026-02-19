@@ -1006,31 +1006,30 @@ This creates a structural gap: transactions settle before their results are trul
         </div>
     </section>
 
-<!-- ARCHITECTURAL INSIGHT SECTION -->
-<section class="trust-section" id="trust">
+<!-- ARCHITECTURAL INSIGHT -->
+<section class="architectural-insight" id="trust">
+
   <style>
-    .trust-section {
+    .architectural-insight {
+      padding: 90px 0;
       text-align: center;
-      padding: 110px 0;
+      background: #f8fafc;
     }
 
-    .trust-section h2 {
-      margin-bottom: 40px;
+    .architectural-insight h2 {
+      margin-bottom: 35px;
+      font-weight: 600;
     }
 
-    .architectural-lines {
-      max-width: 720px;
-      margin: 0 auto;
-      font-size: 1.15rem;
-      line-height: 1.9;
+    .architectural-insight p {
+      max-width: 680px;
+      margin: 18px auto;
+      font-size: 1.1rem;
+      line-height: 1.8;
       color: #555;
     }
 
-    .architectural-lines p {
-      margin: 22px 0;
-    }
-
-    .architectural-lines p:nth-child(2) {
+    .architectural-insight .core-line {
       font-weight: 600;
       color: #111;
       font-size: 1.2rem;
@@ -1038,29 +1037,24 @@ This creates a structural gap: transactions settle before their results are trul
   </style>
 
   <div class="container">
-    <div class="trust-header fade-in">
 
-      <h2>The Failure Is Architectural — Not Operational</h2>
+    <h2>The Failure Is Architectural — Not Operational</h2>
 
-      <div class="architectural-lines">
+    <p>
+      Each participant operates correctly within its own mandate.
+    </p>
 
-        <p>
-          Each participant operates correctly within its own mandate.
-        </p>
+    <p class="core-line">
+      The failure is not operational — it is architectural.
+    </p>
 
-        <p>
-          The failure is not operational — it is architectural.
-        </p>
+    <p>
+      No infrastructure defines or commits a shared transaction state
+      before execution begins.
+    </p>
 
-        <p>
-          No infrastructure defines or commits a shared transaction state
-          before execution begins.
-        </p>
-
-      </div>
-
-    </div>
   </div>
+
 </section>
     
     <!-- SOLUTIONS SECTION -->
