@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>UniBridge Docs</title>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    color: #23282F;
+    line-height: 1.6;
+}
+
+/* Layout */
+.docs-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+/* Headings */
+h1 {
+    font-size: 2.5rem;
+    color: #003366;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.75rem;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    color: #003366;
+}
+
+/* Text */
+p {
+    color: #5A6C7D;
+    margin-bottom: 16px;
+}
+
+/* Cards */
+.card {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    margin-bottom: 32px;
+}
+
+/* Flow block */
+.flow {
+    background: #003366;
+    color: white;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+/* Highlight */
+.highlight {
+    color: #00D4AA;
+    font-weight: 600;
+}
+
+/* Button */
+.cta {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 14px 28px;
+    background: #00D4AA;
+    color: #003366;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.cta:hover {
+    background: #00b894;
+}
+</style>
+</head>
+
+<body>
+
+<div class="docs-container">
+
+<h1>UniBridge Documentation</h1>
+
+<!-- WHAT -->
+<div class="card">
+<h2>What UniBridge Does</h2>
+
+<p>
+UniBridge is a coordination layer for cross-border payouts.
+</p>
+
+<p>
+It allows applications and wallets to determine how a payout will be executed
+across multiple regulated partners — <span class="highlight">before any funds move</span>.
+</p>
+
+<p>
+UniBridge does not custody funds.
+It resolves execution first, then enforces it.
+</p>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="card">
+<h2>Architecture</h2>
+
+<p>UniBridge separates payout coordination into layers:</p>
+
+<p>
+Client Application → Session → Routing → Settlement → Execution
+</p>
+
+<p>
+UniBridge does not hold funds or execute payouts directly.
+It coordinates execution across partners.
+</p>
+</div>
+
+<!-- LIFECYCLE -->
+<div class="card">
+<h2>Execution Lifecycle</h2>
+
+<p>The payout flow follows a deterministic sequence:</p>
+
+<div class="flow">
+Session → Route Resolution → Settlement → Route Lock → Funding → Execution
+</div>
+
+<p style="margin-top:20px;">
+Execution is committed before funds move.
+</p>
+</div>
+
+<!-- USE CASE -->
+<div class="card">
+<h2>Use Case</h2>
+
+<p>
+A remittance app initiates a payout:
+</p>
+
+<ul>
+<li>Create session</li>
+<li>Resolve execution route</li>
+<li>Lock route</li>
+<li>Fund transaction</li>
+<li>Execute payout</li>
+</ul>
+
+<p>
+Funds are delivered through local rails like bank transfer or PIX.
+</p>
+</div>
+
+<!-- MODEL -->
+<div class="card">
+<h2>Execution Model</h2>
+
+<p>
+UniBridge ensures that execution is defined before funding.
+</p>
+
+<p>
+This eliminates uncertainty between settlement and payout.
+</p>
+
+<p class="highlight">
+Deterministic execution is the core principle.
+</p>
+</div>
+
+<a href="/" class="cta">Back to Home</a>
+
+</div>
+
+</body>
+</html>
