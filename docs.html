@@ -14,14 +14,12 @@ body {
     line-height: 1.6;
 }
 
-/* Layout */
 .docs-container {
     max-width: 900px;
     margin: 0 auto;
     padding: 80px 20px;
 }
 
-/* Headings */
 h1 {
     font-size: 2.5rem;
     color: #003366;
@@ -35,13 +33,11 @@ h2 {
     color: #003366;
 }
 
-/* Text */
 p {
     color: #5A6C7D;
     margin-bottom: 16px;
 }
 
-/* Cards */
 .card {
     background: white;
     padding: 32px;
@@ -50,7 +46,6 @@ p {
     margin-bottom: 32px;
 }
 
-/* Flow block */
 .flow {
     background: #003366;
     color: white;
@@ -61,13 +56,11 @@ p {
     margin-top: 20px;
 }
 
-/* Highlight */
 .highlight {
     color: #00D4AA;
     font-weight: 600;
 }
 
-/* Button */
 .cta {
     display: inline-block;
     margin-top: 30px;
@@ -100,13 +93,13 @@ UniBridge is a coordination layer for cross-border payouts.
 </p>
 
 <p>
-It allows applications and wallets to determine how a payout will be executed
+It enables applications and wallets to determine how a payout will be executed
 across multiple regulated partners — <span class="highlight">before any funds move</span>.
 </p>
 
 <p>
 UniBridge does not custody funds.
-It resolves execution first, then enforces it.
+Execution conditions are defined and enforced prior to movement.
 </p>
 </div>
 
@@ -114,15 +107,15 @@ It resolves execution first, then enforces it.
 <div class="card">
 <h2>Architecture</h2>
 
-<p>UniBridge separates payout coordination into layers:</p>
+<p>UniBridge separates payout coordination into logical layers:</p>
 
 <p>
-Client Application → Session → Routing → Settlement → Execution
+Client Application → Session → Coordination → Settlement Context → Execution
 </p>
 
 <p>
 UniBridge does not hold funds or execute payouts directly.
-It coordinates execution across partners.
+It orchestrates execution across independent partners.
 </p>
 </div>
 
@@ -130,14 +123,16 @@ It coordinates execution across partners.
 <div class="card">
 <h2>Execution Lifecycle</h2>
 
-<p>The payout flow follows a deterministic sequence:</p>
+<p>
+Each payout follows a coordinated process where execution conditions are established in advance.
+</p>
 
 <div class="flow">
-Session → Route Resolution → Settlement → Route Lock → Funding → Execution
+Execution is defined → validated → committed → then triggered upon funding
 </div>
 
 <p style="margin-top:20px;">
-Execution is committed before funds move.
+The exact execution path is resolved prior to fund movement and enforced during execution.
 </p>
 </div>
 
@@ -146,19 +141,19 @@ Execution is committed before funds move.
 <h2>Use Case</h2>
 
 <p>
-A remittance app initiates a payout:
+A remittance application initiates a payout request:
 </p>
 
 <ul>
-<li>Create session</li>
-<li>Resolve execution route</li>
-<li>Lock route</li>
-<li>Fund transaction</li>
-<li>Execute payout</li>
+<li>Initiate payout session</li>
+<li>Resolve available execution paths</li>
+<li>Commit to a selected route</li>
+<li>Provide funding</li>
+<li>Trigger execution across local rails</li>
 </ul>
 
 <p>
-Funds are delivered through local rails like bank transfer or PIX.
+Funds are delivered through local payment networks such as bank transfer or PIX.
 </p>
 </div>
 
@@ -167,15 +162,15 @@ Funds are delivered through local rails like bank transfer or PIX.
 <h2>Execution Model</h2>
 
 <p>
-UniBridge ensures that execution is defined before funding.
+UniBridge ensures that execution conditions are established before funding occurs.
 </p>
 
 <p>
-This eliminates uncertainty between settlement and payout.
+This removes uncertainty between settlement and final payout delivery.
 </p>
 
 <p class="highlight">
-Deterministic execution is the core principle.
+Deterministic execution is enforced at the coordination layer.
 </p>
 </div>
 
