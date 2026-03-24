@@ -147,7 +147,9 @@ margin-top:8px;
 
 <div class="container">
 
-<div class="logo">UniBridge</div>
+<div class="logo">
+UniBridge
+</div>
 
 <div class="steps">
 <div id="step1" class="step active">Setup</div>
@@ -167,7 +169,7 @@ margin-top:8px;
 <div><strong>Route</strong>: <span id="sumRoute">PIX Instant</span></div>
 </div>
 
-<input id="amount" type="number" step="0.01" value="10"/>
+<input id="amount" type="number" step="0.01" placeholder="Amount" value="10"/>
 
 <select id="source_country">
 <option value="US">United States</option>
@@ -184,13 +186,17 @@ margin-top:8px;
 
 <h3>PIX key</h3>
 
-<input id="pix"/>
+<input id="pix" placeholder="Enter PIX key"/>
 
 <div id="taxBox">
 <input id="taxId" placeholder="CPF / CNPJ"/>
 </div>
 
 <button id="continueBtn">Continue to payment</button>
+
+<div class="muted">
+PIX key is required.
+</div>
 
 </div>
 
@@ -200,118 +206,7 @@ margin-top:8px;
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<script>
-
-const tg = window.Telegram?.WebApp
-if(tg){ tg.expand() }
-
-let sessionId=null
-let routeId=null
-let settlementId=null
-let poller=null
-
-const sendBtn=document.getElementById("sendBtn")
-const continueBtn=document.getElementById("continueBtn")
-const statusBox=document.getElementById("status")
-const pixBox=document.getElementById("pixBox")
-
-function setStatus(msg){
-statusBox.innerText=msg
-}
-
-async function api(endpoint,payload){
-
-const r = await fetch(
-"/surface/api/proxy?endpoint=" + encodeURIComponent(endpoint),
-{
-method:"POST",
-headers:{ "content-type":"application/json" },
-body:JSON.stringify(payload || {})
-}
-)
-
-const text = await r.text()
-
-let data
-
-try{
-data = JSON.parse(text)
-}catch{
-data = { raw:text }
-}
-
-if(!r.ok){
-throw new Error(data.error || "api_error")
-}
-
-return data
-}
-
-async function startFlow(){
-
-try{
-
-setStatus("Registering...")
-
-const reg = await api("session/register",{
-source_country:"US",
-receiver_country:"BR"
-})
-
-sessionId = reg.session_id
-
-await api("session/resolve",{session_id:sessionId})
-
-const quote = await api("session/quote",{
-session_id:sessionId,
-amount:10
-})
-
-routeId = quote.routes[0].route_id
-
-pixBox.style.display="block"
-
-setStatus("Enter PIX")
-
-}
-catch(e){
-console.error(e)
-setStatus(e.message)
-}
-
-}
-
-async function continueFlow(){
-
-try{
-
-setStatus("Creating...")
-
-const create = await api("settlement/create",{
-session_id:sessionId,
-route_id:routeId,
-destination:{pix:"51999999999"}
-})
-
-settlementId = create.settlement_id
-
-const funding = await api("funding/session",{settlement_id:settlementId})
-
-window.location.href = funding.widget_url
-
-}
-catch(e){
-console.error(e)
-setStatus(e.message)
-}
-
-}
-
-sendBtn.onclick = startFlow
-continueBtn.onclick = continueFlow
-
-</script>
+<script src="/surface/app.js"></script>
 
 </body>
 </html>
