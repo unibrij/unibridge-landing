@@ -1,0 +1,12 @@
+{
+  "routes": [
+    {
+      "src": "^/surface$",
+      "dest": "/surface/public/index.html"
+    },
+    {
+      "src": "^/surface/(.*)",
+      "dest": "/surface/public/$1"
+    }
+  ]
+}
