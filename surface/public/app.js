@@ -1,255 +1,396 @@
-// unibridge-landing/surface/public/app.js
+const tg = window.Telegram?.WebApp
+if(tg){ tg.expand() }
 
-/*
+let sessionId = null
+let routeId = null
+let settlementId = null
+let poller = null
+let confirming = false
+let currentRoute = null
 
-UniBridge Telegram Surface
+const sendBtn = document.getElementById("sendBtn")
+const continueBtn = document.getElementById("continueBtn")
+const statusBox = document.getElementById("status")
+const summaryBox = document.getElementById("summary")
+const pixBox = document.getElementById("pixBox")
+const taxBox = document.getElementById("taxBox")
 
-Flow
+function setStep(n){
 
-1 register
-2 resolve
-3 quote
-4 create settlement
-5 funding session
-6 open ramp widget
-
-*/
-
-const tg = window.Telegram?.WebApp;
-
-/*
-
-SAFE ALERT
-
-*/
-
-function showError(msg){
-
-if(tg){
-tg.showAlert(msg);
+for(let i=1;i<=5;i++){
+document.getElementById("step"+i).classList.remove("active")
 }
-else{
-alert(msg);
-}
+
+document.getElementById("step"+n).classList.add("active")
 
 }
 
-/*
+function setStatus(msg,type){
 
-API CALL
+statusBox.innerText = msg
+statusBox.className = ""
 
-*/
+if(type === "success"){ statusBox.classList.add("status-success") }
+if(type === "error"){ statusBox.classList.add("status-error") }
 
-async function api(endpoint,payload){
+}
 
-const r =
-await fetch(`/surface/api/proxy?endpoint=${encodeURIComponent(endpoint)}`,{
+function formatAmount(value,symbol=""){
+const n = Number(value)
+if(!Number.isFinite(n)) return "-"
+return `${n.toFixed(2)} ${symbol}`
+}
+
+function updateSummaryFromQuote(route){
+
+document.getElementById("sumFunding").innerText =
+formatAmount(route.funding_amount,route.asset || "USDT")
+
+document.getElementById("sumCountry").innerText =
+document.getElementById("country").value
+
+document.getElementById("sumRoute").innerText =
+`${(route.payout_rail || "PIX").toUpperCase()} Instant`
+
+summaryBox.style.display = "block"
+
+}
+
+async function api(path,payload){
+
+const r = await fetch("/api/proxy?endpoint=" + encodeURIComponent(path),{
 method:"POST",
-headers:{
-"content-type":"application/json"
-},
-body:JSON.stringify(payload)
-});
+headers:{ "content-type":"application/json" },
+body:JSON.stringify(payload || {})
+})
 
-const text =
-await r.text();
+const text = await r.text()
 
-let data;
+let data
 
 try{
-data = JSON.parse(text);
-}
-catch{
-data = { raw:text };
+data = JSON.parse(text)
+}catch{
+data = { raw:text }
 }
 
 if(!r.ok){
-throw new Error(data?.error || "api_error");
+throw new Error(data.error || "api_error")
 }
 
-return data;
-
-}
-
-/*
-
-READ FORM
-
-*/
-
-function readForm(){
-
-const receiver_country =
-document.getElementById("receiver_country").value;
-
-const amount =
-Number(document.getElementById("amount").value);
-
-if(!receiver_country)
-throw new Error("missing_receiver_country");
-
-if(!amount || amount<=0)
-throw new Error("invalid_amount");
-
-return {
-receiver_country,
-amount
-};
+return data
 
 }
 
-/*
+async function getStatus(settlementIdValue){
 
-MAIN FLOW
+const r = await fetch("/api/proxy?endpoint=settlement/status&settlement_id=" + encodeURIComponent(settlementIdValue))
 
-*/
+const text = await r.text()
 
-async function start(){
+let data
 
-const btn =
-document.getElementById("sendBtn");
+try{
+data = JSON.parse(text)
+}catch{
+data = { raw:text }
+}
+
+if(!r.ok){
+throw new Error(data.error || "api_error")
+}
+
+return data
+
+}
+
+/* REGISTER + RESOLVE + QUOTE */
+
+async function startFlow(){
 
 try{
 
-btn.disabled = true;
+sendBtn.disabled = true
+continueBtn.disabled = true
+pixBox.style.display = "none"
+summaryBox.style.display = "none"
+taxBox.style.display = "none"
 
-const form =
-readForm();
+setStep(1)
+setStatus("Registering...")
 
-/*
+const amount = Number(document.getElementById("amount").value)
 
-1 REGISTER
-
-*/
-
-const register =
-await api(
-"session/register",
-{
-source_country:"US",
-receiver_country:form.receiver_country
-}
-);
-
-const session_id =
-register.session_id;
-
-/*
-
-2 RESOLVE
-
-*/
-
-await api(
-"session/resolve",
-{
-session_id
-}
-);
-
-/*
-
-3 QUOTE
-
-*/
-
-const quote =
-await api(
-"session/quote",
-{
-session_id,
-amount:form.amount
-}
-);
-
-if(!quote.routes || !quote.routes.length){
-throw new Error("no_routes_available");
+if(!Number.isFinite(amount) || amount <= 0){
+throw new Error("Invalid amount")
 }
 
-const route_id =
-quote.routes[0].route_id;
+const country = document.getElementById("country").value
+const source = document.getElementById("source_country").value
 
-/*
+const reg = await api("session/register",{
+source_country:source,
+receiver_country:country
+})
 
-4 CREATE SETTLEMENT
+sessionId = reg.session_id
 
-*/
+setStatus("Resolving route...")
 
-const create =
-await api(
-"settlement/create",
-{
-session_id,
-route_id,
-destination:{
-pix:"51999999999",
-tax_id:"12345678909"
-}
-}
-);
+const resolve = await api("session/resolve",{ session_id:sessionId })
 
-const settlement_id =
-create.settlement_id;
-
-/*
-
-5 FUNDING SESSION
-
-*/
-
-const funding =
-await api(
-"funding/session",
-{
-settlement_id
-}
-);
-
-const widget_url =
-funding.widget_url;
-
-if(!widget_url){
-throw new Error("widget_url_missing");
+if(!resolve?.delivery_options?.execution?.pix){
+throw new Error("PIX route unavailable")
 }
 
-/*
+setStatus("Getting quote...")
 
-OPEN RAMP
+const quote = await api("session/quote",{
+session_id:sessionId,
+amount
+})
 
-*/
-
-if(tg && tg.openLink){
-tg.openLink(widget_url);
+if(!quote.routes?.length){
+throw new Error("No routes available")
 }
-else{
-window.location.href = widget_url;
+
+currentRoute = quote.routes[0]
+routeId = currentRoute.route_id || currentRoute.id
+
+updateSummaryFromQuote(currentRoute)
+
+setStep(2)
+
+pixBox.style.display = "block"
+continueBtn.disabled = false
+
+if(currentRoute.requires_tax_id){
+taxBox.style.display = "block"
 }
+
+document.getElementById("pix").focus()
+
+setStatus("Enter PIX key")
 
 }
 catch(err){
 
-console.error(err);
-
-showError(err.message || "transfer_failed");
-
-}
-finally{
-
-const btn =
-document.getElementById("sendBtn");
-
-if(btn){
-btn.disabled = false;
-}
+console.error(err)
+setStatus(err.message,"error")
+sendBtn.disabled = false
+continueBtn.disabled = false
 
 }
 
 }
 
-/*
+/* CREATE + FUNDING */
 
-EXPOSE FUNCTION
+async function continueFlow(){
 
-*/
+try{
 
-window.start = start;
+continueBtn.disabled = true
+
+const pix = document.getElementById("pix").value.trim()
+const tax_id = document.getElementById("taxId").value.trim()
+
+if(!pix){
+throw new Error("PIX required")
+}
+
+const destination =
+tax_id ? { pix,tax_id } : { pix }
+
+setStatus("Creating settlement...")
+
+const create = await api("settlement/create",{
+session_id:sessionId,
+route_id:routeId,
+destination
+})
+
+settlementId = create.settlement_id
+
+localStorage.setItem("ub_settlement",settlementId)
+
+setStatus("Redirecting to payment...")
+
+const funding = await api("funding/session",{ settlement_id:settlementId })
+
+if(!funding.widget_url){
+throw new Error("Ramp unavailable")
+}
+
+setStep(3)
+
+window.location.href = funding.widget_url
+
+}
+catch(err){
+
+console.error(err)
+setStatus(err.message,"error")
+continueBtn.disabled = false
+
+}
+
+}
+
+/* CONFIRM PAYMENT */
+
+async function confirmSettlement(){
+
+if(confirming) return
+confirming = true
+
+try{
+
+setStep(4)
+setStatus("Confirming payment...")
+
+await api("settlement/confirm",{ settlement_id:settlementId })
+
+setStatus("Payment verified")
+
+startPolling()
+
+}
+catch(err){
+
+if(err.message === "funding_not_confirmed"){
+setStatus("Waiting for payment confirmation...")
+startPolling()
+confirming = false
+return
+}
+
+console.error(err)
+setStatus("Confirm failed","error")
+confirming = false
+
+}
+
+}
+
+/* POLLING */
+
+function startPolling(){
+
+if(!settlementId) return
+if(poller) return
+
+poller = setInterval(async ()=>{
+
+try{
+
+const data = await getStatus(settlementId)
+
+if(data.status === "pending_funding"){
+setStep(4)
+setStatus("Waiting for payment confirmation...")
+}
+
+if(data.status === "submitted"){
+setStep(4)
+setStatus("Transfer submitted")
+}
+
+if(data.status === "executing"){
+setStep(4)
+setStatus("Transfer executing")
+}
+
+if(data.status === "completed"){
+
+clearInterval(poller)
+poller = null
+
+setStep(5)
+setStatus("Transfer completed","success")
+
+localStorage.removeItem("ub_settlement")
+settlementId = null
+confirming = false
+
+}
+
+if(data.status === "failed"){
+
+clearInterval(poller)
+poller = null
+
+setStep(5)
+setStatus("Transfer failed","error")
+
+localStorage.removeItem("ub_settlement")
+settlementId = null
+confirming = false
+
+}
+
+}
+catch(e){
+console.error(e)
+}
+
+},5000)
+
+}
+
+/* RESUME AFTER REFRESH */
+
+window.addEventListener("load",async()=>{
+
+const saved = localStorage.getItem("ub_settlement")
+
+if(!saved) return
+
+try{
+
+settlementId = saved
+
+const data = await getStatus(settlementId)
+
+if(
+data.status === "submitted" ||
+data.status === "executing" ||
+data.status === "pending_funding"
+){
+
+setStep(4)
+setStatus("Resuming transfer...")
+startPolling()
+
+}else{
+
+localStorage.removeItem("ub_settlement")
+settlementId = null
+setStep(1)
+
+}
+
+}catch(e){
+
+localStorage.removeItem("ub_settlement")
+settlementId = null
+setStep(1)
+
+}
+
+})
+
+/* RETURN FROM PAYMENT */
+
+window.addEventListener("focus",()=>{
+
+if(!settlementId) return
+if(poller) return
+if(confirming) return
+
+confirmSettlement()
+
+})
+
+sendBtn.onclick = startFlow
+continueBtn.onclick = continueFlow
