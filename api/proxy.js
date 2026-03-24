@@ -1,4 +1,4 @@
-// unibridge-landing/surface/api/proxy.js
+// unibridge-landing/api/proxy.js
 
 import crypto from "crypto";
 
