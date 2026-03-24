@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/surface/:path*",
+      "destination": "https://surface.unibrij.io/:path*"
+    }
+  ]
+}
