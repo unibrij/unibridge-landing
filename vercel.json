@@ -1,12 +1,12 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/surface$",
-      "dest": "/surface/public/index.html"
+      "source": "/surface",
+      "destination": "/surface/public/index.html"
     },
     {
-      "src": "^/surface/(.*)",
-      "dest": "/surface/public/$1"
+      "source": "/surface/(?!api/)(:path*)",
+      "destination": "/surface/public/:path*"
     }
   ]
 }
