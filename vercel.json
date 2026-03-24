@@ -5,7 +5,7 @@
       "destination": "/surface/public/index.html"
     },
     {
-      "source": "/surface/(?!api/)(:path*)",
+      "source": "/surface/:path*",
       "destination": "/surface/public/:path*"
     }
   ]
