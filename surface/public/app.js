@@ -1,396 +1,680 @@
-const tg = window.Telegram?.WebApp
-if(tg){ tg.expand() }
+// unibrij/unibridge-landing/surface/public/app.js
 
-let sessionId = null
-let routeId = null
-let settlementId = null
-let poller = null
-let confirming = false
-let currentRoute = null
-
-const sendBtn = document.getElementById("sendBtn")
-const continueBtn = document.getElementById("continueBtn")
-const statusBox = document.getElementById("status")
-const summaryBox = document.getElementById("summary")
-const pixBox = document.getElementById("pixBox")
-const taxBox = document.getElementById("taxBox")
-
-function setStep(n){
-
-for(let i=1;i<=5;i++){
-document.getElementById("step"+i).classList.remove("active")
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.expand();
 }
 
-document.getElementById("step"+n).classList.add("active")
+let sessionId = null;
+let routeId = null;
+let settlementId = null;
+let poller = null;
+let confirmingFunding = false;
+let submittingExecution = false;
+let currentRoute = null;
+let paymentCheckStartedAt = null;
 
+const PAYMENT_STARTED_KEY = "ub_payment_started";
+const PAYMENT_STARTED_AT_KEY = "ub_payment_started_at";
+const SETTLEMENT_KEY = "ub_settlement";
+const PAYMENT_RECONCILIATION_WINDOW_MS = 30_000;
+const POLL_INTERVAL_MS = 5_000;
+
+const sendBtn = document.getElementById("sendBtn");
+const continueBtn = document.getElementById("continueBtn");
+const signBtn = document.getElementById("signBtn");
+const statusBox = document.getElementById("status");
+const summaryBox = document.getElementById("summary");
+const pixBox = document.getElementById("pixBox");
+const taxBox = document.getElementById("taxBox");
+const signBox = document.getElementById("signBox");
+
+function setStep(n) {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById("step" + i).classList.remove("active");
+  }
+
+  const stepEl = document.getElementById("step" + n);
+  if (stepEl) {
+    stepEl.classList.add("active");
+  }
 }
 
-function setStatus(msg,type){
+function setStatus(msg, type) {
+  statusBox.innerText = msg;
+  statusBox.className = "";
 
-statusBox.innerText = msg
-statusBox.className = ""
+  if (type === "success") {
+    statusBox.classList.add("status-success");
+  }
 
-if(type === "success"){ statusBox.classList.add("status-success") }
-if(type === "error"){ statusBox.classList.add("status-error") }
-
+  if (type === "error") {
+    statusBox.classList.add("status-error");
+  }
 }
 
-function formatAmount(value,symbol=""){
-const n = Number(value)
-if(!Number.isFinite(n)) return "-"
-return `${n.toFixed(2)} ${symbol}`
+function formatAmount(value, symbol = "") {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "-";
+  return `${n.toFixed(2)} ${symbol}`.trim();
 }
 
-function updateSummaryFromQuote(route){
-
-document.getElementById("sumFunding").innerText =
-formatAmount(route.funding_amount,route.asset || "USDT")
-
-document.getElementById("sumCountry").innerText =
-document.getElementById("country").value
-
-document.getElementById("sumRoute").innerText =
-`${(route.payout_rail || "PIX").toUpperCase()} Instant`
-
-summaryBox.style.display = "block"
-
+function persistSettlement(id) {
+  if (!id) return;
+  localStorage.setItem(SETTLEMENT_KEY, id);
 }
 
-async function api(path,payload){
-
-const r = await fetch("/api/proxy?endpoint=" + encodeURIComponent(path),{
-method:"POST",
-headers:{ "content-type":"application/json" },
-body:JSON.stringify(payload || {})
-})
-
-const text = await r.text()
-
-let data
-
-try{
-data = JSON.parse(text)
-}catch{
-data = { raw:text }
+function getPersistedSettlement() {
+  return localStorage.getItem(SETTLEMENT_KEY);
 }
 
-if(!r.ok){
-throw new Error(data.error || "api_error")
+function markPaymentStarted() {
+  const now = Date.now();
+  localStorage.setItem(PAYMENT_STARTED_KEY, "1");
+  localStorage.setItem(PAYMENT_STARTED_AT_KEY, String(now));
+  paymentCheckStartedAt = now;
 }
 
-return data
-
+function getPaymentStarted() {
+  return localStorage.getItem(PAYMENT_STARTED_KEY) === "1";
 }
 
-async function getStatus(settlementIdValue){
-
-const r = await fetch("/api/proxy?endpoint=settlement/status&settlement_id=" + encodeURIComponent(settlementIdValue))
-
-const text = await r.text()
-
-let data
-
-try{
-data = JSON.parse(text)
-}catch{
-data = { raw:text }
+function getPaymentStartedAt() {
+  const raw = localStorage.getItem(PAYMENT_STARTED_AT_KEY);
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-if(!r.ok){
-throw new Error(data.error || "api_error")
+function clearPaymentStarted() {
+  localStorage.removeItem(PAYMENT_STARTED_KEY);
+  localStorage.removeItem(PAYMENT_STARTED_AT_KEY);
+  paymentCheckStartedAt = null;
 }
 
-return data
+function clearPersistedSettlement() {
+  localStorage.removeItem(SETTLEMENT_KEY);
+}
 
+function clearLocalFlowState() {
+  clearPersistedSettlement();
+  clearPaymentStarted();
+  settlementId = null;
+  resetProcessingFlags();
+}
+
+function resetProcessingFlags() {
+  confirmingFunding = false;
+  submittingExecution = false;
+}
+
+function showFundingForm() {
+  pixBox.style.display = "block";
+  signBox.style.display = "none";
+}
+
+function showSignBox() {
+  pixBox.style.display = "none";
+  signBox.style.display = "block";
+}
+
+function hideAllActionBoxes() {
+  pixBox.style.display = "none";
+  signBox.style.display = "none";
+}
+
+function resetToStartUI() {
+  stopPolling();
+  resetProcessingFlags();
+  hideAllActionBoxes();
+  summaryBox.style.display = "none";
+  taxBox.style.display = "none";
+  sendBtn.disabled = false;
+  continueBtn.disabled = true;
+  signBtn.disabled = true;
+  setStep(1);
+  setStatus("");
+}
+
+function updateSummaryFromQuote(route) {
+  document.getElementById("sumFunding").innerText =
+    formatAmount(route.funding_amount, route.asset || "USDT");
+
+  document.getElementById("sumCountry").innerText =
+    document.getElementById("country").value;
+
+  document.getElementById("sumRoute").innerText =
+    `${(route.payout_rail || "PIX").toUpperCase()} Instant`;
+
+  summaryBox.style.display = "block";
+}
+
+async function api(path, payload, method = "POST") {
+  const options = {
+    method,
+    headers: { "content-type": "application/json" }
+  };
+
+  if (method !== "GET") {
+    options.body = JSON.stringify(payload || {});
+  }
+
+  const r = await fetch(
+    "/api/proxy?endpoint=" + encodeURIComponent(path),
+    options
+  );
+
+  const text = await r.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!r.ok) {
+    throw new Error(data.error || data.message || "api_error");
+  }
+
+  return data;
+}
+
+async function getStatus(settlementIdValue) {
+  const r = await fetch(
+    "/api/proxy?endpoint=settlement/status&settlement_id=" +
+      encodeURIComponent(settlementIdValue)
+  );
+
+  const text = await r.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!r.ok) {
+    throw new Error(data.error || data.message || "api_error");
+  }
+
+  return data;
+}
+
+function getSettlementStatus(data) {
+  return String(data?.status || "").trim().toLowerCase();
+}
+
+function isTerminalStatus(status) {
+  return status === "completed" || status === "failed";
+}
+
+function isExecutionTrackingStatus(status) {
+  return (
+    status === "submitted" ||
+    status === "executing" ||
+    status === "processing"
+  );
+}
+
+function updateUIForStatus(data) {
+  const status = getSettlementStatus(data);
+
+  if (status === "waiting_ramp_payment") {
+    setStep(4);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Checking payment...");
+    return;
+  }
+
+  if (status === "funding_confirmed") {
+    setStep(5);
+    showSignBox();
+    signBtn.disabled = false;
+    setStatus("Funding confirmed. Sign and send the transfer.");
+    return;
+  }
+
+  if (status === "submitted") {
+    setStep(6);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Transfer submitted to network...");
+    return;
+  }
+
+  if (status === "executing" || status === "processing") {
+    setStep(6);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Transfer processing...");
+    return;
+  }
+
+  if (status === "completed") {
+    setStep(6);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Transfer completed", "success");
+    clearLocalFlowState();
+    return;
+  }
+
+  if (status === "failed") {
+    setStep(6);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Transfer failed", "error");
+    clearLocalFlowState();
+    return;
+  }
+
+  setStatus("Unknown settlement state");
+}
+
+/*
+--------------------------------------------------
+Signer hook
+--------------------------------------------------
+Expected global hook:
+window.UnibridgeSigner.signSmartPayTx(unsignedTx, ctx)
+--------------------------------------------------
+*/
+
+async function requestSignedExecutionTx(unsignedTx, ctx = {}) {
+  const signer = window.UnibridgeSigner?.signSmartPayTx;
+
+  if (typeof signer !== "function") {
+    throw new Error("signer_not_connected");
+  }
+
+  const signedTx = await signer(unsignedTx, ctx);
+
+  if (
+    typeof signedTx !== "string" ||
+    !signedTx.trim()
+  ) {
+    throw new Error("invalid_signed_tx_from_signer");
+  }
+
+  return signedTx.trim();
 }
 
 /* REGISTER + RESOLVE + QUOTE */
 
-async function startFlow(){
+async function startFlow() {
+  try {
+    sendBtn.disabled = true;
+    continueBtn.disabled = true;
+    signBtn.disabled = true;
 
-try{
+    hideAllActionBoxes();
+    summaryBox.style.display = "none";
+    taxBox.style.display = "none";
 
-sendBtn.disabled = true
-continueBtn.disabled = true
-pixBox.style.display = "none"
-summaryBox.style.display = "none"
-taxBox.style.display = "none"
+    setStep(1);
+    setStatus("Registering...");
 
-setStep(1)
-setStatus("Registering...")
+    const amount = Number(document.getElementById("amount").value);
 
-const amount = Number(document.getElementById("amount").value)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error("Invalid amount");
+    }
 
-if(!Number.isFinite(amount) || amount <= 0){
-throw new Error("Invalid amount")
-}
+    const country = document.getElementById("country").value;
+    const source = document.getElementById("source_country").value;
 
-const country = document.getElementById("country").value
-const source = document.getElementById("source_country").value
+    const reg = await api("session/register", {
+      source_country: source,
+      receiver_country: country
+    });
 
-const reg = await api("session/register",{
-source_country:source,
-receiver_country:country
-})
+    sessionId = reg.session_id;
 
-sessionId = reg.session_id
+    setStatus("Resolving route...");
 
-setStatus("Resolving route...")
+    const resolve = await api("session/resolve", {
+      session_id: sessionId
+    });
 
-const resolve = await api("session/resolve",{ session_id:sessionId })
+    if (!resolve?.delivery_options?.execution?.pix) {
+      throw new Error("PIX route unavailable");
+    }
 
-if(!resolve?.delivery_options?.execution?.pix){
-throw new Error("PIX route unavailable")
-}
+    setStatus("Getting quote...");
 
-setStatus("Getting quote...")
+    const quote = await api("session/quote", {
+      session_id: sessionId,
+      amount
+    });
 
-const quote = await api("session/quote",{
-session_id:sessionId,
-amount
-})
+    if (!quote.routes?.length) {
+      throw new Error("No routes available");
+    }
 
-if(!quote.routes?.length){
-throw new Error("No routes available")
-}
+    currentRoute = quote.routes[0];
+    routeId = currentRoute.route_id || currentRoute.id;
 
-currentRoute = quote.routes[0]
-routeId = currentRoute.route_id || currentRoute.id
+    updateSummaryFromQuote(currentRoute);
 
-updateSummaryFromQuote(currentRoute)
+    setStep(2);
+    showFundingForm();
+    continueBtn.disabled = false;
+    sendBtn.disabled = false;
 
-setStep(2)
+    if (currentRoute.requires_tax_id) {
+      taxBox.style.display = "block";
+    }
 
-pixBox.style.display = "block"
-continueBtn.disabled = false
-
-if(currentRoute.requires_tax_id){
-taxBox.style.display = "block"
-}
-
-document.getElementById("pix").focus()
-
-setStatus("Enter PIX key")
-
-}
-catch(err){
-
-console.error(err)
-setStatus(err.message,"error")
-sendBtn.disabled = false
-continueBtn.disabled = false
-
-}
-
+    document.getElementById("pix").focus();
+    setStatus("Enter PIX key");
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message, "error");
+    sendBtn.disabled = false;
+    continueBtn.disabled = false;
+    signBtn.disabled = true;
+  }
 }
 
 /* CREATE + FUNDING */
 
-async function continueFlow(){
+async function continueFlow() {
+  try {
+    continueBtn.disabled = true;
 
-try{
+    const pix = document.getElementById("pix").value.trim();
+    const tax_id = document.getElementById("taxId").value.trim();
 
-continueBtn.disabled = true
+    if (!pix) {
+      throw new Error("PIX required");
+    }
 
-const pix = document.getElementById("pix").value.trim()
-const tax_id = document.getElementById("taxId").value.trim()
+    const destination = tax_id ? { pix, tax_id } : { pix };
 
-if(!pix){
-throw new Error("PIX required")
+    setStatus("Creating settlement...");
+
+    const create = await api("settlement/create", {
+      session_id: sessionId,
+      route_id: routeId,
+      destination
+    });
+
+    settlementId = create.settlement_id;
+    persistSettlement(settlementId);
+
+    setStatus("Preparing payment session...");
+
+    const funding = await api("funding/session", {
+      settlement_id: settlementId
+    });
+
+    if (!funding.widget_url) {
+      throw new Error("Ramp unavailable");
+    }
+
+    markPaymentStarted();
+
+    setStep(3);
+    hideAllActionBoxes();
+    setStatus("Redirecting to payment...");
+
+    window.location.href = funding.widget_url;
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message, "error");
+    continueBtn.disabled = false;
+  }
 }
 
-const destination =
-tax_id ? { pix,tax_id } : { pix }
+/* FUNDING CONFIRMATION */
 
-setStatus("Creating settlement...")
+async function tryFundingConfirmationOnce() {
+  await api("settlement/confirm", {
+    settlement_id: settlementId
+  });
 
-const create = await api("settlement/create",{
-session_id:sessionId,
-route_id:routeId,
-destination
-})
-
-settlementId = create.settlement_id
-
-localStorage.setItem("ub_settlement",settlementId)
-
-setStatus("Redirecting to payment...")
-
-const funding = await api("funding/session",{ settlement_id:settlementId })
-
-if(!funding.widget_url){
-throw new Error("Ramp unavailable")
+  return getStatus(settlementId);
 }
 
-setStep(3)
+async function reconcileReturnedPaymentFlow() {
+  if (!settlementId) return;
+  if (confirmingFunding) return;
 
-window.location.href = funding.widget_url
+  confirmingFunding = true;
 
+  try {
+    setStep(4);
+    hideAllActionBoxes();
+    signBtn.disabled = true;
+    setStatus("Checking payment...");
+
+    const startedAt =
+      paymentCheckStartedAt ||
+      getPaymentStartedAt() ||
+      Date.now();
+
+    paymentCheckStartedAt = startedAt;
+
+    while (Date.now() - startedAt < PAYMENT_RECONCILIATION_WINDOW_MS) {
+      try {
+        const data = await tryFundingConfirmationOnce();
+        const status = getSettlementStatus(data);
+
+        updateUIForStatus(data);
+
+        if (
+          status === "funding_confirmed" ||
+          isExecutionTrackingStatus(status) ||
+          isTerminalStatus(status)
+        ) {
+          clearPaymentStarted();
+
+          if (isExecutionTrackingStatus(status)) {
+            startPolling();
+          }
+
+          return;
+        }
+      } catch (err) {
+        if (
+          err.message !== "funding_not_confirmed" &&
+          err.message !== "funding_session_not_ready"
+        ) {
+          throw err;
+        }
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, POLL_INTERVAL_MS)
+      );
+    }
+
+    /*
+    --------------------------------------------------
+    No confirmed funding within reconciliation window
+    --------------------------------------------------
+    User may have entered ramp but not completed payment.
+    Return to a clean start so amount/route can be changed.
+    --------------------------------------------------
+    */
+
+    clearLocalFlowState();
+    resetToStartUI();
+    setStatus("Payment was not confirmed. Please start again.");
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message || "Funding confirm failed", "error");
+  } finally {
+    confirmingFunding = false;
+  }
 }
-catch(err){
 
-console.error(err)
-setStatus(err.message,"error")
-continueBtn.disabled = false
+/* BUILD + SIGN + SUBMIT */
 
-}
+async function signAndSubmitExecution() {
+  if (!settlementId) {
+    setStatus("Missing settlement", "error");
+    return;
+  }
 
-}
+  if (submittingExecution) return;
+  submittingExecution = true;
 
-/* CONFIRM PAYMENT */
+  try {
+    signBtn.disabled = true;
+    setStep(5);
+    setStatus("Preparing transfer...");
 
-async function confirmSettlement(){
+    const unsignedTx = await api("execution/build-unsigned-tx", {
+      settlement_id: settlementId
+    });
 
-if(confirming) return
-confirming = true
+    setStatus("Waiting for signature...");
 
-try{
+    const signedTx = await requestSignedExecutionTx(unsignedTx, {
+      settlement_id: settlementId,
+      route: currentRoute
+    });
 
-setStep(4)
-setStatus("Confirming payment...")
+    setStatus("Submitting transfer...");
 
-await api("settlement/confirm",{ settlement_id:settlementId })
+    await api("execution/submit-signed-tx", {
+      settlement_id: settlementId,
+      signed_tx: signedTx
+    });
 
-setStatus("Payment verified")
+    setStep(6);
+    hideAllActionBoxes();
+    setStatus("Transfer submitted");
+    startPolling();
+  } catch (err) {
+    console.error(err);
+    signBtn.disabled = false;
 
-startPolling()
-
-}
-catch(err){
-
-if(err.message === "funding_not_confirmed"){
-setStatus("Waiting for payment confirmation...")
-startPolling()
-confirming = false
-return
-}
-
-console.error(err)
-setStatus("Confirm failed","error")
-confirming = false
-
-}
-
+    if (err.message === "signer_not_connected") {
+      setStatus(
+        "Signer not connected. Connect the signer integration first.",
+        "error"
+      );
+    } else {
+      setStatus(err.message || "Submit failed", "error");
+    }
+  } finally {
+    submittingExecution = false;
+  }
 }
 
 /* POLLING */
 
-function startPolling(){
-
-if(!settlementId) return
-if(poller) return
-
-poller = setInterval(async ()=>{
-
-try{
-
-const data = await getStatus(settlementId)
-
-if(data.status === "pending_funding"){
-setStep(4)
-setStatus("Waiting for payment confirmation...")
+function stopPolling() {
+  if (poller) {
+    clearInterval(poller);
+    poller = null;
+  }
 }
 
-if(data.status === "submitted"){
-setStep(4)
-setStatus("Transfer submitted")
-}
+function startPolling() {
+  if (!settlementId) return;
+  if (poller) return;
 
-if(data.status === "executing"){
-setStep(4)
-setStatus("Transfer executing")
-}
+  poller = setInterval(async () => {
+    try {
+      const data = await getStatus(settlementId);
+      const status = getSettlementStatus(data);
 
-if(data.status === "completed"){
+      updateUIForStatus(data);
 
-clearInterval(poller)
-poller = null
+      if (status === "funding_confirmed") {
+        stopPolling();
+        return;
+      }
 
-setStep(5)
-setStatus("Transfer completed","success")
-
-localStorage.removeItem("ub_settlement")
-settlementId = null
-confirming = false
-
-}
-
-if(data.status === "failed"){
-
-clearInterval(poller)
-poller = null
-
-setStep(5)
-setStatus("Transfer failed","error")
-
-localStorage.removeItem("ub_settlement")
-settlementId = null
-confirming = false
-
-}
-
-}
-catch(e){
-console.error(e)
-}
-
-},5000)
-
+      if (isTerminalStatus(status)) {
+        stopPolling();
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, POLL_INTERVAL_MS);
 }
 
 /* RESUME AFTER REFRESH */
 
-window.addEventListener("load",async()=>{
+window.addEventListener("load", async () => {
+  const saved = getPersistedSettlement();
+  if (!saved) {
+    resetToStartUI();
+    continueBtn.disabled = true;
+    return;
+  }
 
-const saved = localStorage.getItem("ub_settlement")
+  try {
+    settlementId = saved;
 
-if(!saved) return
+    const data = await getStatus(settlementId);
+    const status = getSettlementStatus(data);
+    const paymentStarted = getPaymentStarted();
 
-try{
+    if (status === "waiting_ramp_payment") {
+      /*
+      --------------------------------------------------
+      If user had already entered ramp, do not throw
+      them straight back to start. First reconcile.
+      --------------------------------------------------
+      */
+      if (paymentStarted) {
+        await reconcileReturnedPaymentFlow();
+        return;
+      }
 
-settlementId = saved
+      clearLocalFlowState();
+      resetToStartUI();
+      continueBtn.disabled = true;
+      return;
+    }
 
-const data = await getStatus(settlementId)
+    updateUIForStatus(data);
 
-if(
-data.status === "submitted" ||
-data.status === "executing" ||
-data.status === "pending_funding"
-){
+    if (status === "funding_confirmed") {
+      clearPaymentStarted();
+      return;
+    }
 
-setStep(4)
-setStatus("Resuming transfer...")
-startPolling()
+    if (isExecutionTrackingStatus(status)) {
+      clearPaymentStarted();
+      startPolling();
+      return;
+    }
 
-}else{
+    if (isTerminalStatus(status)) {
+      return;
+    }
 
-localStorage.removeItem("ub_settlement")
-settlementId = null
-setStep(1)
-
-}
-
-}catch(e){
-
-localStorage.removeItem("ub_settlement")
-settlementId = null
-setStep(1)
-
-}
-
-})
+    clearLocalFlowState();
+    resetToStartUI();
+    continueBtn.disabled = true;
+  } catch (e) {
+    console.error(e);
+    clearLocalFlowState();
+    resetToStartUI();
+    continueBtn.disabled = true;
+  }
+});
 
 /* RETURN FROM PAYMENT */
 
-window.addEventListener("focus",()=>{
+window.addEventListener("focus", () => {
+  if (!settlementId) return;
+  if (!getPaymentStarted()) return;
+  if (poller) return;
+  if (confirmingFunding) return;
 
-if(!settlementId) return
-if(poller) return
-if(confirming) return
+  reconcileReturnedPaymentFlow();
+});
 
-confirmSettlement()
-
-})
-
-sendBtn.onclick = startFlow
-continueBtn.onclick = continueFlow
+sendBtn.onclick = startFlow;
+continueBtn.onclick = continueFlow;
+signBtn.onclick = signAndSubmitExecution;
