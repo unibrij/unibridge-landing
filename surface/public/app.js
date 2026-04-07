@@ -40,8 +40,45 @@ function setStep(n) {
   }
 }
 
+function normalizeErrorMessage(msg) {
+  if (typeof msg === "string") {
+    return msg;
+  }
+
+  if (msg instanceof Error) {
+    return msg.message || "Unexpected error";
+  }
+
+  if (msg && typeof msg === "object") {
+    if (typeof msg.error === "string" && msg.error.trim()) {
+      return msg.error;
+    }
+
+    if (typeof msg.message === "string" && msg.message.trim()) {
+      return msg.message;
+    }
+
+    if (
+      msg.error &&
+      typeof msg.error === "object" &&
+      typeof msg.error.message === "string" &&
+      msg.error.message.trim()
+    ) {
+      return msg.error.message;
+    }
+
+    try {
+      return JSON.stringify(msg);
+    } catch {
+      return "Unexpected error";
+    }
+  }
+
+  return String(msg || "");
+}
+
 function setStatus(msg, type) {
-  statusBox.innerText = msg;
+  statusBox.innerText = normalizeErrorMessage(msg);
   statusBox.className = "";
 
   if (type === "success") {
@@ -148,6 +185,35 @@ function updateSummaryFromQuote(route) {
   summaryBox.style.display = "block";
 }
 
+function extractApiErrorMessage(data, fallback = "api_error") {
+  if (!data || typeof data !== "object") {
+    return fallback;
+  }
+
+  if (typeof data.error === "string" && data.error.trim()) {
+    return data.error;
+  }
+
+  if (
+    data.error &&
+    typeof data.error === "object" &&
+    typeof data.error.message === "string" &&
+    data.error.message.trim()
+  ) {
+    return data.error.message;
+  }
+
+  if (typeof data.message === "string" && data.message.trim()) {
+    return data.message;
+  }
+
+  if (typeof data.raw === "string" && data.raw.trim()) {
+    return data.raw;
+  }
+
+  return fallback;
+}
+
 async function api(path, payload, method = "POST") {
   const options = {
     method,
@@ -173,7 +239,7 @@ async function api(path, payload, method = "POST") {
   }
 
   if (!r.ok) {
-    throw new Error(data.error || data.message || "api_error");
+    throw new Error(extractApiErrorMessage(data));
   }
 
   return data;
@@ -195,7 +261,7 @@ async function getStatus(settlementIdValue) {
   }
 
   if (!r.ok) {
-    throw new Error(data.error || data.message || "api_error");
+    throw new Error(extractApiErrorMessage(data));
   }
 
   return data;
@@ -371,7 +437,7 @@ async function startFlow() {
     setStatus("Enter PIX key");
   } catch (err) {
     console.error(err);
-    setStatus(err.message, "error");
+    setStatus(err, "error");
     sendBtn.disabled = false;
     continueBtn.disabled = false;
     signBtn.disabled = true;
@@ -423,7 +489,7 @@ async function continueFlow() {
     window.location.href = funding.widget_url;
   } catch (err) {
     console.error(err);
-    setStatus(err.message, "error");
+    setStatus(err, "error");
     continueBtn.disabled = false;
   }
 }
@@ -491,21 +557,12 @@ async function reconcileReturnedPaymentFlow() {
       );
     }
 
-    /*
-    --------------------------------------------------
-    No confirmed funding within reconciliation window
-    --------------------------------------------------
-    User may have entered ramp but not completed payment.
-    Return to a clean start so amount/route can be changed.
-    --------------------------------------------------
-    */
-
     clearLocalFlowState();
     resetToStartUI();
     setStatus("Payment was not confirmed. Please start again.");
   } catch (err) {
     console.error(err);
-    setStatus(err.message || "Funding confirm failed", "error");
+    setStatus(err, "error");
   } finally {
     confirmingFunding = false;
   }
@@ -559,7 +616,7 @@ async function signAndSubmitExecution() {
         "error"
       );
     } else {
-      setStatus(err.message || "Submit failed", "error");
+      setStatus(err, "error");
     }
   } finally {
     submittingExecution = false;
@@ -619,12 +676,6 @@ window.addEventListener("load", async () => {
     const paymentStarted = getPaymentStarted();
 
     if (status === "waiting_ramp_payment") {
-      /*
-      --------------------------------------------------
-      If user had already entered ramp, do not throw
-      them straight back to start. First reconcile.
-      --------------------------------------------------
-      */
       if (paymentStarted) {
         await reconcileReturnedPaymentFlow();
         return;
