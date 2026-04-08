@@ -13,6 +13,7 @@ let confirmingFunding = false;
 let submittingExecution = false;
 let currentRoute = null;
 let paymentCheckStartedAt = null;
+let pendingWidgetUrl = null;
 
 const PAYMENT_STARTED_KEY = "ub_payment_started";
 const PAYMENT_STARTED_AT_KEY = "ub_payment_started_at";
@@ -136,6 +137,7 @@ function clearLocalFlowState() {
   clearPersistedSettlement();
   clearPaymentStarted();
   settlementId = null;
+  pendingWidgetUrl = null;
   resetProcessingFlags();
 }
 
@@ -185,11 +187,13 @@ function updatePricingPreview(preview) {
 function resetToStartUI() {
   stopPolling();
   resetProcessingFlags();
+  pendingWidgetUrl = null;
   hideAllActionBoxes();
   summaryBox.style.display = "none";
   taxBox.style.display = "none";
   sendBtn.disabled = false;
   continueBtn.disabled = true;
+  continueBtn.innerText = "Continue to payment";
   signBtn.disabled = true;
   setStep(1);
   setStatus("");
@@ -363,15 +367,6 @@ function updateUIForStatus(data) {
   setStatus("Unknown settlement state");
 }
 
-/*
---------------------------------------------------
-Signer hook
---------------------------------------------------
-Expected global hook:
-window.UnibridgeSigner.signSmartPayTx(unsignedTx, ctx)
---------------------------------------------------
-*/
-
 async function requestSignedExecutionTx(unsignedTx, ctx = {}) {
   const signer = window.UnibridgeSigner?.signSmartPayTx;
 
@@ -403,6 +398,8 @@ async function startFlow() {
     summaryBox.style.display = "none";
     taxBox.style.display = "none";
     updatePricingPreview(null);
+    pendingWidgetUrl = null;
+    continueBtn.innerText = "Continue to payment";
 
     setStep(1);
     setStatus("Registering...");
@@ -475,6 +472,22 @@ async function continueFlow() {
   try {
     continueBtn.disabled = true;
 
+    /*
+    --------------------------------------------------
+    Second click:
+    open already-prepared payment widget
+    --------------------------------------------------
+    */
+
+    if (pendingWidgetUrl) {
+      markPaymentStarted();
+      setStep(3);
+      hideAllActionBoxes();
+      setStatus("Redirecting to payment...");
+      window.location.href = pendingWidgetUrl;
+      return;
+    }
+
     const pix = document.getElementById("pix").value.trim();
     const tax_id = document.getElementById("taxId").value.trim();
 
@@ -507,16 +520,13 @@ async function continueFlow() {
       throw new Error("Ramp unavailable");
     }
 
-    markPaymentStarted();
+    pendingWidgetUrl = funding.widget_url;
 
     setStep(3);
-    hideAllActionBoxes();
-    setStatus("Redirecting to payment...");
-
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    await new Promise(resolve => requestAnimationFrame(resolve));
-
-    window.location.href = funding.widget_url;
+    showFundingForm();
+    continueBtn.innerText = "Open payment";
+    continueBtn.disabled = false;
+    setStatus("Review estimated payment, then open payment.");
   } catch (err) {
     console.error(err);
     setStatus(err, "error");
