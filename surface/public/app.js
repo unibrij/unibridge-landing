@@ -513,6 +513,9 @@ async function continueFlow() {
     hideAllActionBoxes();
     setStatus("Redirecting to payment...");
 
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
     window.location.href = funding.widget_url;
   } catch (err) {
     console.error(err);
