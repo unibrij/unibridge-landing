@@ -159,6 +159,29 @@ function hideAllActionBoxes() {
   signBox.style.display = "none";
 }
 
+function updatePricingPreview(preview) {
+  const row = document.getElementById("estimatedPaymentRow");
+  const el = document.getElementById("sumEstimatedPayment");
+
+  if (!row || !el) return;
+
+  if (
+    preview &&
+    preview.fiat_amount !== undefined &&
+    preview.fiat_amount !== null
+  ) {
+    el.innerText = formatAmount(
+      preview.fiat_amount,
+      preview.fiat_currency || ""
+    );
+    row.style.display = "block";
+    return;
+  }
+
+  el.innerText = "";
+  row.style.display = "none";
+}
+
 function resetToStartUI() {
   stopPolling();
   resetProcessingFlags();
@@ -170,6 +193,7 @@ function resetToStartUI() {
   signBtn.disabled = true;
   setStep(1);
   setStatus("");
+  updatePricingPreview(null);
 }
 
 function updateSummaryFromQuote(route) {
@@ -378,6 +402,7 @@ async function startFlow() {
     hideAllActionBoxes();
     summaryBox.style.display = "none";
     taxBox.style.display = "none";
+    updatePricingPreview(null);
 
     setStep(1);
     setStatus("Registering...");
@@ -475,6 +500,8 @@ async function continueFlow() {
     const funding = await api("funding/session", {
       settlement_id: settlementId
     });
+
+    updatePricingPreview(funding.pricing_preview || null);
 
     if (!funding.widget_url) {
       throw new Error("Ramp unavailable");
