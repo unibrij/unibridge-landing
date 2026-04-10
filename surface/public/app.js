@@ -1,436 +1,247 @@
 // unibrij/unibridge-landing/surface/public/app.js
 
 const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.expand();
-}
+if (tg) tg.expand();
+
+/* =========================
+   STATE
+========================= */
 
 let sessionId = null;
 let routeId = null;
 let settlementId = null;
-let poller = null;
-let confirmingFunding = false;
-let submittingExecution = false;
-let currentRoute = null;
-let paymentCheckStartedAt = null;
-let pendingWidgetUrl = null;
 
-const PAYMENT_STARTED_KEY = "ub_payment_started";
-const PAYMENT_STARTED_AT_KEY = "ub_payment_started_at";
-const SETTLEMENT_KEY = "ub_settlement";
-const PAYMENT_RECONCILIATION_WINDOW_MS = 30_000;
-const POLL_INTERVAL_MS = 5_000;
+let pendingWidgetUrl = null;
+let currentNextAction = null;
+
+let processing = false;
+let nextActionProcessing = false;
+
+let executionPolling = null;
+
+const STORAGE_KEY = "ub_settlement";
+
+/* =========================
+   UI
+========================= */
 
 const sendBtn = document.getElementById("sendBtn");
 const continueBtn = document.getElementById("continueBtn");
 const signBtn = document.getElementById("signBtn");
 const statusBox = document.getElementById("status");
-const summaryBox = document.getElementById("summary");
-const pixBox = document.getElementById("pixBox");
-const taxBox = document.getElementById("taxBox");
-const signBox = document.getElementById("signBox");
 
-function setStep(n) {
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById("step" + i).classList.remove("active");
-  }
+signBtn.disabled = true;
 
-  const stepEl = document.getElementById("step" + n);
-  if (stepEl) {
-    stepEl.classList.add("active");
-  }
-}
-
-function normalizeErrorMessage(msg) {
-  if (typeof msg === "string") {
-    return msg;
-  }
-
-  if (msg instanceof Error) {
-    return msg.message || "Unexpected error";
-  }
-
-  if (msg && typeof msg === "object") {
-    if (typeof msg.error === "string" && msg.error.trim()) {
-      return msg.error;
-    }
-
-    if (typeof msg.message === "string" && msg.message.trim()) {
-      return msg.message;
-    }
-
-    if (
-      msg.error &&
-      typeof msg.error === "object" &&
-      typeof msg.error.message === "string" &&
-      msg.error.message.trim()
-    ) {
-      return msg.error.message;
-    }
-
-    try {
-      return JSON.stringify(msg);
-    } catch {
-      return "Unexpected error";
-    }
-  }
-
-  return String(msg || "");
-}
+/* =========================
+   HELPERS
+========================= */
 
 function setStatus(msg, type) {
-  statusBox.innerText = normalizeErrorMessage(msg);
+  statusBox.innerText = msg?.message || msg || "";
   statusBox.className = "";
 
-  if (type === "success") {
-    statusBox.classList.add("status-success");
-  }
-
-  if (type === "error") {
-    statusBox.classList.add("status-error");
-  }
+  if (type === "error") statusBox.classList.add("status-error");
+  if (type === "success") statusBox.classList.add("status-success");
 }
 
-function formatAmount(value, symbol = "") {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "-";
-  return `${n.toFixed(2)} ${symbol}`.trim();
+async function api(path, payload) {
+  const r = await fetch("/api/proxy?endpoint=" + path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload || {})
+  });
+
+  const text = await r.text();
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!r.ok) {
+    throw new Error(data.error || data.message || "api_error");
+  }
+
+  return data;
 }
+
+/* =========================
+   STORAGE (WITH EXPIRY)
+========================= */
 
 function persistSettlement(id) {
   if (!id) return;
-  localStorage.setItem(SETTLEMENT_KEY, id);
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      id,
+      ts: Date.now()
+    })
+  );
 }
 
 function getPersistedSettlement() {
-  return localStorage.getItem(SETTLEMENT_KEY);
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+
+    if (Date.now() - data.ts > 30 * 60 * 1000) {
+      clearState();
+      return null;
+    }
+
+    return data.id;
+
+  } catch {
+    return null;
+  }
 }
 
-function markPaymentStarted() {
-  const now = Date.now();
-  localStorage.setItem(PAYMENT_STARTED_KEY, "1");
-  localStorage.setItem(PAYMENT_STARTED_AT_KEY, String(now));
-  paymentCheckStartedAt = now;
-}
-
-function getPaymentStarted() {
-  return localStorage.getItem(PAYMENT_STARTED_KEY) === "1";
-}
-
-function getPaymentStartedAt() {
-  const raw = localStorage.getItem(PAYMENT_STARTED_AT_KEY);
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-function clearPaymentStarted() {
-  localStorage.removeItem(PAYMENT_STARTED_KEY);
-  localStorage.removeItem(PAYMENT_STARTED_AT_KEY);
-  paymentCheckStartedAt = null;
-}
-
-function clearPersistedSettlement() {
-  localStorage.removeItem(SETTLEMENT_KEY);
-}
-
-function clearLocalFlowState() {
-  clearPersistedSettlement();
-  clearPaymentStarted();
+function clearState() {
+  sessionId = null;
+  routeId = null;
   settlementId = null;
   pendingWidgetUrl = null;
-  resetProcessingFlags();
-}
+  currentNextAction = null;
+  processing = false;
+  nextActionProcessing = false;
 
-function resetProcessingFlags() {
-  confirmingFunding = false;
-  submittingExecution = false;
-}
-
-function showFundingForm() {
-  pixBox.style.display = "block";
-  signBox.style.display = "none";
-}
-
-function showSignBox() {
-  pixBox.style.display = "none";
-  signBox.style.display = "block";
-}
-
-function hideAllActionBoxes() {
-  pixBox.style.display = "none";
-  signBox.style.display = "none";
-}
-
-function updatePricingPreview(preview) {
-  const row = document.getElementById("estimatedPaymentRow");
-  const el = document.getElementById("sumEstimatedPayment");
-
-  if (!row || !el) return;
-
-  if (
-    preview &&
-    preview.fiat_amount !== undefined &&
-    preview.fiat_amount !== null
-  ) {
-    el.innerText = formatAmount(
-      preview.fiat_amount,
-      preview.fiat_currency || ""
-    );
-    row.style.display = "block";
-    return;
+  if (executionPolling) {
+    clearInterval(executionPolling);
+    executionPolling = null;
   }
 
-  el.innerText = "";
-  row.style.display = "none";
-}
-
-function resetToStartUI() {
-  stopPolling();
-  resetProcessingFlags();
-  pendingWidgetUrl = null;
-  hideAllActionBoxes();
-  summaryBox.style.display = "none";
-  taxBox.style.display = "none";
-  sendBtn.disabled = false;
-  continueBtn.disabled = true;
-  continueBtn.innerText = "Continue to payment";
+  localStorage.removeItem(STORAGE_KEY);
   signBtn.disabled = true;
-  setStep(1);
-  setStatus("");
-  updatePricingPreview(null);
 }
 
-function updateSummaryFromQuote(route) {
-  document.getElementById("sumFunding").innerText =
-    formatAmount(route.funding_amount, route.asset || "USDT");
+/* =========================
+   AUTO EXECUTION
+========================= */
 
-  document.getElementById("sumCountry").innerText =
-    document.getElementById("country").value;
+async function tryAutoExecute() {
+  if (processing) return false;
+  processing = true;
 
-  document.getElementById("sumRoute").innerText =
-    `${(route.payout_rail || "PIX").toUpperCase()} Instant`;
-
-  summaryBox.style.display = "block";
-}
-
-function extractApiErrorMessage(data, fallback = "api_error") {
-  if (!data || typeof data !== "object") {
-    return fallback;
-  }
-
-  if (typeof data.error === "string" && data.error.trim()) {
-    return data.error;
-  }
-
-  if (
-    data.error &&
-    typeof data.error === "object" &&
-    typeof data.error.message === "string" &&
-    data.error.message.trim()
-  ) {
-    return data.error.message;
-  }
-
-  if (typeof data.message === "string" && data.message.trim()) {
-    return data.message;
-  }
-
-  if (typeof data.raw === "string" && data.raw.trim()) {
-    return data.raw;
-  }
-
-  return fallback;
-}
-
-async function api(path, payload, method = "POST") {
-  const options = {
-    method,
-    headers: { "content-type": "application/json" }
-  };
-
-  if (method !== "GET") {
-    options.body = JSON.stringify(payload || {});
-  }
-
-  const r = await fetch(
-    "/api/proxy?endpoint=" + encodeURIComponent(path),
-    options
-  );
-
-  const text = await r.text();
-
-  let data;
   try {
-    data = JSON.parse(text);
-  } catch {
-    data = { raw: text };
-  }
+    const status = await api("settlement/status", {
+      settlement_id: settlementId
+    });
 
-  if (!r.ok) {
-    throw new Error(extractApiErrorMessage(data));
-  }
+    if (!status?.execution_ready) {
+      return false; // silent
+    }
 
-  return data;
-}
+    setStatus("Auto executing...", "success");
 
-async function getStatus(settlementIdValue) {
-  const r = await fetch(
-    "/api/proxy?endpoint=settlement/status&settlement_id=" +
-      encodeURIComponent(settlementIdValue)
-  );
+    const unsignedTx = await api("execution/build-unsigned-tx", {
+      settlement_id: settlementId
+    });
 
-  const text = await r.text();
+    const signer = window.UnibridgeSigner?.signSmartPayTx;
 
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = { raw: text };
-  }
+    if (!signer) {
+      setStatus("Wallet not connected", "error");
+      signBtn.disabled = false;
+      return false;
+    }
 
-  if (!r.ok) {
-    throw new Error(extractApiErrorMessage(data));
-  }
+    const signedTx = await signer(unsignedTx);
 
-  return data;
-}
+    if (!signedTx || typeof signedTx !== "string") {
+      throw new Error("invalid_signed_tx");
+    }
 
-function getSettlementStatus(data) {
-  return String(data?.status || "").trim().toLowerCase();
-}
+    await api("execution/submit-signed-tx", {
+      settlement_id: settlementId,
+      signed_tx: signedTx
+    });
 
-function isTerminalStatus(status) {
-  return status === "completed" || status === "failed";
-}
+    setStatus("Executed successfully", "success");
+    clearState();
 
-function isExecutionTrackingStatus(status) {
-  return (
-    status === "submitted" ||
-    status === "executing" ||
-    status === "processing"
-  );
-}
+    return true;
 
-function updateUIForStatus(data) {
-  const status = getSettlementStatus(data);
-
-  if (status === "waiting_ramp_payment") {
-    setStep(4);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Checking payment...");
-    return;
-  }
-
-  if (status === "funding_confirmed") {
-    setStep(5);
-    showSignBox();
+  } catch (e) {
+    setStatus(e, "error");
     signBtn.disabled = false;
-    setStatus("Funding confirmed. Sign and send the transfer.");
-    return;
+    return false;
+  } finally {
+    processing = false;
   }
-
-  if (status === "submitted") {
-    setStep(6);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Transfer submitted to network...");
-    return;
-  }
-
-  if (status === "executing" || status === "processing") {
-    setStep(6);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Transfer processing...");
-    return;
-  }
-
-  if (status === "completed") {
-    setStep(6);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Transfer completed", "success");
-    clearLocalFlowState();
-    return;
-  }
-
-  if (status === "failed") {
-    setStep(6);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Transfer failed", "error");
-    clearLocalFlowState();
-    return;
-  }
-
-  setStatus("Unknown settlement state");
 }
 
-async function requestSignedExecutionTx(unsignedTx, ctx = {}) {
-  const signer = window.UnibridgeSigner?.signSmartPayTx;
+/* =========================
+   EXECUTION POLLING
+========================= */
 
-  if (typeof signer !== "function") {
-    throw new Error("signer_not_connected");
+function startExecutionPolling() {
+  if (executionPolling) {
+    clearInterval(executionPolling);
   }
 
-  const signedTx = await signer(unsignedTx, ctx);
-
-  if (
-    typeof signedTx !== "string" ||
-    !signedTx.trim()
-  ) {
-    throw new Error("invalid_signed_tx_from_signer");
-  }
-
-  return signedTx.trim();
+  executionPolling = setInterval(async () => {
+    const done = await tryAutoExecute();
+    if (done) {
+      clearInterval(executionPolling);
+      executionPolling = null;
+    }
+  }, 3000);
 }
 
-/* REGISTER + RESOLVE + QUOTE */
+/* =========================
+   KYC AUTO-FILL
+========================= */
+
+function buildKycPayload() {
+  const tgUser = tg?.initDataUnsafe?.user;
+
+  return {
+    firstName: tgUser?.first_name || "Test",
+    lastName: tgUser?.last_name || "User",
+    mobileNumber: "+5511999999999",
+    dob: "1990-01-01",
+    addressLine1: "Rua Exemplo 123",
+    city: "Curitiba",
+    state: "PR",
+    postCode: "80000-000",
+    countryCode: "BR"
+  };
+}
+
+/* =========================
+   START
+========================= */
 
 async function startFlow() {
+  if (processing) return;
+
   try {
+    processing = true;
+
     sendBtn.disabled = true;
     continueBtn.disabled = true;
-    signBtn.disabled = true;
 
-    hideAllActionBoxes();
-    summaryBox.style.display = "none";
-    taxBox.style.display = "none";
-    updatePricingPreview(null);
-    pendingWidgetUrl = null;
-    continueBtn.innerText = "Continue to payment";
-
-    setStep(1);
     setStatus("Registering...");
 
     const amount = Number(document.getElementById("amount").value);
-
     if (!Number.isFinite(amount) || amount <= 0) {
-      throw new Error("Invalid amount");
+      throw new Error("invalid_amount");
     }
 
-    const country = document.getElementById("country").value;
-    const source = document.getElementById("source_country").value;
-
     const reg = await api("session/register", {
-      source_country: source,
-      receiver_country: country
+      source_country: document.getElementById("source_country").value,
+      receiver_country: document.getElementById("country").value
     });
 
     sessionId = reg.session_id;
 
-    setStatus("Resolving route...");
-
-    const resolve = await api("session/resolve", {
-      session_id: sessionId
-    });
-
-    if (!resolve?.delivery_options?.execution?.pix) {
-      throw new Error("PIX route unavailable");
-    }
-
-    setStatus("Getting quote...");
+    await api("session/resolve", { session_id: sessionId });
 
     const quote = await api("session/quote", {
       session_id: sessionId,
@@ -438,334 +249,245 @@ async function startFlow() {
     });
 
     if (!quote.routes?.length) {
-      throw new Error("No routes available");
+      throw new Error("no_routes");
     }
 
-    currentRoute = quote.routes[0];
-    routeId = currentRoute.route_id || currentRoute.id;
+    routeId = quote.routes[0].route_id;
 
-    updateSummaryFromQuote(currentRoute);
-
-    setStep(2);
-    showFundingForm();
     continueBtn.disabled = false;
-    sendBtn.disabled = false;
-
-    if (currentRoute.requires_tax_id) {
-      taxBox.style.display = "block";
-    }
-
-    document.getElementById("pix").focus();
     setStatus("Enter PIX key");
-  } catch (err) {
-    console.error(err);
-    setStatus(err, "error");
+
+  } catch (e) {
+    setStatus(e, "error");
+  } finally {
+    processing = false;
     sendBtn.disabled = false;
-    continueBtn.disabled = false;
-    signBtn.disabled = true;
   }
 }
 
-/* CREATE + FUNDING */
+/* =========================
+   WHITELABEL LOOP
+========================= */
+
+async function processNextActions() {
+  if (nextActionProcessing) return;
+
+  nextActionProcessing = true;
+  continueBtn.disabled = true;
+
+  try {
+    let steps = 0;
+
+    while (currentNextAction && steps < 10) {
+      steps++;
+
+      const step = currentNextAction.step;
+      setStatus("Processing: " + step);
+
+      let res;
+
+      try {
+        if (step === "email_otp") {
+          const email = prompt("Enter email");
+          if (!email) throw new Error("email_required");
+
+          res = await api("ramp/auth/start", {
+            settlement_id: settlementId,
+            email
+          });
+        }
+
+        else if (step === "otp_verify") {
+          const otp = prompt("Enter OTP");
+          if (!otp) throw new Error("otp_required");
+
+          res = await api("ramp/auth/verify", {
+            settlement_id: settlementId,
+            otp
+          });
+        }
+
+        else if (step === "fetch_user") {
+          res = await api("ramp/auth/user", {
+            settlement_id: settlementId
+          });
+        }
+
+        else if (step === "kyc_requirement") {
+          res = await api("ramp/kyc/requirement", {
+            settlement_id: settlementId
+          });
+        }
+
+        else if (step === "kyc_user") {
+          res = await api("ramp/kyc/user", {
+            settlement_id: settlementId,
+            user: buildKycPayload()
+          });
+        }
+
+        else if (step === "order_create") {
+          res = await api("ramp/order/create", {
+            settlement_id: settlementId
+          });
+        }
+
+        else if (
+          step === "order_confirm_payment" ||
+          step === "order_status"
+        ) {
+          currentNextAction = null;
+
+          setStatus("Waiting for payment confirmation...");
+          startExecutionPolling();
+
+          continueBtn.disabled = false;
+          return;
+        }
+
+        else {
+          throw new Error("unhandled_step_" + step);
+        }
+
+      } catch (e) {
+        setStatus(e, "error");
+        currentNextAction = null;
+        continueBtn.disabled = false;
+        return;
+      }
+
+      if (!res) {
+        setStatus("Empty response", "error");
+        currentNextAction = null;
+        continueBtn.disabled = false;
+        return;
+      }
+
+      currentNextAction = res.next_action || null;
+    }
+
+    if (steps >= 10) {
+      setStatus("Loop detected", "error");
+      currentNextAction = null;
+      continueBtn.disabled = false;
+    }
+
+  } finally {
+    nextActionProcessing = false;
+  }
+}
+
+/* =========================
+   CONTINUE
+========================= */
 
 async function continueFlow() {
+  if (processing) return;
+
   try {
     continueBtn.disabled = true;
 
-    /*
-    --------------------------------------------------
-    Second click:
-    open already-prepared payment widget
-    --------------------------------------------------
-    */
-
     if (pendingWidgetUrl) {
-      markPaymentStarted();
-      setStep(3);
-      hideAllActionBoxes();
-      setStatus("Redirecting to payment...");
+      continueBtn.disabled = false;
       window.location.href = pendingWidgetUrl;
       return;
     }
 
-    const pix = document.getElementById("pix").value.trim();
-    const tax_id = document.getElementById("taxId").value.trim();
+    processing = true;
 
-    if (!pix) {
-      throw new Error("PIX required");
+    const pix = document.getElementById("pix").value.trim();
+    if (!pix) throw new Error("PIX_required");
+
+    if (!settlementId) {
+      const create = await api("settlement/create", {
+        session_id: sessionId,
+        route_id: routeId,
+        destination: { pix }
+      });
+
+      settlementId = create.settlement_id;
+      persistSettlement(settlementId);
     }
 
-    const destination = tax_id ? { pix, tax_id } : { pix };
+    if (!currentNextAction && !pendingWidgetUrl) {
+      const funding = await api("funding/session", {
+        settlement_id: settlementId
+      });
 
-    setStatus("Creating settlement...");
+      if (funding?.next_action) {
+        currentNextAction = funding.next_action;
+      } else if (funding?.widget_url) {
+        pendingWidgetUrl = funding.widget_url;
+      } else {
+        throw new Error("invalid_funding_state");
+      }
+    }
 
-    const create = await api("settlement/create", {
-      session_id: sessionId,
-      route_id: routeId,
-      destination
-    });
+    if (currentNextAction) {
+      await processNextActions();
+      continueBtn.disabled = false;
+      return;
+    }
 
-    settlementId = create.settlement_id;
-    persistSettlement(settlementId);
+    if (pendingWidgetUrl) {
+      continueBtn.innerText = "Open payment";
+      continueBtn.disabled = false;
+      setStatus("Ready for payment");
+      return;
+    }
 
-    setStatus("Preparing payment session...");
+    throw new Error("no_funding_flow");
+
+  } catch (e) {
+    setStatus(e, "error");
+    continueBtn.disabled = false;
+  } finally {
+    processing = false;
+  }
+}
+
+/* =========================
+   RESUME
+========================= */
+
+window.addEventListener("load", async () => {
+  const saved = getPersistedSettlement();
+  if (!saved) return;
+
+  settlementId = saved;
+
+  setStatus("Resuming...");
+
+  try {
+    const executed = await tryAutoExecute();
+    if (executed) return;
 
     const funding = await api("funding/session", {
       settlement_id: settlementId
     });
 
-    updatePricingPreview(funding.pricing_preview || null);
-
-    if (!funding.widget_url) {
-      throw new Error("Ramp unavailable");
-    }
-
-    pendingWidgetUrl = funding.widget_url;
-
-    setStep(3);
-    showFundingForm();
-    continueBtn.innerText = "Open payment";
-    continueBtn.disabled = false;
-    setStatus("Review estimated payment, then open payment.");
-  } catch (err) {
-    console.error(err);
-    setStatus(err, "error");
-    continueBtn.disabled = false;
-  }
-}
-
-/* FUNDING CONFIRMATION */
-
-async function tryFundingConfirmationOnce() {
-  await api("settlement/confirm", {
-    settlement_id: settlementId
-  });
-
-  return getStatus(settlementId);
-}
-
-async function reconcileReturnedPaymentFlow() {
-  if (!settlementId) return;
-  if (confirmingFunding) return;
-
-  confirmingFunding = true;
-
-  try {
-    setStep(4);
-    hideAllActionBoxes();
-    signBtn.disabled = true;
-    setStatus("Checking payment...");
-
-    const startedAt =
-      paymentCheckStartedAt ||
-      getPaymentStartedAt() ||
-      Date.now();
-
-    paymentCheckStartedAt = startedAt;
-
-    while (Date.now() - startedAt < PAYMENT_RECONCILIATION_WINDOW_MS) {
-      try {
-        const data = await tryFundingConfirmationOnce();
-        const status = getSettlementStatus(data);
-
-        updateUIForStatus(data);
-
-        if (
-          status === "funding_confirmed" ||
-          isExecutionTrackingStatus(status) ||
-          isTerminalStatus(status)
-        ) {
-          clearPaymentStarted();
-
-          if (isExecutionTrackingStatus(status)) {
-            startPolling();
-          }
-
-          return;
-        }
-      } catch (err) {
-        if (
-          err.message !== "funding_not_confirmed" &&
-          err.message !== "funding_session_not_ready"
-        ) {
-          throw err;
-        }
-      }
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, POLL_INTERVAL_MS)
-      );
-    }
-
-    clearLocalFlowState();
-    resetToStartUI();
-    setStatus("Payment was not confirmed. Please start again.");
-  } catch (err) {
-    console.error(err);
-    setStatus(err, "error");
-  } finally {
-    confirmingFunding = false;
-  }
-}
-
-/* BUILD + SIGN + SUBMIT */
-
-async function signAndSubmitExecution() {
-  if (!settlementId) {
-    setStatus("Missing settlement", "error");
-    return;
-  }
-
-  if (submittingExecution) return;
-  submittingExecution = true;
-
-  try {
-    signBtn.disabled = true;
-    setStep(5);
-    setStatus("Preparing transfer...");
-
-    const unsignedTx = await api("execution/build-unsigned-tx", {
-      settlement_id: settlementId
-    });
-
-    setStatus("Waiting for signature...");
-
-    const signedTx = await requestSignedExecutionTx(unsignedTx, {
-      settlement_id: settlementId,
-      route: currentRoute
-    });
-
-    setStatus("Submitting transfer...");
-
-    await api("execution/submit-signed-tx", {
-      settlement_id: settlementId,
-      signed_tx: signedTx
-    });
-
-    setStep(6);
-    hideAllActionBoxes();
-    setStatus("Transfer submitted");
-    startPolling();
-  } catch (err) {
-    console.error(err);
-    signBtn.disabled = false;
-
-    if (err.message === "signer_not_connected") {
-      setStatus(
-        "Signer not connected. Connect the signer integration first.",
-        "error"
-      );
-    } else {
-      setStatus(err, "error");
-    }
-  } finally {
-    submittingExecution = false;
-  }
-}
-
-/* POLLING */
-
-function stopPolling() {
-  if (poller) {
-    clearInterval(poller);
-    poller = null;
-  }
-}
-
-function startPolling() {
-  if (!settlementId) return;
-  if (poller) return;
-
-  poller = setInterval(async () => {
-    try {
-      const data = await getStatus(settlementId);
-      const status = getSettlementStatus(data);
-
-      updateUIForStatus(data);
-
-      if (status === "funding_confirmed") {
-        stopPolling();
-        return;
-      }
-
-      if (isTerminalStatus(status)) {
-        stopPolling();
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, POLL_INTERVAL_MS);
-}
-
-/* RESUME AFTER REFRESH */
-
-window.addEventListener("load", async () => {
-  const saved = getPersistedSettlement();
-  if (!saved) {
-    resetToStartUI();
-    continueBtn.disabled = true;
-    return;
-  }
-
-  try {
-    settlementId = saved;
-
-    const data = await getStatus(settlementId);
-    const status = getSettlementStatus(data);
-    const paymentStarted = getPaymentStarted();
-
-    if (status === "waiting_ramp_payment") {
-      if (paymentStarted) {
-        await reconcileReturnedPaymentFlow();
-        return;
-      }
-
-      clearLocalFlowState();
-      resetToStartUI();
-      continueBtn.disabled = true;
+    if (funding?.next_action) {
+      currentNextAction = funding.next_action;
+      await processNextActions();
       return;
     }
 
-    updateUIForStatus(data);
-
-    if (status === "funding_confirmed") {
-      clearPaymentStarted();
-      return;
+    if (funding?.widget_url) {
+      pendingWidgetUrl = funding.widget_url;
+      continueBtn.innerText = "Open payment";
+      continueBtn.disabled = false;
+      setStatus("Resume payment");
     }
 
-    if (isExecutionTrackingStatus(status)) {
-      clearPaymentStarted();
-      startPolling();
-      return;
-    }
-
-    if (isTerminalStatus(status)) {
-      return;
-    }
-
-    clearLocalFlowState();
-    resetToStartUI();
-    continueBtn.disabled = true;
   } catch (e) {
-    console.error(e);
-    clearLocalFlowState();
-    resetToStartUI();
-    continueBtn.disabled = true;
+    setStatus(e, "error");
   }
 });
 
-/* RETURN FROM PAYMENT */
-
-window.addEventListener("focus", () => {
-  if (!settlementId) return;
-  if (!getPaymentStarted()) return;
-  if (poller) return;
-  if (confirmingFunding) return;
-
-  reconcileReturnedPaymentFlow();
-});
+/* =========================
+   EVENTS
+========================= */
 
 sendBtn.onclick = startFlow;
 continueBtn.onclick = continueFlow;
-signBtn.onclick = signAndSubmitExecution;
+signBtn.onclick = tryAutoExecute;
