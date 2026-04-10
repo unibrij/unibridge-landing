@@ -6,192 +6,187 @@ const API_BASE = process.env.UNIBRIDGE_API_BASE;
 const SECRET = process.env.SURFACE_HMAC_SECRET;
 
 const ALLOWED = new Set([
-"session/register",
-"session/resolve",
-"session/quote",
-"settlement/create",
-"settlement/confirm",
-"funding/session",
-"settlement/status"
+  "session/register",
+  "session/resolve",
+  "session/quote",
+  "settlement/create",
+  "settlement/confirm",
+  "funding/session",
+  "settlement/status",
+
+  "ramp/auth/start",
+  "ramp/auth/verify",
+  "ramp/user",
+  "ramp/kyc/requirement",
+  "ramp/kyc/user",
+  "ramp/order/create",
+  "ramp/order/confirm-payment",
+  "ramp/order/status"
 ]);
 
-export default async function handler(req,res){
-
-try{
-
-if(!API_BASE || !SECRET){
-return res.status(500).json({
-error:"server_misconfigured"
-});
+function normalizeEndpoint(value) {
+  return String(value || "")
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
 }
 
-/*
-------------------------------
-endpoint normalization
-------------------------------
-*/
+function buildUpstreamUrl(endpoint, query = {}) {
+  const url = new URL(`${API_BASE}/${endpoint}`);
 
-const endpoint =
-(req.query.endpoint || "")
-.replace(/^\/+/,"")
-.replace(/\/+$/,"");
+  Object.entries(query || {}).forEach(([key, value]) => {
+    if (
+      key === "endpoint" ||
+      value === undefined ||
+      value === null ||
+      value === ""
+    ) {
+      return;
+    }
 
-if(!endpoint){
-return res.status(400).json({
-error:"missing_endpoint"
-});
+    url.searchParams.set(key, String(value));
+  });
+
+  return url.toString();
 }
 
-if(!ALLOWED.has(endpoint)){
-return res.status(403).json({
-error:"endpoint_not_allowed"
-});
+function buildSignature(payload) {
+  return crypto
+    .createHmac("sha256", SECRET)
+    .update(payload)
+    .digest("hex");
 }
 
-/*
-------------------------------
-STATUS ENDPOINT (GET)
-------------------------------
-*/
-
-if(endpoint === "settlement/status"){
-
-if(req.method !== "GET"){
-return res.status(405).json({
-error:"method_not_allowed"
-});
+function parseUpstreamText(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text };
+  }
 }
 
-const params = new URLSearchParams();
+function getAllowedMethod(endpoint) {
+  if (
+    endpoint === "settlement/status" ||
+    endpoint === "ramp/user" ||
+    endpoint === "ramp/kyc/requirement" ||
+    endpoint === "ramp/order/status"
+  ) {
+    return "GET";
+  }
 
-if(req.query.settlement_id){
-params.set("settlement_id", req.query.settlement_id);
+  if (endpoint === "ramp/kyc/user") {
+    return "PATCH";
+  }
+
+  return "POST";
 }
 
-const query = params.toString();
+function normalizeForwardedFor(value) {
+  if (Array.isArray(value)) {
+    return value.join(",");
+  }
 
-const upstream =
-await fetch(
-`${API_BASE}/settlement/status?${query}`,
-{
-method:"GET",
-headers:{
-"x-ub-partner-id":"surface"
-}
-}
-);
-
-const text = await upstream.text();
-
-let data;
-
-try{
-data = JSON.parse(text);
-}catch{
-data = {raw:text};
+  return value || "";
 }
 
-return res
-.status(upstream.status)
-.json(data);
+export default async function handler(req, res) {
+  try {
+    if (!API_BASE || !SECRET) {
+      return res.status(500).json({
+        error: "server_misconfigured"
+      });
+    }
 
-}
+    const endpoint = normalizeEndpoint(req.query.endpoint);
 
-/*
-------------------------------
-POST ENDPOINTS
-------------------------------
-*/
+    if (!endpoint) {
+      return res.status(400).json({
+        error: "missing_endpoint"
+      });
+    }
 
-if(req.method !== "POST"){
-return res.status(405).json({
-error:"method_not_allowed"
-});
-}
+    if (!ALLOWED.has(endpoint)) {
+      return res.status(403).json({
+        error: "endpoint_not_allowed"
+      });
+    }
 
-const payload =
-JSON.stringify(req.body || {});
+    const expectedMethod = getAllowedMethod(endpoint);
+    const incomingMethod = String(req.method || "").toUpperCase();
 
-/*
-payload protection
-*/
+    if (incomingMethod !== expectedMethod) {
+      return res.status(405).json({
+        error: "method_not_allowed"
+      });
+    }
 
-if(payload.length > 10000){
-return res.status(413).json({
-error:"payload_too_large"
-});
-}
+    const controller = new AbortController();
 
-const signature =
-crypto
-.createHmac("sha256",SECRET)
-.update(payload)
-.digest("hex");
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 15000);
 
-const controller = new AbortController();
+    let upstream;
 
-const timeout =
-setTimeout(
-()=>controller.abort(),
-15000
-);
+    try {
+      const headers = {
+        "x-ub-partner-id": "surface",
+        "x-forwarded-host": req.headers.host || "",
+        "x-forwarded-for": normalizeForwardedFor(
+          req.headers["x-forwarded-for"]
+        )
+      };
 
-let upstream;
+      if (incomingMethod === "GET") {
+        upstream = await fetch(
+          buildUpstreamUrl(endpoint, req.query),
+          {
+            method: "GET",
+            headers,
+            signal: controller.signal
+          }
+        );
+      } else {
+        const payload = JSON.stringify(req.body || {});
 
-try{
+        if (payload.length > 10000) {
+          return res.status(413).json({
+            error: "payload_too_large"
+          });
+        }
 
-upstream =
-await fetch(
-`${API_BASE}/${endpoint}`,
-{
-method:"POST",
-headers:{
-"content-type":"application/json",
-"x-ub-partner-id":"surface",
-"x-ub-signature":signature,
-"x-forwarded-host":req.headers.host || "",
-"x-forwarded-for":req.headers["x-forwarded-for"] || ""
-},
-body:payload,
-signal:controller.signal
-}
-);
+        headers["content-type"] = "application/json";
+        headers["x-ub-signature"] = buildSignature(payload);
 
-}
-finally{
-clearTimeout(timeout);
-}
+        upstream = await fetch(
+          buildUpstreamUrl(endpoint),
+          {
+            method: incomingMethod,
+            headers,
+            body: payload,
+            signal: controller.signal
+          }
+        );
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
 
-const text =
-await upstream.text();
+    const text = await upstream.text();
+    const data = parseUpstreamText(text);
 
-let data;
+    return res.status(upstream.status).json(data);
+  } catch (err) {
+    console.error("PROXY_ERROR", err);
 
-try{
-data = JSON.parse(text);
-}catch{
-data = {raw:text};
-}
+    if (err?.name === "AbortError") {
+      return res.status(504).json({
+        error: "upstream_timeout"
+      });
+    }
 
-return res
-.status(upstream.status)
-.json(data);
-
-}
-catch(err){
-
-console.error("PROXY_ERROR",err);
-
-if(err.name === "AbortError"){
-return res.status(504).json({
-error:"upstream_timeout"
-});
-}
-
-return res.status(500).json({
-error:"surface_proxy_error"
-});
-
-}
-
+    return res.status(500).json({
+      error: "surface_proxy_error"
+    });
+  }
 }
