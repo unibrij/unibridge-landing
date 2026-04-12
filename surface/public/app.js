@@ -44,8 +44,38 @@ function emit(name) {
 
 let lastStatusKey = null;
 
+function extractErrorMessage(msg) {
+  if (!msg) return "";
+
+  if (typeof msg === "string") {
+    return msg;
+  }
+
+  if (typeof msg?.message === "string") {
+    return msg.message;
+  }
+
+  if (typeof msg?.error === "string") {
+    return msg.error;
+  }
+
+  if (typeof msg?.error?.message === "string") {
+    return msg.error.message;
+  }
+
+  if (typeof msg?.raw === "string") {
+    return msg.raw;
+  }
+
+  try {
+    return JSON.stringify(msg);
+  } catch {
+    return String(msg);
+  }
+}
+
 function setStatus(msg, type) {
-  const text = msg?.message || msg || "";
+  const text = extractErrorMessage(msg) || "";
   const key = `${type || ""}::${text}`;
 
   if (key === lastStatusKey) return;
@@ -69,7 +99,15 @@ async function parseResponse(r) {
   }
 
   if (!r.ok) {
-    throw new Error(data.error || data.message || "api_error");
+    const msg =
+      typeof data?.error === "string"
+        ? data.error
+        : data?.error?.message ||
+          data?.message ||
+          data?.raw ||
+          "api_error";
+
+    throw new Error(msg);
   }
 
   return data;
@@ -120,6 +158,93 @@ async function apiGet(path, query = {}) {
 
 function getValue(id) {
   return document.getElementById(id);
+}
+
+function normalizeNextAction(action) {
+  if (!action || typeof action !== "object") {
+    return null;
+  }
+
+  const type =
+    typeof action.type === "string"
+      ? action.type.trim()
+      : action.step
+        ? "step"
+        : (
+            action.url ||
+            action.redirect_url ||
+            action.fallback_widget_url
+          )
+          ? "redirect"
+          : null;
+
+  if (!type) {
+    return null;
+  }
+
+  const provider =
+    typeof action.provider === "string"
+      ? action.provider.trim()
+      : null;
+
+  const step =
+    typeof action.step === "string"
+      ? action.step.trim()
+      : null;
+
+  const meta =
+    action.meta &&
+    typeof action.meta === "object" &&
+    !Array.isArray(action.meta)
+      ? { ...action.meta }
+      : {};
+
+  const url =
+    (typeof action.url === "string" && action.url.trim()) ||
+    (typeof action.redirect_url === "string" && action.redirect_url.trim()) ||
+    (typeof action.fallback_widget_url === "string" && action.fallback_widget_url.trim()) ||
+    (typeof meta.url === "string" && meta.url.trim()) ||
+    (typeof meta.redirect_url === "string" && meta.redirect_url.trim()) ||
+    (typeof meta.fallback_widget_url === "string" && meta.fallback_widget_url.trim()) ||
+    null;
+
+  return {
+    type,
+    provider,
+    step: type === "step" ? step : null,
+    url: type === "redirect" ? url : null,
+    label:
+      typeof action.label === "string"
+        ? action.label.trim()
+        : null,
+    blocking:
+      typeof action.blocking === "boolean"
+        ? action.blocking
+        : true,
+    meta
+  };
+}
+
+function extractWidgetUrlFromFunding(funding) {
+  const normalizedAction =
+    normalizeNextAction(funding?.next_action);
+
+  return (
+    funding?.widget?.url ||
+    funding?.widget_url ||
+    normalizedAction?.url ||
+    normalizedAction?.meta?.fallback_widget_url ||
+    normalizedAction?.meta?.redirect_url ||
+    normalizedAction?.meta?.url ||
+    null
+  );
+}
+
+function isTerminalOrAdvancedSettlementStatus(status) {
+  return (
+    status === "funding_confirmed" ||
+    ["submitted", "executing", "processing", "completed", "failed"].includes(status)
+  );
 }
 
 /* =========================
@@ -321,10 +446,10 @@ async function startFlow() {
 }
 
 /* =========================
-   WHITELABEL FLOW
+   NEXT ACTION FLOW
 ========================= */
 
-async function processNextActions() {
+async function processStepNextActions() {
   if (nextActionProcessing) return;
 
   nextActionProcessing = true;
@@ -333,9 +458,20 @@ async function processNextActions() {
     let steps = 0;
 
     while (currentNextAction && steps < 12) {
+      const action = normalizeNextAction(currentNextAction);
+
+      if (!action) {
+        currentNextAction = null;
+        return;
+      }
+
+      if (action.type !== "step") {
+        return;
+      }
+
       steps += 1;
 
-      const step = currentNextAction.step;
+      const step = action.step;
       let res = null;
 
       if (step === "email_otp") {
@@ -412,7 +548,13 @@ async function processNextActions() {
         throw new Error("empty_response");
       }
 
-      currentNextAction = res.next_action || null;
+      currentNextAction =
+        normalizeNextAction(res.next_action) || null;
+
+      if (!currentNextAction) {
+        pendingWidgetUrl =
+          extractWidgetUrlFromFunding(res) || pendingWidgetUrl;
+      }
     }
 
     if (steps >= 12) {
@@ -470,12 +612,7 @@ async function continueFlow() {
 
     const latestStatus = await refreshSettlementState();
 
-    if (
-      latestStatus?.status === "funding_confirmed" ||
-      ["submitted", "executing", "processing", "completed", "failed"].includes(
-        latestStatus?.status
-      )
-    ) {
+    if (isTerminalOrAdvancedSettlementStatus(latestStatus?.status)) {
       return;
     }
 
@@ -484,17 +621,38 @@ async function continueFlow() {
         settlement_id: settlementId
       });
 
-      if (funding?.next_action) {
-        currentNextAction = funding.next_action;
-      } else if (funding?.widget_url) {
-        pendingWidgetUrl = funding.widget_url;
-      } else {
-        throw new Error("no_funding_flow");
-      }
+      currentNextAction =
+        normalizeNextAction(funding?.next_action);
+
+      pendingWidgetUrl =
+        extractWidgetUrlFromFunding(funding);
     }
 
-    if (currentNextAction) {
-      await processNextActions();
+    const action = normalizeNextAction(currentNextAction);
+
+    if (action?.type === "redirect") {
+      const redirectUrl =
+        action.url || pendingWidgetUrl;
+
+      if (!redirectUrl) {
+        throw new Error("missing_redirect_url");
+      }
+
+      pendingWidgetUrl = redirectUrl;
+      window.location.href = redirectUrl;
+      return;
+    }
+
+    if (action?.type === "await_confirmation") {
+      emit("unibridge:quote");
+      emit("unibridge:payment");
+      setStatus(action.label || "Waiting for payment confirmation...");
+      continueBtn.disabled = false;
+      return;
+    }
+
+    if (action?.type === "step") {
+      await processStepNextActions();
       return;
     }
 
@@ -593,12 +751,13 @@ async function resumeFlowFromState() {
         settlement_id: settlementId
       });
 
-      if (funding?.next_action) {
-        currentNextAction = funding.next_action;
-      }
+      currentNextAction =
+        normalizeNextAction(funding?.next_action);
 
-      if (funding?.widget_url) {
-        pendingWidgetUrl = funding.widget_url;
+      pendingWidgetUrl =
+        extractWidgetUrlFromFunding(funding);
+
+      if (pendingWidgetUrl || currentNextAction) {
         continueBtn.disabled = false;
       }
     }
