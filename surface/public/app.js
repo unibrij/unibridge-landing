@@ -69,8 +69,8 @@ function getValue(id) {
    RETURN URL HELPERS
 ========================= */
 
-function buildFundingReturnUrl(targetSettlementId) {
-  if (!targetSettlementId) {
+function buildFundingReturnUrl(targetSessionId) {
+  if (!targetSessionId) {
     return null;
   }
 
@@ -79,12 +79,18 @@ function buildFundingReturnUrl(targetSettlementId) {
 
     /*
     --------------------------------------------------
-    Keep user on the same surface route but convert
-    it into a settlement-bound funding return URL.
+    Build a funding return URL from a value already
+    known before settlement/create: session_id.
+
+    Important:
+    - remove stale settlement_id from prior runs
+    - keep the user on the same surface route
     --------------------------------------------------
     */
 
-    url.searchParams.set("settlement_id", targetSettlementId);
+    url.searchParams.delete("settlement_id");
+
+    url.searchParams.set("session_id", targetSessionId);
     url.searchParams.set("return", "funding");
 
     return url.toString();
@@ -93,11 +99,11 @@ function buildFundingReturnUrl(targetSettlementId) {
   }
 }
 
-function getSettlementIdFromUrl() {
+function getSessionIdFromUrl() {
   try {
     const url = new URL(window.location.href);
     const value =
-      url.searchParams.get("settlement_id");
+      url.searchParams.get("session_id");
 
     return value && value.trim()
       ? value.trim()
@@ -356,6 +362,35 @@ async function refreshSettlementState() {
   return status;
 }
 
+async function tryRecoverSettlementBySessionId(targetSessionId) {
+  if (!targetSessionId) {
+    return null;
+  }
+
+  try {
+    const status = await apiGet("settlement/status", {
+      session_id: targetSessionId
+    });
+
+    const recoveredSettlementId =
+      status?.settlement_id &&
+      typeof status.settlement_id === "string"
+        ? status.settlement_id.trim()
+        : null;
+
+    if (!recoveredSettlementId) {
+      return null;
+    }
+
+    settlementId = recoveredSettlementId;
+    persistSettlement(recoveredSettlementId);
+
+    return recoveredSettlementId;
+  } catch {
+    return null;
+  }
+}
+
 /* =========================
    START
 ========================= */
@@ -469,6 +504,15 @@ async function continueFlow() {
       throw new Error("PIX_required");
     }
 
+    if (!sessionId) {
+      const sessionIdFromUrl =
+        getSessionIdFromUrl();
+
+      if (sessionIdFromUrl) {
+        sessionId = sessionIdFromUrl;
+      }
+    }
+
     if (!settlementId) {
       if (!sessionId || !routeId) {
         throw new Error("missing_session_or_route");
@@ -479,10 +523,18 @@ async function continueFlow() {
           ? { pix, tax_id: taxId }
           : { pix };
 
+      const redirect_url =
+        buildFundingReturnUrl(sessionId);
+
+      if (!redirect_url) {
+        throw new Error("missing_redirect_url");
+      }
+
       const create = await apiPost("settlement/create", {
         session_id: sessionId,
         route_id: routeId,
-        destination
+        destination,
+        redirect_url
       });
 
       persistSettlement(create.settlement_id);
@@ -496,16 +548,8 @@ async function continueFlow() {
     }
 
     if (!currentNextAction && !pendingWidgetUrl) {
-      const redirect_url =
-        buildFundingReturnUrl(settlementId);
-
-      if (!redirect_url) {
-        throw new Error("missing_redirect_url");
-      }
-
       const funding = await apiPost("funding/session", {
-        settlement_id: settlementId,
-        redirect_url
+        settlement_id: settlementId
       });
 
       currentNextAction =
@@ -686,16 +730,8 @@ async function resumeFlowFromState() {
       emit("unibridge:quote");
       emit("unibridge:payment");
 
-      const redirect_url =
-        buildFundingReturnUrl(settlementId);
-
-      if (!redirect_url) {
-        throw new Error("missing_redirect_url");
-      }
-
       const funding = await apiPost("funding/session", {
-        settlement_id: settlementId,
-        redirect_url
+        settlement_id: settlementId
       });
 
       currentNextAction =
@@ -730,20 +766,36 @@ async function resumeFlowFromState() {
 }
 
 window.addEventListener("load", async () => {
-  const settlementIdFromUrl =
-    getSettlementIdFromUrl();
+  const sessionIdFromUrl =
+    getSessionIdFromUrl();
 
   const fundingReturn =
     isFundingReturn();
 
-  if (settlementIdFromUrl && fundingReturn) {
-    settlementId = settlementIdFromUrl;
+  if (sessionIdFromUrl) {
+    sessionId = sessionIdFromUrl;
+  }
+
+  if (sessionIdFromUrl && fundingReturn) {
     paymentStarted = true;
 
-    persistState({
-      id: settlementIdFromUrl,
-      payment_started: true
-    });
+    const recoveredSettlementId =
+      await tryRecoverSettlementBySessionId(sessionIdFromUrl);
+
+    if (recoveredSettlementId) {
+      paymentStarted = true;
+      persistState({
+        id: recoveredSettlementId,
+        payment_started: true
+      });
+
+      await resumeFlowFromState();
+      return;
+    }
+
+    clearState();
+    setStatus("Could not restore funding session.", "error");
+    return;
   }
 
   const saved = getPersistedSettlement();
