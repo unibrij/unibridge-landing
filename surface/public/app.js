@@ -552,6 +552,9 @@ async function continueFlow() {
         setContinueDisabled(value) {
           continueBtn.disabled = value;
         },
+        setContinueMode(mode) {
+          setContinueButtonMode(mode);
+        },
         getSettlementId() {
           return settlementId;
         },
