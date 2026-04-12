@@ -40,12 +40,15 @@ window.UnibridgeRampFlow = (() => {
     if (authTitle) authTitle.innerText = "Verify email";
     if (authEmail) authEmail.style.display = "block";
     if (authOtp) authOtp.style.display = "none";
+
     if (authBtn) {
       authBtn.style.display = "block";
       authBtn.innerText = "Send code";
     }
+
     if (authHint) {
-      authHint.innerText = "Enter your email to receive a verification code.";
+      authHint.innerText =
+        "Enter your email to receive a verification code.";
     }
   }
 
@@ -63,10 +66,12 @@ window.UnibridgeRampFlow = (() => {
     if (authTitle) authTitle.innerText = "Enter verification code";
     if (authEmail) authEmail.style.display = "none";
     if (authOtp) authOtp.style.display = "block";
+
     if (authBtn) {
       authBtn.style.display = "block";
       authBtn.innerText = "Verify code";
     }
+
     if (authHint) {
       authHint.innerText = "Enter the OTP sent to your email.";
     }
@@ -90,20 +95,24 @@ window.UnibridgeRampFlow = (() => {
 
         if (mode === "email") {
           const email = String(authEmail?.value || "").trim();
+
           if (!email) {
             reject(new Error("email_required"));
             return;
           }
+
           resolve(email);
           return;
         }
 
         if (mode === "otp") {
           const otp = String(authOtp?.value || "").trim();
+
           if (!otp) {
             reject(new Error("otp_required"));
             return;
           }
+
           resolve(otp);
           return;
         }
@@ -111,7 +120,9 @@ window.UnibridgeRampFlow = (() => {
         reject(new Error("invalid_auth_mode"));
       };
 
-      authBtn.addEventListener("click", handler, { once: true });
+      authBtn.addEventListener("click", handler, {
+        once: true
+      });
     });
   }
 
@@ -124,12 +135,31 @@ window.UnibridgeRampFlow = (() => {
     );
   }
 
+  function finalizePreparedPayment(ctx, redirectUrl, message) {
+    if (!redirectUrl) {
+      throw new Error("missing_redirect_url");
+    }
+
+    hideAuthUi();
+    ctx.setPendingWidgetUrl(redirectUrl);
+
+    if (typeof ctx.setContinueMode === "function") {
+      ctx.setContinueMode("open_payment");
+    }
+
+    ctx.emit("unibridge:quote");
+    ctx.emit("unibridge:payment");
+    ctx.setContinueDisabled(false);
+    ctx.setStatus(
+      message || "Payment prepared. Tap again to continue."
+    );
+  }
+
   async function processStepNextActions(ctx) {
     const {
       getCurrentNextAction,
       setCurrentNextAction,
       getPendingWidgetUrl,
-      setPendingWidgetUrl,
       getSettlementId,
       setStatus,
       setContinueDisabled,
@@ -156,10 +186,10 @@ window.UnibridgeRampFlow = (() => {
 
         /*
         --------------------------------------------------
-        Runtime fallback / redirect handling
+        Redirect handling aligned with app.js
         --------------------------------------------------
-        If sender step handler switched us to hosted widget,
-        redirect immediately instead of silently returning.
+        Do NOT navigate immediately.
+        Prepare payment and let app.js open it on next tap.
         --------------------------------------------------
         */
         if (action.type === "redirect") {
@@ -170,13 +200,11 @@ window.UnibridgeRampFlow = (() => {
               getPendingWidgetUrl
             );
 
-          if (!redirectUrl) {
-            throw new Error("missing_redirect_url");
-          }
-
-          hideAuthUi();
-          setPendingWidgetUrl(redirectUrl);
-          window.location.href = redirectUrl;
+          finalizePreparedPayment(
+            ctx,
+            redirectUrl,
+            "Payment prepared. Tap again to continue."
+          );
           return;
         }
 
@@ -321,7 +349,8 @@ window.UnibridgeRampFlow = (() => {
 
         /*
         --------------------------------------------------
-        If response switched to redirect, go now
+        If response switched to redirect, prepare payment
+        but do NOT navigate immediately.
         --------------------------------------------------
         */
         if (updatedAction?.type === "redirect") {
@@ -332,23 +361,30 @@ window.UnibridgeRampFlow = (() => {
               getPendingWidgetUrl
             );
 
-          if (!redirectUrl) {
-            throw new Error("missing_redirect_url");
-          }
-
-          hideAuthUi();
-          setPendingWidgetUrl(redirectUrl);
-          window.location.href = redirectUrl;
+          finalizePreparedPayment(
+            ctx,
+            redirectUrl,
+            "Payment prepared. Tap again to continue."
+          );
           return;
         }
 
         if (!getCurrentNextAction()) {
           hideAuthUi();
 
-          setPendingWidgetUrl(
+          const redirectUrl =
             window.UnibridgeNextAction.extractWidgetUrlFromFunding(res) ||
-            getPendingWidgetUrl()
-          );
+            getPendingWidgetUrl() ||
+            null;
+
+          if (redirectUrl) {
+            finalizePreparedPayment(
+              ctx,
+              redirectUrl,
+              "Payment prepared. Tap again to continue."
+            );
+            return;
+          }
         }
       }
 
