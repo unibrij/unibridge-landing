@@ -17,6 +17,9 @@ let currentNextAction = null;
 let processing = false;
 let nextActionProcessing = false;
 
+let currentRouteQuote = null;
+let paymentStarted = false;
+
 const STORAGE_KEY = "ub_settlement";
 
 /* =========================
@@ -63,19 +66,189 @@ function getValue(id) {
 }
 
 /* =========================
+   HELPERS
+========================= */
+
+function formatNumber(value) {
+  const n = Number(value);
+
+  if (!Number.isFinite(n)) {
+    return "—";
+  }
+
+  if (Number.isInteger(n)) {
+    return String(n);
+  }
+
+  return n.toFixed(2).replace(/\.00$/, "");
+}
+
+function setTextIfPresent(id, value) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.innerText = value;
+  }
+}
+
+function setDisplayIfPresent(id, displayValue) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = displayValue;
+  }
+}
+
+function resetQuoteState() {
+  currentRouteQuote = null;
+
+  setTextIfPresent("sumAmount", "");
+  setTextIfPresent("sumCountry", "");
+  setTextIfPresent("sumExecutorFee", "");
+  setTextIfPresent("sumUniBridgeFee", "");
+
+  setDisplayIfPresent("executorFeeRow", "none");
+  setDisplayIfPresent("uniBridgeFeeRow", "none");
+}
+
+function renderExecutionQuote({
+  requestedAmount,
+  countryLabel,
+  executorFee,
+  unibridgeFee
+}) {
+  setTextIfPresent("sumAmount", formatNumber(requestedAmount));
+  setTextIfPresent("sumCountry", countryLabel || "Brazil");
+
+  const normalizedExecutorFee =
+    Number(executorFee ?? 0);
+
+  const normalizedUniBridgeFee =
+    Number(unibridgeFee ?? 0);
+
+  if (Number.isFinite(normalizedExecutorFee)) {
+    setTextIfPresent(
+      "sumExecutorFee",
+      formatNumber(normalizedExecutorFee)
+    );
+    setDisplayIfPresent("executorFeeRow", "block");
+  } else {
+    setDisplayIfPresent("executorFeeRow", "none");
+  }
+
+  if (
+    Number.isFinite(normalizedUniBridgeFee) &&
+    normalizedUniBridgeFee > 0
+  ) {
+    setTextIfPresent(
+      "sumUniBridgeFee",
+      formatNumber(normalizedUniBridgeFee)
+    );
+    setDisplayIfPresent("uniBridgeFeeRow", "block");
+  } else {
+    setDisplayIfPresent("uniBridgeFeeRow", "none");
+  }
+
+  /*
+  --------------------------------------------------
+  Fallback textual summary for older HTML versions
+  --------------------------------------------------
+  */
+
+  const executorFeeRow =
+    document.getElementById("executorFeeRow");
+
+  const uniBridgeFeeRow =
+    document.getElementById("uniBridgeFeeRow");
+
+  if (!executorFeeRow && !uniBridgeFeeRow) {
+    const parts = [
+      `Amount: ${formatNumber(requestedAmount)}`
+    ];
+
+    if (Number.isFinite(normalizedExecutorFee)) {
+      parts.push(
+        `Execution fee: ${formatNumber(normalizedExecutorFee)}`
+      );
+    }
+
+    if (
+      Number.isFinite(normalizedUniBridgeFee) &&
+      normalizedUniBridgeFee > 0
+    ) {
+      parts.push(
+        `UniBridge fee: ${formatNumber(normalizedUniBridgeFee)}`
+      );
+    }
+
+    setStatus(parts.join("\n"));
+  }
+}
+
+function setContinueButtonMode(mode) {
+  if (!continueBtn) return;
+
+  if (mode === "prepare_payment") {
+    continueBtn.innerText = "Prepare payment";
+    return;
+  }
+
+  if (mode === "open_payment") {
+    continueBtn.innerText = "Continue to payment";
+    return;
+  }
+
+  continueBtn.innerText = "Continue";
+}
+
+function getCountryLabel() {
+  const receiver =
+    String(getValue("country")?.value || "")
+      .toUpperCase()
+      .trim();
+
+  if (receiver === "BR") {
+    return "Brazil";
+  }
+
+  return receiver || "Brazil";
+}
+
+/* =========================
    STORAGE
 ========================= */
 
-function persistSettlement(id) {
+function persistState(extra = {}) {
+  const id =
+    extra.id ||
+    settlementId;
+
   if (!id) return;
 
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       id,
-      ts: Date.now()
+      ts: Date.now(),
+      payment_started:
+        extra.payment_started ?? paymentStarted ?? false
     })
   );
+}
+
+function persistSettlement(id) {
+  if (!id) return;
+
+  settlementId = id;
+  persistState({
+    id,
+    payment_started: false
+  });
+}
+
+function markPaymentStarted() {
+  paymentStarted = true;
+  persistState({
+    payment_started: true
+  });
 }
 
 function getPersistedSettlement() {
@@ -85,14 +258,19 @@ function getPersistedSettlement() {
 
     const data = JSON.parse(raw);
 
-    if (!data?.id) return null;
+    if (!data?.id) {
+      return null;
+    }
 
     if (Date.now() - data.ts > 30 * 60 * 1000) {
       clearState();
       return null;
     }
 
-    return data.id;
+    return {
+      id: data.id,
+      payment_started: Boolean(data.payment_started)
+    };
   } catch {
     return null;
   }
@@ -102,14 +280,23 @@ function clearState() {
   sessionId = null;
   routeId = null;
   settlementId = null;
+
   pendingWidgetUrl = null;
   currentNextAction = null;
+
   processing = false;
   nextActionProcessing = false;
 
+  paymentStarted = false;
+
   localStorage.removeItem(STORAGE_KEY);
+
+  resetQuoteState();
+
   signBtn.disabled = true;
   continueBtn.disabled = true;
+
+  setContinueButtonMode("prepare_payment");
 }
 
 /* =========================
@@ -203,13 +390,50 @@ async function startFlow() {
     const selectedRoute = quote.routes[0];
     routeId = selectedRoute.route_id || selectedRoute.id;
 
-    getValue("sumAmount").innerText = amount;
-    getValue("sumCountry").innerText = "Brazil";
+    currentRouteQuote = {
+      requested_amount:
+        quote.requested_amount ?? amount,
+      payout_amount:
+        selectedRoute.payout_amount ?? null,
+      funding_amount:
+        selectedRoute.funding_amount ?? null,
+      executor_fee:
+        selectedRoute.executor_fee ?? 0,
+      unibridge_fee:
+        selectedRoute.unibridge_fee ?? 0
+    };
+
+    renderExecutionQuote({
+      requestedAmount:
+        currentRouteQuote.requested_amount,
+      countryLabel:
+        getCountryLabel(),
+      executorFee:
+        currentRouteQuote.executor_fee,
+      unibridgeFee:
+        currentRouteQuote.unibridge_fee
+    });
 
     emit("unibridge:quote");
 
     continueBtn.disabled = false;
-    setStatus("Enter PIX key");
+    setContinueButtonMode("prepare_payment");
+
+    /*
+    --------------------------------------------------
+    Avoid overwriting textual quote fallback if HTML
+    summary rows are not present yet.
+    --------------------------------------------------
+    */
+
+    const executorFeeRow =
+      document.getElementById("executorFeeRow");
+    const uniBridgeFeeRow =
+      document.getElementById("uniBridgeFeeRow");
+
+    if (executorFeeRow || uniBridgeFeeRow) {
+      setStatus("Enter PIX key");
+    }
   } catch (e) {
     setStatus(e, "error");
     continueBtn.disabled = false;
@@ -227,7 +451,14 @@ async function continueFlow() {
   if (processing) return;
 
   try {
+    /*
+    --------------------------------------------------
+    Second click after payment prep opens widget
+    --------------------------------------------------
+    */
+
     if (pendingWidgetUrl) {
+      markPaymentStarted();
       window.location.href = pendingWidgetUrl;
       return;
     }
@@ -248,7 +479,10 @@ async function continueFlow() {
         throw new Error("missing_session_or_route");
       }
 
-      const destination = taxId ? { pix, tax_id: taxId } : { pix };
+      const destination =
+        taxId
+          ? { pix, tax_id: taxId }
+          : { pix };
 
       const create = await apiPost("settlement/create", {
         session_id: sessionId,
@@ -256,11 +490,11 @@ async function continueFlow() {
         destination
       });
 
-      settlementId = create.settlement_id;
-      persistSettlement(settlementId);
+      persistSettlement(create.settlement_id);
     }
 
-    const latestStatus = await refreshSettlementState();
+    const latestStatus =
+      await refreshSettlementState();
 
     if (isTerminalOrAdvancedSettlementStatus(latestStatus?.status)) {
       return;
@@ -278,7 +512,8 @@ async function continueFlow() {
         extractWidgetUrlFromFunding(funding);
     }
 
-    const action = normalizeNextAction(currentNextAction);
+    const action =
+      normalizeNextAction(currentNextAction);
 
     if (action?.type === "redirect") {
       const redirectUrl =
@@ -289,14 +524,22 @@ async function continueFlow() {
       }
 
       pendingWidgetUrl = redirectUrl;
-      window.location.href = redirectUrl;
+      setContinueButtonMode("open_payment");
+
+      emit("unibridge:quote");
+      emit("unibridge:payment");
+
+      setStatus("Payment prepared. Tap again to continue.");
+      continueBtn.disabled = false;
       return;
     }
 
     if (action?.type === "await_confirmation") {
       emit("unibridge:quote");
       emit("unibridge:payment");
-      setStatus(action.label || "Waiting for payment confirmation...");
+      setStatus(
+        action.label || "Waiting for payment confirmation..."
+      );
       continueBtn.disabled = false;
       return;
     }
@@ -322,7 +565,11 @@ async function continueFlow() {
           return pendingWidgetUrl;
         },
         setPendingWidgetUrl(value) {
-          pendingWidgetUrl = value;
+          pendingWidgetUrl = value || null;
+
+          if (pendingWidgetUrl) {
+            setContinueButtonMode("open_payment");
+          }
         },
         getNextActionProcessing() {
           return nextActionProcessing;
@@ -337,7 +584,8 @@ async function continueFlow() {
     if (pendingWidgetUrl) {
       emit("unibridge:quote");
       emit("unibridge:payment");
-      setStatus("Ready for payment");
+      setContinueButtonMode("open_payment");
+      setStatus("Payment prepared. Tap again to continue.");
       continueBtn.disabled = false;
       return;
     }
@@ -418,13 +666,28 @@ async function resumeFlowFromState() {
   if (!settlementId || processing) return;
 
   try {
-    emit("unibridge:quote");
+    const status = await apiGet("settlement/status", {
+      settlement_id: settlementId
+    });
 
-    const status = await refreshSettlementState();
+    /*
+    --------------------------------------------------
+    Distinguish between:
+    1) settlement created but payment never started
+    2) user already went into payment flow and came back
+    --------------------------------------------------
+    */
 
-    if (!status) return;
+    if (status?.status === "waiting_ramp_payment") {
+      if (!paymentStarted) {
+        clearState();
+        setStatus("");
+        return;
+      }
 
-    if (status.status === "waiting_ramp_payment") {
+      emit("unibridge:quote");
+      emit("unibridge:payment");
+
       const funding = await apiPost("funding/session", {
         settlement_id: settlementId
       });
@@ -435,10 +698,26 @@ async function resumeFlowFromState() {
       pendingWidgetUrl =
         extractWidgetUrlFromFunding(funding);
 
-      if (pendingWidgetUrl || currentNextAction) {
-        continueBtn.disabled = false;
-      }
+      setContinueButtonMode("open_payment");
+      continueBtn.disabled = false;
+
+      setStatus(
+        "Payment not confirmed yet. Continue payment or wait for confirmation."
+      );
+
+      return;
     }
+
+    emit("unibridge:quote");
+
+    handleSettlementStatus({
+      status,
+      signBtn,
+      continueBtn,
+      emit,
+      setStatus,
+      clearState
+    });
   } catch (e) {
     setStatus(e, "error");
   }
@@ -448,7 +727,9 @@ window.addEventListener("load", async () => {
   const saved = getPersistedSettlement();
   if (!saved) return;
 
-  settlementId = saved;
+  settlementId = saved.id;
+  paymentStarted = Boolean(saved.payment_started);
+
   await resumeFlowFromState();
 });
 
