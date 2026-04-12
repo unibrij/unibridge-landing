@@ -31,6 +31,22 @@ const statusBox = document.getElementById("status");
 signBtn.disabled = true;
 
 /* =========================
+   SHORTCUTS
+========================= */
+
+const { apiGet, apiPost } = window.UnibridgeApi;
+const {
+  resetStatusMemory,
+  setStatus: setStatusInternal,
+  handleSettlementStatus
+} = window.UnibridgeStatus;
+const {
+  normalizeNextAction,
+  extractWidgetUrlFromFunding,
+  isTerminalOrAdvancedSettlementStatus
+} = window.UnibridgeNextAction;
+
+/* =========================
    EVENTS
 ========================= */
 
@@ -38,213 +54,12 @@ function emit(name) {
   window.dispatchEvent(new Event(name));
 }
 
-/* =========================
-   HELPERS
-========================= */
-
-let lastStatusKey = null;
-
-function extractErrorMessage(msg) {
-  if (!msg) return "";
-
-  if (typeof msg === "string") {
-    return msg;
-  }
-
-  if (typeof msg?.message === "string") {
-    return msg.message;
-  }
-
-  if (typeof msg?.error === "string") {
-    return msg.error;
-  }
-
-  if (typeof msg?.error?.message === "string") {
-    return msg.error.message;
-  }
-
-  if (typeof msg?.raw === "string") {
-    return msg.raw;
-  }
-
-  try {
-    return JSON.stringify(msg);
-  } catch {
-    return String(msg);
-  }
-}
-
 function setStatus(msg, type) {
-  const text = extractErrorMessage(msg) || "";
-  const key = `${type || ""}::${text}`;
-
-  if (key === lastStatusKey) return;
-  lastStatusKey = key;
-
-  statusBox.innerText = text;
-  statusBox.className = "";
-
-  if (type === "error") statusBox.classList.add("status-error");
-  if (type === "success") statusBox.classList.add("status-success");
-}
-
-async function parseResponse(r) {
-  const text = await r.text();
-
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = { raw: text };
-  }
-
-  if (!r.ok) {
-    const msg =
-      typeof data?.error === "string"
-        ? data.error
-        : data?.error?.message ||
-          data?.message ||
-          data?.raw ||
-          "api_error";
-
-    throw new Error(msg);
-  }
-
-  return data;
-}
-
-async function apiPost(path, payload) {
-  const r = await fetch(
-    "/api/proxy?endpoint=" + encodeURIComponent(path),
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload || {})
-    }
-  );
-
-  return parseResponse(r);
-}
-
-async function apiPatch(path, payload) {
-  const r = await fetch(
-    "/api/proxy?endpoint=" + encodeURIComponent(path),
-    {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload || {})
-    }
-  );
-
-  return parseResponse(r);
-}
-
-async function apiGet(path, query = {}) {
-  const url = new URL("/api/proxy", window.location.origin);
-  url.searchParams.set("endpoint", path);
-
-  Object.entries(query || {}).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== "") {
-      url.searchParams.set(k, String(v));
-    }
-  });
-
-  const r = await fetch(url.toString(), {
-    method: "GET"
-  });
-
-  return parseResponse(r);
+  setStatusInternal(statusBox, msg, type);
 }
 
 function getValue(id) {
   return document.getElementById(id);
-}
-
-function normalizeNextAction(action) {
-  if (!action || typeof action !== "object") {
-    return null;
-  }
-
-  const type =
-    typeof action.type === "string"
-      ? action.type.trim()
-      : action.step
-        ? "step"
-        : (
-            action.url ||
-            action.redirect_url ||
-            action.fallback_widget_url
-          )
-          ? "redirect"
-          : null;
-
-  if (!type) {
-    return null;
-  }
-
-  const provider =
-    typeof action.provider === "string"
-      ? action.provider.trim()
-      : null;
-
-  const step =
-    typeof action.step === "string"
-      ? action.step.trim()
-      : null;
-
-  const meta =
-    action.meta &&
-    typeof action.meta === "object" &&
-    !Array.isArray(action.meta)
-      ? { ...action.meta }
-      : {};
-
-  const url =
-    (typeof action.url === "string" && action.url.trim()) ||
-    (typeof action.redirect_url === "string" && action.redirect_url.trim()) ||
-    (typeof action.fallback_widget_url === "string" && action.fallback_widget_url.trim()) ||
-    (typeof meta.url === "string" && meta.url.trim()) ||
-    (typeof meta.redirect_url === "string" && meta.redirect_url.trim()) ||
-    (typeof meta.fallback_widget_url === "string" && meta.fallback_widget_url.trim()) ||
-    null;
-
-  return {
-    type,
-    provider,
-    step: type === "step" ? step : null,
-    url: type === "redirect" ? url : null,
-    label:
-      typeof action.label === "string"
-        ? action.label.trim()
-        : null,
-    blocking:
-      typeof action.blocking === "boolean"
-        ? action.blocking
-        : true,
-    meta
-  };
-}
-
-function extractWidgetUrlFromFunding(funding) {
-  const normalizedAction =
-    normalizeNextAction(funding?.next_action);
-
-  return (
-    funding?.widget?.url ||
-    funding?.widget_url ||
-    normalizedAction?.url ||
-    normalizedAction?.meta?.fallback_widget_url ||
-    normalizedAction?.meta?.redirect_url ||
-    normalizedAction?.meta?.url ||
-    null
-  );
-}
-
-function isTerminalOrAdvancedSettlementStatus(status) {
-  return (
-    status === "funding_confirmed" ||
-    ["submitted", "executing", "processing", "completed", "failed"].includes(status)
-  );
 }
 
 /* =========================
@@ -318,57 +133,8 @@ function buildKycPayload() {
 }
 
 /* =========================
-   STATUS HANDLER
+   STATUS / REFRESH
 ========================= */
-
-function handleSettlementStatus(status) {
-  const s = status?.status;
-
-  if (!s) return;
-
-  if (s === "waiting_ramp_payment") {
-    emit("unibridge:quote");
-    emit("unibridge:payment");
-    signBtn.disabled = true;
-    setStatus("Waiting for payment...");
-    return;
-  }
-
-  if (s === "funding_confirmed") {
-    emit("unibridge:quote");
-    emit("unibridge:ready");
-    signBtn.disabled = false;
-    continueBtn.disabled = true;
-    setStatus("Ready to sign transfer", "success");
-    return;
-  }
-
-  if (["submitted", "executing", "processing"].includes(s)) {
-    emit("unibridge:quote");
-    emit("unibridge:funding");
-    signBtn.disabled = true;
-    continueBtn.disabled = true;
-    setStatus("Transfer in progress...");
-    return;
-  }
-
-  if (s === "completed") {
-    emit("unibridge:done");
-    signBtn.disabled = true;
-    continueBtn.disabled = true;
-    setStatus("Transfer completed", "success");
-    clearState();
-    return;
-  }
-
-  if (s === "failed") {
-    signBtn.disabled = true;
-    continueBtn.disabled = true;
-    setStatus("Transfer failed", "error");
-    clearState();
-    return;
-  }
-}
 
 async function refreshSettlementState() {
   if (!settlementId) return null;
@@ -377,7 +143,15 @@ async function refreshSettlementState() {
     settlement_id: settlementId
   });
 
-  handleSettlementStatus(status);
+  handleSettlementStatus({
+    status,
+    signBtn,
+    continueBtn,
+    emit,
+    setStatus,
+    clearState
+  });
+
   return status;
 }
 
@@ -390,7 +164,7 @@ async function startFlow() {
 
   try {
     clearState();
-    lastStatusKey = null;
+    resetStatusMemory();
 
     processing = true;
 
@@ -442,130 +216,6 @@ async function startFlow() {
   } finally {
     processing = false;
     sendBtn.disabled = false;
-  }
-}
-
-/* =========================
-   NEXT ACTION FLOW
-========================= */
-
-async function processStepNextActions() {
-  if (nextActionProcessing) return;
-
-  nextActionProcessing = true;
-
-  try {
-    let steps = 0;
-
-    while (currentNextAction && steps < 12) {
-      const action = normalizeNextAction(currentNextAction);
-
-      if (!action) {
-        currentNextAction = null;
-        return;
-      }
-
-      if (action.type !== "step") {
-        return;
-      }
-
-      steps += 1;
-
-      const step = action.step;
-      let res = null;
-
-      if (step === "email_otp") {
-        const email = prompt("Enter email");
-        if (!email) throw new Error("email_required");
-
-        res = await apiPost("ramp/auth/start", {
-          settlement_id: settlementId,
-          email
-        });
-      }
-
-      else if (step === "otp_verify") {
-        const otp = prompt("Enter OTP");
-        if (!otp) throw new Error("otp_required");
-
-        res = await apiPost("ramp/auth/verify", {
-          settlement_id: settlementId,
-          otp
-        });
-      }
-
-      else if (step === "fetch_user") {
-        res = await apiGet("ramp/user", {
-          settlement_id: settlementId
-        });
-      }
-
-      else if (step === "kyc_requirement") {
-        res = await apiGet("ramp/kyc/requirement", {
-          settlement_id: settlementId
-        });
-      }
-
-      else if (step === "kyc_user") {
-        res = await apiPatch("ramp/kyc/user", {
-          settlement_id: settlementId,
-          user: buildKycPayload()
-        });
-      }
-
-      else if (step === "order_create") {
-        res = await apiPost("ramp/order/create", {
-          settlement_id: settlementId
-        });
-      }
-
-      else if (step === "order_confirm_payment") {
-        res = await apiPost("ramp/order/confirm-payment", {
-          settlement_id: settlementId
-        });
-      }
-
-      else if (step === "order_status") {
-        await apiGet("ramp/order/status", {
-          settlement_id: settlementId
-        });
-
-        currentNextAction = null;
-
-        emit("unibridge:quote");
-        emit("unibridge:payment");
-        continueBtn.disabled = false;
-        setStatus("Waiting for payment confirmation...");
-
-        return;
-      }
-
-      else {
-        throw new Error("unhandled_step_" + step);
-      }
-
-      if (!res) {
-        throw new Error("empty_response");
-      }
-
-      currentNextAction =
-        normalizeNextAction(res.next_action) || null;
-
-      if (!currentNextAction) {
-        pendingWidgetUrl =
-          extractWidgetUrlFromFunding(res) || pendingWidgetUrl;
-      }
-    }
-
-    if (steps >= 12) {
-      throw new Error("next_action_loop_detected");
-    }
-  } catch (e) {
-    setStatus(e, "error");
-    currentNextAction = null;
-    continueBtn.disabled = false;
-  } finally {
-    nextActionProcessing = false;
   }
 }
 
@@ -652,7 +302,35 @@ async function continueFlow() {
     }
 
     if (action?.type === "step") {
-      await processStepNextActions();
+      await window.UnibridgeRampFlow.processStepNextActions({
+        emit,
+        buildKycPayload,
+        setStatus,
+        setContinueDisabled(value) {
+          continueBtn.disabled = value;
+        },
+        getSettlementId() {
+          return settlementId;
+        },
+        getCurrentNextAction() {
+          return currentNextAction;
+        },
+        setCurrentNextAction(value) {
+          currentNextAction = value;
+        },
+        getPendingWidgetUrl() {
+          return pendingWidgetUrl;
+        },
+        setPendingWidgetUrl(value) {
+          pendingWidgetUrl = value;
+        },
+        getNextActionProcessing() {
+          return nextActionProcessing;
+        },
+        setNextActionProcessing(value) {
+          nextActionProcessing = value;
+        }
+      });
       return;
     }
 
@@ -674,7 +352,7 @@ async function continueFlow() {
 }
 
 /* =========================
-   SIGN (MANUAL — REPO MATCH)
+   SIGN
 ========================= */
 
 async function signAndSubmit() {
@@ -733,7 +411,7 @@ async function signAndSubmit() {
 }
 
 /* =========================
-   RESUME / RETURN
+   RESUME
 ========================= */
 
 async function resumeFlowFromState() {
