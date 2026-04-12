@@ -103,26 +103,20 @@ function resetQuoteState() {
   setTextIfPresent("sumAmount", "");
   setTextIfPresent("sumCountry", "");
   setTextIfPresent("sumExecutorFee", "");
-  setTextIfPresent("sumUniBridgeFee", "");
 
   setDisplayIfPresent("executorFeeRow", "none");
-  setDisplayIfPresent("uniBridgeFeeRow", "none");
 }
 
 function renderExecutionQuote({
   requestedAmount,
   countryLabel,
-  executorFee,
-  unibridgeFee
+  executorFee
 }) {
   setTextIfPresent("sumAmount", formatNumber(requestedAmount));
   setTextIfPresent("sumCountry", countryLabel || "Brazil");
 
   const normalizedExecutorFee =
     Number(executorFee ?? 0);
-
-  const normalizedUniBridgeFee =
-    Number(unibridgeFee ?? 0);
 
   if (Number.isFinite(normalizedExecutorFee)) {
     setTextIfPresent(
@@ -134,19 +128,6 @@ function renderExecutionQuote({
     setDisplayIfPresent("executorFeeRow", "none");
   }
 
-  if (
-    Number.isFinite(normalizedUniBridgeFee) &&
-    normalizedUniBridgeFee > 0
-  ) {
-    setTextIfPresent(
-      "sumUniBridgeFee",
-      formatNumber(normalizedUniBridgeFee)
-    );
-    setDisplayIfPresent("uniBridgeFeeRow", "block");
-  } else {
-    setDisplayIfPresent("uniBridgeFeeRow", "none");
-  }
-
   /*
   --------------------------------------------------
   Fallback textual summary for older HTML versions
@@ -156,10 +137,7 @@ function renderExecutionQuote({
   const executorFeeRow =
     document.getElementById("executorFeeRow");
 
-  const uniBridgeFeeRow =
-    document.getElementById("uniBridgeFeeRow");
-
-  if (!executorFeeRow && !uniBridgeFeeRow) {
+  if (!executorFeeRow) {
     const parts = [
       `Amount: ${formatNumber(requestedAmount)}`
     ];
@@ -167,15 +145,6 @@ function renderExecutionQuote({
     if (Number.isFinite(normalizedExecutorFee)) {
       parts.push(
         `Execution fee: ${formatNumber(normalizedExecutorFee)}`
-      );
-    }
-
-    if (
-      Number.isFinite(normalizedUniBridgeFee) &&
-      normalizedUniBridgeFee > 0
-    ) {
-      parts.push(
-        `UniBridge fee: ${formatNumber(normalizedUniBridgeFee)}`
       );
     }
 
@@ -398,9 +367,7 @@ async function startFlow() {
       funding_amount:
         selectedRoute.funding_amount ?? null,
       executor_fee:
-        selectedRoute.executor_fee ?? 0,
-      unibridge_fee:
-        selectedRoute.unibridge_fee ?? 0
+        selectedRoute.executor_fee ?? 0
     };
 
     renderExecutionQuote({
@@ -409,9 +376,7 @@ async function startFlow() {
       countryLabel:
         getCountryLabel(),
       executorFee:
-        currentRouteQuote.executor_fee,
-      unibridgeFee:
-        currentRouteQuote.unibridge_fee
+        currentRouteQuote.executor_fee
     });
 
     emit("unibridge:quote");
@@ -428,10 +393,8 @@ async function startFlow() {
 
     const executorFeeRow =
       document.getElementById("executorFeeRow");
-    const uniBridgeFeeRow =
-      document.getElementById("uniBridgeFeeRow");
 
-    if (executorFeeRow || uniBridgeFeeRow) {
+    if (executorFeeRow) {
       setStatus("Enter PIX key");
     }
   } catch (e) {
