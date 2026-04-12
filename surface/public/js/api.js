@@ -26,71 +26,14 @@ window.UnibridgeApi = (() => {
     });
   }
 
-  function getClientReturnUrl() {
-    try {
-      if (
-        typeof window !== "undefined" &&
-        window.location &&
-        typeof window.location.href === "string"
-      ) {
-        const href = window.location.href.trim();
-        return href || null;
-      }
-    } catch {}
-
-    return null;
-  }
-
-  function getClientOrigin() {
-    try {
-      if (
-        typeof window !== "undefined" &&
-        window.location &&
-        typeof window.location.origin === "string"
-      ) {
-        const origin = window.location.origin.trim();
-        return origin || null;
-      }
-    } catch {}
-
-    return null;
-  }
-
-  function buildHeaders({
-    includeJsonContentType = true,
-    extra = {}
-  } = {}) {
-    const headers = {
-      ...extra
-    };
-
-    if (includeJsonContentType) {
-      headers["content-type"] = "application/json";
-    }
-
-    const returnUrl =
-      getClientReturnUrl();
-
-    if (returnUrl) {
-      headers["x-return-url"] = returnUrl;
-    }
-
-    const clientOrigin =
-      getClientOrigin();
-
-    if (clientOrigin) {
-      headers["x-client-origin"] = clientOrigin;
-    }
-
-    return headers;
-  }
-
   async function apiPost(path, payload) {
     const r = await fetch(
       "/api/proxy?endpoint=" + encodeURIComponent(path),
       {
         method: "POST",
-        headers: buildHeaders(),
+        headers: {
+          "content-type": "application/json"
+        },
         body: JSON.stringify(payload || {})
       }
     );
@@ -103,7 +46,9 @@ window.UnibridgeApi = (() => {
       "/api/proxy?endpoint=" + encodeURIComponent(path),
       {
         method: "PATCH",
-        headers: buildHeaders(),
+        headers: {
+          "content-type": "application/json"
+        },
         body: JSON.stringify(payload || {})
       }
     );
@@ -122,10 +67,7 @@ window.UnibridgeApi = (() => {
     });
 
     const r = await fetch(url.toString(), {
-      method: "GET",
-      headers: buildHeaders({
-        includeJsonContentType: false
-      })
+      method: "GET"
     });
 
     return parseResponse(r);
