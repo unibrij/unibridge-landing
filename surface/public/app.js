@@ -65,12 +65,54 @@ function getValue(id) {
   return document.getElementById(id);
 }
 
-function getClientRedirectUrl() {
+/* =========================
+   RETURN URL HELPERS
+========================= */
+
+function buildFundingReturnUrl(targetSettlementId) {
+  if (!targetSettlementId) {
+    return null;
+  }
+
   try {
     const url = new URL(window.location.href);
+
+    /*
+    --------------------------------------------------
+    Keep user on the same surface route but convert
+    it into a settlement-bound funding return URL.
+    --------------------------------------------------
+    */
+
+    url.searchParams.set("settlement_id", targetSettlementId);
+    url.searchParams.set("return", "funding");
+
     return url.toString();
   } catch {
-    return window.location.href || null;
+    return null;
+  }
+}
+
+function getSettlementIdFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const value =
+      url.searchParams.get("settlement_id");
+
+    return value && value.trim()
+      ? value.trim()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function isFundingReturn() {
+  try {
+    const url = new URL(window.location.href);
+    return url.searchParams.get("return") === "funding";
+  } catch {
+    return false;
   }
 }
 
@@ -440,8 +482,7 @@ async function continueFlow() {
       const create = await apiPost("settlement/create", {
         session_id: sessionId,
         route_id: routeId,
-        destination,
-        redirect_url: getClientRedirectUrl()
+        destination
       });
 
       persistSettlement(create.settlement_id);
@@ -455,8 +496,16 @@ async function continueFlow() {
     }
 
     if (!currentNextAction && !pendingWidgetUrl) {
+      const redirect_url =
+        buildFundingReturnUrl(settlementId);
+
+      if (!redirect_url) {
+        throw new Error("missing_redirect_url");
+      }
+
       const funding = await apiPost("funding/session", {
-        settlement_id: settlementId
+        settlement_id: settlementId,
+        redirect_url
       });
 
       currentNextAction =
@@ -637,8 +686,16 @@ async function resumeFlowFromState() {
       emit("unibridge:quote");
       emit("unibridge:payment");
 
+      const redirect_url =
+        buildFundingReturnUrl(settlementId);
+
+      if (!redirect_url) {
+        throw new Error("missing_redirect_url");
+      }
+
       const funding = await apiPost("funding/session", {
-        settlement_id: settlementId
+        settlement_id: settlementId,
+        redirect_url
       });
 
       currentNextAction =
@@ -673,6 +730,22 @@ async function resumeFlowFromState() {
 }
 
 window.addEventListener("load", async () => {
+  const settlementIdFromUrl =
+    getSettlementIdFromUrl();
+
+  const fundingReturn =
+    isFundingReturn();
+
+  if (settlementIdFromUrl && fundingReturn) {
+    settlementId = settlementIdFromUrl;
+    paymentStarted = true;
+
+    persistState({
+      id: settlementIdFromUrl,
+      payment_started: true
+    });
+  }
+
   const saved = getPersistedSettlement();
   if (!saved) return;
 
