@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,7 +7,7 @@
 
   <style>
     body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
       background:#f8fafc;
       margin:0;
       padding:40px 20px;
@@ -88,6 +88,7 @@
 
     input,select{
       border:1px solid #e5edf3;
+      background:#fff;
     }
 
     button{
@@ -167,7 +168,7 @@
         <option value="BR">Brazil</option>
       </select>
 
-      <button id="sendBtn">Get quote</button>
+      <button id="sendBtn" type="button">Get quote</button>
 
       <div id="pixBox">
         <h3>PIX key</h3>
@@ -177,7 +178,7 @@
           <input id="taxId" placeholder="CPF / CNPJ">
         </div>
 
-        <button id="continueBtn" disabled>Continue to payment</button>
+        <button id="continueBtn" type="button" disabled>Continue to payment</button>
 
         <div class="muted">
           PIX key is required.
@@ -191,7 +192,7 @@
           Funding confirmed. Sign to complete transfer.
         </div>
 
-        <button id="signBtn" disabled>Sign &amp; Send</button>
+        <button id="signBtn" type="button" disabled>Sign &amp; Send</button>
       </div>
 
       <div id="status"></div>
@@ -199,7 +200,11 @@
   </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="/surface/app.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/status.js"></script>
+  <script src="/js/nextAction.js"></script>
+  <script src="/js/rampFlow.js"></script>
+  <script src="/app.js"></script>
 
   <script>
     function setStep(n) {
@@ -238,6 +243,10 @@
       signBox.style.display = "none";
     }
 
+    function showTaxBox() {
+      taxBox.style.display = "block";
+    }
+
     function hideTaxBox() {
       taxBox.style.display = "none";
     }
@@ -254,6 +263,7 @@
       showSummary();
       showPixBox();
       hideSignBox();
+      hideTaxBox();
       setStep(2);
     });
 
@@ -261,6 +271,7 @@
       showSummary();
       showPixBox();
       hideSignBox();
+      hideTaxBox();
       setStep(3);
     });
 
@@ -268,6 +279,7 @@
       showSummary();
       hidePixBox();
       hideSignBox();
+      hideTaxBox();
       setStep(4);
     });
 
@@ -275,6 +287,7 @@
       showSummary();
       hidePixBox();
       showSignBox();
+      hideTaxBox();
       setStep(5);
     });
 
@@ -282,6 +295,7 @@
       showSummary();
       hidePixBox();
       hideSignBox();
+      hideTaxBox();
       setStep(6);
     });
 
