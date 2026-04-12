@@ -65,6 +65,15 @@ function getValue(id) {
   return document.getElementById(id);
 }
 
+function getClientRedirectUrl() {
+  try {
+    const url = new URL(window.location.href);
+    return url.toString();
+  } catch {
+    return window.location.href || null;
+  }
+}
+
 /* =========================
    HELPERS
 ========================= */
@@ -127,12 +136,6 @@ function renderExecutionQuote({
   } else {
     setDisplayIfPresent("executorFeeRow", "none");
   }
-
-  /*
-  --------------------------------------------------
-  Fallback textual summary for older HTML versions
-  --------------------------------------------------
-  */
 
   const executorFeeRow =
     document.getElementById("executorFeeRow");
@@ -384,13 +387,6 @@ async function startFlow() {
     continueBtn.disabled = false;
     setContinueButtonMode("prepare_payment");
 
-    /*
-    --------------------------------------------------
-    Avoid overwriting textual quote fallback if HTML
-    summary rows are not present yet.
-    --------------------------------------------------
-    */
-
     const executorFeeRow =
       document.getElementById("executorFeeRow");
 
@@ -414,12 +410,6 @@ async function continueFlow() {
   if (processing) return;
 
   try {
-    /*
-    --------------------------------------------------
-    Second click after payment prep opens widget
-    --------------------------------------------------
-    */
-
     if (pendingWidgetUrl) {
       markPaymentStarted();
       window.location.href = pendingWidgetUrl;
@@ -450,7 +440,8 @@ async function continueFlow() {
       const create = await apiPost("settlement/create", {
         session_id: sessionId,
         route_id: routeId,
-        destination
+        destination,
+        redirect_url: getClientRedirectUrl()
       });
 
       persistSettlement(create.settlement_id);
@@ -635,14 +626,6 @@ async function resumeFlowFromState() {
     const status = await apiGet("settlement/status", {
       settlement_id: settlementId
     });
-
-    /*
-    --------------------------------------------------
-    Distinguish between:
-    1) settlement created but payment never started
-    2) user already went into payment flow and came back
-    --------------------------------------------------
-    */
 
     if (status?.status === "waiting_ramp_payment") {
       if (!paymentStarted) {
