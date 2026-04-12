@@ -115,6 +115,15 @@ window.UnibridgeRampFlow = (() => {
     });
   }
 
+  function resolveRedirectUrl(action, res, getPendingWidgetUrl) {
+    return (
+      action?.url ||
+      window.UnibridgeNextAction.extractWidgetUrlFromFunding(res) ||
+      getPendingWidgetUrl() ||
+      null
+    );
+  }
+
   async function processStepNextActions(ctx) {
     const {
       getCurrentNextAction,
@@ -145,6 +154,32 @@ window.UnibridgeRampFlow = (() => {
           return;
         }
 
+        /*
+        --------------------------------------------------
+        Runtime fallback / redirect handling
+        --------------------------------------------------
+        If sender step handler switched us to hosted widget,
+        redirect immediately instead of silently returning.
+        --------------------------------------------------
+        */
+        if (action.type === "redirect") {
+          const redirectUrl =
+            resolveRedirectUrl(
+              action,
+              null,
+              getPendingWidgetUrl
+            );
+
+          if (!redirectUrl) {
+            throw new Error("missing_redirect_url");
+          }
+
+          hideAuthUi();
+          setPendingWidgetUrl(redirectUrl);
+          window.location.href = redirectUrl;
+          return;
+        }
+
         if (action.type !== "step") {
           hideAuthUi();
           return;
@@ -158,67 +193,100 @@ window.UnibridgeRampFlow = (() => {
         if (step === "email_otp") {
           showEmailUi();
           setContinueDisabled(true);
-          const email = await waitForAuthAction("email");
 
-          res = await window.UnibridgeApi.apiPost("ramp/auth/start", {
-            settlement_id: getSettlementId(),
-            email
-          });
+          const email =
+            await waitForAuthAction("email");
+
+          res = await window.UnibridgeApi.apiPost(
+            "ramp/auth/start",
+            {
+              settlement_id: getSettlementId(),
+              email
+            }
+          );
         }
 
         else if (step === "otp_verify") {
           showOtpUi();
           setContinueDisabled(true);
-          const otp = await waitForAuthAction("otp");
 
-          res = await window.UnibridgeApi.apiPost("ramp/auth/verify", {
-            settlement_id: getSettlementId(),
-            otp
-          });
+          const otp =
+            await waitForAuthAction("otp");
+
+          res = await window.UnibridgeApi.apiPost(
+            "ramp/auth/verify",
+            {
+              settlement_id: getSettlementId(),
+              otp
+            }
+          );
         }
 
         else if (step === "fetch_user") {
           hideAuthUi();
-          res = await window.UnibridgeApi.apiGet("ramp/user", {
-            settlement_id: getSettlementId()
-          });
+
+          res = await window.UnibridgeApi.apiGet(
+            "ramp/user",
+            {
+              settlement_id: getSettlementId()
+            }
+          );
         }
 
         else if (step === "kyc_requirement") {
           hideAuthUi();
-          res = await window.UnibridgeApi.apiGet("ramp/kyc/requirement", {
-            settlement_id: getSettlementId()
-          });
+
+          res = await window.UnibridgeApi.apiGet(
+            "ramp/kyc/requirement",
+            {
+              settlement_id: getSettlementId()
+            }
+          );
         }
 
         else if (step === "kyc_user") {
           hideAuthUi();
-          res = await window.UnibridgeApi.apiPatch("ramp/kyc/user", {
-            settlement_id: getSettlementId(),
-            user: buildKycPayload()
-          });
+
+          res = await window.UnibridgeApi.apiPatch(
+            "ramp/kyc/user",
+            {
+              settlement_id: getSettlementId(),
+              user: buildKycPayload()
+            }
+          );
         }
 
         else if (step === "order_create") {
           hideAuthUi();
-          res = await window.UnibridgeApi.apiPost("ramp/order/create", {
-            settlement_id: getSettlementId()
-          });
+
+          res = await window.UnibridgeApi.apiPost(
+            "ramp/order/create",
+            {
+              settlement_id: getSettlementId()
+            }
+          );
         }
 
         else if (step === "order_confirm_payment") {
           hideAuthUi();
-          res = await window.UnibridgeApi.apiPost("ramp/order/confirm-payment", {
-            settlement_id: getSettlementId()
-          });
+
+          res = await window.UnibridgeApi.apiPost(
+            "ramp/order/confirm-payment",
+            {
+              settlement_id: getSettlementId()
+            }
+          );
         }
 
         else if (step === "order_status") {
           hideAuthUi();
 
-          await window.UnibridgeApi.apiGet("ramp/order/status", {
-            settlement_id: getSettlementId()
-          });
+          await window.UnibridgeApi.apiGet(
+            "ramp/order/status",
+            {
+              settlement_id: getSettlementId()
+            }
+          );
 
           setCurrentNextAction(null);
 
@@ -241,11 +309,42 @@ window.UnibridgeRampFlow = (() => {
         }
 
         setCurrentNextAction(
-          window.UnibridgeNextAction.normalizeNextAction(res.next_action) || null
+          window.UnibridgeNextAction.normalizeNextAction(
+            res.next_action
+          ) || null
         );
+
+        const updatedAction =
+          window.UnibridgeNextAction.normalizeNextAction(
+            getCurrentNextAction()
+          );
+
+        /*
+        --------------------------------------------------
+        If response switched to redirect, go now
+        --------------------------------------------------
+        */
+        if (updatedAction?.type === "redirect") {
+          const redirectUrl =
+            resolveRedirectUrl(
+              updatedAction,
+              res,
+              getPendingWidgetUrl
+            );
+
+          if (!redirectUrl) {
+            throw new Error("missing_redirect_url");
+          }
+
+          hideAuthUi();
+          setPendingWidgetUrl(redirectUrl);
+          window.location.href = redirectUrl;
+          return;
+        }
 
         if (!getCurrentNextAction()) {
           hideAuthUi();
+
           setPendingWidgetUrl(
             window.UnibridgeNextAction.extractWidgetUrlFromFunding(res) ||
             getPendingWidgetUrl()
