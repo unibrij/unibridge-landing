@@ -106,6 +106,7 @@
 
     #pixBox,
     #taxBox,
+    #authBox,
     #signBox{
       display:none;
       margin-top:10px;
@@ -185,6 +186,19 @@
         </div>
       </div>
 
+      <div id="authBox">
+        <h3 id="authTitle">Authentication</h3>
+
+        <input id="authEmail" type="email" placeholder="Enter email">
+        <input id="authOtp" type="text" placeholder="Enter OTP" style="display:none;">
+
+        <button id="authBtn" type="button" style="display:none;">Continue</button>
+
+        <div class="muted" id="authHint">
+          Complete the required authentication step.
+        </div>
+      </div>
+
       <div id="signBox">
         <h3>Sign transfer</h3>
 
@@ -218,6 +232,7 @@
     const pixBox = document.getElementById("pixBox");
     const signBox = document.getElementById("signBox");
     const taxBox = document.getElementById("taxBox");
+    const authBox = document.getElementById("authBox");
 
     function showSummary() {
       summaryBox.style.display = "block";
@@ -251,11 +266,20 @@
       taxBox.style.display = "none";
     }
 
+    function showAuthBox() {
+      authBox.style.display = "block";
+    }
+
+    function hideAuthBox() {
+      authBox.style.display = "none";
+    }
+
     function resetUiToStart() {
       hideSummary();
       hidePixBox();
       hideSignBox();
       hideTaxBox();
+      hideAuthBox();
       setStep(1);
     }
 
@@ -264,6 +288,7 @@
       showPixBox();
       hideSignBox();
       hideTaxBox();
+      hideAuthBox();
       setStep(2);
     });
 
@@ -272,6 +297,7 @@
       showPixBox();
       hideSignBox();
       hideTaxBox();
+      showAuthBox();
       setStep(3);
     });
 
@@ -280,6 +306,7 @@
       hidePixBox();
       hideSignBox();
       hideTaxBox();
+      hideAuthBox();
       setStep(4);
     });
 
@@ -288,6 +315,7 @@
       hidePixBox();
       showSignBox();
       hideTaxBox();
+      hideAuthBox();
       setStep(5);
     });
 
@@ -296,6 +324,7 @@
       hidePixBox();
       hideSignBox();
       hideTaxBox();
+      hideAuthBox();
       setStep(6);
     });
 
