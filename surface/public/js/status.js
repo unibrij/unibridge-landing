@@ -51,6 +51,23 @@ window.UnibridgeStatus = (() => {
     if (type === "success") statusBox.classList.add("status-success");
   }
 
+  function getSettlementViewState(status) {
+    const helper =
+      window.UnibridgeSettlementViewState;
+
+    if (
+      helper &&
+      typeof helper.getUserFacingSettlementState === "function"
+    ) {
+      return helper.getUserFacingSettlementState(status);
+    }
+
+    return {
+      key: "unknown",
+      title: "Status is currently unavailable."
+    };
+  }
+
   function handleSettlementStatus({
     status,
     signBtn,
@@ -63,47 +80,82 @@ window.UnibridgeStatus = (() => {
 
     if (!s) return;
 
+    const viewState =
+      getSettlementViewState(s);
+
+    /*
+    ------------------------------------------------
+    User signing is no longer canonical.
+    Keep sign button disabled in all public states.
+    Manual fallback is now admin-side, not user-side.
+    ------------------------------------------------
+    */
+
+    if (signBtn) {
+      signBtn.disabled = true;
+      signBtn.style.display = "none";
+    }
+
     if (s === "waiting_ramp_payment") {
       emit("unibridge:quote");
       emit("unibridge:payment");
-      signBtn.disabled = true;
+
+      if (continueBtn) {
+        continueBtn.disabled = false;
+      }
+
       setStatus("Waiting for payment...");
       return;
     }
 
-    if (s === "funding_confirmed") {
-      emit("unibridge:quote");
-      emit("unibridge:ready");
-      signBtn.disabled = false;
-      continueBtn.disabled = true;
-      setStatus("Ready to sign transfer", "success");
-      return;
-    }
-
-    if (["submitted", "executing", "processing"].includes(s)) {
+    if (
+      [
+        "funding_confirmed",
+        "submitted",
+        "executing",
+        "processing",
+        "execution_retryable",
+        "manual_resume_required"
+      ].includes(s)
+    ) {
       emit("unibridge:quote");
       emit("unibridge:funding");
-      signBtn.disabled = true;
-      continueBtn.disabled = true;
-      setStatus("Transfer in progress...");
+
+      if (continueBtn) {
+        continueBtn.disabled = true;
+      }
+
+      setStatus(viewState.title);
       return;
     }
 
     if (s === "completed") {
       emit("unibridge:done");
-      signBtn.disabled = true;
-      continueBtn.disabled = true;
-      setStatus("Transfer completed", "success");
+
+      if (continueBtn) {
+        continueBtn.disabled = true;
+      }
+
+      setStatus(viewState.title, "success");
       clearState();
       return;
     }
 
     if (s === "failed") {
-      signBtn.disabled = true;
-      continueBtn.disabled = true;
-      setStatus("Transfer failed", "error");
+      if (continueBtn) {
+        continueBtn.disabled = true;
+      }
+
+      setStatus(viewState.title, "error");
       clearState();
+      return;
     }
+
+    if (continueBtn) {
+      continueBtn.disabled = true;
+    }
+
+    setStatus(viewState.title);
   }
 
   return {
