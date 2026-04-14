@@ -81,16 +81,8 @@ window.UnibridgeNextAction = (() => {
     );
   }
 
-  function isTerminalOrAdvancedSettlementStatus(status) {
-    return (
-      status === "funding_confirmed" ||
-      ["submitted", "executing", "processing", "completed", "failed"].includes(status)
-    );
-  }
-
   return {
     normalizeNextAction,
-    extractWidgetUrlFromFunding,
-    isTerminalOrAdvancedSettlementStatus
+    extractWidgetUrlFromFunding
   };
 })();
