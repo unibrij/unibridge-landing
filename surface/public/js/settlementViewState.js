@@ -56,7 +56,7 @@ window.UnibridgeSettlementViewState = (() => {
     ) {
       return {
         key: "executing",
-        title: "Funding received. Transfer execution is starting."
+        title: "Funding received. Transfer execution is progress."
       };
     }
 
