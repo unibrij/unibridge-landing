@@ -31,7 +31,10 @@ const continueBtn = document.getElementById("continueBtn");
 const signBtn = document.getElementById("signBtn");
 const statusBox = document.getElementById("status");
 
-signBtn.disabled = true;
+if (signBtn) {
+  signBtn.disabled = true;
+  signBtn.style.display = "none";
+}
 
 /* =========================
    SHORTCUTS
@@ -45,9 +48,11 @@ const {
 } = window.UnibridgeStatus;
 const {
   normalizeNextAction,
-  extractWidgetUrlFromFunding,
-  isTerminalOrAdvancedSettlementStatus
+  extractWidgetUrlFromFunding
 } = window.UnibridgeNextAction;
+const {
+  isPostFundingSettlementStatus
+} = window.UnibridgeSettlementViewState;
 
 /* =========================
    EVENTS
@@ -313,8 +318,13 @@ function clearState() {
 
   resetQuoteState();
 
-  signBtn.disabled = true;
-  continueBtn.disabled = true;
+  if (signBtn) {
+    signBtn.disabled = true;
+  }
+
+  if (continueBtn) {
+    continueBtn.disabled = true;
+  }
 
   setContinueButtonMode("prepare_payment");
 }
@@ -404,9 +414,17 @@ async function startFlow() {
 
     processing = true;
 
-    sendBtn.disabled = true;
-    continueBtn.disabled = true;
-    signBtn.disabled = true;
+    if (sendBtn) {
+      sendBtn.disabled = true;
+    }
+
+    if (continueBtn) {
+      continueBtn.disabled = true;
+    }
+
+    if (signBtn) {
+      signBtn.disabled = true;
+    }
 
     setStatus("Registering...");
 
@@ -461,7 +479,10 @@ async function startFlow() {
 
     emit("unibridge:quote");
 
-    continueBtn.disabled = false;
+    if (continueBtn) {
+      continueBtn.disabled = false;
+    }
+
     setContinueButtonMode("prepare_payment");
 
     const executorFeeRow =
@@ -472,10 +493,16 @@ async function startFlow() {
     }
   } catch (e) {
     setStatus(e, "error");
-    continueBtn.disabled = false;
+
+    if (continueBtn) {
+      continueBtn.disabled = false;
+    }
   } finally {
     processing = false;
-    sendBtn.disabled = false;
+
+    if (sendBtn) {
+      sendBtn.disabled = false;
+    }
   }
 }
 
@@ -494,7 +521,10 @@ async function continueFlow() {
     }
 
     processing = true;
-    continueBtn.disabled = true;
+
+    if (continueBtn) {
+      continueBtn.disabled = true;
+    }
 
     const pix = getValue("pix").value.trim();
     const taxIdEl = getValue("taxId");
@@ -543,7 +573,7 @@ async function continueFlow() {
     const latestStatus =
       await refreshSettlementState();
 
-    if (isTerminalOrAdvancedSettlementStatus(latestStatus?.status)) {
+    if (isPostFundingSettlementStatus(latestStatus?.status)) {
       return;
     }
 
@@ -577,7 +607,11 @@ async function continueFlow() {
       emit("unibridge:payment");
 
       setStatus("Payment prepared. Tap again to continue.");
-      continueBtn.disabled = false;
+
+      if (continueBtn) {
+        continueBtn.disabled = false;
+      }
+
       return;
     }
 
@@ -587,7 +621,11 @@ async function continueFlow() {
       setStatus(
         action.label || "Waiting for payment confirmation..."
       );
-      continueBtn.disabled = false;
+
+      if (continueBtn) {
+        continueBtn.disabled = false;
+      }
+
       return;
     }
 
@@ -597,7 +635,9 @@ async function continueFlow() {
         buildKycPayload,
         setStatus,
         setContinueDisabled(value) {
-          continueBtn.disabled = value;
+          if (continueBtn) {
+            continueBtn.disabled = value;
+          }
         },
         setContinueMode(mode) {
           setContinueButtonMode(mode);
@@ -636,73 +676,21 @@ async function continueFlow() {
       emit("unibridge:payment");
       setContinueButtonMode("open_payment");
       setStatus("Payment prepared. Tap again to continue.");
-      continueBtn.disabled = false;
+
+      if (continueBtn) {
+        continueBtn.disabled = false;
+      }
+
       return;
     }
 
     throw new Error("no_funding_flow");
   } catch (e) {
     setStatus(e, "error");
-    continueBtn.disabled = false;
-  } finally {
-    processing = false;
-  }
-}
 
-/* =========================
-   SIGN
-========================= */
-
-async function signAndSubmit() {
-  if (processing) return;
-
-  try {
-    processing = true;
-    signBtn.disabled = true;
-
-    const status = await apiGet("settlement/status", {
-      settlement_id: settlementId
-    });
-
-    if (status?.status !== "funding_confirmed") {
-      throw new Error("not_ready_for_execution");
+    if (continueBtn) {
+      continueBtn.disabled = false;
     }
-
-    setStatus("Preparing transaction...");
-
-    const unsignedTx = await apiPost("execution/build-unsigned-tx", {
-      settlement_id: settlementId
-    });
-
-    const signer = window.UnibridgeSigner?.signSmartPayTx;
-
-    if (!signer) {
-      setStatus("Connect wallet", "error");
-      signBtn.disabled = false;
-      return;
-    }
-
-    const signedTx = await signer(unsignedTx);
-
-    if (!signedTx || typeof signedTx !== "string") {
-      throw new Error("invalid_signed_tx");
-    }
-
-    await apiPost("execution/submit-signed-tx", {
-      settlement_id: settlementId,
-      signed_tx: signedTx
-    });
-
-    currentNextAction = null;
-    pendingWidgetUrl = null;
-    signBtn.disabled = true;
-    continueBtn.disabled = true;
-
-    emit("unibridge:funding");
-    setStatus("Submitted — tracking...");
-  } catch (e) {
-    setStatus(e, "error");
-    signBtn.disabled = false;
   } finally {
     processing = false;
   }
@@ -741,7 +729,10 @@ async function resumeFlowFromState() {
         extractWidgetUrlFromFunding(funding);
 
       setContinueButtonMode("open_payment");
-      continueBtn.disabled = false;
+
+      if (continueBtn) {
+        continueBtn.disabled = false;
+      }
 
       setStatus(
         "Payment not confirmed yet. Continue payment or wait for confirmation."
@@ -822,6 +813,10 @@ document.addEventListener("visibilitychange", async () => {
    EVENTS
 ========================= */
 
-sendBtn.onclick = startFlow;
-continueBtn.onclick = continueFlow;
-signBtn.onclick = signAndSubmit;
+if (sendBtn) {
+  sendBtn.onclick = startFlow;
+}
+
+if (continueBtn) {
+  continueBtn.onclick = continueFlow;
+}
