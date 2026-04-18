@@ -98,7 +98,6 @@ function buildFundingReturnUrl(targetSessionId) {
     */
 
     url.searchParams.delete("settlement_id");
-
     url.searchParams.set("session_id", targetSessionId);
     url.searchParams.set("return", "funding");
 
@@ -226,6 +225,10 @@ function setContinueButtonMode(mode) {
   }
 
   continueBtn.innerText = "Continue";
+}
+
+function resetUiToStart() {
+  window.resetUiToStart?.();
 }
 
 function getCountryLabel() {
@@ -485,6 +488,7 @@ async function startFlow() {
   try {
     clearState();
     resetStatusMemory();
+    resetUiToStart();
 
     processing = true;
 
@@ -801,8 +805,6 @@ async function resumeFlowFromState() {
   if (!settlementId || processing) return;
 
   try {
-    setAmountInputDisabled(true);
-
     const status = await apiGet("settlement/status", {
       settlement_id: settlementId
     });
@@ -810,9 +812,13 @@ async function resumeFlowFromState() {
     if (status?.status === "waiting_ramp_payment") {
       if (!paymentStarted) {
         clearState();
+        resetUiToStart();
         setStatus("");
+        refreshAmountLimitUi();
         return;
       }
+
+      setAmountInputDisabled(true);
 
       emit("unibridge:quote");
       emit("unibridge:payment");
@@ -839,6 +845,8 @@ async function resumeFlowFromState() {
 
       return;
     }
+
+    setAmountInputDisabled(true);
 
     emit("unibridge:quote");
 
@@ -884,7 +892,9 @@ window.addEventListener("load", async () => {
     }
 
     clearState();
+    resetUiToStart();
     setStatus("Could not restore funding session.", "error");
+    refreshAmountLimitUi();
     return;
   }
 
