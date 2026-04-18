@@ -133,6 +133,13 @@
       color:#6b7280;
       margin-top:8px;
     }
+
+    #amountLimitHint{
+      display:none;
+      font-size:12px;
+      margin-top:6px;
+      color:#c62828;
+    }
   </style>
 </head>
 
@@ -160,10 +167,12 @@
       </div>
 
       <input id="amount" type="number" step="0.01" value="10" placeholder="Amount">
+      <div id="amountLimitHint"></div>
 
       <select id="source_country">
         <option value="US">United States</option>
         <option value="EU">Europe</option>
+        <option value="GB">United Kingdom</option>
       </select>
 
       <select id="country">
@@ -210,7 +219,7 @@
   <script src="/surface/js/settlementViewState.js"></script>
   <script src="/surface/js/status.js"></script>
   <script src="/surface/js/rampFlow.js"></script>
-  <script src="/surface/app.js"></script>
+  <script type="module" src="/surface/app.js"></script>
 
   <script>
     function setStep(n) {
