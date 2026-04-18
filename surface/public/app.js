@@ -348,7 +348,7 @@ function getPersistedSettlement() {
     }
 
     if (Date.now() - data.ts > 30 * 60 * 1000) {
-      clearState();
+      localStorage.removeItem(STORAGE_KEY);
       return null;
     }
 
@@ -572,11 +572,7 @@ async function startFlow() {
     setContinueButtonMode("prepare_payment");
     refreshAmountLimitUi();
 
-    const executorFeeRow = document.getElementById("executorFeeRow");
-
-    if (executorFeeRow) {
-      setStatus("Enter PIX key");
-    }
+    setStatus("Enter PIX key");
   } catch (e) {
     setStatus(e, "error");
 
@@ -837,6 +833,8 @@ async function resumeFlowFromState() {
       return;
     }
 
+    setAmountInputDisabled(true);
+
     emit("unibridge:quote");
 
     handleSettlementStatus({
@@ -885,7 +883,10 @@ window.addEventListener("load", async () => {
   }
 
   const saved = getPersistedSettlement();
+
   if (!saved) {
+    clearState();
+    resetUiToStart();
     refreshAmountLimitUi();
     return;
   }
@@ -893,17 +894,24 @@ window.addEventListener("load", async () => {
   settlementId = saved.id;
   paymentStarted = Boolean(saved.payment_started);
 
+  if (!paymentStarted) {
+    clearState();
+    resetUiToStart();
+    refreshAmountLimitUi();
+    return;
+  }
+
   await resumeFlowFromState();
 });
 
 window.addEventListener("focus", async () => {
-  if (!settlementId) return;
+  if (!settlementId || !paymentStarted) return;
   await resumeFlowFromState();
 });
 
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState !== "visible") return;
-  if (!settlementId) return;
+  if (!settlementId || !paymentStarted) return;
   await resumeFlowFromState();
 });
 
@@ -917,34 +925,6 @@ const countryInput = getValue("country");
 
 if (amountInput) {
   amountInput.addEventListener("input", () => {
-    const hasStartedFlow =
-      Boolean(
-        sessionId ||
-        routeId ||
-        settlementId ||
-        currentRouteQuote
-      );
-
-    const currentValue =
-      Number(amountInput.value);
-
-    const quotedValue =
-      Number(currentRouteQuote?.requested_amount);
-
-    const amountActuallyChanged =
-      Number.isFinite(currentValue) &&
-      Number.isFinite(quotedValue) &&
-      currentValue !== quotedValue;
-
-    if (
-      hasStartedFlow &&
-      !paymentStarted &&
-      amountActuallyChanged
-    ) {
-      resetFlowForRouteInputChange();
-      return;
-    }
-
     refreshAmountLimitUi();
   });
 
