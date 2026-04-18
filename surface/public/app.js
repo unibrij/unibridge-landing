@@ -86,17 +86,6 @@ function buildFundingReturnUrl(targetSessionId) {
   try {
     const url = new URL(window.location.href);
 
-    /*
-    --------------------------------------------------
-    Build a funding return URL from a value already
-    known before settlement/create: session_id.
-
-    Important:
-    - remove stale settlement_id from prior runs
-    - keep the user on the same surface route
-    --------------------------------------------------
-    */
-
     url.searchParams.delete("settlement_id");
     url.searchParams.set("session_id", targetSessionId);
     url.searchParams.set("return", "funding");
@@ -110,8 +99,7 @@ function buildFundingReturnUrl(targetSessionId) {
 function getSessionIdFromUrl() {
   try {
     const url = new URL(window.location.href);
-    const value =
-      url.searchParams.get("session_id");
+    const value = url.searchParams.get("session_id");
 
     return value && value.trim()
       ? value.trim()
@@ -180,8 +168,7 @@ function renderExecutionQuote({
   setTextIfPresent("sumAmount", formatNumber(requestedAmount));
   setTextIfPresent("sumCountry", countryLabel || "Brazil");
 
-  const normalizedExecutorFee =
-    Number(executorFee ?? 0);
+  const normalizedExecutorFee = Number(executorFee ?? 0);
 
   if (Number.isFinite(normalizedExecutorFee)) {
     setTextIfPresent(
@@ -193,8 +180,7 @@ function renderExecutionQuote({
     setDisplayIfPresent("executorFeeRow", "none");
   }
 
-  const executorFeeRow =
-    document.getElementById("executorFeeRow");
+  const executorFeeRow = document.getElementById("executorFeeRow");
 
   if (!executorFeeRow) {
     const parts = [
@@ -267,8 +253,7 @@ function getSourceCountryCode() {
 }
 
 function getSelectedRampProvider() {
-  const sourceCountry =
-    getSourceCountryCode();
+  const sourceCountry = getSourceCountryCode();
 
   if (sourceCountry === "GB" || sourceCountry === "UK") {
     return "onramp";
@@ -298,14 +283,28 @@ function setAmountInputDisabled(disabled) {
   }
 }
 
+function resetFlowForRouteInputChange() {
+  clearState();
+  resetUiToStart();
+  resetStatusMemory();
+  setStatus("");
+  refreshAmountLimitUi();
+
+  if (sendBtn) {
+    sendBtn.disabled = false;
+  }
+
+  if (continueBtn) {
+    continueBtn.disabled = true;
+  }
+}
+
 /* =========================
    STORAGE
 ========================= */
 
 function persistState(extra = {}) {
-  const id =
-    extra.id ||
-    settlementId;
+  const id = extra.id || settlementId;
 
   if (!id) return;
 
@@ -373,6 +372,7 @@ function clearState() {
   processing = false;
   nextActionProcessing = false;
 
+  currentRouteQuote = null;
   paymentStarted = false;
 
   localStorage.removeItem(STORAGE_KEY);
@@ -386,6 +386,10 @@ function clearState() {
 
   if (continueBtn) {
     continueBtn.disabled = true;
+  }
+
+  if (sendBtn) {
+    sendBtn.disabled = false;
   }
 
   setContinueButtonMode("prepare_payment");
@@ -487,8 +491,8 @@ async function startFlow() {
 
   try {
     clearState();
-    resetStatusMemory();
     resetUiToStart();
+    resetStatusMemory();
 
     processing = true;
 
@@ -512,8 +516,7 @@ async function startFlow() {
       throw new Error("invalid_amount");
     }
 
-    const limitCheck =
-      refreshAmountLimitUi();
+    const limitCheck = refreshAmountLimitUi();
 
     if (limitCheck && !limitCheck.ok) {
       throw new Error(limitCheck.message);
@@ -556,15 +559,11 @@ async function startFlow() {
     renderExecutionQuote({
       requestedAmount:
         currentRouteQuote.requested_amount,
-      countryLabel:
-        getCountryLabel(),
-      executorFee:
-        currentRouteQuote.executor_fee
+      countryLabel: getCountryLabel(),
+      executorFee: currentRouteQuote.executor_fee
     });
 
     emit("unibridge:quote");
-
-    setAmountInputDisabled(true);
 
     if (continueBtn) {
       continueBtn.disabled = false;
@@ -573,8 +572,7 @@ async function startFlow() {
     setContinueButtonMode("prepare_payment");
     refreshAmountLimitUi();
 
-    const executorFeeRow =
-      document.getElementById("executorFeeRow");
+    const executorFeeRow = document.getElementById("executorFeeRow");
 
     if (executorFeeRow) {
       setStatus("Enter PIX key");
@@ -582,8 +580,7 @@ async function startFlow() {
   } catch (e) {
     setStatus(e, "error");
 
-    const limitCheck =
-      refreshAmountLimitUi();
+    const limitCheck = refreshAmountLimitUi();
 
     if (continueBtn && (!limitCheck || limitCheck.ok)) {
       continueBtn.disabled = false;
@@ -605,8 +602,7 @@ async function continueFlow() {
   if (processing) return;
 
   try {
-    const limitCheck =
-      refreshAmountLimitUi();
+    const limitCheck = refreshAmountLimitUi();
 
     if (limitCheck && !limitCheck.ok) {
       throw new Error(limitCheck.message);
@@ -614,6 +610,7 @@ async function continueFlow() {
 
     if (pendingWidgetUrl) {
       markPaymentStarted();
+      setAmountInputDisabled(true);
       window.location.href = pendingWidgetUrl;
       return;
     }
@@ -633,8 +630,7 @@ async function continueFlow() {
     }
 
     if (!sessionId) {
-      const sessionIdFromUrl =
-        getSessionIdFromUrl();
+      const sessionIdFromUrl = getSessionIdFromUrl();
 
       if (sessionIdFromUrl) {
         sessionId = sessionIdFromUrl;
@@ -651,8 +647,7 @@ async function continueFlow() {
           ? { pix, tax_id: taxId }
           : { pix };
 
-      const redirect_url =
-        buildFundingReturnUrl(sessionId);
+      const redirect_url = buildFundingReturnUrl(sessionId);
 
       if (!redirect_url) {
         throw new Error("missing_redirect_url");
@@ -668,8 +663,7 @@ async function continueFlow() {
       persistSettlement(create.settlement_id);
     }
 
-    const latestStatus =
-      await refreshSettlementState();
+    const latestStatus = await refreshSettlementState();
 
     if (isPostFundingSettlementStatus(latestStatus?.status)) {
       return;
@@ -687,12 +681,10 @@ async function continueFlow() {
         extractWidgetUrlFromFunding(funding);
     }
 
-    const action =
-      normalizeNextAction(currentNextAction);
+    const action = normalizeNextAction(currentNextAction);
 
     if (action?.type === "redirect") {
-      const redirectUrl =
-        action.url || pendingWidgetUrl;
+      const redirectUrl = action.url || pendingWidgetUrl;
 
       if (!redirectUrl) {
         throw new Error("missing_redirect_url");
@@ -786,8 +778,7 @@ async function continueFlow() {
   } catch (e) {
     setStatus(e, "error");
 
-    const limitCheck =
-      refreshAmountLimitUi();
+    const limitCheck = refreshAmountLimitUi();
 
     if (continueBtn && (!limitCheck || limitCheck.ok)) {
       continueBtn.disabled = false;
@@ -846,8 +837,6 @@ async function resumeFlowFromState() {
       return;
     }
 
-    setAmountInputDisabled(true);
-
     emit("unibridge:quote");
 
     handleSettlementStatus({
@@ -864,11 +853,8 @@ async function resumeFlowFromState() {
 }
 
 window.addEventListener("load", async () => {
-  const sessionIdFromUrl =
-    getSessionIdFromUrl();
-
-  const fundingReturn =
-    isFundingReturn();
+  const sessionIdFromUrl = getSessionIdFromUrl();
+  const fundingReturn = isFundingReturn();
 
   if (sessionIdFromUrl) {
     sessionId = sessionIdFromUrl;
@@ -927,14 +913,56 @@ document.addEventListener("visibilitychange", async () => {
 
 const amountInput = getValue("amount");
 const sourceCountryInput = getValue("source_country");
+const countryInput = getValue("country");
 
 if (amountInput) {
-  amountInput.addEventListener("input", refreshAmountLimitUi);
-  amountInput.addEventListener("blur", refreshAmountLimitUi);
+  amountInput.addEventListener("input", () => {
+    const hasStartedFlow =
+      Boolean(
+        sessionId ||
+        routeId ||
+        settlementId ||
+        currentRouteQuote
+      );
+
+    const currentValue =
+      Number(amountInput.value);
+
+    const quotedValue =
+      Number(currentRouteQuote?.requested_amount);
+
+    const amountActuallyChanged =
+      Number.isFinite(currentValue) &&
+      Number.isFinite(quotedValue) &&
+      currentValue !== quotedValue;
+
+    if (
+      hasStartedFlow &&
+      !paymentStarted &&
+      amountActuallyChanged
+    ) {
+      resetFlowForRouteInputChange();
+      return;
+    }
+
+    refreshAmountLimitUi();
+  });
+
+  amountInput.addEventListener("blur", () => {
+    refreshAmountLimitUi();
+  });
 }
 
 if (sourceCountryInput) {
-  sourceCountryInput.addEventListener("change", refreshAmountLimitUi);
+  sourceCountryInput.addEventListener("change", () => {
+    resetFlowForRouteInputChange();
+  });
+}
+
+if (countryInput) {
+  countryInput.addEventListener("change", () => {
+    resetFlowForRouteInputChange();
+  });
 }
 
 /* =========================
