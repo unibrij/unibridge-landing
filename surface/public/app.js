@@ -1,5 +1,9 @@
 // unibrij/unibridge-landing/surface/public/app.js
 
+import {
+  applyAmountLimitUi
+} from "./amount-limits.js";
+
 const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
@@ -234,7 +238,61 @@ function getCountryLabel() {
     return "Brazil";
   }
 
+  if (receiver === "GB" || receiver === "UK") {
+    return "United Kingdom";
+  }
+
   return receiver || "Brazil";
+}
+
+function getSourceCountryCode() {
+  const direct =
+    String(getValue("source_country")?.value || "")
+      .toUpperCase()
+      .trim();
+
+  if (direct) {
+    return direct;
+  }
+
+  const fallback =
+    String(getValue("country")?.value || "")
+      .toUpperCase()
+      .trim();
+
+  return fallback || "BR";
+}
+
+function getSelectedRampProvider() {
+  const sourceCountry =
+    getSourceCountryCode();
+
+  if (sourceCountry === "GB" || sourceCountry === "UK") {
+    return "onramp";
+  }
+
+  if (sourceCountry === "US" || sourceCountry === "USA") {
+    return "transak";
+  }
+
+  return "guardarian";
+}
+
+function refreshAmountLimitUi() {
+  return applyAmountLimitUi({
+    amountInput: getValue("amount"),
+    messageEl: document.getElementById("amountLimitHint"),
+    continueBtn,
+    provider: getSelectedRampProvider(),
+    country: getSourceCountryCode()
+  });
+}
+
+function setAmountInputDisabled(disabled) {
+  const amountInput = getValue("amount");
+  if (amountInput) {
+    amountInput.disabled = Boolean(disabled);
+  }
 }
 
 /* =========================
@@ -317,6 +375,7 @@ function clearState() {
   localStorage.removeItem(STORAGE_KEY);
 
   resetQuoteState();
+  setAmountInputDisabled(false);
 
   if (signBtn) {
     signBtn.disabled = true;
@@ -335,6 +394,21 @@ function clearState() {
 
 function buildKycPayload() {
   const tgUser = tg?.initDataUnsafe?.user;
+  const sourceCountry = getSourceCountryCode();
+
+  if (sourceCountry === "GB" || sourceCountry === "UK") {
+    return {
+      firstName: tgUser?.first_name || "Test",
+      lastName: tgUser?.last_name || "User",
+      mobileNumber: "+447700900123",
+      dob: "1990-01-01",
+      addressLine1: "221B Baker Street",
+      city: "London",
+      state: "England",
+      postCode: "NW1 6XE",
+      countryCode: "GB"
+    };
+  }
 
   return {
     firstName: tgUser?.first_name || "Test",
@@ -428,15 +502,22 @@ async function startFlow() {
 
     setStatus("Registering...");
 
-    const amount = Number(getValue("amount").value);
+    const amount = Number(getValue("amount")?.value);
 
     if (!Number.isFinite(amount) || amount <= 0) {
       throw new Error("invalid_amount");
     }
 
+    const limitCheck =
+      refreshAmountLimitUi();
+
+    if (limitCheck && !limitCheck.ok) {
+      throw new Error(limitCheck.message);
+    }
+
     const reg = await apiPost("session/register", {
-      source_country: getValue("source_country").value,
-      receiver_country: getValue("country").value
+      source_country: getValue("source_country")?.value,
+      receiver_country: getValue("country")?.value
     });
 
     sessionId = reg.session_id;
@@ -479,11 +560,14 @@ async function startFlow() {
 
     emit("unibridge:quote");
 
+    setAmountInputDisabled(true);
+
     if (continueBtn) {
       continueBtn.disabled = false;
     }
 
     setContinueButtonMode("prepare_payment");
+    refreshAmountLimitUi();
 
     const executorFeeRow =
       document.getElementById("executorFeeRow");
@@ -494,7 +578,10 @@ async function startFlow() {
   } catch (e) {
     setStatus(e, "error");
 
-    if (continueBtn) {
+    const limitCheck =
+      refreshAmountLimitUi();
+
+    if (continueBtn && (!limitCheck || limitCheck.ok)) {
       continueBtn.disabled = false;
     }
   } finally {
@@ -514,6 +601,13 @@ async function continueFlow() {
   if (processing) return;
 
   try {
+    const limitCheck =
+      refreshAmountLimitUi();
+
+    if (limitCheck && !limitCheck.ok) {
+      throw new Error(limitCheck.message);
+    }
+
     if (pendingWidgetUrl) {
       markPaymentStarted();
       window.location.href = pendingWidgetUrl;
@@ -526,7 +620,7 @@ async function continueFlow() {
       continueBtn.disabled = true;
     }
 
-    const pix = getValue("pix").value.trim();
+    const pix = getValue("pix")?.value.trim();
     const taxIdEl = getValue("taxId");
     const taxId = taxIdEl ? taxIdEl.value.trim() : "";
 
@@ -688,7 +782,10 @@ async function continueFlow() {
   } catch (e) {
     setStatus(e, "error");
 
-    if (continueBtn) {
+    const limitCheck =
+      refreshAmountLimitUi();
+
+    if (continueBtn && (!limitCheck || limitCheck.ok)) {
       continueBtn.disabled = false;
     }
   } finally {
@@ -704,6 +801,8 @@ async function resumeFlowFromState() {
   if (!settlementId || processing) return;
 
   try {
+    setAmountInputDisabled(true);
+
     const status = await apiGet("settlement/status", {
       settlement_id: settlementId
     });
@@ -790,7 +889,10 @@ window.addEventListener("load", async () => {
   }
 
   const saved = getPersistedSettlement();
-  if (!saved) return;
+  if (!saved) {
+    refreshAmountLimitUi();
+    return;
+  }
 
   settlementId = saved.id;
   paymentStarted = Boolean(saved.payment_started);
@@ -808,6 +910,22 @@ document.addEventListener("visibilitychange", async () => {
   if (!settlementId) return;
   await resumeFlowFromState();
 });
+
+/* =========================
+   FIELD EVENTS
+========================= */
+
+const amountInput = getValue("amount");
+const sourceCountryInput = getValue("source_country");
+
+if (amountInput) {
+  amountInput.addEventListener("input", refreshAmountLimitUi);
+  amountInput.addEventListener("blur", refreshAmountLimitUi);
+}
+
+if (sourceCountryInput) {
+  sourceCountryInput.addEventListener("change", refreshAmountLimitUi);
+}
 
 /* =========================
    EVENTS
