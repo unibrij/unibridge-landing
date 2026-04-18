@@ -258,6 +258,10 @@
       taxBox.style.display = "none";
     }
 
+    function showAuthBox() {
+      authBox.style.display = "block";
+    }
+
     function hideAuthBox() {
       authBox.style.display = "none";
     }
@@ -269,6 +273,8 @@
       hideAuthBox();
       setStep(1);
     }
+
+    window.resetUiToStart = resetUiToStart;
 
     window.addEventListener("unibridge:quote", () => {
       showSummary();
@@ -292,6 +298,13 @@
       hideTaxBox();
       hideAuthBox();
       setStep(4);
+    });
+
+    window.addEventListener("unibridge:auth", () => {
+      showSummary();
+      hidePixBox();
+      showAuthBox();
+      setStep(3);
     });
 
     window.addEventListener("unibridge:done", () => {
