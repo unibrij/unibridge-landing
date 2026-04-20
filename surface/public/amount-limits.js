@@ -7,7 +7,7 @@ const RAMP_LIMITS = Object.freeze({
   },
 
   guardarian: {
-    DEFAULT: { min: 10, max: 12000, currency: "EUR" }
+    DEFAULT: { min: 17, max: 12000, currency: "EUR" }
   },
 
   transak: {
