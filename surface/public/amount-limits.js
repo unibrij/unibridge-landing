@@ -150,5 +150,9 @@ export function applyAmountLimitUi({
     messageEl.style.display = "none";
   }
 
+  if (continueBtn) {
+    continueBtn.disabled = false;
+  }
+
   return result;
 }
