@@ -4,6 +4,19 @@ import {
   applyAmountLimitUi
 } from "./amount-limits.js";
 
+import {
+  getRouteSelectedProvider,
+  getFundingSelectedProvider
+} from "./funding-context.js";
+
+import {
+  buildKycPayload as buildGenericKycPayload
+} from "./kyc-payload.js";
+
+import {
+  renderExecutionQuote
+} from "./ui-helpers.js";
+
 const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
@@ -17,6 +30,7 @@ let settlementId = null;
 
 let pendingWidgetUrl = null;
 let currentNextAction = null;
+let currentFundingProvider = null;
 
 let processing = false;
 let nextActionProcessing = false;
@@ -122,79 +136,9 @@ function isFundingReturn() {
    HELPERS
 ========================= */
 
-function formatNumber(value) {
-  const n = Number(value);
-
-  if (!Number.isFinite(n)) {
-    return "—";
-  }
-
-  if (Number.isInteger(n)) {
-    return String(n);
-  }
-
-  return n.toFixed(2).replace(/\.00$/, "");
-}
-
-function setTextIfPresent(id, value) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.innerText = value;
-  }
-}
-
-function setDisplayIfPresent(id, displayValue) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.style.display = displayValue;
-  }
-}
-
 function resetQuoteState() {
   currentRouteQuote = null;
-
-  setTextIfPresent("sumAmount", "");
-  setTextIfPresent("sumCountry", "");
-  setTextIfPresent("sumExecutorFee", "");
-
-  setDisplayIfPresent("executorFeeRow", "none");
-}
-
-function renderExecutionQuote({
-  requestedAmount,
-  countryLabel,
-  executorFee
-}) {
-  setTextIfPresent("sumAmount", formatNumber(requestedAmount));
-  setTextIfPresent("sumCountry", countryLabel || "Brazil");
-
-  const normalizedExecutorFee = Number(executorFee ?? 0);
-
-  if (Number.isFinite(normalizedExecutorFee)) {
-    setTextIfPresent(
-      "sumExecutorFee",
-      formatNumber(normalizedExecutorFee)
-    );
-    setDisplayIfPresent("executorFeeRow", "block");
-  } else {
-    setDisplayIfPresent("executorFeeRow", "none");
-  }
-
-  const executorFeeRow = document.getElementById("executorFeeRow");
-
-  if (!executorFeeRow) {
-    const parts = [
-      `Amount: ${formatNumber(requestedAmount)}`
-    ];
-
-    if (Number.isFinite(normalizedExecutorFee)) {
-      parts.push(
-        `Execution fee: ${formatNumber(normalizedExecutorFee)}`
-      );
-    }
-
-    setStatus(parts.join("\n"));
-  }
+  currentFundingProvider = null;
 }
 
 function setContinueButtonMode(mode) {
@@ -252,18 +196,12 @@ function getSourceCountryCode() {
   return fallback || "BR";
 }
 
-function getSelectedRampProvider() {
-  const sourceCountry = getSourceCountryCode();
-
-  if (sourceCountry === "GB" || sourceCountry === "UK") {
-    return "onramp";
+function setCurrentFundingProvider(value) {
+  if (!value) {
+    return;
   }
 
-  if (sourceCountry === "US" || sourceCountry === "USA") {
-    return "transak";
-  }
-
-  return "guardarian";
+  currentFundingProvider = value;
 }
 
 function refreshAmountLimitUi() {
@@ -271,7 +209,7 @@ function refreshAmountLimitUi() {
     amountInput: getValue("amount"),
     messageEl: document.getElementById("amountLimitHint"),
     continueBtn,
-    provider: getSelectedRampProvider(),
+    provider: currentFundingProvider,
     country: getSourceCountryCode()
   });
 }
@@ -368,6 +306,7 @@ function clearState() {
 
   pendingWidgetUrl = null;
   currentNextAction = null;
+  currentFundingProvider = null;
 
   processing = false;
   nextActionProcessing = false;
@@ -400,34 +339,10 @@ function clearState() {
 ========================= */
 
 function buildKycPayload() {
-  const tgUser = tg?.initDataUnsafe?.user;
-  const sourceCountry = getSourceCountryCode();
-
-  if (sourceCountry === "GB" || sourceCountry === "UK") {
-    return {
-      firstName: tgUser?.first_name || "Test",
-      lastName: tgUser?.last_name || "User",
-      mobileNumber: "+447700900123",
-      dob: "1990-01-01",
-      addressLine1: "221B Baker Street",
-      city: "London",
-      state: "England",
-      postCode: "NW1 6XE",
-      countryCode: "GB"
-    };
-  }
-
-  return {
-    firstName: tgUser?.first_name || "Test",
-    lastName: tgUser?.last_name || "User",
-    mobileNumber: "+5511999999999",
-    dob: "1990-01-01",
-    addressLine1: "Rua Exemplo 123",
-    city: "Curitiba",
-    state: "PR",
-    postCode: "80000-000",
-    countryCode: "BR"
-  };
+  return buildGenericKycPayload({
+    telegramUser: tg?.initDataUnsafe?.user,
+    sourceCountry: getSourceCountryCode()
+  });
 }
 
 /* =========================
@@ -440,6 +355,10 @@ async function refreshSettlementState() {
   const status = await apiGet("settlement/status", {
     settlement_id: settlementId
   });
+
+  setCurrentFundingProvider(
+    getFundingSelectedProvider(status)
+  );
 
   handleSettlementStatus({
     status,
@@ -472,6 +391,10 @@ async function tryRecoverSettlementBySessionId(targetSessionId) {
     if (!recoveredSettlementId) {
       return null;
     }
+
+    setCurrentFundingProvider(
+      getFundingSelectedProvider(status)
+    );
 
     settlementId = recoveredSettlementId;
     persistSettlement(recoveredSettlementId);
@@ -545,6 +468,10 @@ async function startFlow() {
     const selectedRoute = quote.routes[0];
     routeId = selectedRoute.route_id || selectedRoute.id;
 
+    setCurrentFundingProvider(
+      getRouteSelectedProvider(selectedRoute)
+    );
+
     currentRouteQuote = {
       requested_amount:
         quote.requested_amount ?? amount,
@@ -560,7 +487,8 @@ async function startFlow() {
       requestedAmount:
         currentRouteQuote.requested_amount,
       countryLabel: getCountryLabel(),
-      executorFee: currentRouteQuote.executor_fee
+      executorFee: currentRouteQuote.executor_fee,
+      setStatus
     });
 
     emit("unibridge:quote");
@@ -656,6 +584,10 @@ async function continueFlow() {
         redirect_url
       });
 
+      setCurrentFundingProvider(
+        getFundingSelectedProvider(create)
+      );
+
       persistSettlement(create.settlement_id);
     }
 
@@ -669,6 +601,10 @@ async function continueFlow() {
       const funding = await apiPost("funding/session", {
         settlement_id: settlementId
       });
+
+      setCurrentFundingProvider(
+        getFundingSelectedProvider(funding)
+      );
 
       currentNextAction =
         normalizeNextAction(funding?.next_action);
@@ -796,6 +732,10 @@ async function resumeFlowFromState() {
       settlement_id: settlementId
     });
 
+    setCurrentFundingProvider(
+      getFundingSelectedProvider(status)
+    );
+
     if (status?.status === "waiting_ramp_payment") {
       if (!paymentStarted) {
         clearState();
@@ -813,6 +753,10 @@ async function resumeFlowFromState() {
       const funding = await apiPost("funding/session", {
         settlement_id: settlementId
       });
+
+      setCurrentFundingProvider(
+        getFundingSelectedProvider(funding)
+      );
 
       currentNextAction =
         normalizeNextAction(funding?.next_action);
