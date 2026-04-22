@@ -1,12 +1,105 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  try {
-    const { name, email, subject, message } = req.body;
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, message: "Method not allowed" });
+  }
 
-    //
-    // 1) Transporter (Google Workspace)
-    //
+  try {
+    const {
+      name = "",
+      email = "",
+      company = "",
+      subject = "",
+      message = "",
+      website = "",
+      "cf-turnstile-response": turnstileToken = "",
+    } = req.body || {};
+
+    const cleanName = String(name).trim();
+    const cleanEmail = String(email).trim();
+    const cleanCompany = String(company).trim();
+    const cleanSubject = String(subject).trim();
+    const cleanMessage = String(message).trim();
+    const cleanWebsite = String(website).trim();
+
+    if (cleanWebsite) {
+      return res.status(400).json({
+        success: false,
+        message: "Spam detected.",
+      });
+    }
+
+    if (!cleanName || !cleanEmail || !cleanMessage) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields.",
+      });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email address.",
+      });
+    }
+
+    if (!turnstileToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Security verification is required.",
+      });
+    }
+
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    if (!turnstileSecret) {
+      console.error("Missing TURNSTILE_SECRET_KEY");
+      return res.status(500).json({
+        success: false,
+        message: "Server misconfiguration.",
+      });
+    }
+
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS || !process.env.TO_EMAIL) {
+      console.error("Missing mail environment variables");
+      return res.status(500).json({
+        success: false,
+        message: "Server misconfiguration.",
+      });
+    }
+
+    const ip =
+      req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() ||
+      req.socket?.remoteAddress ||
+      "";
+
+    const formBody = new URLSearchParams();
+    formBody.append("secret", turnstileSecret);
+    formBody.append("response", turnstileToken);
+    if (ip) formBody.append("remoteip", ip);
+
+    const turnstileRes = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formBody.toString(),
+      }
+    );
+
+    const turnstileData = await turnstileRes.json();
+
+    if (!turnstileData.success) {
+      console.error("Turnstile verification failed:", turnstileData);
+      return res.status(400).json({
+        success: false,
+        message: "Security verification failed.",
+      });
+    }
+
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
@@ -17,77 +110,86 @@ export default async function handler(req, res) {
       },
     });
 
-    //
-    // 2) Email sent to UniBridge (internal notification)
-    //
+    await transporter.verify();
+
     await transporter.sendMail({
       from: `"UniBridge Contact" <${process.env.MAIL_USER}>`,
       to: process.env.TO_EMAIL,
-      subject: `New API Access Request – ${subject}`,
+      replyTo: cleanEmail,
+      subject: `New Partner Access Request${cleanCompany ? ` – ${cleanCompany}` : ""}`,
       text: `
-Full name: ${name}
-Email: ${email}
-Company: ${subject}
-Message: ${message}
-      `,
+Full name: ${cleanName}
+Email: ${cleanEmail}
+Company / Project: ${cleanCompany}
+Subject: ${cleanSubject}
+Message:
+${cleanMessage}
+      `.trim(),
     });
 
-    //
-    // 3) Auto-Reply to the sender
-    //
     const autoReplyHTML = `
-  <div style="font-family:Arial, sans-serif; line-height:1.6; padding:20px;">
-    <img src="https://www.unibrij.io/unibrij-logo.png" 
-         alt="UniBridge Logo" 
-         style="width:70px; margin-bottom:20px;" />
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; padding: 20px;">
+        <img
+          src="https://www.unibrij.io/unibrij-logo.png"
+          alt="UniBridge Logo"
+          style="width: 70px; margin-bottom: 20px;"
+        />
 
-    <h2 style="margin:0 0 10px; color:#003366;">
-      Hi ${name},
-    </h2>
+        <h2 style="margin: 0 0 10px; color: #003366;">
+          Hi ${escapeHtml(cleanName)},
+        </h2>
 
-    <p>
-      Thank you for contacting <strong>UniBridge</strong>.
-      We received your request and our team will review it shortly.
-    </p>
+        <p>
+          Thank you for contacting <strong>UniBridge</strong>.
+          We received your request and our team will review it shortly.
+        </p>
 
-    <p style="margin-top:15px; color:#333;">
-      Access to UniBridge is provided on an invite-only basis and
-      initially focuses on documentation and architectural evaluation.
-    </p>
+        <p style="margin-top: 15px; color: #333;">
+          Access to UniBridge is provided on a controlled basis and
+          initially focuses on partner review, corridor fit, and operational readiness.
+        </p>
 
-    <p style="margin-top:10px; color:#333;">
-      <strong>
-        Technical integration environments may be provided separately upon mutual agreement.
-      </strong>
-    </p>
+        <p style="margin-top: 10px; color: #333;">
+          <strong>
+            Technical integration access may be provided separately upon review.
+          </strong>
+        </p>
 
-    <p style="margin-top:25px;">
-      Best regards,<br/>
-      <strong>UniBridge Technologies</strong><br/>
-      Built on Stellar rails
-    </p>
+        <p style="margin-top: 25px;">
+          Best regards,<br/>
+          <strong>UniBridge Technologies</strong>
+        </p>
 
-    <hr style="margin:30px 0; opacity:.2;" />
+        <hr style="margin: 30px 0; opacity: .2;" />
 
-    <p style="font-size:12px; color:#666;">
-      This is an automated confirmation email.
-    </p>
-  </div>
-`;
+        <p style="font-size: 12px; color: #666;">
+          This is an automated confirmation email.
+        </p>
+      </div>
+    `;
 
     await transporter.sendMail({
       from: `"UniBridge" <${process.env.MAIL_USER}>`,
-      to: email,
+      to: cleanEmail,
       subject: "We received your request – UniBridge",
       html: autoReplyHTML,
     });
 
-    //
-    // Done
-    //
-    res.status(200).json({ success: true });
+    return res.status(200).json({ success: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Contact API error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
   }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
