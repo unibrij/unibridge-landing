@@ -140,19 +140,16 @@ ${cleanMessage}
         </h2>
 
         <p>
-          Thank you for contacting <strong>UniBridge</strong>.
-          We received your request and our team will review it shortly.
+          Thank you for your request to <strong>UniBridge</strong>.
+          We have received your submission and will review your corridor and use case shortly.
         </p>
 
         <p style="margin-top: 15px; color: #333;">
-          Access to UniBridge is provided on a controlled basis and
-          initially focuses on partner review, corridor fit, and operational readiness.
+          Our review focuses on destination payout readiness, corridor fit, and the execution requirements relevant to your flow.
         </p>
 
-        <p style="margin-top: 10px; color: #333;">
-          <strong>
-            Technical integration access may be provided separately upon review.
-          </strong>
+        <p style="margin-top: 15px; color: #333;">
+          Where there is a fit, we will follow up with the appropriate next step for evaluation or live corridor testing.
         </p>
 
         <p style="margin-top: 25px;">
