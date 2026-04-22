@@ -144,7 +144,7 @@ li {
 <h1>How UniBridge Works</h1>
 
 <p class="intro">
-UniBridge makes destination payout readiness explicit before funding begins. This page outlines how execution is defined, committed, and enforced across regulated partners without taking custody of funds.
+UniBridge makes destination payout execution explicit before funding begins. This page explains how execution is resolved, committed, and triggered across regulated partners without UniBridge taking custody of funds.
 </p>
 
 <!-- WHAT -->
@@ -152,16 +152,16 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     <h2>What UniBridge Does</h2>
 
     <p>
-        UniBridge is a coordination layer for cross-border payouts.
+        UniBridge is a coordination layer for destination payout execution in cross-border flows.
     </p>
 
     <p>
-        It enables applications and wallets to determine how a payout will be executed
-        across multiple regulated partners — <span class="highlight">before any funds move</span>.
+        It allows applications and wallets to determine how a payout will be executed across regulated partners
+        <span class="highlight">before any funds move</span>.
     </p>
 
     <p>
-        UniBridge does not custody funds. It defines and coordinates execution conditions in advance, so payout delivery is not left to post-funding uncertainty.
+        UniBridge does not hold funds or operate local payout rails directly. It defines the execution path in advance, so payout delivery is not left to post-funding uncertainty.
     </p>
 </div>
 
@@ -170,7 +170,7 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     <h2>Execution Lifecycle</h2>
 
     <p>
-        Each payout follows a coordinated process in which execution conditions are established before funding begins.
+        Each payout follows a coordinated sequence in which execution conditions are established before funding begins.
     </p>
 
     <div class="flow">
@@ -178,7 +178,7 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     </div>
 
     <p style="margin-top: 20px;">
-        The exact execution path is resolved prior to fund movement and then enforced during execution across the selected destination rail.
+        The payout path is resolved before funds move and then enforced during execution across the selected destination rail.
     </p>
 </div>
 
@@ -191,15 +191,15 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     </p>
 
     <ul>
-        <li>Initiate a payout session</li>
+        <li>Open a payout session</li>
         <li>Resolve available execution paths for the corridor</li>
         <li>Commit to a selected route</li>
-        <li>Provide funding only after execution is ready</li>
-        <li>Trigger payout delivery across local rails</li>
+        <li>Fund only after execution is ready</li>
+        <li>Trigger delivery across the local payout rail</li>
     </ul>
 
     <p>
-        Final delivery occurs through local payment networks such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
+        For example, a stablecoin-funded payout flow can commit the destination route first, then trigger final delivery through local payment networks such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
     </p>
 </div>
 
@@ -212,7 +212,7 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     </p>
 
     <p>
-        It does not replace custody, signing, or licensed execution providers. Instead, it makes the committed route explicit, aligns the roles involved, and reduces ambiguity between settlement and payout delivery.
+        It does not replace custody, signing, or licensed execution providers. Instead, it makes the committed route explicit, aligns the parties involved, and reduces ambiguity between settlement and final payout delivery.
     </p>
 
     <p class="highlight">
@@ -220,12 +220,12 @@ UniBridge makes destination payout readiness explicit before funding begins. Thi
     </p>
 </div>
 
-<!-- ARCHITECTURE -->
+<!-- OPERATING LAYERS -->
 <div class="card">
-    <h2>Architecture</h2>
+    <h2>Operating Layers</h2>
 
     <p>
-        UniBridge separates payout coordination into logical layers:
+        UniBridge separates payout coordination into clear logical layers:
     </p>
 
     <p>
