@@ -11,7 +11,7 @@ const RAMP_LIMITS = Object.freeze({
   },
 
   transak: {
-    DEFAULT: { min: 20, max: 25000, currency: "USD" }
+    DEFAULT: { min: 5, max: 25000, currency: "USD" }
   }
 });
 
