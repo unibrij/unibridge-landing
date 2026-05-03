@@ -1,18 +1,27 @@
 // unibrij/unibridge-landing/surface/public/amount-limits.js
 
+const SOURCE_COUNTRY_LIMITS = Object.freeze({
+  AE: { min: 50, max: 1000, currency: "AED" },
+  EU: { min: 17, max: 1000, currency: "EUR" },
+  GB: { min: 9, max: 1000, currency: "GBP" },
+  UK: { min: 9, max: 1000, currency: "GBP" }
+});
+
 const RAMP_LIMITS = Object.freeze({
   onramp: {
-    AE: { min: 50, max: 20000, currency: "AED" },
-    GB: { min: 9, max: 20000, currency: "GBP" },
-    UK: { min: 9, max: 20000, currency: "GBP" }
+    AE: { min: 50, max: 1000, currency: "AED" },
+    EU: { min: 17, max: 1000, currency: "EUR" },
+    GB: { min: 9, max: 1000, currency: "GBP" },
+    UK: { min: 9, max: 1000, currency: "GBP" }
   },
 
   guardarian: {
-    DEFAULT: { min: 17, max: 12000, currency: "EUR" }
+    EU: { min: 17, max: 1000, currency: "EUR" },
+    DEFAULT: { min: 17, max: 1000, currency: "EUR" }
   },
 
   transak: {
-    DEFAULT: { min: 5, max: 25000, currency: "USD" }
+    DEFAULT: { min: 5, max: 1000, currency: "USD" }
   }
 });
 
@@ -33,11 +42,27 @@ function getLimits({ provider, country }) {
   const normalizedCountry = normalizeCountry(country);
 
   const providerConfig = RAMP_LIMITS[normalizedProvider];
-  if (!providerConfig) return null;
+
+  if (providerConfig) {
+    return (
+      providerConfig[normalizedCountry] ||
+      providerConfig.DEFAULT ||
+      SOURCE_COUNTRY_LIMITS[normalizedCountry] ||
+      null
+    );
+  }
+
+  /*
+  --------------------------------------------------
+  Pre-quote fallback
+  --------------------------------------------------
+  Before quote, selected provider may still be null.
+  Enforce source-country limits before allowing route quote.
+  --------------------------------------------------
+  */
 
   return (
-    providerConfig[normalizedCountry] ||
-    providerConfig.DEFAULT ||
+    SOURCE_COUNTRY_LIMITS[normalizedCountry] ||
     null
   );
 }
