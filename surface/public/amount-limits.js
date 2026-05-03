@@ -2,7 +2,7 @@
 
 const SOURCE_COUNTRY_LIMITS = Object.freeze({
   AE: { min: 50, max: 1000, currency: "AED" },
-  EU: { min: 17, max: 1000, currency: "EUR" },
+  EU: { min: 10, max: 1000, currency: "EUR" },
   GB: { min: 9, max: 1000, currency: "GBP" },
   UK: { min: 9, max: 1000, currency: "GBP" }
 });
@@ -10,7 +10,7 @@ const SOURCE_COUNTRY_LIMITS = Object.freeze({
 const RAMP_LIMITS = Object.freeze({
   onramp: {
     AE: { min: 50, max: 1000, currency: "AED" },
-    EU: { min: 17, max: 1000, currency: "EUR" },
+    EU: { min: 10, max: 1000, currency: "EUR" },
     GB: { min: 9, max: 1000, currency: "GBP" },
     UK: { min: 9, max: 1000, currency: "GBP" }
   },
