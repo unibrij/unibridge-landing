@@ -205,13 +205,30 @@ function setCurrentFundingProvider(value) {
 }
 
 function refreshAmountLimitUi() {
-  return applyAmountLimitUi({
+  const result = applyAmountLimitUi({
     amountInput: getValue("amount"),
     messageEl: document.getElementById("amountLimitHint"),
     continueBtn,
     provider: currentFundingProvider,
     country: getSourceCountryCode()
   });
+
+  /*
+  --------------------------------------------------
+  Quote button guard
+  --------------------------------------------------
+  Before quote, provider may be null. amount-limits.js
+  falls back to source-country limits, so controlled
+  corridors such as AE are blocked visually before
+  any route/provider is known.
+  --------------------------------------------------
+  */
+
+  if (sendBtn && !settlementId) {
+    sendBtn.disabled = !result.ok;
+  }
+
+  return result;
 }
 
 function setAmountInputDisabled(disabled) {
@@ -226,10 +243,11 @@ function resetFlowForRouteInputChange() {
   resetUiToStart();
   resetStatusMemory();
   setStatus("");
-  refreshAmountLimitUi();
+
+  const limitCheck = refreshAmountLimitUi();
 
   if (sendBtn) {
-    sendBtn.disabled = false;
+    sendBtn.disabled = !limitCheck.ok;
   }
 
   if (continueBtn) {
@@ -512,9 +530,7 @@ async function startFlow() {
   } finally {
     processing = false;
 
-    if (sendBtn) {
-      sendBtn.disabled = false;
-    }
+    refreshAmountLimitUi();
   }
 }
 
