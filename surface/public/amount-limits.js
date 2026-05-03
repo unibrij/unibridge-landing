@@ -2,6 +2,7 @@
 
 const RAMP_LIMITS = Object.freeze({
   onramp: {
+    AE: { min: 50, max: 20000, currency: "AED" },
     GB: { min: 9, max: 20000, currency: "GBP" },
     UK: { min: 9, max: 20000, currency: "GBP" }
   },
