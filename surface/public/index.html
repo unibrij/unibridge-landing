@@ -121,7 +121,7 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin: 18px 0 22px;
+      margin: 18px 0 16px;
     }
 
     .proof-item {
@@ -149,6 +149,52 @@
       color: var(--muted);
       font-size: 11px;
       line-height: 1.25;
+    }
+
+    .before-test {
+      margin: 0 0 18px;
+      padding: 14px 15px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(0, 51, 102, 0.09);
+      box-shadow: 0 10px 28px rgba(15, 47, 79, 0.045);
+    }
+
+    .before-test-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .before-test-title::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--teal);
+      box-shadow: 0 0 0 4px var(--teal-soft);
+      flex: 0 0 auto;
+    }
+
+    .before-test ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .before-test li {
+      margin: 4px 0;
+    }
+
+    .before-test strong {
+      color: var(--navy);
+      font-weight: 800;
     }
 
     .steps {
@@ -377,6 +423,10 @@
         padding: 11px 13px;
       }
 
+      .before-test {
+        padding: 13px 14px;
+      }
+
       .steps {
         font-size: 10px;
         gap: 4px;
@@ -432,6 +482,15 @@
         <strong>Execution</strong>
         <span>Status tracked to outcome</span>
       </div>
+    </div>
+
+    <div class="before-test">
+      <div class="before-test-title">Before you test</div>
+      <ul>
+        <li>You are <strong>not paying UniBridge directly</strong>.</li>
+        <li>Payment is handled by the provider shown during checkout.</li>
+        <li>Use only a small amount. If your bank or provider rejects it, stop.</li>
+      </ul>
     </div>
 
     <div class="steps">
@@ -516,9 +575,8 @@
 
       <div class="disclaimer">
         <strong>Controlled test only.</strong>
-        Use small-value transfers for validation and verify the page URL before
-        continuing. This surface is intended to demonstrate execution readiness,
-        not public remittance availability.
+        Verify the page URL before continuing. This surface is intended to
+        demonstrate execution readiness, not public remittance availability.
       </div>
     </div>
 
