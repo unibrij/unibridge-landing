@@ -3,149 +3,388 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>UniBridge</title>
+  <title>UniBridge Surface</title>
 
   <style>
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-      background:#f8fafc;
-      margin:0;
-      padding:40px 20px;
-      display:flex;
-      justify-content:center;
+    :root {
+      --navy: #003366;
+      --navy-dark: #062342;
+      --teal: #00D4AA;
+      --teal-soft: rgba(0, 212, 170, 0.12);
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e5edf3;
+      --muted: #64748b;
+      --text: #0f2f4f;
+      --danger: #dc2626;
+      --shadow: 0 18px 45px rgba(15, 47, 79, 0.08);
     }
 
-    .container{
-      max-width:420px;
-      width:100%;
+    * {
+      box-sizing: border-box;
     }
 
-    .logo{
-      font-weight:700;
-      font-size:20px;
-      margin-bottom:20px;
-      color:#003366;
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(0, 212, 170, 0.08), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 38%, #f1f5f9 100%);
+      margin: 0;
+      min-height: 100vh;
+      padding: 34px 18px 46px;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
     }
 
-    .steps{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:6px;
-      margin-bottom:20px;
-      font-size:12px;
-      color:#9aa4af;
+    .container {
+      max-width: 460px;
+      width: 100%;
     }
 
-    .step{
-      text-align:center;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
     }
 
-    .step.active{
-      color:#00D4AA;
-      font-weight:600;
+    .logo {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+      color: var(--navy);
     }
 
-    .card{
-      border:1px solid #e5edf3;
-      border-radius:14px;
-      padding:24px;
-      background:#ffffff;
+    .mode-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #047857;
+      background: var(--teal-soft);
+      border: 1px solid rgba(0, 212, 170, 0.28);
+      padding: 7px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
 
-    .summary{
-      background:#f1f5f9;
-      border-radius:10px;
-      padding:12px;
-      margin-bottom:15px;
-      font-size:14px;
-      display:none;
+    .hero {
+      margin-bottom: 20px;
     }
 
-    .summary div{
-      margin:6px 0;
+    .eyebrow {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
     }
 
-    h2{
-      margin:0 0 20px;
-      font-size:22px;
-      color:#003366;
+    .hero h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 30px;
+      line-height: 1.12;
+      letter-spacing: -0.045em;
     }
 
-    h3{
-      margin:18px 0 8px;
-      font-size:16px;
-      color:#003366;
+    .hero p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
     }
 
-    input,select,button{
-      width:100%;
-      padding:14px;
-      margin-top:10px;
-      font-size:16px;
-      border-radius:10px;
-      box-sizing:border-box;
+    .proof-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 18px 0 22px;
     }
 
-    input,select{
-      border:1px solid #e5edf3;
-      background:#fff;
+    .proof-item {
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 8px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(15, 47, 79, 0.04);
     }
 
-    button{
-      background:#00D4AA;
-      color:#003366;
-      border:none;
-      cursor:pointer;
-      font-weight:600;
+    .proof-item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 12px;
+      margin-bottom: 3px;
     }
 
-    button:disabled{
-      opacity:.5;
-      cursor:not-allowed;
+    .proof-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 16px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .step {
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid transparent;
+    }
+
+    .step.active {
+      color: var(--navy);
+      font-weight: 800;
+      background: var(--teal-soft);
+      border-color: rgba(0, 212, 170, 0.24);
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      margin-bottom: 18px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+    }
+
+    .card-header p {
+      margin: 8px 0 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .summary {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 13px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .summary div {
+      margin: 7px 0;
+      color: #334155;
+    }
+
+    .summary strong {
+      color: var(--navy);
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 16px;
+      color: var(--navy);
+    }
+
+    .field-label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 12px;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    input,
+    select {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #1e293b;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.12);
+    }
+
+    button {
+      margin-top: 16px;
+      background: var(--teal);
+      color: var(--navy);
+      border: none;
+      cursor: pointer;
+      font-weight: 800;
+      box-shadow: 0 12px 26px rgba(0, 212, 170, 0.22);
+      transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
     }
 
     #pixBox,
     #taxBox,
-    #authBox{
-      display:none;
-      margin-top:10px;
+    #authBox {
+      display: none;
+      margin-top: 12px;
     }
 
-    #status{
-      margin-top:18px;
-      font-size:14px;
-      color:#6b7280;
-      white-space:pre-line;
+    #status {
+      margin-top: 18px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      white-space: pre-line;
     }
 
-    .status-success{
-      color:#00b894;
-      font-weight:600;
+    .status-success {
+      color: #059669;
+      font-weight: 700;
     }
 
-    .status-error{
-      color:#c62828;
-      font-weight:600;
+    .status-error {
+      color: var(--danger);
+      font-weight: 700;
     }
 
-    .muted{
-      font-size:12px;
-      color:#6b7280;
-      margin-top:8px;
+    .muted {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.5;
     }
 
-    #amountLimitHint{
-      display:none;
-      font-size:12px;
-      margin-top:6px;
-      color:#c62828;
+    #amountLimitHint {
+      display: none;
+      font-size: 12px;
+      margin-top: 7px;
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .disclaimer {
+      margin-top: 18px;
+      padding: 13px 14px;
+      border: 1px solid rgba(0, 51, 102, 0.08);
+      border-radius: 14px;
+      background: rgba(0, 51, 102, 0.035);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .disclaimer strong {
+      color: var(--navy);
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 18px;
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 28px 16px 42px;
+      }
+
+      .hero h1 {
+        font-size: 27px;
+      }
+
+      .proof-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .proof-item {
+        text-align: left;
+        padding: 11px 13px;
+      }
+
+      .steps {
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .step {
+        padding: 7px 2px;
+      }
+
+      .card {
+        padding: 20px;
+        border-radius: 20px;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <div class="logo">UniBridge</div>
+    <div class="topbar">
+      <div class="logo">UniBridge</div>
+      <div class="mode-badge">Controlled test</div>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">Live execution surface</div>
+      <h1>Controlled live execution test</h1>
+      <p>
+        Small-value corridor validation through UniBridge. This surface tests quote,
+        funding, execution, and settlement status across a live payout path.
+      </p>
+    </section>
+
+    <div class="proof-strip">
+      <div class="proof-item">
+        <strong>Quote</strong>
+        <span>Route resolved before funding</span>
+      </div>
+      <div class="proof-item">
+        <strong>Funding</strong>
+        <span>Small-value validation</span>
+      </div>
+      <div class="proof-item">
+        <strong>Execution</strong>
+        <span>Status tracked to outcome</span>
+      </div>
+    </div>
 
     <div class="steps">
       <div id="step1" class="step active">Setup</div>
@@ -156,7 +395,13 @@
     </div>
 
     <div class="card">
-      <h2>Send money</h2>
+      <div class="card-header">
+        <h2>Send money</h2>
+        <p>
+          Select a source corridor and destination. UniBridge will prepare the
+          execution path before payment begins.
+        </p>
+      </div>
 
       <div id="summary" class="summary">
         <div><strong>Amount</strong>: <span id="sumAmount"></span></div>
@@ -166,9 +411,11 @@
         </div>
       </div>
 
+      <label class="field-label" for="amount">Amount</label>
       <input id="amount" type="number" step="0.01" value="10" placeholder="Amount">
       <div id="amountLimitHint"></div>
 
+      <label class="field-label" for="source_country">Source country</label>
       <select id="source_country">
         <option value="US">United States</option>
         <option value="EU">Europe</option>
@@ -176,6 +423,7 @@
         <option value="AE">United Arab Emirates</option>
       </select>
 
+      <label class="field-label" for="country">Destination country</label>
       <select id="country">
         <option value="BR">Brazil</option>
       </select>
@@ -183,24 +431,30 @@
       <button id="sendBtn" type="button">Get quote</button>
 
       <div id="pixBox">
-        <h3>PIX key</h3>
+        <h3>Destination details</h3>
+
+        <label class="field-label" for="pix">PIX key</label>
         <input id="pix" placeholder="Enter PIX key">
 
         <div id="taxBox">
+          <label class="field-label" for="taxId">Tax ID</label>
           <input id="taxId" placeholder="CPF / CNPJ">
         </div>
 
         <button id="continueBtn" type="button" disabled>Continue to payment</button>
 
         <div class="muted">
-          PIX key is required.
+          PIX key is required for Brazil payout delivery.
         </div>
       </div>
 
       <div id="authBox">
         <h3 id="authTitle">Authentication</h3>
 
+        <label class="field-label" for="authEmail">Email</label>
         <input id="authEmail" type="email" placeholder="Enter email">
+
+        <label class="field-label" for="authOtp" id="authOtpLabel" style="display:none;">OTP</label>
         <input id="authOtp" type="text" placeholder="Enter OTP" style="display:none;">
 
         <button id="authBtn" type="button" style="display:none;">Continue</button>
@@ -211,6 +465,16 @@
       </div>
 
       <div id="status"></div>
+
+      <div class="disclaimer">
+        <strong>Controlled test only.</strong>
+        Use small-value transfers for validation. This surface is intended to
+        demonstrate execution readiness, not public remittance availability.
+      </div>
+    </div>
+
+    <div class="footer-note">
+      UniBridge Protocol · Execution path committed before funds move.
     </div>
   </div>
 
