@@ -49,10 +49,29 @@
       margin-bottom: 22px;
     }
 
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      display: block;
+    }
+
     .logo {
       font-weight: 800;
       font-size: 20px;
       letter-spacing: -0.02em;
+      color: var(--navy);
+    }
+
+    .brand:hover .logo {
       color: var(--navy);
     }
 
@@ -325,6 +344,15 @@
         padding: 28px 16px 42px;
       }
 
+      .brand-logo {
+        width: 26px;
+        height: 26px;
+      }
+
+      .logo {
+        font-size: 19px;
+      }
+
       .hero h1 {
         font-size: 27px;
       }
@@ -358,7 +386,15 @@
 <body>
   <div class="container">
     <div class="topbar">
-      <div class="logo">UniBridge</div>
+      <a href="/" class="brand" aria-label="Back to UniBridge home">
+        <img
+          src="/images/unibridge-logo.png"
+          alt="UniBridge"
+          class="brand-logo"
+        >
+        <div class="logo">UniBridge</div>
+      </a>
+
       <div class="mode-badge">Controlled test</div>
     </div>
 
@@ -396,7 +432,7 @@
 
     <div class="card">
       <div class="card-header">
-        <h2>Send money</h2>
+        <h2>Start test transfer</h2>
         <p>
           Select a source corridor and destination. UniBridge will prepare the
           execution path before payment begins.
