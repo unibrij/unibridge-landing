@@ -51,7 +51,7 @@
                           <div class="dorik-wrapper dorik-image-ryw0gh1s-wrapper">
                             <img
                               src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000126693-QULOt.jpg"
-                              alt="Wael Alderani"
+                              alt=""
                               loading="lazy"
                               class="dorik-image-ryw0gh1s"
                             />
@@ -73,8 +73,8 @@
 
                           <div class="dorik-text dorik-text-opdmg0ah">
                             <p>
-                              Founder of UniBridge, leading product architecture,
-                              provider integrations, corridor design, and controlled
+                              Founder of UniBridge, coordinating product design,
+                              provider integrations, corridor logic, and controlled
                               execution testing.
                             </p>
                           </div>
@@ -82,16 +82,14 @@
                           <ul class="dorik-socialIcon-khgos1j6 dorik-socialIcon-khgos1j6-wrapper">
                             <li>
                               <a
-                                href="https://www.linkedin.com/in/wael-alderani-509120113/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="Wael Alderani LinkedIn profile"
+                                href="https://www.linkedin.com/in/wael-alderani-509120113"
+                                class=""
                               >
                                 <svg
                                   width="128"
                                   height="128"
                                   viewBox="0 0 128 128"
-                                  fill="#0A66C2"
+                                  fill="#23242E"
                                   xmlns="http://www.w3.org/2000/svg"
                                 >
                                   <path
@@ -132,9 +130,9 @@
 
             n.preventDefault();
 
-            const i = document.getElementById(r);
-            const o = document.querySelector(`.close-btn-${r}`);
-            const a = i == null ? void 0 : i.parentElement;
+            let i = document.getElementById(r);
+            let o = document.querySelector(`.close-btn-${r}`);
+            let a = i == null ? void 0 : i.parentElement;
 
             a == null || a.classList.add(`row-${r}-overlay`);
             i == null || i.classList.add(`modal-${r}-visible`);
@@ -157,7 +155,7 @@
               if (m) {
                 const y = m.getAttribute("data-href");
                 const t = m.getAttribute("data-target");
-                window.open(y, t || "_self");
+                window.open(y, t);
               }
             });
           });
@@ -172,9 +170,9 @@
         ONLOAD: n,
       }) {
         const i = (o) => {
-          const a = document.getElementById(o);
-          const c = document.querySelector(`.close-btn-${o}`);
-          const d = a == null ? void 0 : a.parentElement;
+          let a = document.getElementById(o);
+          let c = document.querySelector(`.close-btn-${o}`);
+          let d = a == null ? void 0 : a.parentElement;
 
           d == null || d.classList.add(`row-${o}-overlay`);
           a == null || a.classList.add(`modal-${o}-visible`);
@@ -182,7 +180,7 @@
         };
 
         document.addEventListener("mouseleave", () => {
-          const o = e && e.id
+          let o = e && e.id
             ? localStorage.getItem(`${r}-${e.id}-${e.suffixId}`)
             : null;
 
@@ -190,7 +188,7 @@
         });
 
         window.addEventListener("load", () => {
-          const o = t && t.id
+          let o = t && t.id
             ? localStorage.getItem(`${n}-${t.id}-${t.suffixId}`)
             : null;
 
@@ -213,64 +211,86 @@
         }
       }
 
-      /* LinkedIn icon */
-      .dorik-socialIcon-khgos1j6,
-      .dorik-socialIcon-khgos1j6-wrapper {
-        list-style: none !important;
-        padding-left: 0 !important;
-        margin-top: 8px !important;
+      /* Resize LinkedIn icon forcibly */
+      .dorik-socialIcon-m5j3vjtx svg,
+      .dorik-socialIcon-khgos1j6 svg,
+      .dorik-socialIcon-m5j3vjtx img,
+      .dorik-socialIcon-khgos1j6 img {
+        width: 32px !important;
+        height: 32px !important;
+      }
+
+      /* Fix spacing / prevent icon from dropping under text */
+      .dorik-socialIcon-m5j3vjtx,
+      .dorik-socialIcon-khgos1j6 {
         margin-bottom: 8px !important;
-        display: flex !important;
-        align-items: center !important;
+        margin-top: 8px !important;
       }
 
-      .dorik-socialIcon-khgos1j6 li {
-        list-style: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-
+      /* Remove stray bullet dot under LinkedIn icon */
+      .dorik-socialIcon-m5j3vjtx li::marker,
       .dorik-socialIcon-khgos1j6 li::marker {
         content: "" !important;
       }
 
-      .dorik-socialIcon-khgos1j6 a {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 28px !important;
-        height: 28px !important;
-        text-decoration: none !important;
+      /* Ensure social icons align properly */
+      .dorik-socialIcon-m5j3vjtx,
+      .dorik-socialIcon-khgos1j6 {
+        list-style: none !important;
+        padding-left: 0 !important;
       }
 
-      .dorik-socialIcon-khgos1j6 svg {
-        width: 28px !important;
-        height: 28px !important;
-        display: block !important;
-      }
-
+      /* Force LinkedIn icon color */
+      .dorik-socialIcon-m5j3vjtx svg path,
       .dorik-socialIcon-khgos1j6 svg path {
         fill: #0A66C2 !important;
       }
 
-      /* Image */
-      .dorik-image-ryw0gh1s {
+      /* ============================
+         LEADERSHIP PAGE — MOBILE FIXES
+         ============================ */
+
+      /* Fix stretched / cropped team photos */
+      .dorik-image-ryw0gh1s,
+      .dorik-image-hbvuw1hw {
         width: 100% !important;
         height: auto !important;
         object-fit: cover !important;
-        border-radius: 6px !important;
-        display: block !important;
+        border-radius: 6px;
       }
 
-      /* Mobile layout */
+      /* Better vertical spacing under each member */
       @media (max-width: 767px) {
-        .dorik-row-go9xdox1 {
-          flex-direction: column !important;
+        .dorik-row-go9xdox1,
+        .dorik-row-alcbphd5 {
           margin-bottom: 32px !important;
         }
+      }
 
+      /* Reduce top gap on mobile for cleaner layout */
+      @media (max-width: 767px) {
+        .dorik-heading-lq3d55xp,
+        .dorik-heading-f1lbhkuf {
+          margin-top: 12px !important;
+        }
+      }
+
+      /* ===========================================
+         FIX LEADERSHIP PAGE MOBILE LAYOUT
+         =========================================== */
+
+      @media (max-width: 767px) {
+        /* ضع الصور فوق النصوص */
+        .dorik-row-go9xdox1,
+        .dorik-row-alcbphd5 {
+          flex-direction: column !important;
+        }
+
+        /* جعل الأعمدة 100% فوق بعض */
         .dorik-column-zffp6ca2,
-        .dorik-column-txoanf7x {
+        .dorik-column-txoanf7x,
+        .dorik-column-idv8lcl5,
+        .dorik-column-9vg4inh3 {
           width: 100% !important;
           max-width: 100% !important;
           padding-left: 0 !important;
@@ -280,39 +300,52 @@
           align-items: center !important;
         }
 
-        .dorik-image-ryw0gh1s {
+        /* الصور */
+        .dorik-image-ryw0gh1s,
+        .dorik-image-hbvuw1hw {
           width: 100% !important;
           max-width: 180px !important;
           height: auto !important;
+          object-fit: cover !important;
           border-radius: 10px !important;
+          display: block !important;
           margin: 0 auto 16px auto !important;
         }
 
+        /* تعديل النصوص */
         .dorik-text-yfm8d4i7,
-        .dorik-text-opdmg0ah {
+        .dorik-text-opdmg0ah,
+        .dorik-text-dusgyyyz,
+        .dorik-text-zfafrq5a {
           text-align: center !important;
           margin-left: auto !important;
           margin-right: auto !important;
         }
 
-        .dorik-heading-bbjmrono {
+        /* العناوين في الوسط */
+        .dorik-heading-bbjmrono,
+        .dorik-heading-0q5mtwp0 {
           text-align: center !important;
         }
 
-        .dorik-socialIcon-khgos1j6,
-        .dorik-socialIcon-khgos1j6-wrapper {
+        /* تصغير LinkedIn icon */
+        .dorik-socialIcon-m5j3vjtx li svg,
+        .dorik-socialIcon-khgos1j6 li svg {
+          width: 24px !important;
+          height: 24px !important;
+        }
+
+        /* وضع الآيكون تحت النص بشكل جميل */
+        .dorik-socialIcon-m5j3vjtx,
+        .dorik-socialIcon-khgos1j6 {
           justify-content: center !important;
           margin-top: 8px !important;
           margin-bottom: 24px !important;
         }
 
-        .dorik-socialIcon-khgos1j6 a,
-        .dorik-socialIcon-khgos1j6 svg {
-          width: 24px !important;
-          height: 24px !important;
-        }
-
-        .dorik-section-n4yvzfaa {
+        /* تنظيف الفراغ الهائل */
+        .dorik-section-n4yvzfaa,
+        .dorik-section-1mhfvn0d {
           padding-bottom: 20px !important;
         }
       }
