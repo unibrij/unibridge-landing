@@ -113,6 +113,59 @@
       </div>
     </section>
 
+    <section class="execution-signals">
+      <div class="container">
+        <h3>Execution Signals</h3>
+
+        <p>
+          UniBridge is founder-led, but not built in isolation. The infrastructure
+          has been shaped through provider integrations, controlled testing,
+          security review, and external technical input.
+        </p>
+
+        <div class="signals-grid">
+          <div class="signal-card">
+            <h4>Provider Integrations</h4>
+            <p>
+              Connected or actively testing with infrastructure providers across
+              on-ramp, off-ramp, wallet, webhook, and payout flows.
+            </p>
+          </div>
+
+          <div class="signal-card">
+            <h4>Security Testing</h4>
+            <p>
+              External penetration testing completed. Public results are available
+              in the
+              <a
+                href="https://www.linkedin.com/posts/unibrij_security-milestone-external-penetration-activity-7400601115198889984-Bfy9"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LinkedIn security milestone post
+              </a>.
+            </p>
+          </div>
+
+          <div class="signal-card">
+            <h4>Controlled Live Testing</h4>
+            <p>
+              Live corridor tests are used to validate pricing, funding capture,
+              execution routing, and payout delivery before public launch.
+            </p>
+          </div>
+
+          <div class="signal-card">
+            <h4>Technical Review</h4>
+            <p>
+              Architecture and execution logic have been reviewed through technical
+              discussions with experienced financial-infrastructure specialists.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script>
       window.DORIK_PROJECT_ID = "68f973f1d5b86c001104fa9f";
       window.AIRTABLE_API_ROOT =
@@ -250,7 +303,6 @@
          LEADERSHIP PAGE — MOBILE FIXES
          ============================ */
 
-      /* Fix stretched / cropped team photos */
       .dorik-image-ryw0gh1s,
       .dorik-image-hbvuw1hw {
         width: 100% !important;
@@ -259,34 +311,13 @@
         border-radius: 6px;
       }
 
-      /* Better vertical spacing under each member */
       @media (max-width: 767px) {
         .dorik-row-go9xdox1,
         .dorik-row-alcbphd5 {
           margin-bottom: 32px !important;
-        }
-      }
-
-      /* Reduce top gap on mobile for cleaner layout */
-      @media (max-width: 767px) {
-        .dorik-heading-lq3d55xp,
-        .dorik-heading-f1lbhkuf {
-          margin-top: 12px !important;
-        }
-      }
-
-      /* ===========================================
-         FIX LEADERSHIP PAGE MOBILE LAYOUT
-         =========================================== */
-
-      @media (max-width: 767px) {
-        /* ضع الصور فوق النصوص */
-        .dorik-row-go9xdox1,
-        .dorik-row-alcbphd5 {
           flex-direction: column !important;
         }
 
-        /* جعل الأعمدة 100% فوق بعض */
         .dorik-column-zffp6ca2,
         .dorik-column-txoanf7x,
         .dorik-column-idv8lcl5,
@@ -300,7 +331,6 @@
           align-items: center !important;
         }
 
-        /* الصور */
         .dorik-image-ryw0gh1s,
         .dorik-image-hbvuw1hw {
           width: 100% !important;
@@ -312,7 +342,6 @@
           margin: 0 auto 16px auto !important;
         }
 
-        /* تعديل النصوص */
         .dorik-text-yfm8d4i7,
         .dorik-text-opdmg0ah,
         .dorik-text-dusgyyyz,
@@ -322,20 +351,17 @@
           margin-right: auto !important;
         }
 
-        /* العناوين في الوسط */
         .dorik-heading-bbjmrono,
         .dorik-heading-0q5mtwp0 {
           text-align: center !important;
         }
 
-        /* تصغير LinkedIn icon */
         .dorik-socialIcon-m5j3vjtx li svg,
         .dorik-socialIcon-khgos1j6 li svg {
           width: 24px !important;
           height: 24px !important;
         }
 
-        /* وضع الآيكون تحت النص بشكل جميل */
         .dorik-socialIcon-m5j3vjtx,
         .dorik-socialIcon-khgos1j6 {
           justify-content: center !important;
@@ -343,10 +369,100 @@
           margin-bottom: 24px !important;
         }
 
-        /* تنظيف الفراغ الهائل */
         .dorik-section-n4yvzfaa,
         .dorik-section-1mhfvn0d {
           padding-bottom: 20px !important;
+        }
+
+        .dorik-heading-lq3d55xp,
+        .dorik-heading-f1lbhkuf {
+          margin-top: 12px !important;
+        }
+      }
+
+      /* ============================
+         EXECUTION SIGNALS
+         ============================ */
+
+      .execution-signals {
+        padding: 48px 20px 40px;
+        background: #ffffff;
+      }
+
+      .execution-signals .container {
+        max-width: 920px;
+        margin: 0 auto;
+      }
+
+      .execution-signals h3 {
+        text-align: center;
+        font-size: 24px;
+        margin: 0 0 12px;
+        color: #23242E;
+      }
+
+      .execution-signals > .container > p {
+        max-width: 680px;
+        margin: 0 auto 28px;
+        text-align: center;
+        color: #4B5563;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      .signals-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+      }
+
+      .signal-card {
+        border: 1px solid #E5E7EB;
+        border-radius: 12px;
+        padding: 18px;
+        background: #FFFFFF;
+      }
+
+      .signal-card h4 {
+        font-size: 15px;
+        margin: 0 0 8px;
+        color: #111827;
+      }
+
+      .signal-card p {
+        font-size: 13px;
+        line-height: 1.55;
+        margin: 0;
+        color: #4B5563;
+      }
+
+      .signal-card a {
+        color: #0A66C2;
+        text-decoration: underline;
+      }
+
+      @media (max-width: 767px) {
+        .execution-signals {
+          padding: 36px 20px 28px;
+        }
+
+        .execution-signals h3 {
+          font-size: 22px;
+        }
+
+        .execution-signals > .container > p {
+          font-size: 13px;
+          margin-bottom: 22px;
+        }
+
+        .signals-grid {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+
+        .signal-card {
+          text-align: center;
+          padding: 16px;
         }
       }
     </style>
