@@ -90,7 +90,7 @@
     }
 
     .hero {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .eyebrow {
@@ -121,7 +121,12 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin: 18px 0 16px;
+      margin: 18px 0 0;
+    }
+
+    .bottom-proof {
+      margin-top: 18px;
+      margin-bottom: 0;
     }
 
     .proof-item {
@@ -486,29 +491,14 @@
     </div>
 
     <section class="hero">
-      <div class="eyebrow">Live execution surface</div>
+      <div class="eyebrow">Controlled live test</div>
       <h1>Small-value payout test</h1>
       <p>
-        For partners validating payout execution before broader corridor activation.
-        Validate quote, funding, execution, and settlement status across a controlled
-        live payout path.
+        Use this page to run a small controlled payout test. Review the quote,
+        enter the required destination details, and continue only if everything
+        looks correct.
       </p>
     </section>
-
-    <div class="proof-strip">
-      <div class="proof-item">
-        <strong>Quote</strong>
-        <span>Route resolved before funding</span>
-      </div>
-      <div class="proof-item">
-        <strong>Funding</strong>
-        <span>Small-value validation</span>
-      </div>
-      <div class="proof-item">
-        <strong>Execution</strong>
-        <span>Status tracked to outcome</span>
-      </div>
-    </div>
 
     <div class="before-test">
       <div class="before-test-title">Before you test</div>
@@ -518,7 +508,7 @@
         <ul>
           <li>Select the source country, destination country, and amount.</li>
           <li>UniBridge prepares the execution path before payment begins.</li>
-          <li>After the quote, provide any destination-specific recipient details, such as a local payout key or account information.</li>
+          <li>After the quote, provide the required destination payout details, such as a local payout key or account information.</li>
           <li>Before payment, review the quote, recipient details, provider, amount, and destination information.</li>
         </ul>
       </div>
@@ -618,6 +608,21 @@
         <strong>Controlled test only.</strong>
         Verify the page URL before continuing. This surface is intended to
         demonstrate execution readiness, not public remittance availability.
+      </div>
+    </div>
+
+    <div class="proof-strip bottom-proof">
+      <div class="proof-item">
+        <strong>Quote</strong>
+        <span>Route prepared before payment</span>
+      </div>
+      <div class="proof-item">
+        <strong>Funding</strong>
+        <span>Handled by the checkout provider</span>
+      </div>
+      <div class="proof-item">
+        <strong>Execution</strong>
+        <span>Status tracked after funding</span>
       </div>
     </div>
 
