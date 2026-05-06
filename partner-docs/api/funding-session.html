@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Funding Session | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="../developer/">Developer overview</a>
+          <a class="nav-link" href="../developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="../developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="../developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="../developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="../developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="../developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="./session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="./session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="./session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="./settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="./funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="./settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="./settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Funding session</span>
+        </div>
+
+        <div class="page-badge">API Reference</div>
+
+        <h1>Funding Session</h1>
+
+        <div class="endpoint-label"><span class="method">POST</span> /v2/funding/session</div>
+
+        <p class="lead">
+          Returns the funding session created for a settlement.
+        </p>
+
+        <p>
+          Depending on the selected sender, this may return a provider checkout URL or direct funding instructions.
+        </p>
+
+        <h2>Request body</h2>
+
+        <table>
+          <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+          <tr><td><code>settlement_id</code></td><td>string</td><td>Yes</td><td>Settlement created through <code>/v2/settlement/create</code>.</td></tr>
+        </table>
+
+        <h2>Example request</h2>
+
+        <pre><code>{
+  "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+
+        <h2>Example response with provider widget</h2>
+
+        <pre><code>{
+  "funding_session_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+  "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+  "status": "created",
+  "sender_id": "onramp",
+  "widget_url": "https://provider.example.com/checkout/session",
+  "funding": {
+    "asset": "USDT",
+    "network": "polygon",
+    "amount": 10,
+    "deposit_address": "0x0000000000000000000000000000000000000000"
+  },
+  "execution": {
+    "executor": "smartpay",
+    "asset": "USDT",
+    "network": "polygon",
+    "payout_rail": "pix"
+  },
+  "expires_at": "2026-01-01T12:00:00Z",
+  "pricing_preview": null,
+  "next_action": null
+}</code></pre>
+
+        <h2>Example response with direct funding instructions</h2>
+
+        <pre><code>{
+  "funding_session_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+  "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+  "status": "created",
+  "sender_id": "wallet",
+  "widget_url": null,
+  "funding": {
+    "asset": "USDT",
+    "network": "polygon",
+    "amount": 10,
+    "deposit_address": "0x0000000000000000000000000000000000000000"
+  },
+  "execution": {
+    "executor": "smartpay",
+    "asset": "USDT",
+    "network": "polygon",
+    "payout_rail": "pix"
+  },
+  "expires_at": "2026-01-01T12:00:00Z",
+  "pricing_preview": null,
+  "next_action": null
+}</code></pre>
+
+        <h2>Important behavior</h2>
+
+        <div class="callout">
+          A funding session provides funding or checkout instructions. It does not represent final payout completion.
+          Final completion depends on funding observation, settlement confirmation dispatch, execution submission,
+          and provider status reconciliation.
+        </div>
+
+        <h2>Possible errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th></tr>
+          <tr><td><code>missing_settlement_id</code></td><td><code>settlement_id</code> was not provided.</td></tr>
+          <tr><td><code>settlement_not_found</code></td><td>Settlement does not exist.</td></tr>
+          <tr><td><code>funding_session_not_found</code></td><td>Funding session does not exist.</td></tr>
+          <tr><td><code>funding_session_expired</code></td><td>Funding session has expired.</td></tr>
+        </table>
+
+        <div class="pager">
+          <a class="prev" href="./settlement-create.html">
+            <span class="pager-label">Previous</span>
+            ← Create settlement
+          </a>
+          <a class="next" href="./settlement-confirm.html">
+            <span class="pager-label">Next</span>
+            Confirm settlement →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
