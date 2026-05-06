@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Security Review | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="./">Partner access</a>
+          <a class="nav-link" href="./pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="./execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="./execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="./operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="./security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="../developer/">Developer overview</a>
+          <a class="nav-link" href="../developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="../developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="../developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="../developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="../developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="../developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Security review</span>
+        </div>
+
+        <div class="page-badge">Security Review</div>
+
+        <h1>Security Review</h1>
+
+        <p class="lead">
+          UniBridge completed an external security assessment as part of its controlled pilot readiness process.
+        </p>
+
+        <h2>Reviewed scope</h2>
+
+        <p>
+          The assessment was performed by YBUGS and covered the UniBridge Protocol · Bridge API during November 2025.
+        </p>
+
+        <p>
+          The assessment focused on the Bridge API scope available at the time of review,
+          including API endpoints under <code>/api/bridge/*</code>.
+        </p>
+
+        <ul>
+          <li>Route quote generation</li>
+          <li>Settlement creation</li>
+          <li>Settlement confirmation</li>
+          <li>Settlement status lookup</li>
+          <li>Webhook callback processing</li>
+          <li>HMAC signature logic</li>
+        </ul>
+
+        <h2>Summary outcome</h2>
+
+        <p>
+          The external assessment reported no exploitable vulnerabilities identified in the reviewed scope.
+        </p>
+
+        <p>
+          The report also recorded zero Critical, High, Medium, or Low alerts across the assessed API
+          security categories, with the overall security posture within the reviewed scope marked as GOOD.
+        </p>
+
+        <h2>Tested areas</h2>
+
+        <p>
+          The assessment included checks covering OWASP API Top 10 and CWE/SANS Top 25 categories,
+          including authentication, authorization, IDOR, SQL injection, XSS, CSRF, SSRF, CORS,
+          rate limiting, and exposed debug information.
+        </p>
+
+        <h2>Current integration surface</h2>
+
+        <div class="callout warning">
+          UniBridge’s current controlled partner integration documentation references the <code>/v2</code>
+          API surface. The prior YBUGS assessment should be understood as evidence of external security
+          review for the earlier Bridge API scope, not as a blanket security certification for every
+          current or future endpoint.
+        </div>
+
+        <p>
+          Current <code>/v2</code> access remains private, controlled, credentialed, and subject to partner
+          scope, operational readiness, and additional review where appropriate.
+        </p>
+
+        <h2>Report access</h2>
+
+        <p>
+          The full report is confidential and distribution-limited. It may be shared with qualified partners
+          during diligence where appropriate.
+        </p>
+
+        <p>
+          Public security milestone:
+          <a href="https://www.linkedin.com/posts/unibrij_security-milestone-external-penetration-activity-7400601115198889984-Bfy9" target="_blank" rel="noopener">
+            View public milestone
+          </a>
+        </p>
+
+        <div class="pager">
+          <a class="prev" href="./operating-boundaries.html">
+            <span class="pager-label">Previous</span>
+            ← Operating boundaries
+          </a>
+          <a class="next" href="../developer/">
+            <span class="pager-label">Next</span>
+            Developer overview →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
