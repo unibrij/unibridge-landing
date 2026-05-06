@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Status Mapping | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./">Developer overview</a>
+          <a class="nav-link" href="./authentication.html">API authentication</a>
+          <a class="nav-link" href="./quote-api.html">Quote API</a>
+          <a class="nav-link" href="./settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Status mapping</span>
+        </div>
+
+        <div class="page-badge">Developer Integration</div>
+
+        <h1>Status Mapping</h1>
+
+        <p class="lead">
+          Common UniBridge settlement statuses during controlled pilot testing.
+          Status values may vary by corridor, provider, and approved integration scope.
+        </p>
+
+        <h2>Lifecycle overview</h2>
+
+        <pre><code>created
+→ waiting_ramp_payment
+→ funding_confirmed
+→ submitted / executing
+→ processing
+→ completed</code></pre>
+
+        <p>Failure, retry, or manual review states may occur at different points in the lifecycle.</p>
+
+        <h2>Core statuses</h2>
+
+        <table>
+          <tr><th>Status</th><th>Meaning</th></tr>
+          <tr><td><code>created</code></td><td>Settlement record has been created.</td></tr>
+          <tr><td><code>waiting_ramp_payment</code></td><td>Settlement is waiting for provider-handled payment or funding completion.</td></tr>
+          <tr><td><code>funding_confirmed</code></td><td>Funding has been observed and confirmed; execution has not yet completed.</td></tr>
+          <tr><td><code>submitted</code></td><td>Execution has been submitted or queued for provider execution flow.</td></tr>
+          <tr><td><code>executing</code></td><td>Execution has been claimed and is in progress.</td></tr>
+          <tr><td><code>processing</code></td><td>Execution provider processing or provider status reconciliation is in progress.</td></tr>
+          <tr><td><code>completed</code></td><td>Final success confirmed through provider status reconciliation.</td></tr>
+          <tr><td><code>failed</code></td><td>Final failure state.</td></tr>
+          <tr><td><code>execution_retryable</code></td><td>Execution failed before a dangerous provider-side finality point and may be retried.</td></tr>
+          <tr><td><code>manual_resume_required</code></td><td>Operator/manual reconciliation is required before continuing or closing.</td></tr>
+        </table>
+
+        <h2>Execution readiness</h2>
+
+        <p>After funding confirmation, UniBridge may check whether the settlement is executable.</p>
+
+        <ul>
+          <li>Funding amount</li>
+          <li>Funding asset</li>
+          <li>Funding network</li>
+          <li>Token contract address where applicable</li>
+          <li>Destination payout details</li>
+          <li>Selected route compatibility</li>
+          <li>Duplicate or already-submitted execution checks</li>
+        </ul>
+
+        <h2>Completion</h2>
+
+        <p><code>completed</code> should only be treated as final when:</p>
+
+        <ol>
+          <li>Funding has been observed or confirmed.</li>
+          <li>Execution has been submitted.</li>
+          <li>An execution provider reference has been recorded where applicable.</li>
+          <li>Provider status reconciliation confirms a successful outcome.</li>
+        </ol>
+
+        <h2>Provider status normalization</h2>
+
+        <table>
+          <tr><th>Provider-side signal</th><th>Normalized interpretation</th></tr>
+          <tr><td><code>done</code></td><td><code>success</code></td></tr>
+          <tr><td><code>success</code></td><td><code>success</code></td></tr>
+          <tr><td><code>complete</code> / <code>completed</code></td><td><code>success</code></td></tr>
+          <tr><td><code>pending</code></td><td><code>pending</code></td></tr>
+          <tr><td><code>processing</code></td><td><code>pending</code></td></tr>
+          <tr><td><code>failed</code> / <code>error</code> / <code>rejected</code></td><td><code>failed</code></td></tr>
+          <tr><td><code>refunded</code></td><td><code>refunded</code></td></tr>
+          <tr><td>Unknown or missing status</td><td><code>unknown</code></td></tr>
+        </table>
+
+        <h2>Manual review</h2>
+
+        <ul>
+          <li>Funding evidence is incomplete</li>
+          <li>Funding is confirmed but execution readiness checks fail</li>
+          <li>Provider status is unclear</li>
+          <li>Amount or asset mismatch is detected</li>
+          <li>Provider response is delayed or inconsistent</li>
+          <li>A provider terminal status requires reconciliation</li>
+          <li>Retry would be unsafe without operator review</li>
+        </ul>
+
+        <div class="callout warning">
+          Partners should not rely on an intermediate status as final settlement completion.
+        </div>
+
+        <div class="pager">
+          <a class="prev" href="./webhooks.html">
+            <span class="pager-label">Previous</span>
+            ← Webhook events
+          </a>
+          <a class="next" href="./integration-checklist.html">
+            <span class="pager-label">Next</span>
+            Integration checklist →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
