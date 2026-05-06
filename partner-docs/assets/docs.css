@@ -445,18 +445,27 @@ pre code {
   text-align: left;
 }
 
+.access-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
 .access-logo {
   display: block;
   width: 68px;
   height: 68px;
   object-fit: contain;
-  margin: 0 0 18px 0;
+  flex: 0 0 auto;
 }
 
 .access-card .page-badge {
   display: inline-flex;
   width: fit-content;
-  margin: 0 0 18px 0;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .access-card h1 {
@@ -617,5 +626,19 @@ pre code {
 
   .access-card {
     padding: 24px;
+  }
+
+  .access-header {
+    align-items: flex-start;
+  }
+
+  .access-logo {
+    width: 62px;
+    height: 62px;
+  }
+
+  .access-card .page-badge {
+    font-size: 11px;
+    padding: 6px 9px;
   }
 }
