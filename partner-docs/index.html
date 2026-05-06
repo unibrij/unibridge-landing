@@ -227,6 +227,13 @@
     const input = document.getElementById("access-password");
     const error = document.getElementById("access-error");
 
+    /*
+      Require password whenever /partner-docs/ is opened directly.
+      After successful entry, sessionStorage allows navigation inside the docs
+      during the same browser tab session.
+    */
+    sessionStorage.removeItem("ub_api_reference_access");
+
     function unlockDocs() {
       sessionStorage.setItem("ub_api_reference_access", "granted");
 
@@ -235,10 +242,6 @@
 
       app.hidden = false;
       app.style.display = "grid";
-    }
-
-    if (sessionStorage.getItem("ub_api_reference_access") === "granted") {
-      unlockDocs();
     }
 
     form.addEventListener("submit", function (event) {
