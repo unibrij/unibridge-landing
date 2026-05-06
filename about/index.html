@@ -8,14 +8,14 @@
 
   <meta
     name="description"
-    content="UniBridge is building a non-custodial execution coordination network for regulated payout providers, ramps, and execution partners."
+    content="UniBridge coordinates committed payout execution paths across approved funding, ramp, wallet, and execution providers."
   />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta property="og:title" content="About UniBridge" />
   <meta
     property="og:description"
-    content="Non-custodial execution coordination for regulated payout providers, ramps, and execution partners."
+    content="Execution coordination for regulated payout providers, ramps, wallets, and execution partners."
   />
   <meta property="og:url" content="https://www.unibrij.io/about/" />
   <meta property="og:type" content="website" />
@@ -46,20 +46,28 @@
       text-decoration: underline;
     }
 
-    .about-page {
-      background: #ffffff;
-      padding: 72px 20px 64px;
-    }
-
     .container {
       width: 100%;
       max-width: 920px;
       margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .about-main {
+      background: #ffffff;
+    }
+
+    /* ============================
+       INTRO — WHITE SECTION
+       ============================ */
+
+    .about-intro-section {
+      background: #ffffff;
+      padding: 76px 0 64px;
     }
 
     .about-intro {
       max-width: 760px;
-      margin-bottom: 54px;
     }
 
     .about-label {
@@ -93,13 +101,18 @@
       font-weight: 600;
     }
 
-    .section {
-      margin-top: 54px;
+    /* ============================
+       SIGNALS — OFF-WHITE SECTION
+       ============================ */
+
+    .signals-section {
+      background: #f8fafc;
+      padding: 64px 0;
     }
 
     .section-header {
       max-width: 720px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
     .section-header h2 {
@@ -151,6 +164,15 @@
     .signal-card a {
       color: #00a98a;
       font-weight: 600;
+    }
+
+    /* ============================
+       LEADERSHIP — WHITE SECTION
+       ============================ */
+
+    .leadership-section {
+      background: #ffffff;
+      padding: 64px 0;
     }
 
     .leadership-card {
@@ -206,16 +228,25 @@
       font-weight: 700;
     }
 
+    /* ============================
+       BOUNDARY — OFF-WHITE SECTION
+       ============================ */
+
+    .boundary-section {
+      background: #f8fafc;
+      padding: 46px 0 64px;
+    }
+
     .quiet-boundary {
-      margin-top: 46px;
       max-width: 760px;
       padding: 18px 20px;
       border-left: 4px solid #00d4aa;
-      background: #f8fafc;
+      background: #ffffff;
       border-radius: 10px;
       color: #5a6c7d;
       font-size: 14px;
       line-height: 1.7;
+      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.04);
     }
 
     @media (max-width: 900px) {
@@ -225,8 +256,21 @@
     }
 
     @media (max-width: 640px) {
-      .about-page {
-        padding: 48px 18px 48px;
+      .container {
+        padding: 0 18px;
+      }
+
+      .about-intro-section {
+        padding: 52px 0 46px;
+      }
+
+      .signals-section,
+      .leadership-section {
+        padding: 48px 0;
+      }
+
+      .boundary-section {
+        padding: 36px 0 48px;
       }
 
       .about-intro h1 {
@@ -256,27 +300,31 @@
 </head>
 
 <body>
-  <main class="about-page">
-    <div class="container">
-      <section class="about-intro">
-        <span class="about-label">About UniBridge</span>
+  <main class="about-main">
+    <section class="about-intro-section">
+      <div class="container">
+        <div class="about-intro">
+          <span class="about-label">About UniBridge</span>
 
-        <h1>Non-custodial execution coordination for regulated payout infrastructure.</h1>
+          <h1>Execution coordination for regulated payout infrastructure.</h1>
 
-        <p>
-          <strong>UniBridge is building a non-custodial execution coordination network for regulated payout providers, ramps, and execution partners.</strong>
-        </p>
+          <p>
+            <strong>UniBridge coordinates committed payout execution paths across approved funding, ramp, wallet, and execution providers.</strong>
+          </p>
 
-        <p>
-          The company coordinates payout execution paths across approved providers, supporting partner onboarding, corridor testing, private documentation, and execution review.
-        </p>
+          <p>
+            The protocol supports partner onboarding, corridor testing, private documentation, and execution review without presenting itself as a public consumer remittance service.
+          </p>
 
-        <p>
-          UniBridge operates through dedicated legal structures in the United Kingdom and the United States, with provider-side custody, KYC, fiat payout, and regulated obligations remaining with participating providers.
-        </p>
-      </section>
+          <p>
+            Some flows may use transaction-specific funding addresses for observation and reconciliation, while execution remains governed by the approved provider path, user authorization, and corridor-specific operating rules.
+          </p>
+        </div>
+      </div>
+    </section>
 
-      <section class="section">
+    <section class="signals-section">
+      <div class="container">
         <div class="section-header">
           <h2>Execution Signals</h2>
           <p>
@@ -321,9 +369,11 @@
             </p>
           </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="section">
+    <section class="leadership-section">
+      <div class="container">
         <div class="section-header">
           <h2>Leadership</h2>
           <p>
@@ -358,12 +408,16 @@
             </a>
           </div>
         </article>
-      </section>
-
-      <div class="quiet-boundary">
-        UniBridge does not custody customer funds or operate as a public consumer remittance service. It coordinates execution paths and review evidence across approved participating providers.
       </div>
-    </div>
+    </section>
+
+    <section class="boundary-section">
+      <div class="container">
+        <div class="quiet-boundary">
+          UniBridge does not operate as a public consumer remittance service. Custody, KYC, fiat payout, and regulated customer obligations remain with the applicable participating providers, while UniBridge coordinates routing, funding observation, execution readiness, and review evidence across approved flows.
+        </div>
+      </div>
+    </section>
   </main>
 </body>
 </html>
