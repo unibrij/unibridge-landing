@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register Session | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="../developer/">Developer overview</a>
+          <a class="nav-link" href="../developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="../developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="../developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="../developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="../developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="../developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="./session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="./session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="./session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="./settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="./funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="./settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="./settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Register session</span>
+        </div>
+
+        <div class="page-badge">API Reference</div>
+
+        <h1>Register Session</h1>
+
+        <div class="endpoint-label"><span class="method">POST</span> /v2/session/register</div>
+
+        <p class="lead">
+          Creates a controlled integration session for a source country and destination country.
+        </p>
+
+        <h2>Authentication</h2>
+
+        <p>
+          This endpoint is a partner <code>POST</code> request and requires HMAC authentication unless otherwise agreed.
+        </p>
+
+        <pre><code>Content-Type: application/json
+x-ub-partner-id: &lt;partner_id&gt;
+x-ub-signature: &lt;hex_hmac_signature&gt;</code></pre>
+
+        <h2>Request body</h2>
+
+        <table>
+          <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+          <tr><td><code>source_country</code></td><td>string</td><td>Yes</td><td>Source country code or supported source region.</td></tr>
+          <tr><td><code>receiver_country</code></td><td>string</td><td>Yes</td><td>Destination country code.</td></tr>
+        </table>
+
+        <h2>Example request</h2>
+
+        <pre><code>{
+  "source_country": "DE",
+  "receiver_country": "BR"
+}</code></pre>
+
+        <h2>Example response</h2>
+
+        <pre><code>{
+  "ok": true,
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+
+        <h2>Possible errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th></tr>
+          <tr><td><code>invalid_source_country</code></td><td>Source country is missing or unsupported.</td></tr>
+          <tr><td><code>invalid_receiver_country</code></td><td>Receiver country is missing or unsupported.</td></tr>
+          <tr><td><code>corridor_not_supported</code></td><td>The requested corridor is not available.</td></tr>
+          <tr><td><code>partner_not_authorized</code></td><td>Partner is not authorized for this corridor or action.</td></tr>
+        </table>
+
+        <div class="pager">
+          <a class="prev" href="../developer/integration-checklist.html">
+            <span class="pager-label">Previous</span>
+            ← Integration checklist
+          </a>
+          <a class="next" href="./session-resolve.html">
+            <span class="pager-label">Next</span>
+            Resolve session →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
