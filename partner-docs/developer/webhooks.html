@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Webhook Events | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./">Developer overview</a>
+          <a class="nav-link" href="./authentication.html">API authentication</a>
+          <a class="nav-link" href="./quote-api.html">Quote API</a>
+          <a class="nav-link" href="./settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Webhook events</span>
+        </div>
+
+        <div class="page-badge">Developer Integration</div>
+
+        <h1>Webhook Events</h1>
+
+        <p class="lead">
+          This document describes webhook behavior for controlled UniBridge integration review.
+        </p>
+
+        <h2>Current implementation note</h2>
+
+        <p>
+          The current codebase includes provider webhook receivers for funding and execution providers.
+          These are provider-facing webhook receivers and are not the same as a stable partner-facing
+          webhook delivery contract.
+        </p>
+
+        <pre><code>/v2/webhooks/transak
+/v2/webhooks/onramp
+/v2/webhooks/smartpay
+/v2/webhooks/guardarian</code></pre>
+
+        <h2>Partner webhook availability</h2>
+
+        <p>
+          Partner-facing webhook delivery may be made available only under an approved private integration scope.
+          Unless partner webhooks are explicitly enabled, partners should rely on:
+        </p>
+
+        <pre><code>GET /v2/settlement/status?settlement_id=&lt;settlement_id&gt;</code></pre>
+
+        <h2>Conditional partner webhook model</h2>
+
+        <p>
+          If partner webhook delivery is enabled, UniBridge may send lifecycle events covering both funding
+          and post-funding execution.
+        </p>
+
+        <h3>Example funding event</h3>
+
+        <pre><code>{
+  "event": "settlement.funding_confirmed",
+  "data": {
+    "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+    "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+    "status": "funding_confirmed",
+    "funding": {
+      "asset": "USDT",
+      "network": "polygon",
+      "observed_amount": 10,
+      "observed_tx_hash": "0x..."
+    }
+  },
+  "created_at": "2026-01-01T12:03:00Z"
+}</code></pre>
+
+        <h3>Example execution event</h3>
+
+        <pre><code>{
+  "event": "settlement.execution_submitted",
+  "data": {
+    "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+    "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+    "status": "processing",
+    "execution_provider": "smartpay",
+    "provider_ref": "execution-provider-reference-if-available"
+  },
+  "created_at": "2026-01-01T12:04:00Z"
+}</code></pre>
+
+        <h3>Example final event</h3>
+
+        <pre><code>{
+  "event": "settlement.completed",
+  "data": {
+    "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
+    "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+    "status": "completed",
+    "provider_status": "done",
+    "provider_ref": "execution-provider-reference-if-available"
+  },
+  "created_at": "2026-01-01T12:05:00Z"
+}</code></pre>
+
+        <h2>Completion guidance</h2>
+
+        <div class="callout warning">
+          Partners should not treat <code>settlement.funding_confirmed</code> as final payout completion.
+          Final completion requires a final status such as <code>settlement.completed</code>,
+          or equivalent status confirmation through the settlement status endpoint.
+        </div>
+
+        <h2>Recommended default</h2>
+
+        <p>
+          Until partner webhook delivery is explicitly enabled, partners should use status polling through
+          <code>GET /v2/settlement/status</code>.
+        </p>
+
+        <div class="pager">
+          <a class="prev" href="./settlement-api.html">
+            <span class="pager-label">Previous</span>
+            ← Settlement API
+          </a>
+          <a class="next" href="./status-mapping.html">
+            <span class="pager-label">Next</span>
+            Status mapping →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
