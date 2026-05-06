@@ -8,7 +8,7 @@
 
   <meta
     name="description"
-    content="About UniBridge, a founder-led execution coordination network for controlled cross-border payout infrastructure."
+    content="About UniBridge, an infrastructure company coordinating controlled cross-border payout execution across approved providers."
   />
 
   <meta name="twitter:card" content="summary_large_image" />
@@ -16,7 +16,7 @@
   <meta property="og:title" content="About UniBridge" />
   <meta
     property="og:description"
-    content="Founder-led infrastructure for controlled payout execution, provider coordination, and corridor review."
+    content="Infrastructure for cross-border payout execution, provider coordination, and corridor review."
   />
   <meta property="og:url" content="https://www.unibrij.io/about/" />
   <link rel="canonical" href="https://www.unibrij.io/about/" />
@@ -35,7 +35,7 @@
       --navy-2: #062342;
       --teal: #00d4aa;
       --teal-soft: rgba(0, 212, 170, 0.1);
-      --shadow: 0 12px 34px rgba(0, 51, 102, 0.07);
+      --shadow: 0 14px 34px rgba(0, 51, 102, 0.07);
     }
 
     * {
@@ -62,7 +62,7 @@
     .about-page {
       min-height: 100vh;
       background:
-        radial-gradient(circle at 12% 0%, rgba(0, 212, 170, 0.08), transparent 24%),
+        radial-gradient(circle at 12% 0%, rgba(0, 212, 170, 0.07), transparent 25%),
         linear-gradient(180deg, #ffffff 0%, #f8fafc 52%, #ffffff 100%);
     }
 
@@ -72,7 +72,7 @@
     }
 
     .about-header {
-      padding: 34px 0 14px;
+      padding: 34px 0 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -88,24 +88,10 @@
       letter-spacing: -0.03em;
     }
 
-    .brand-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background:
-        linear-gradient(135deg, var(--navy), var(--navy-2));
-      position: relative;
-      box-shadow: 0 8px 20px rgba(0, 51, 102, 0.12);
-    }
-
-    .brand-mark::after {
-      content: "";
-      position: absolute;
-      inset: 8px;
-      border-radius: 999px;
-      border: 2px solid var(--teal);
-      border-left-color: transparent;
-      transform: rotate(-28deg);
+    .brand-link img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
     }
 
     .back-link {
@@ -115,7 +101,8 @@
     }
 
     .about-intro {
-      padding: 58px 0 48px;
+      padding: 56px 0 36px;
+      border-bottom: 1px solid var(--border);
     }
 
     .eyebrow {
@@ -134,65 +121,59 @@
     }
 
     h1 {
-      margin: 0 0 20px;
-      max-width: 780px;
+      margin: 0 0 18px;
+      max-width: 760px;
       color: var(--navy);
-      font-size: clamp(34px, 5vw, 54px);
+      font-size: clamp(34px, 5vw, 52px);
       line-height: 1.08;
       letter-spacing: -0.055em;
     }
 
     .lead {
-      max-width: 780px;
-      margin: 0 0 18px;
+      max-width: 760px;
+      margin: 0;
       color: var(--muted);
       font-size: 18px;
       line-height: 1.75;
     }
 
-    .about-section {
-      padding: 34px 0;
+    .content-stack {
+      padding: 44px 0 72px;
+      display: grid;
+      gap: 22px;
     }
 
-    .section-card {
+    .about-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 28px;
+      border-radius: 22px;
+      padding: 26px;
       box-shadow: var(--shadow);
     }
 
-    .section-card h2,
-    .split-card h2,
-    .leadership-copy h2 {
-      margin: 0 0 12px;
+    .about-card.compact {
+      box-shadow: 0 8px 22px rgba(0, 51, 102, 0.045);
+    }
+
+    .about-card h2 {
+      margin: 0 0 10px;
       color: var(--navy);
       font-size: 24px;
       line-height: 1.2;
       letter-spacing: -0.04em;
     }
 
-    .section-card p,
-    .split-card p,
-    .leadership-copy p {
+    .about-card p {
       margin: 0;
       color: var(--muted);
       font-size: 15px;
       line-height: 1.75;
     }
 
-    .split-grid {
+    .about-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
-    }
-
-    .split-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.05);
+      gap: 22px;
     }
 
     .status-list {
@@ -205,8 +186,8 @@
 
     .status-list li {
       display: flex;
-      gap: 10px;
       align-items: flex-start;
+      gap: 10px;
       color: #334155;
       font-size: 14px;
       line-height: 1.55;
@@ -225,22 +206,17 @@
 
     .leadership-card {
       display: grid;
-      grid-template-columns: 170px minmax(0, 1fr);
-      gap: 28px;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 26px;
       align-items: center;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 26px;
-      box-shadow: var(--shadow);
     }
 
     .founder-photo {
-      width: 170px;
-      height: 170px;
+      width: 150px;
+      height: 150px;
       object-fit: cover;
       object-position: center 34%;
-      border-radius: 20px;
+      border-radius: 18px;
       box-shadow: 0 14px 32px rgba(0, 51, 102, 0.12);
     }
 
@@ -254,7 +230,7 @@
     }
 
     .founder-name {
-      margin: 0 0 12px;
+      margin: 0 0 10px;
       color: var(--navy);
       font-size: 30px;
       line-height: 1.15;
@@ -262,7 +238,7 @@
     }
 
     .founder-links {
-      margin-top: 16px;
+      margin-top: 14px;
     }
 
     .founder-links a {
@@ -271,19 +247,15 @@
       font-size: 14px;
     }
 
-    .signals-row {
+    .signals {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
 
     .signal {
-      background: var(--surface);
-      border: 1px solid rgba(0, 212, 170, 0.18);
       border-top: 3px solid var(--teal);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 8px 22px rgba(0, 51, 102, 0.05);
+      padding-top: 14px;
     }
 
     .signal strong {
@@ -305,38 +277,27 @@
       font-weight: 800;
     }
 
-    .about-note {
-      padding: 28px 0 72px;
-    }
-
-    .note-box {
-      border-left: 4px solid var(--teal);
-      background: rgba(0, 212, 170, 0.08);
-      border-radius: 16px;
-      padding: 18px 20px;
-      color: #334155;
-      font-size: 14px;
-      line-height: 1.7;
+    .quiet-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      padding: 6px 2px 0;
     }
 
     @media (max-width: 820px) {
-      .about-header {
-        padding-top: 24px;
-      }
-
       .about-intro {
-        padding: 44px 0 32px;
+        padding: 44px 0 30px;
       }
 
-      .split-grid,
+      .about-grid,
       .leadership-card,
-      .signals-row {
+      .signals {
         grid-template-columns: 1fr;
       }
 
       .founder-photo {
-        width: 150px;
-        height: 150px;
+        width: 138px;
+        height: 138px;
       }
     }
 
@@ -346,21 +307,25 @@
       }
 
       .about-header {
+        padding-top: 24px;
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
       }
 
-      .section-card,
-      .split-card,
-      .leadership-card {
+      .content-stack {
+        padding: 34px 0 58px;
+        gap: 18px;
+      }
+
+      .about-card {
         padding: 22px;
-        border-radius: 22px;
+        border-radius: 20px;
       }
 
       .founder-photo {
-        width: 132px;
-        height: 132px;
+        width: 128px;
+        height: 128px;
       }
 
       .founder-name {
@@ -374,7 +339,11 @@
   <main class="about-page">
     <header class="about-header about-container">
       <a class="brand-link" href="/" aria-label="Back to UniBridge home">
-        <span class="brand-mark" aria-hidden="true"></span>
+        <img
+          src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/unibridge-transparent-logo-3mFEY.png"
+          alt="UniBridge Protocol"
+          loading="lazy"
+        />
         <span>UniBridge Protocol</span>
       </a>
 
@@ -385,56 +354,46 @@
       <div class="about-container">
         <p class="eyebrow">About UniBridge</p>
 
-        <h1>Founder-led infrastructure for controlled payout execution.</h1>
+        <h1>Infrastructure for controlled payout execution.</h1>
 
         <p class="lead">
           UniBridge is building a non-custodial execution coordination network for regulated payout providers, ramps, and execution partners.
         </p>
-
-        <p class="lead">
-          The company operates through dedicated legal structures in the United Kingdom and the United States, supporting provider onboarding, controlled corridor testing, partner documentation, and execution review.
-        </p>
       </div>
     </section>
 
-    <section class="about-section">
-      <div class="about-container split-grid">
-        <article class="split-card">
+    <section class="content-stack about-container">
+      <div class="about-grid">
+        <article class="about-card compact">
           <h2>Company</h2>
           <p>
-            UniBridge is structured for partner-led infrastructure review, not public consumer remittance launch. The operating model is built around provider-side execution, documented boundaries, and controlled evidence collection.
+            UniBridge operates through dedicated legal structures in the United Kingdom and the United States, supporting provider onboarding, corridor testing, partner documentation, and execution review.
           </p>
         </article>
 
-        <article class="split-card">
+        <article class="about-card compact">
           <h2>Operating status</h2>
           <p>
-            UniBridge is currently operating under controlled partner review, with provider integrations, live corridor execution evidence, private partner documentation, and a controlled test surface.
+            UniBridge is currently operating under partner review, with provider integrations, live corridor execution evidence, private partner documentation, and a controlled test surface.
           </p>
 
           <ul class="status-list">
-            <li>Controlled live corridor testing</li>
+            <li>Live corridor testing</li>
             <li>Provider integrations and partner review</li>
             <li>Private API and partner documentation</li>
             <li>Execution evidence collection</li>
           </ul>
         </article>
       </div>
-    </section>
 
-    <section class="about-section">
-      <div class="about-container">
-        <article class="section-card">
-          <h2>Operating boundary</h2>
-          <p>
-            UniBridge does not custody customer funds or operate as a consumer-facing remittance service. Custody, KYC, fiat payout, payment processing, and regulated customer obligations remain with the participating providers.
-          </p>
-        </article>
-      </div>
-    </section>
+      <article class="about-card">
+        <h2>Operating boundary</h2>
+        <p>
+          UniBridge does not custody customer funds or operate as a consumer-facing remittance service. Custody, KYC, fiat payout, payment processing, and regulated customer obligations remain with the participating providers.
+        </p>
+      </article>
 
-    <section class="about-section">
-      <div class="about-container leadership-card">
+      <article class="about-card leadership-card">
         <img
           src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000126693-QULOt.jpg"
           alt="Wael Alderani"
@@ -442,8 +401,8 @@
           class="founder-photo"
         />
 
-        <div class="leadership-copy">
-          <p class="role">Leadership</p>
+        <div>
+          <p class="role">Founder-led execution</p>
           <h2 class="founder-name">Wael Alderani</h2>
 
           <p>
@@ -460,20 +419,20 @@
             </a>
           </div>
         </div>
-      </div>
-    </section>
+      </article>
 
-    <section class="about-section">
-      <div class="about-container">
-        <div class="signals-row">
-          <article class="signal">
+      <article class="about-card">
+        <h2>Review signals</h2>
+
+        <div class="signals">
+          <div class="signal">
             <strong>Provider integrations</strong>
             <p>
               Integrated and active provider review across funding, wallet, webhook, and payout execution paths.
             </p>
-          </article>
+          </div>
 
-          <article class="signal">
+          <div class="signal">
             <strong>Security review</strong>
             <p>
               External penetration testing completed and publicly referenced in the
@@ -485,24 +444,20 @@
                 security milestone post
               </a>.
             </p>
-          </article>
+          </div>
 
-          <article class="signal">
+          <div class="signal">
             <strong>Controlled testing</strong>
             <p>
               Live corridor tests are used to validate execution behavior before broader activation.
             </p>
-          </article>
+          </div>
         </div>
-      </div>
-    </section>
+      </article>
 
-    <section class="about-note">
-      <div class="about-container">
-        <div class="note-box">
-          For partner review, UniBridge maintains private documentation, API reference material, and a controlled test surface separate from the public site.
-        </div>
-      </div>
+      <p class="quiet-note">
+        Partner documentation, API reference material, and controlled test surfaces are maintained separately from the public site.
+      </p>
     </section>
   </main>
 </body>
