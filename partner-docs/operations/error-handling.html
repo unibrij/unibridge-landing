@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Error Handling | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="../developer/">Developer overview</a>
+          <a class="nav-link" href="../developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="../developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="../developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="../developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="../developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="../developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="./environments.html">Environments</a>
+          <a class="nav-link" href="./error-handling.html">Error handling</a>
+          <a class="nav-link" href="./operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Error handling</span>
+        </div>
+
+        <div class="page-badge">Operations</div>
+
+        <h1>Error Handling</h1>
+
+        <p class="lead">
+          Common error categories and recommended partner handling during controlled integration review.
+        </p>
+
+        <h2>Error response format</h2>
+
+        <p>Responses may use an error shape similar to:</p>
+
+        <pre><code>{
+  "ok": false,
+  "error": "missing_session_id",
+  "message": "session_id is required"
+}</code></pre>
+
+        <h2>Authentication errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th><th>Suggested action</th></tr>
+          <tr><td><code>missing_partner_id</code></td><td>Partner ID header is missing.</td><td>Send <code>x-ub-partner-id</code>.</td></tr>
+          <tr><td><code>missing_signature</code></td><td>Signature header is missing.</td><td>Send <code>x-ub-signature</code>.</td></tr>
+          <tr><td><code>invalid_signature</code></td><td>HMAC signature does not match the raw request body.</td><td>Recompute the signature using the exact raw JSON body.</td></tr>
+          <tr><td><code>partner_not_authorized</code></td><td>Partner is not authorized for this action or corridor.</td><td>Confirm partner scope with UniBridge.</td></tr>
+        </table>
+
+        <h2>Session errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th><th>Suggested action</th></tr>
+          <tr><td><code>missing_session_id</code></td><td><code>session_id</code> was not provided.</td><td>Include <code>session_id</code>.</td></tr>
+          <tr><td><code>session_not_found</code></td><td>Session does not exist.</td><td>Confirm the session ID.</td></tr>
+          <tr><td><code>resolve_not_completed</code></td><td>Session was not resolved before quote or settlement.</td><td>Call <code>/v2/session/resolve</code>.</td></tr>
+          <tr><td><code>quote_not_completed</code></td><td>Quote is required before settlement creation.</td><td>Call <code>/v2/session/quote</code>.</td></tr>
+        </table>
+
+        <h2>Corridor and route errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th><th>Suggested action</th></tr>
+          <tr><td><code>corridor_not_supported</code></td><td>Selected corridor is not available.</td><td>Use an approved corridor.</td></tr>
+          <tr><td><code>route_not_available</code></td><td>No executable route is available.</td><td>Confirm sender and executor availability.</td></tr>
+          <tr><td><code>invalid_route_selection</code></td><td>Selected route does not match the session or corridor.</td><td>Use a route returned by quote.</td></tr>
+          <tr><td><code>invalid_amount</code></td><td>Amount is missing, invalid, or outside limits.</td><td>Use an approved small-value test amount.</td></tr>
+        </table>
+
+        <h2>Funding errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th><th>Suggested action</th></tr>
+          <tr><td><code>missing_settlement_id</code></td><td><code>settlement_id</code> was not provided.</td><td>Include <code>settlement_id</code>.</td></tr>
+          <tr><td><code>settlement_not_found</code></td><td>Settlement does not exist.</td><td>Confirm the settlement ID.</td></tr>
+          <tr><td><code>funding_session_not_found</code></td><td>Funding session does not exist.</td><td>Confirm settlement creation completed.</td></tr>
+          <tr><td><code>funding_session_expired</code></td><td>Funding session expired.</td><td>Create a new settlement if required.</td></tr>
+          <tr><td><code>funding_not_confirmed</code></td><td>Funding has not been observed or confirmed.</td><td>Wait for confirmation before settlement confirmation dispatch.</td></tr>
+        </table>
+
+        <h2>Execution and reconciliation errors</h2>
+
+        <table>
+          <tr><th>Error</th><th>Meaning</th><th>Suggested action</th></tr>
+          <tr><td><code>invalid_settlement_state</code></td><td>The settlement is not in a state that can continue.</td><td>Check settlement status and avoid blind retries.</td></tr>
+          <tr><td><code>execution_not_ready</code></td><td>Funding confirmed but execution readiness checks failed.</td><td>Review settlement evidence or request manual review.</td></tr>
+          <tr><td><code>execution_already_submitted</code></td><td>Execution was already submitted.</td><td>Do not retry without review.</td></tr>
+          <tr><td><code>provider_ref_missing</code></td><td>Execution provider reference was not recorded where expected.</td><td>Request reconciliation.</td></tr>
+          <tr><td><code>manual_resume_required</code></td><td>Operator review is required before continuing.</td><td>Contact UniBridge with the settlement ID.</td></tr>
+          <tr><td><code>execution_retryable</code></td><td>Execution may be retried safely under approved conditions.</td><td>Follow UniBridge instructions.</td></tr>
+        </table>
+
+        <div class="callout warning">
+          Partners should not retry settlement confirmation or execution-related actions blindly.
+          If the resulting state is unclear, rely on status retrieval and manual review.
+        </div>
+
+        <div class="pager">
+          <a class="prev" href="./environments.html">
+            <span class="pager-label">Previous</span>
+            ← Environments
+          </a>
+          <a class="next" href="./operational-playbooks.html">
+            <span class="pager-label">Next</span>
+            Operational playbooks →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
