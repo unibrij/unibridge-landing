@@ -1,143 +1,674 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta property="og:url" content="" />
-    <meta property="og:type" content="website" />
-    <link rel="canonical" href="" />
-    <script type="text/javascript"></script>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <body>
-    <section data-testid="section" class="dorik-section dorik-section-n4yvzfaa">
-      <div class="">
-        <div class="container dorik-row-egxjl5og-wrapper">
-          <div class="dorik-row-egxjl5og flex">
-            <div class="col-lg-5/7">
-              <div class="column-inner dorik-column-bl56v3s5 5/7">
-                <div class="dorik-wrapper dorik-heading-hzyizyyl-wrapper">
-                  <h3 class="dorik-heading dorik-heading-hzyizyyl">
-                    <span>Leadership</span>
-                  </h3>
-                </div>
+  <title>About UniBridge | Execution Coordination Network</title>
 
-                <div class="dorik-text dorik-text-2agjzcyh">
-                  <p>
-                    Founder-led infrastructure for controlled cross-border payout
-                    execution, supported by provider integrations, technical input,
-                    and live corridor testing.
-                  </p>
-                </div>
-              </div>
+  <meta
+    name="description"
+    content="UniBridge is a non-custodial execution coordination network for regulated payout providers, ramps, and execution partners."
+  />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="About UniBridge" />
+  <meta
+    property="og:description"
+    content="A founder-led execution coordination network for controlled cross-border payout infrastructure."
+  />
+  <meta property="og:url" content="https://www.unibrij.io/about/" />
+  <link rel="canonical" href="https://www.unibrij.io/about/" />
+
+  <link rel="stylesheet" href="./style.css" />
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-soft: #f1f6f9;
+      --border: #e5edf3;
+      --text: #142033;
+      --muted: #5a6c7d;
+      --navy: #003366;
+      --navy-2: #062342;
+      --teal: #00d4aa;
+      --teal-soft: rgba(0, 212, 170, 0.1);
+      --shadow: 0 14px 36px rgba(0, 51, 102, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: var(--navy);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .about-page {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 4%, rgba(0, 212, 170, 0.08), transparent 24%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 48%, #ffffff 100%);
+    }
+
+    .about-container {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .about-hero {
+      padding: 92px 0 72px;
+    }
+
+    .about-hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 48px;
+      align-items: center;
+    }
+
+    .about-kicker {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(0, 212, 170, 0.28);
+      background: var(--teal-soft);
+      color: #047857;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 7px 12px;
+      margin-bottom: 18px;
+      letter-spacing: 0.02em;
+    }
+
+    .about-hero h1 {
+      margin: 0 0 20px;
+      max-width: 760px;
+      color: var(--navy);
+      font-size: clamp(38px, 5vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -0.06em;
+    }
+
+    .about-lead {
+      margin: 0 0 24px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .about-hero-points {
+      display: grid;
+      gap: 10px;
+      margin-top: 28px;
+      max-width: 760px;
+    }
+
+    .about-hero-point {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: #334155;
+      font-size: 15px;
+    }
+
+    .about-hero-point::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-top: 9px;
+      border-radius: 999px;
+      background: var(--teal);
+      flex: 0 0 auto;
+      box-shadow: 0 0 0 5px rgba(0, 212, 170, 0.12);
+    }
+
+    .about-status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .about-status-card h2 {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .status-item {
+      padding: 15px 16px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+
+    .status-item strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--navy);
+      font-size: 14px;
+    }
+
+    .status-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .about-section {
+      padding: 68px 0;
+    }
+
+    .section-center {
+      text-align: center;
+      max-width: 840px;
+      margin: 0 auto 36px;
+    }
+
+    .section-center h2,
+    .about-section h2 {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: clamp(28px, 3vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -0.05em;
+    }
+
+    .section-center p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .network-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .network-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 51, 102, 0.05);
+    }
+
+    .network-card h3 {
+      margin: 0 0 10px;
+      color: var(--navy);
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .network-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .operating-model {
+      background: var(--navy);
+      color: #ffffff;
+      padding: 78px 0;
+    }
+
+    .operating-model h2 {
+      color: #ffffff;
+    }
+
+    .operating-model .section-center p {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 36px;
+    }
+
+    .model-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 24px;
+    }
+
+    .model-card h3 {
+      margin: 0 0 10px;
+      color: #ffffff;
+      font-size: 18px;
+    }
+
+    .model-card p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 14px;
+    }
+
+    .model-card.positive {
+      border-top: 3px solid var(--teal);
+    }
+
+    .model-card.boundary {
+      border-top: 3px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .leadership-panel {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 34px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .founder-photo {
+      width: 100%;
+      max-width: 230px;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 22px;
+      box-shadow: 0 16px 36px rgba(0, 51, 102, 0.12);
+    }
+
+    .founder-role {
+      margin: 0 0 6px;
+      color: #047857;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .founder-name {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: 32px;
+      line-height: 1.15;
+      letter-spacing: -0.05em;
+    }
+
+    .founder-copy {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .founder-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    .founder-tag {
+      display: inline-flex;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .founder-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .linkedin-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #0a66c2;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .signals-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .signal-card {
+      border: 1px solid rgba(0, 212, 170, 0.18);
+      border-top: 3px solid var(--teal);
+      border-radius: 18px;
+      padding: 20px;
+      background: var(--surface);
+      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
+    }
+
+    .signal-card h3 {
+      margin: 0 0 8px;
+      color: var(--navy);
+      font-size: 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .signal-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .signal-card a {
+      color: #047857;
+      font-weight: 800;
+    }
+
+    .about-cta {
+      padding: 70px 0 88px;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, var(--navy), var(--navy-2));
+      color: #ffffff;
+      border-radius: 28px;
+      padding: 38px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 28px;
+      align-items: center;
+      box-shadow: 0 18px 48px rgba(0, 51, 102, 0.18);
+    }
+
+    .cta-box h2 {
+      margin: 0 0 10px;
+      color: #ffffff;
+      font-size: 30px;
+      letter-spacing: -0.05em;
+    }
+
+    .cta-box p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.78);
+      max-width: 760px;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .cta-button.primary {
+      background: var(--teal);
+      color: var(--navy);
+    }
+
+    .cta-button.secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .cta-button:hover {
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 920px) {
+      .about-hero {
+        padding: 64px 0 50px;
+      }
+
+      .about-hero-grid,
+      .leadership-panel,
+      .cta-box {
+        grid-template-columns: 1fr;
+      }
+
+      .network-grid,
+      .model-grid,
+      .signals-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .about-container {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .about-section {
+        padding: 46px 0;
+      }
+
+      .about-status-card,
+      .leadership-panel,
+      .cta-box {
+        padding: 22px;
+        border-radius: 22px;
+      }
+
+      .founder-photo {
+        max-width: 170px;
+      }
+
+      .founder-name {
+        font-size: 28px;
+      }
+
+      .cta-actions {
+        flex-direction: column;
+      }
+
+      .cta-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="about-page">
+    <section class="about-hero">
+      <div class="about-container about-hero-grid">
+        <div>
+          <div class="about-kicker">About UniBridge</div>
+
+          <h1>Execution coordination for regulated payout infrastructure.</h1>
+
+          <p class="about-lead">
+            UniBridge is building a non-custodial execution coordination network for regulated payout providers, ramps, and execution partners.
+          </p>
+
+          <p class="about-lead">
+            The network is designed for cross-border payout flows where stablecoin funding may be available, but local execution still depends on fragmented providers, payout rails, liquidity paths, and operating conditions.
+          </p>
+
+          <div class="about-hero-points">
+            <div class="about-hero-point">
+              Execution path prepared before funds move.
+            </div>
+            <div class="about-hero-point">
+              Provider-side custody, KYC, fiat payout, and regulated obligations remain with participating providers.
+            </div>
+            <div class="about-hero-point">
+              Controlled corridor tests produce execution evidence for partner review.
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="">
-        <div class="container dorik-row-e3k7bqgq-wrapper">
-          <div class="dorik-row-e3k7bqgq flex">
-            <div class="col-lg-1/3 col-md-1/2 col-xs-1/1">
-              <div class="column-inner dorik-column-mqgjj604 1/3">
-                <div class="">
-                  <div class="dorik-row-go9xdox1-wrapper">
-                    <div class="dorik-row-go9xdox1 flex">
-                      <div class="col-lg-1/2 col-md-1/2 col-xs-2/5">
-                        <div class="column-inner dorik-column-zffp6ca2 1/2">
-                          <div class="dorik-wrapper dorik-image-ryw0gh1s-wrapper">
-                            <img
-                              src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000126693-QULOt.jpg"
-                              alt="Wael Alderani"
-                              loading="lazy"
-                              class="dorik-image-ryw0gh1s"
-                            />
-                          </div>
-                        </div>
-                      </div>
+        <aside class="about-status-card">
+          <h2>Current operating stage</h2>
 
-                      <div class="col-lg-1/2 col-md-1/2 col-xs-3/5">
-                        <div class="column-inner dorik-column-txoanf7x 1/2">
-                          <div class="dorik-text dorik-text-yfm8d4i7">
-                            <p>Founder &amp; CEO</p>
-                          </div>
+          <div class="status-list">
+            <div class="status-item">
+              <strong>Controlled live execution network</strong>
+              <span>UniBridge is operated under controlled partner review, not as a public consumer remittance service.</span>
+            </div>
 
-                          <div class="dorik-wrapper dorik-heading-bbjmrono-wrapper">
-                            <h5 class="dorik-heading dorik-heading-bbjmrono">
-                              <span>Wael Alderani</span>
-                            </h5>
-                          </div>
+            <div class="status-item">
+              <strong>Provider integrations</strong>
+              <span>UniBridge coordinates across integrated funding, ramp, wallet, and payout execution paths.</span>
+            </div>
 
-                          <div class="dorik-text dorik-text-opdmg0ah">
-                            <p>
-                              Founder of UniBridge, coordinating product design,
-                              provider integrations, corridor logic, and controlled
-                              execution testing.
-                            </p>
-                          </div>
+            <div class="status-item">
+              <strong>Execution evidence</strong>
+              <span>Live corridor testing is used to validate routing, funding observation, execution submission, and payout outcome tracking.</span>
+            </div>
 
-                          <ul class="dorik-socialIcon-khgos1j6 dorik-socialIcon-khgos1j6-wrapper">
-                            <li>
-                              <a
-                                href="https://www.linkedin.com/in/wael-al-derani-509120113"
-                                class=""
-                              >
-                                <svg
-                                  width="128"
-                                  height="128"
-                                  viewBox="0 0 128 128"
-                                  fill="#23242E"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M64 0C28.6538 0 0 28.7919 0 64C0 99.2081 28.6538 128 64 128C99.3462 128 128 99.2081 128 64C128 28.7919 99.3462 0 64 0ZM42.9643 51.1633V102H27.1875V51.1633H42.9643ZM44.1518 35.0112C44.1518 40.1119 40.0804 44.3624 34.9911 44.3624C30.0714 44.3624 26 40.1119 26 35.0112C26 30.0805 30.0714 26 34.9911 26C40.0804 26 44.1518 30.0805 44.1518 35.0112ZM102 102H101.83H86.2232V77.3468C86.2232 71.396 86.0536 63.915 77.9107 63.915C69.7679 63.915 68.5804 70.2058 68.5804 76.8367V102H52.8036V51.1633H67.9018V58.1342H68.0714C70.2768 54.2237 75.3661 49.9732 83 49.9732C98.9464 49.9732 102 60.5145 102 74.1163V102Z"
-                                  />
-                                </svg>
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div class="status-item">
+              <strong>Partner review surface</strong>
+              <span>Private documentation, API reference material, and a controlled test surface support integration review.</span>
             </div>
           </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <div class="about-container">
+        <div class="section-center">
+          <h2>Why UniBridge exists</h2>
+          <p>
+            Stablecoin funding can move quickly. Local payout execution remains harder: each corridor introduces different providers, payout rails, compliance boundaries, wallet behaviors, liquidity routes, and execution states.
+          </p>
+        </div>
+
+        <div class="network-grid">
+          <article class="network-card">
+            <h3>Funding alone is not execution</h3>
+            <p>
+              A funded transaction does not automatically mean the local payout path is committed, executable, or evidenced.
+            </p>
+          </article>
+
+          <article class="network-card">
+            <h3>Provider relationships fragment reach</h3>
+            <p>
+              Ramps, payout executors, wallets, and local rails often connect through separate commercial and technical paths.
+            </p>
+          </article>
+
+          <article class="network-card">
+            <h3>UniBridge coordinates the path</h3>
+            <p>
+              UniBridge prepares the execution route before funding begins, then tracks funding, dispatch, provider reference, and final status.
+            </p>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="execution-signals">
-      <div class="container">
-        <h3>Execution Signals</h3>
+    <section class="operating-model">
+      <div class="about-container">
+        <div class="section-center">
+          <h2>Operating model</h2>
+          <p>
+            UniBridge is designed as a coordination and evidence layer across approved providers, not as a custodian or consumer-facing remittance operator.
+          </p>
+        </div>
 
-        <p>
-          UniBridge is founder-led and execution-tested, shaped through provider
-          integrations, controlled testing, security review, and external technical
-          input.
-        </p>
+        <div class="model-grid">
+          <article class="model-card positive">
+            <h3>UniBridge coordinates</h3>
+            <p>
+              Route preparation, funding observation, settlement state tracking, execution dispatch, provider reference capture, reconciliation, and evidence collection for controlled partner flows.
+            </p>
+          </article>
+
+          <article class="model-card boundary">
+            <h3>Providers retain regulated obligations</h3>
+            <p>
+              Custody, KYC, fiat payout, payment processing, customer onboarding, sanctions controls, and regulated execution obligations remain with the participating providers.
+            </p>
+          </article>
+
+          <article class="model-card positive">
+            <h3>Network value compounds</h3>
+            <p>
+              Each approved funding source and each payout executor increases the value of the network by making more committed execution paths available across participants.
+            </p>
+          </article>
+
+          <article class="model-card boundary">
+            <h3>Controlled before public scale</h3>
+            <p>
+              UniBridge validates corridors through small-value controlled tests, provider review, operational evidence, and documented execution boundaries before broader activation.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <div class="about-container">
+        <div class="section-center">
+          <h2>Execution signals</h2>
+          <p>
+            UniBridge is shaped through provider integrations, controlled testing, security review, and external technical input.
+          </p>
+        </div>
 
         <div class="signals-grid">
-          <div class="signal-card">
-            <h4>Provider Integrations</h4>
+          <article class="signal-card">
+            <h3>Provider integrations</h3>
             <p>
-              Connected or actively testing with regulated and specialized
-              infrastructure providers across on-ramp, off-ramp, wallet, webhook,
-              and payout flows.
+              Connected or actively testing with regulated and specialized infrastructure providers across funding, wallet, webhook, and payout execution flows.
             </p>
-          </div>
+          </article>
 
-          <div class="signal-card">
-            <h4>Security Testing</h4>
+          <article class="signal-card">
+            <h3>Security testing</h3>
             <p>
-              External penetration testing completed. Public results are available
-              in the
+              External penetration testing completed. Public results are available in the
               <a
                 href="https://www.linkedin.com/posts/unibrij_security-milestone-external-penetration-activity-7400601115198889984-Bfy9"
                 target="_blank"
@@ -146,354 +677,89 @@
                 LinkedIn security milestone post
               </a>.
             </p>
-          </div>
+          </article>
 
-          <div class="signal-card">
-            <h4>Controlled Live Testing</h4>
+          <article class="signal-card">
+            <h3>Controlled live testing</h3>
             <p>
-              Live corridor tests are used to validate pricing, funding capture,
-              execution routing, and payout delivery before public launch.
+              Live corridor tests validate pricing, funding capture, execution routing, and payout delivery before public launch.
               <a href="/surface">View controlled test surface</a>.
             </p>
+          </article>
+
+          <article class="signal-card">
+            <h3>Technical review</h3>
+            <p>
+              Architecture and execution logic have been reviewed through technical discussions with experienced financial-infrastructure specialists.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-section">
+      <div class="about-container">
+        <div class="leadership-panel">
+          <div>
+            <img
+              src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000126693-QULOt.jpg"
+              alt="Wael Alderani"
+              loading="lazy"
+              class="founder-photo"
+            />
           </div>
 
-          <div class="signal-card">
-            <h4>Technical Review</h4>
-            <p>
-              Architecture and execution logic have been reviewed through technical
-              discussions with experienced financial-infrastructure specialists.
+          <div>
+            <p class="founder-role">Founder-led execution</p>
+            <h2 class="founder-name">Wael Alderani</h2>
+
+            <p class="founder-copy">
+              Wael founded UniBridge and leads product strategy, provider coordination, legal structuring, corridor logic, and controlled execution design.
             </p>
+
+            <p class="founder-copy">
+              UniBridge is founder-led, but its operating model is built around provider-side execution, documented boundaries, and evidence-based coordination across approved partners.
+            </p>
+
+            <div class="founder-tags">
+              <span class="founder-tag">Product strategy</span>
+              <span class="founder-tag">Provider coordination</span>
+              <span class="founder-tag">Corridor design</span>
+              <span class="founder-tag">Operating boundaries</span>
+            </div>
+
+            <div class="founder-links">
+              <a
+                class="linkedin-link"
+                href="https://www.linkedin.com/in/wael-al-derani-509120113"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LinkedIn profile →
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <script>
-      window.DORIK_PROJECT_ID = "68f973f1d5b86c001104fa9f";
-      window.AIRTABLE_API_ROOT =
-        "https://rkqj7859q4.execute-api.us-east-2.amazonaws.com/Prod";
-    </script>
+    <section class="about-cta">
+      <div class="about-container">
+        <div class="cta-box">
+          <div>
+            <h2>Review UniBridge under controlled access.</h2>
+            <p>
+              Approved partners can review the operating model, controlled test surface, private partner documentation, and API reference material.
+            </p>
+          </div>
 
-    <script>
-      (function Hr() {
-        document.querySelectorAll(".popup-btn").forEach((t) => {
-          let r = t.getAttribute("href") || t.getAttribute("data-href");
-          r = r && r.startsWith("#") ? r.substring(1) : r;
-
-          t.addEventListener("click", (n) => {
-            if (!r) return;
-
-            n.preventDefault();
-
-            let i = document.getElementById(r);
-            let o = document.querySelector(`.close-btn-${r}`);
-            let a = i == null ? void 0 : i.parentElement;
-
-            a == null || a.classList.add(`row-${r}-overlay`);
-            i == null || i.classList.add(`modal-${r}-visible`);
-            o == null || o.classList.add("btn-visible");
-          });
-        });
-      })();
-    </script>
-
-    <script>
-      (function xr() {
-        document
-          .querySelectorAll(".column-inner.linked-column:not(.popup-btn)")
-          .forEach((n) => {
-            n.addEventListener("click", (i) => {
-              if (i.target.tagName === "A" || i.target.closest("a")) return;
-
-              const m = i.target.closest("div[data-href]");
-
-              if (m) {
-                const y = m.getAttribute("data-href");
-                const t = m.getAttribute("data-target");
-                window.open(y, t);
-              }
-            });
-          });
-      })();
-    </script>
-
-    <script>
-      (function Or({
-        exitIntentPopup: e = {},
-        onloadPopup: t = {},
-        EXIT_INTENT: r,
-        ONLOAD: n,
-      }) {
-        const i = (o) => {
-          let a = document.getElementById(o);
-          let c = document.querySelector(`.close-btn-${o}`);
-          let d = a == null ? void 0 : a.parentElement;
-
-          d == null || d.classList.add(`row-${o}-overlay`);
-          a == null || a.classList.add(`modal-${o}-visible`);
-          c == null || c.classList.add("btn-visible");
-        };
-
-        document.addEventListener("mouseleave", () => {
-          let o = e && e.id
-            ? localStorage.getItem(`${r}-${e.id}-${e.suffixId}`)
-            : null;
-
-          e && e.id && !o && i(e.id);
-        });
-
-        window.addEventListener("load", () => {
-          let o = t && t.id
-            ? localStorage.getItem(`${n}-${t.id}-${t.suffixId}`)
-            : null;
-
-          t && t.id && !o && i(t.id);
-        });
-      })({
-        EXIT_INTENT: "EXIT_INTENT",
-        ONLOAD: "ONLOAD",
-        exitIntentPopup: undefined,
-        onloadPopup: undefined,
-      });
-    </script>
-
-    <script type="text/javascript"></script>
-
-    <style>
-      @media (min-width: 1024px) {
-        #mobile-cta {
-          display: none !important;
-        }
-      }
-
-      /* Resize LinkedIn icon forcibly */
-      .dorik-socialIcon-m5j3vjtx svg,
-      .dorik-socialIcon-khgos1j6 svg,
-      .dorik-socialIcon-m5j3vjtx img,
-      .dorik-socialIcon-khgos1j6 img {
-        width: 32px !important;
-        height: 32px !important;
-      }
-
-      /* Fix spacing / prevent icon from dropping under text */
-      .dorik-socialIcon-m5j3vjtx,
-      .dorik-socialIcon-khgos1j6 {
-        margin-bottom: 8px !important;
-        margin-top: 8px !important;
-      }
-
-      /* Remove stray bullet dot under LinkedIn icon */
-      .dorik-socialIcon-m5j3vjtx li::marker,
-      .dorik-socialIcon-khgos1j6 li::marker {
-        content: "" !important;
-      }
-
-      /* Ensure social icons align properly */
-      .dorik-socialIcon-m5j3vjtx,
-      .dorik-socialIcon-khgos1j6 {
-        list-style: none !important;
-        padding-left: 0 !important;
-      }
-
-      /* Force LinkedIn icon color */
-      .dorik-socialIcon-m5j3vjtx svg path,
-      .dorik-socialIcon-khgos1j6 svg path {
-        fill: #0A66C2 !important;
-      }
-
-      /* ============================
-         LEADERSHIP PAGE — MOBILE FIXES
-         ============================ */
-
-      .dorik-image-ryw0gh1s,
-      .dorik-image-hbvuw1hw {
-        width: 100% !important;
-        height: auto !important;
-        object-fit: cover !important;
-        border-radius: 6px;
-      }
-
-      @media (max-width: 767px) {
-        .dorik-row-go9xdox1,
-        .dorik-row-alcbphd5 {
-          margin-bottom: 32px !important;
-          flex-direction: column !important;
-        }
-
-        .dorik-column-zffp6ca2,
-        .dorik-column-txoanf7x,
-        .dorik-column-idv8lcl5,
-        .dorik-column-9vg4inh3 {
-          width: 100% !important;
-          max-width: 100% !important;
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-          text-align: center !important;
-          justify-content: center !important;
-          align-items: center !important;
-        }
-
-        .dorik-image-ryw0gh1s,
-        .dorik-image-hbvuw1hw {
-          width: 100% !important;
-          max-width: 180px !important;
-          height: auto !important;
-          object-fit: cover !important;
-          border-radius: 10px !important;
-          display: block !important;
-          margin: 0 auto 16px auto !important;
-        }
-
-        .dorik-text-yfm8d4i7,
-        .dorik-text-opdmg0ah,
-        .dorik-text-dusgyyyz,
-        .dorik-text-zfafrq5a {
-          text-align: center !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-        }
-
-        .dorik-heading-bbjmrono,
-        .dorik-heading-0q5mtwp0 {
-          text-align: center !important;
-        }
-
-        .dorik-socialIcon-m5j3vjtx li svg,
-        .dorik-socialIcon-khgos1j6 li svg {
-          width: 24px !important;
-          height: 24px !important;
-        }
-
-        .dorik-socialIcon-m5j3vjtx,
-        .dorik-socialIcon-khgos1j6 {
-          justify-content: center !important;
-          margin-top: 8px !important;
-          margin-bottom: 24px !important;
-        }
-
-        .dorik-section-n4yvzfaa,
-        .dorik-section-1mhfvn0d {
-          padding-bottom: 20px !important;
-        }
-
-        .dorik-heading-lq3d55xp,
-        .dorik-heading-f1lbhkuf {
-          margin-top: 12px !important;
-        }
-      }
-
-      /* ============================
-         EXECUTION SIGNALS — UNIBRIDGE BRAND
-         ============================ */
-
-      .execution-signals {
-        padding: 56px 20px 48px;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-      }
-
-      .execution-signals .container {
-        max-width: 920px;
-        margin: 0 auto;
-      }
-
-      .execution-signals h3 {
-        text-align: center;
-        font-size: 24px;
-        margin: 0 0 12px;
-        color: #003366;
-        font-weight: 700;
-      }
-
-      .execution-signals h3::after {
-        content: "";
-        display: block;
-        width: 46px;
-        height: 3px;
-        background: #00D4AA;
-        border-radius: 999px;
-        margin: 10px auto 0;
-      }
-
-      .execution-signals > .container > p {
-        max-width: 700px;
-        margin: 0 auto 30px;
-        text-align: center;
-        color: #5A6C7D;
-        line-height: 1.65;
-        font-size: 14px;
-      }
-
-      .signals-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
-      }
-
-      .signal-card {
-        border: 1px solid rgba(0, 212, 170, 0.18);
-        border-top: 3px solid #00D4AA;
-        border-radius: 14px;
-        padding: 18px;
-        background: #ffffff;
-        box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
-        transition: all 0.3s ease;
-      }
-
-      .signal-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(0, 212, 170, 0.36);
-        box-shadow: 0 14px 34px rgba(0, 51, 102, 0.1);
-      }
-
-      .signal-card h4 {
-        font-size: 15px;
-        margin: 0 0 8px;
-        color: #003366;
-        font-weight: 700;
-      }
-
-      .signal-card p {
-        font-size: 13px;
-        line-height: 1.55;
-        margin: 0;
-        color: #5A6C7D;
-      }
-
-      .signal-card a {
-        color: #00D4AA;
-        font-weight: 600;
-        text-decoration: none;
-      }
-
-      .signal-card a:hover {
-        color: #00b894;
-        text-decoration: underline;
-      }
-
-      @media (max-width: 767px) {
-        .execution-signals {
-          padding: 40px 20px 32px;
-        }
-
-        .execution-signals h3 {
-          font-size: 22px;
-        }
-
-        .execution-signals > .container > p {
-          font-size: 13px;
-          margin-bottom: 24px;
-        }
-
-        .signals-grid {
-          grid-template-columns: 1fr;
-          gap: 14px;
-        }
-
-        .signal-card {
-          text-align: center;
-          padding: 18px 16px;
-        }
-      }
-    </style>
-  </body>
+          <div class="cta-actions">
+            <a class="cta-button primary" href="/#request-access">Request access</a>
+            <a class="cta-button secondary" href="/surface">View test surface</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
 </html>
