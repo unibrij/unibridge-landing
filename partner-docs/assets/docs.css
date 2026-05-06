@@ -42,7 +42,8 @@ a:hover {
 }
 
 a:focus-visible,
-button:focus-visible {
+button:focus-visible,
+input:focus-visible {
   outline: 3px solid rgba(0, 212, 170, 0.45);
   outline-offset: 3px;
 }
@@ -417,6 +418,116 @@ pre code {
   font-size: 13px;
 }
 
+/* Private access gate */
+
+.access-gate {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(0, 212, 170, 0.16), transparent 26%),
+    radial-gradient(circle at 80% 20%, rgba(0, 51, 102, 0.28), transparent 32%),
+    linear-gradient(135deg, #071827, #0b2238);
+}
+
+.access-card {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 30px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.access-logo {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  margin-bottom: 18px;
+}
+
+.access-card h1 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.access-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.access-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 18px 0 7px;
+  color: #334155;
+}
+
+.access-card input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font: inherit;
+  outline: none;
+  color: var(--text);
+}
+
+.access-card input:focus {
+  border-color: rgba(0, 212, 170, 0.7);
+  box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.14);
+}
+
+.access-card button {
+  width: 100%;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy);
+  color: #ffffff;
+  font-weight: 800;
+  padding: 13px 16px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.access-card button:hover {
+  background: #062342;
+}
+
+.access-error {
+  display: none;
+  color: #b91c1c !important;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.access-help {
+  margin-top: 18px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.access-back {
+  display: block;
+  margin-top: 18px;
+  color: var(--muted);
+  text-align: center;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.access-back:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   body.sidebar-open {
     overflow: hidden;
@@ -479,5 +590,9 @@ pre code {
 
   .pager .next {
     text-align: left;
+  }
+
+  .access-card {
+    padding: 24px;
   }
 }
