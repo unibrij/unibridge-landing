@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Integration Checklist | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./">Developer overview</a>
+          <a class="nav-link" href="./authentication.html">API authentication</a>
+          <a class="nav-link" href="./quote-api.html">Quote API</a>
+          <a class="nav-link" href="./settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Integration checklist</span>
+        </div>
+
+        <div class="page-badge">Developer Integration</div>
+
+        <h1>Integration Checklist</h1>
+
+        <p class="lead">
+          Checklist for selected partners during controlled UniBridge integration review.
+        </p>
+
+        <h2>1. Access and environment</h2>
+        <ul>
+          <li>Confirm approved integration environment.</li>
+          <li>Confirm API base URL.</li>
+          <li>Confirm <code>/v2</code> API access.</li>
+          <li>Confirm available corridor scope.</li>
+          <li>Confirm test limits and supported assets.</li>
+          <li>Confirm whether partner webhooks are enabled.</li>
+          <li>Confirm whether HMAC signing is required.</li>
+        </ul>
+
+        <h2>2. Credentials</h2>
+        <ul>
+          <li>Receive partner ID from UniBridge.</li>
+          <li>Receive partner HMAC secret from UniBridge.</li>
+          <li>Store credentials securely.</li>
+          <li>Do not expose credentials in frontend code.</li>
+          <li>Do not commit credentials to source control.</li>
+          <li>Confirm credential rotation process.</li>
+        </ul>
+
+        <h2>3. Core flow</h2>
+        <ul>
+          <li>Call <code>POST /v2/session/register</code>.</li>
+          <li>Call <code>POST /v2/session/resolve</code>.</li>
+          <li>Call <code>POST /v2/session/quote</code>.</li>
+          <li>Call <code>POST /v2/settlement/create</code>.</li>
+          <li>Call <code>POST /v2/funding/session</code>.</li>
+          <li>Continue through provider checkout or approved funding instructions.</li>
+        </ul>
+
+        <h2>4. Funding confirmation</h2>
+        <ul>
+          <li>Confirm provider-handled funding is observed or confirmed.</li>
+          <li>Confirm funding amount, asset, and network match the selected route where visible.</li>
+          <li>Do not treat funding confirmation as final payout completion.</li>
+        </ul>
+
+        <h2>5. Settlement confirmation</h2>
+        <ul>
+          <li>Call <code>POST /v2/settlement/confirm</code> after provider-handled funding has been observed or confirmed, where enabled for the approved flow.</li>
+          <li>Confirm the response dispatches the settlement into <code>funding_transform</code>, <code>execution</code>, or an idempotent no-op.</li>
+          <li>Confirm settlement confirmation is treated as a dispatch step, not as final payout completion.</li>
+          <li>Do not retry settlement confirmation blindly if the resulting state is unclear.</li>
+        </ul>
+
+        <h2>6. Post-funding execution</h2>
+        <ul>
+          <li>Confirm UniBridge performs execution readiness checks after funding confirmation and settlement confirmation dispatch.</li>
+          <li>Confirm execution is submitted to the configured execution provider.</li>
+          <li>Confirm an execution provider reference is recorded where applicable.</li>
+          <li>Confirm provider status reconciliation runs after execution submission.</li>
+          <li>Confirm final status is updated based on provider outcome.</li>
+        </ul>
+
+        <h2>7. Status tracking</h2>
+        <ul>
+          <li>Call <code>GET /v2/settlement/status?settlement_id=&lt;id&gt;</code>.</li>
+          <li>Avoid excessive polling.</li>
+          <li>Treat intermediate statuses as non-final.</li>
+          <li>Treat <code>funding_confirmed</code> as non-final.</li>
+          <li>Treat <code>submitted</code> as non-final.</li>
+          <li>Treat <code>processing</code> as non-final.</li>
+          <li>Treat <code>completed</code> as final only when execution evidence supports it.</li>
+        </ul>
+
+        <h2>8. Go/no-go review</h2>
+        <ul>
+          <li>Corridor behavior has been validated.</li>
+          <li>Funding and execution evidence are available.</li>
+          <li>Settlement confirmation dispatch behavior has been tested.</li>
+          <li>Post-funding execution behavior has been tested.</li>
+          <li>Execution provider reference handling is understood.</li>
+          <li>Provider status reconciliation is understood.</li>
+          <li>Status tracking works through final outcome.</li>
+          <li>Error handling has been tested.</li>
+          <li>Manual review paths are understood.</li>
+          <li>Security requirements are satisfied.</li>
+          <li>Production use has been separately approved in writing.</li>
+        </ul>
+
+        <div class="pager">
+          <a class="prev" href="./status-mapping.html">
+            <span class="pager-label">Previous</span>
+            ← Status mapping
+          </a>
+          <a class="next" href="../api/session-register.html">
+            <span class="pager-label">Next</span>
+            Register session →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
