@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UniBridge Partner Documentation</title>
+  <link rel="stylesheet" href="./assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="./assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="./index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="./partner/">Partner access</a>
+          <a class="nav-link" href="./partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="./partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="./partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="./partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="./partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./developer/">Developer overview</a>
+          <a class="nav-link" href="./developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="./developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="./developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="./api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="./api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="./api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="./api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="./api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="./api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="./api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="./operations/environments.html">Environments</a>
+          <a class="nav-link" href="./operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="./operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <span>Partner docs</span>
+        </div>
+
+        <div class="page-badge">Private Partner Access</div>
+
+        <h1>UniBridge Partner Documentation</h1>
+
+        <p class="lead">
+          Private documentation for controlled UniBridge pilot evaluation and integration review.
+          This documentation covers partner evaluation, developer integration, API behavior,
+          operating boundaries, execution evidence, and security review notes.
+        </p>
+
+        <div class="grid">
+          <section class="card">
+            <h3>Partner Evaluation</h3>
+            <p>
+              Review partner access, controlled pilot scope, operating boundaries,
+              execution flow, execution evidence, and security review notes.
+            </p>
+            <p><a href="./partner/">Open partner evaluation →</a></p>
+          </section>
+
+          <section class="card">
+            <h3>Developer Integration</h3>
+            <p>
+              Review the controlled /v2 integration model, including authentication,
+              quote preparation, settlement creation, funding-session handling,
+              settlement confirmation, execution tracking, and status mapping.
+            </p>
+            <p><a href="./developer/">Open developer integration →</a></p>
+          </section>
+
+          <section class="card">
+            <h3>API Reference</h3>
+            <p>
+              Endpoint-by-endpoint reference for the controlled /v2 API surface,
+              with each endpoint documented on its own page.
+            </p>
+            <p><a href="./api/session-register.html">Open API reference →</a></p>
+          </section>
+
+          <section class="card">
+            <h3>Operations</h3>
+            <p>
+              Review environment expectations, error handling, status behavior,
+              webhook availability, and operational playbooks.
+            </p>
+            <p><a href="./operations/environments.html">Open operations →</a></p>
+          </section>
+        </div>
+
+        <div class="callout">
+          <strong>Current status:</strong> UniBridge is available only for controlled testing,
+          partner evaluation, and private integration review. It is not a public remittance
+          service and should not be treated as production infrastructure unless separately
+          approved in writing.
+        </div>
+
+        <h2>Core controlled execution path</h2>
+
+        <pre><code>/v2/session/register
+→ /v2/session/resolve
+→ /v2/session/quote
+→ /v2/settlement/create
+→ /v2/funding/session
+→ provider-handled funding
+→ funding observed / confirmed
+→ /v2/settlement/confirm
+→ execution readiness check
+→ execution submission
+→ execution provider reference recorded
+→ provider status reconciliation
+→ /v2/settlement/status</code></pre>
+
+        <div class="callout warning">
+          Funding confirmation alone does not represent final execution completion.
+          Settlement confirmation dispatch alone does not represent final execution completion.
+        </div>
+
+        <div class="pager">
+          <span></span>
+          <a class="next" href="./partner/">
+            <span class="pager-label">Next</span>
+            Partner access →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="./assets/docs.js"></script>
+</body>
+</html>
