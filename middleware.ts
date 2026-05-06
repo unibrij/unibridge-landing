@@ -1,29 +1,27 @@
 export default function middleware(request: Request) {
-  const password = process.env.PARTNER_DOCS_PASSWORD;
+  const url = new URL(request.url);
+  const pathname = url.pathname;
 
-  if (!password) {
-    return new Response("Partner docs password is not configured.", {
-      status: 500,
-      headers: {
-        "content-type": "text/plain; charset=utf-8"
-      }
-    });
-  }
+  const isPartnerDocsIndex =
+    pathname === "/partner-docs" ||
+    pathname === "/partner-docs/" ||
+    pathname === "/partner-docs/index.html";
 
-  const authHeader = request.headers.get("authorization");
-  const expected = "Basic " + btoa("partner:" + password);
+  const isPartnerDocsAsset =
+    pathname.startsWith("/partner-docs/assets/");
 
-  if (authHeader === expected) {
+  if (isPartnerDocsIndex || isPartnerDocsAsset) {
     return;
   }
 
-  return new Response("Authentication required", {
-    status: 401,
-    headers: {
-      "www-authenticate": 'Basic realm="UniBridge Partner Docs"',
-      "content-type": "text/plain; charset=utf-8"
-    }
-  });
+  const cookie = request.headers.get("cookie") || "";
+  const hasAccess = cookie.includes("ub_partner_docs_access=granted");
+
+  if (hasAccess) {
+    return;
+  }
+
+  return Response.redirect(new URL("/partner-docs/", request.url), 302);
 }
 
 export const config = {
