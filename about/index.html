@@ -103,7 +103,6 @@
 
     /* ============================
        SIGNALS — OFF-WHITE SECTION
-       Clean solution-card inspired, no icons
        ============================ */
 
     .signals-section {
@@ -226,12 +225,20 @@
       box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
     }
 
-    .founder-photo {
+    .founder-photo-wrap {
       width: 180px;
       height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+
+    .founder-photo {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       object-position: center 34%;
-      border-radius: 12px;
+      transform: scale(1.15);
       display: block;
     }
 
@@ -297,7 +304,7 @@
         text-align: center;
       }
 
-      .founder-photo {
+      .founder-photo-wrap {
         width: 160px;
         height: 160px;
         margin: 0 auto;
@@ -394,12 +401,14 @@
         </div>
 
         <article class="leadership-card">
-          <img
-            src="/about/Wael.png"
-            alt="Wael Alderani"
-            loading="lazy"
-            class="founder-photo"
-          />
+          <div class="founder-photo-wrap">
+            <img
+              src="/about/Wael.png"
+              alt="Wael Alderani"
+              loading="lazy"
+              class="founder-photo"
+            />
+          </div>
 
           <div>
             <p class="founder-role">Founder-led execution</p>
