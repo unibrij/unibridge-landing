@@ -10,9 +10,10 @@
 <body>
   <div id="access-gate" class="access-gate">
     <section class="access-card">
-      <img src="./assets/unibridge-logo.png" alt="UniBridge" class="access-logo" />
-
-      <div class="page-badge">Private API Reference</div>
+      <div class="access-header">
+        <img src="./assets/unibridge-logo.png" alt="UniBridge" class="access-logo" />
+        <div class="page-badge">Private API Reference</div>
+      </div>
 
       <h1>API Reference Access</h1>
 
@@ -227,11 +228,6 @@
     const input = document.getElementById("access-password");
     const error = document.getElementById("access-error");
 
-    /*
-      Require password whenever /partner-docs/ is opened directly.
-      After successful entry, sessionStorage allows navigation inside the docs
-      during the same browser tab session.
-    */
     sessionStorage.removeItem("ub_api_reference_access");
 
     function unlockDocs() {
