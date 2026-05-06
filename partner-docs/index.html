@@ -228,9 +228,13 @@
     const error = document.getElementById("access-error");
 
     function unlockDocs() {
-      gate.hidden = true;
-      app.hidden = false;
       sessionStorage.setItem("ub_api_reference_access", "granted");
+
+      gate.hidden = true;
+      gate.style.display = "none";
+
+      app.hidden = false;
+      app.style.display = "grid";
     }
 
     if (sessionStorage.getItem("ub_api_reference_access") === "granted") {
