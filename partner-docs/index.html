@@ -8,46 +8,7 @@
 </head>
 
 <body>
-  <div id="access-gate" class="access-gate">
-    <section class="access-card">
-      <div class="access-header">
-        <img src="./assets/unibridge-logo.png" alt="UniBridge" class="access-logo" />
-        <div class="page-badge">Private API Reference</div>
-      </div>
-
-      <h1>API Reference Access</h1>
-
-      <p>
-        Private endpoint-level documentation for approved UniBridge integration review.
-      </p>
-
-      <form id="access-form">
-        <label for="access-password">Access password</label>
-        <input
-          id="access-password"
-          name="access-password"
-          type="password"
-          autocomplete="current-password"
-          placeholder="Enter access password"
-          required
-        />
-
-        <button type="submit">Continue</button>
-
-        <p id="access-error" class="access-error">
-          Invalid password. Please check the access password provided by UniBridge.
-        </p>
-      </form>
-
-      <p class="access-help">
-        Access is limited to approved partner review. Do not share credentials outside the approved integration team.
-      </p>
-
-      <a class="access-back" href="/">← Back to main site</a>
-    </section>
-  </div>
-
-  <div id="docs-app" class="docs-shell" hidden>
+  <div class="docs-shell">
     <aside class="docs-sidebar">
       <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
         <img src="./assets/unibridge-logo.png" alt="UniBridge" />
@@ -218,41 +179,6 @@
       </article>
     </main>
   </div>
-
-  <script>
-    const ACCESS_PASSWORD = "UniBridge-v2-Private-Access-2026!";
-
-    const gate = document.getElementById("access-gate");
-    const app = document.getElementById("docs-app");
-    const form = document.getElementById("access-form");
-    const input = document.getElementById("access-password");
-    const error = document.getElementById("access-error");
-
-    sessionStorage.removeItem("ub_api_reference_access");
-
-    function unlockDocs() {
-      sessionStorage.setItem("ub_api_reference_access", "granted");
-
-      gate.hidden = true;
-      gate.style.display = "none";
-
-      app.hidden = false;
-      app.style.display = "grid";
-    }
-
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-
-      if (input.value.trim() === ACCESS_PASSWORD) {
-        unlockDocs();
-        return;
-      }
-
-      error.style.display = "block";
-      input.value = "";
-      input.focus();
-    });
-  </script>
 
   <script src="./assets/docs.js"></script>
 </body>
