@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>API Authentication | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./">Developer overview</a>
+          <a class="nav-link" href="./authentication.html">API authentication</a>
+          <a class="nav-link" href="./quote-api.html">Quote API</a>
+          <a class="nav-link" href="./settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>API authentication</span>
+        </div>
+
+        <div class="page-badge">Developer Integration</div>
+
+        <h1>API Authentication</h1>
+
+        <p class="lead">
+          UniBridge partner-facing <code>/v2</code> API requests are protected by partner HMAC authentication.
+        </p>
+
+        <h2>Required headers</h2>
+
+        <p>Partner <code>POST</code> requests must include:</p>
+
+        <pre><code>Content-Type: application/json
+x-ub-partner-id: &lt;partner_id&gt;
+x-ub-signature: &lt;hex_hmac_signature&gt;</code></pre>
+
+        <h2>Signature model</h2>
+
+        <p>
+          The HMAC signature is computed over the exact raw JSON request body sent to UniBridge.
+          The server verifies the signature using the partner secret configured for the provided
+          <code>x-ub-partner-id</code>.
+        </p>
+
+        <h2>Node.js signing example</h2>
+
+        <pre><code>import crypto from "crypto";
+
+function signPayload(body, secret) {
+  const rawBody = JSON.stringify(body);
+
+  const signature = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex");
+
+  return {
+    rawBody,
+    signature
+  };
+}
+
+const body = {
+  session_id: "sess_example",
+  amount: 10
+};
+
+const { rawBody, signature } = signPayload(
+  body,
+  process.env.UNIBRIDGE_PARTNER_SECRET
+);
+
+console.log(rawBody);
+console.log(signature);</code></pre>
+
+        <h2>cURL example</h2>
+
+        <pre><code>curl -X POST "https://api.example.com/v2/session/quote" \\
+  -H "Content-Type: application/json" \\
+  -H "x-ub-partner-id: partner_demo" \\
+  -H "x-ub-signature: &lt;computed_hmac_signature&gt;" \\
+  --data '{"session_id":"sess_example","amount":10}'</code></pre>
+
+        <h2>Important signing rule</h2>
+
+        <div class="callout warning">
+          The signature must match the exact JSON body bytes. If a client signs compact JSON but sends
+          pretty-printed JSON, signature verification may fail because the raw body is different.
+        </div>
+
+        <h2>Credential handling</h2>
+
+        <ul>
+          <li>Do not expose API secrets in frontend code.</li>
+          <li>Do not commit secrets to source control.</li>
+          <li>Do not share credentials outside the approved integration team.</li>
+          <li>Do not reuse production credentials in test environments.</li>
+          <li>Do not reuse test credentials in production environments.</li>
+        </ul>
+
+        <h2>GET requests</h2>
+
+        <p>
+          In the current implementation, <code>GET</code> requests are not passed through partner HMAC verification.
+          Partners should still treat status endpoints and returned settlement data as private integration data.
+        </p>
+
+        <h2>Post-funding execution access</h2>
+
+        <p>
+          HMAC authentication protects partner-initiated API calls. Post-funding execution steps may be triggered
+          by provider-side funding confirmation, internal reconciliation, or approved operational workflows.
+          Partners should track the resulting settlement state through the status endpoint or partner webhooks
+          where explicitly enabled.
+        </p>
+
+        <h2>Access limitation</h2>
+
+        <p>
+          Authentication credentials do not create production approval or unrestricted access.
+          All access remains subject to corridor scope, partner review, operational readiness,
+          and written approval from UniBridge.
+        </p>
+
+        <div class="pager">
+          <a class="prev" href="./">
+            <span class="pager-label">Previous</span>
+            ← Developer overview
+          </a>
+          <a class="next" href="./quote-api.html">
+            <span class="pager-label">Next</span>
+            Quote API →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
