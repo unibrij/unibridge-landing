@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Environments | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="../developer/">Developer overview</a>
+          <a class="nav-link" href="../developer/authentication.html">API authentication</a>
+          <a class="nav-link" href="../developer/quote-api.html">Quote API</a>
+          <a class="nav-link" href="../developer/settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="../developer/webhooks.html">Webhook events</a>
+          <a class="nav-link" href="../developer/status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="../developer/integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="./environments.html">Environments</a>
+          <a class="nav-link" href="./error-handling.html">Error handling</a>
+          <a class="nav-link" href="./operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Environments</span>
+        </div>
+
+        <div class="page-badge">Operations</div>
+
+        <h1>Environments</h1>
+
+        <p class="lead">
+          Environment access is issued privately for approved partner integration review.
+        </p>
+
+        <h2>Current partner integration path</h2>
+
+        <pre><code>/v2</code></pre>
+
+        <h2>Environment access</h2>
+
+        <p>
+          Actual API URLs, credentials, corridor access, and test limits are issued privately
+          to approved partners.
+        </p>
+
+        <table>
+          <tr><th>Environment</th><th>Purpose</th></tr>
+          <tr><td><code>local</code></td><td>Internal UniBridge development and testing.</td></tr>
+          <tr><td><code>controlled test</code></td><td>Controlled partner evaluation and small-value integration testing.</td></tr>
+          <tr><td><code>production</code></td><td>Production use only after separate written approval.</td></tr>
+        </table>
+
+        <h2>Credential separation</h2>
+
+        <ul>
+          <li>Use only the credentials issued for the approved environment.</li>
+          <li>Do not share credentials outside the approved integration team.</li>
+          <li>Do not expose credentials in frontend code.</li>
+          <li>Do not commit credentials to source control.</li>
+          <li>Do not assume test access creates production access.</li>
+        </ul>
+
+        <h2>Corridor availability</h2>
+
+        <p>
+          Corridor availability may differ by environment and partner scope.
+        </p>
+
+        <ul>
+          <li>Unavailable</li>
+          <li>Available for internal testing</li>
+          <li>Available for controlled partner testing</li>
+          <li>Approved for production use</li>
+        </ul>
+
+        <h2>Test limits</h2>
+
+        <p>Controlled testing may include:</p>
+
+        <ul>
+          <li>Small-value transactions only</li>
+          <li>Selected destination corridors only</li>
+          <li>Selected funding senders only</li>
+          <li>Manual review where required</li>
+          <li>No public remittance availability</li>
+        </ul>
+
+        <div class="callout warning">
+          Successful controlled testing does not automatically create production approval.
+          Production use requires separate written approval from UniBridge.
+        </div>
+
+        <div class="pager">
+          <a class="prev" href="../api/settlement-status.html">
+            <span class="pager-label">Previous</span>
+            ← Settlement status
+          </a>
+          <a class="next" href="./error-handling.html">
+            <span class="pager-label">Next</span>
+            Error handling →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
