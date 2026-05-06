@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quote API | UniBridge Partner Docs</title>
+  <link rel="stylesheet" href="../assets/docs.css" />
+</head>
+
+<body>
+  <div class="docs-shell">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="/" aria-label="Back to UniBridge home">
+        <img src="../assets/unibridge-logo.png" alt="UniBridge" />
+        <span class="docs-brand-text">
+          <span class="docs-brand-title">UniBridge</span>
+          <span class="docs-brand-subtitle">Partner Docs</span>
+        </span>
+      </a>
+
+      <a class="docs-back-home" href="/">← Back to main site</a>
+
+      <nav>
+        <div class="nav-group">
+          <div class="nav-group-title">Intro</div>
+          <a class="nav-link" href="../index.html">Overview</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Partner Evaluation</div>
+          <a class="nav-link" href="../partner/">Partner access</a>
+          <a class="nav-link" href="../partner/pilot-scope.html">Controlled pilot scope</a>
+          <a class="nav-link" href="../partner/execution-flow.html">Execution flow</a>
+          <a class="nav-link" href="../partner/execution-evidence.html">Execution evidence</a>
+          <a class="nav-link" href="../partner/operating-boundaries.html">Operating boundaries</a>
+          <a class="nav-link" href="../partner/security-review.html">Security review</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Developer Integration</div>
+          <a class="nav-link" href="./">Developer overview</a>
+          <a class="nav-link" href="./authentication.html">API authentication</a>
+          <a class="nav-link" href="./quote-api.html">Quote API</a>
+          <a class="nav-link" href="./settlement-api.html">Settlement API</a>
+          <a class="nav-link" href="./webhooks.html">Webhook events</a>
+          <a class="nav-link" href="./status-mapping.html">Status mapping</a>
+          <a class="nav-link" href="./integration-checklist.html">Integration checklist</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">API Reference</div>
+          <a class="nav-link endpoint" href="../api/session-register.html">Register session</a>
+          <a class="nav-link endpoint" href="../api/session-resolve.html">Resolve session</a>
+          <a class="nav-link endpoint" href="../api/session-quote.html">Quote session</a>
+          <a class="nav-link endpoint" href="../api/settlement-create.html">Create settlement</a>
+          <a class="nav-link endpoint" href="../api/funding-session.html">Funding session</a>
+          <a class="nav-link endpoint" href="../api/settlement-confirm.html">Confirm settlement</a>
+          <a class="nav-link endpoint" href="../api/settlement-status.html">Settlement status</a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Operations</div>
+          <a class="nav-link" href="../operations/environments.html">Environments</a>
+          <a class="nav-link" href="../operations/error-handling.html">Error handling</a>
+          <a class="nav-link" href="../operations/operational-playbooks.html">Operational playbooks</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="docs-main">
+      <header class="docs-topbar">
+        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <strong>UniBridge Partner Docs</strong>
+      </header>
+
+      <article class="docs-content">
+        <div class="breadcrumbs">
+          <a href="/">Home</a>
+          <span>›</span>
+          <a href="../index.html">Partner docs</a>
+          <span>›</span>
+          <span>Quote API</span>
+        </div>
+
+        <div class="page-badge">Developer Integration</div>
+
+        <h1>Quote API</h1>
+
+        <p class="lead">
+          The quote flow prepares the payout route before payment or funding begins.
+        </p>
+
+        <h2>Current quote flow</h2>
+
+        <pre><code>POST /v2/session/register
+POST /v2/session/resolve
+POST /v2/session/quote</code></pre>
+
+        <h2>1. Register session</h2>
+
+        <div class="endpoint-label"><span class="method">POST</span> /v2/session/register</div>
+
+        <p>Creates a controlled test session for a source country and destination country.</p>
+
+        <pre><code>{
+  "source_country": "DE",
+  "receiver_country": "BR"
+}</code></pre>
+
+        <pre><code>{
+  "ok": true,
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+
+        <h2>2. Resolve session</h2>
+
+        <div class="endpoint-label"><span class="method">POST</span> /v2/session/resolve</div>
+
+        <p>
+          Resolves the funding sender and available execution options for the selected corridor.
+          This step prepares both sides of the controlled flow before funds move.
+        </p>
+
+        <ul>
+          <li>Funding sender or checkout path</li>
+          <li>Execution provider options</li>
+          <li>Destination payout rail requirements</li>
+        </ul>
+
+        <pre><code>{
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+
+        <pre><code>{
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+  "status": "resolved",
+  "source_country": "DE",
+  "receiver_country": "BR",
+  "sender_id": "onramp",
+  "delivery_options": {
+    "sender": {
+      "id": "onramp",
+      "funding_mode": "ramp"
+    },
+    "execution": {
+      "pix": [
+        {
+          "executor": "smartpay",
+          "instruction_schema": {
+            "type": "object",
+            "required": ["pix_key"]
+          }
+        }
+      ]
+    }
+  }
+}</code></pre>
+
+        <h2>3. Request quote</h2>
+
+        <div class="endpoint-label"><span class="method">POST</span> /v2/session/quote</div>
+
+        <p>
+          Generates executable route options and pricing fields for the resolved session.
+          A quoted route should contain the information needed to create a settlement and support post-funding execution.
+        </p>
+
+        <pre><code>{
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+  "amount": 10
+}</code></pre>
+
+        <pre><code>{
+  "status": "quoted",
+  "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
+  "requested_amount": 10,
+  "payout_amount": 10,
+  "amount": 10,
+  "routes": [
+    {
+      "route_id": "route_123",
+      "route_type": "executor",
+      "executor": "smartpay",
+      "execution_provider": "smartpay",
+      "payout_rail": "pix",
+      "network": "polygon",
+      "asset": "USDT",
+      "fx_rate": null,
+      "executor_fee": 0,
+      "unibridge_fee": 0,
+      "funding_amount": 10,
+      "funding_asset": "USDT",
+      "funding_network": "polygon",
+      "est_time": "Instant"
+    }
+  ]
+}</code></pre>
+
+        <h2>Important behavior</h2>
+
+        <div class="callout">
+          A quote does not move funds. A quote does not guarantee final execution.
+          A quote prepares available routes for review before settlement creation and before any post-funding execution can occur.
+        </div>
+
+        <div class="pager">
+          <a class="prev" href="./authentication.html">
+            <span class="pager-label">Previous</span>
+            ← API authentication
+          </a>
+          <a class="next" href="./settlement-api.html">
+            <span class="pager-label">Next</span>
+            Settlement API →
+          </a>
+        </div>
+
+        <footer class="docs-footer">
+          UniBridge Partner Access Documentation · Private controlled review material.
+        </footer>
+      </article>
+    </main>
+  </div>
+
+  <script src="../assets/docs.js"></script>
+</body>
+</html>
