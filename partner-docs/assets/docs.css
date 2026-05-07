@@ -409,8 +409,11 @@ pre code {
 
 .pager-label {
   display: block;
-  color: var(--muted);
+  color: #047857;
   font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   margin-bottom: 4px;
 }
 
