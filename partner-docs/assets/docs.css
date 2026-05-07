@@ -374,31 +374,37 @@ pre code {
   color: #047857;
 }
 
+/* Pager */
+
 .pager {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 18px;
   margin-top: 54px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
 }
 
 .pager a {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 16px;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   color: #047857;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
-  box-shadow: var(--shadow);
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  box-shadow: none;
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .pager a:hover {
+  color: #00a98a;
   text-decoration: none;
-  border-color: rgba(0, 212, 170, 0.5);
   transform: translateY(-1px);
 }
 
@@ -408,6 +414,14 @@ pre code {
 
 .pager .next {
   text-align: right;
+}
+
+.pager .next {
+  justify-self: end;
+}
+
+.pager .prev {
+  justify-self: start;
 }
 
 .pager-label {
@@ -613,13 +627,10 @@ pre code {
   }
 
   .pager {
-    grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
 
   .pager a {
-    max-width: none;
-    padding: 12px 12px;
     font-size: 14px;
   }
 
