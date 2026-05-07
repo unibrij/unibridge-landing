@@ -1,87 +1,57 @@
-// unibridge-surface-telegram/public/styles.css
+/* unibridge-surface-telegram/public/styles.css */
 
 /*
-
-UniBridge Surface Enhancements
-Safe layer — does NOT override index visual design
-
+  UniBridge Surface Enhancements
+  Safe layer — preserves the existing index visual design
 */
 
-/* Improve input rendering */
-
-input,
-select {
-
-box-sizing: border-box;
--webkit-appearance: none;
-appearance: none;
-
-}
-
-/* Better focus behaviour */
-
-input:focus,
-select:focus {
-
-outline: none;
-
-}
-
-/* Prevent iOS zoom on input */
-
-input,
-select {
-
-font-size: 16px;
-
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 /* Smooth text rendering */
 
 body {
-
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
-
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Improve touch targets slightly */
+/* Form controls */
 
 input,
 select {
-
-min-height: 44px;
-
+  box-sizing: border-box;
+  min-height: 44px;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-/* Prevent accidental selection on buttons */
+/* Focus behavior */
+
+input:focus,
+select:focus {
+  outline: none;
+}
+
+/* Touch behavior */
 
 button {
-
-user-select: none;
-
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth transitions without changing design */
+/* Smooth interactions without disturbing layout */
 
 button,
 input,
 select {
-
-transition: all 0.15s ease;
-
-}
-
-/* Mobile spacing improvement */
-
-@media (max-width: 480px) {
-
-input,
-select,
-button {
-
-margin-top: 12px;
-
-}
-
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
