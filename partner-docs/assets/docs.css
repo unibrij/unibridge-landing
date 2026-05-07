@@ -194,8 +194,18 @@ input:focus-visible {
 }
 
 .docs-content {
-  max-width: 980px;
-  padding: 52px 56px 72px;
+  max-width: 1120px;
+  padding: 64px 64px 84px;
+}
+
+.docs-content > p,
+.docs-content > ul,
+.docs-content > ol,
+.docs-content > .lead,
+.docs-content > .callout,
+.docs-content > pre,
+.docs-content > table {
+  max-width: 860px;
 }
 
 .breadcrumbs {
@@ -281,8 +291,9 @@ h3 {
   border-left: 4px solid var(--teal);
   background: rgba(0, 212, 170, 0.08);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin: 22px 0;
+  font-size: 15px;
 }
 
 .callout.warning {
@@ -380,6 +391,7 @@ pre code {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  max-width: 860px;
   margin-top: 54px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
@@ -394,7 +406,7 @@ pre code {
   border-radius: 0;
   padding: 0;
   color: #047857;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1.35;
   box-shadow: none;
@@ -409,19 +421,13 @@ pre code {
 }
 
 .pager .prev {
+  justify-self: start;
   text-align: left;
 }
 
 .pager .next {
-  text-align: right;
-}
-
-.pager .next {
   justify-self: end;
-}
-
-.pager .prev {
-  justify-self: start;
+  text-align: right;
 }
 
 .pager-label {
@@ -433,6 +439,7 @@ pre code {
 }
 
 .docs-footer {
+  max-width: 860px;
   margin-top: 54px;
   padding-top: 18px;
   border-top: 1px solid var(--border);
