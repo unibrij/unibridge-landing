@@ -388,9 +388,18 @@ pre code {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px 16px;
-  color: var(--text);
+  color: #047857;
+  font-weight: 700;
   box-shadow: var(--shadow);
   transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.pager-label {
+  display: block;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
 }
 
 .pager a:hover {
@@ -409,11 +418,8 @@ pre code {
 
 .pager-label {
   display: block;
-  color: #047857;
+  color: #94a3b8;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   margin-bottom: 4px;
 }
 
