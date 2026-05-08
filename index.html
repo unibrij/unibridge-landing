@@ -1897,12 +1897,12 @@
       position: relative;
       overflow: hidden;
       border-radius: 28px;
-      min-height: 640px;
-      padding: 76px 64px;
+      min-height: 560px;
+      padding: 86px 64px;
       background:
-        radial-gradient(circle at 50% 58%, rgba(0, 212, 170, 0.16), transparent 30%),
-        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.12), transparent 32%),
-        linear-gradient(135deg, #071b46 0%, #061b3a 45%, #080f2d 100%);
+        radial-gradient(circle at 50% 48%, rgba(0, 212, 170, 0.13), transparent 34%),
+        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.11), transparent 32%),
+        linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
       box-shadow:
         0 30px 90px rgba(0, 51, 102, 0.18),
         0 12px 34px rgba(0, 0, 0, 0.12);
@@ -1911,145 +1911,128 @@
     .trust-panel::before {
       content: "";
       position: absolute;
-      left: 50%;
-      top: 58%;
-      width: 620px;
-      height: 620px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
+      inset: 0;
       background:
-        repeating-radial-gradient(
-          circle,
-          rgba(120, 105, 255, 0.16) 0 1px,
-          transparent 1px 72px
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.035),
+          transparent
         );
-      opacity: 0.9;
       pointer-events: none;
     }
 
     .trust-panel::after {
       content: "";
       position: absolute;
-      left: 50%;
-      top: 58%;
-      width: 620px;
-      height: 620px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background:
-        conic-gradient(
-          from -20deg,
-          transparent 0deg,
-          rgba(111, 88, 255, 0.06) 18deg,
-          rgba(111, 88, 255, 0.34) 34deg,
-          rgba(111, 88, 255, 0.08) 54deg,
-          transparent 76deg,
-          transparent 360deg
-        );
-      filter: blur(0.2px);
-      opacity: 0.95;
-      animation: trustRadarSweep 7s linear infinite;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 74%);
+      opacity: 0.55;
       pointer-events: none;
     }
 
-    .trust-radar-lines {
+    .trust-lifecycle-bg {
       position: absolute;
       left: 50%;
-      top: 58%;
-      width: 620px;
-      height: 620px;
+      top: 56%;
+      width: min(880px, 86%);
       transform: translate(-50%, -50%);
-      border-radius: 50%;
-      opacity: 0.45;
+      z-index: 1;
+      opacity: 0.42;
       pointer-events: none;
-      background:
-        linear-gradient(90deg, transparent 49.85%, rgba(132, 115, 255, 0.22) 50%, transparent 50.15%),
-        linear-gradient(0deg, transparent 49.85%, rgba(132, 115, 255, 0.22) 50%, transparent 50.15%);
     }
 
-    .trust-radar-lines::before,
-    .trust-radar-lines::after {
+    .trust-lifecycle-line {
+      position: relative;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 212, 170, 0.06),
+        rgba(0, 212, 170, 0.52),
+        rgba(0, 212, 170, 0.06)
+      );
+      box-shadow: 0 0 32px rgba(0, 212, 170, 0.18);
+    }
+
+    .trust-lifecycle-line::before {
       content: "";
       position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background:
-        linear-gradient(45deg, transparent 49.85%, rgba(132, 115, 255, 0.16) 50%, transparent 50.15%);
+      top: 50%;
+      right: -3px;
+      width: 12px;
+      height: 12px;
+      border-top: 2px solid rgba(0, 212, 170, 0.55);
+      border-right: 2px solid rgba(0, 212, 170, 0.55);
+      transform: translateY(-50%) rotate(45deg);
     }
 
-    .trust-radar-lines::after {
-      background:
-        linear-gradient(-45deg, transparent 49.85%, rgba(132, 115, 255, 0.16) 50%, transparent 50.15%);
-    }
-
-    .trust-radar-center {
+    .trust-life-node {
       position: absolute;
-      left: 50%;
-      top: 58%;
-      width: 58px;
-      height: 58px;
+      top: 50%;
       transform: translate(-50%, -50%);
-      border-radius: 999px;
-      background: #00d4aa;
-      box-shadow:
-        0 0 0 18px rgba(0, 212, 170, 0.08),
-        0 0 54px rgba(0, 212, 170, 0.42);
-      z-index: 1;
-      pointer-events: none;
+      display: grid;
+      justify-items: center;
+      gap: 18px;
     }
 
-    .trust-radar-center::before {
-      content: "✓";
-      position: absolute;
-      inset: 0;
+    .trust-life-node .dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(215, 255, 248, 0.92);
+      border: 2px solid rgba(0, 212, 170, 0.82);
+      box-shadow:
+        0 0 0 9px rgba(0, 212, 170, 0.08),
+        0 0 30px rgba(0, 212, 170, 0.34);
+    }
+
+    .trust-life-node.active .dot {
+      width: 52px;
+      height: 52px;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.12) 53% 100%);
+      border: 1px solid rgba(183, 255, 242, 0.95);
+      box-shadow:
+        0 0 0 16px rgba(0, 212, 170, 0.10),
+        0 0 0 32px rgba(0, 212, 170, 0.045),
+        0 0 56px rgba(0, 212, 170, 0.48);
+    }
+
+    .trust-life-node.final .dot {
+      width: 28px;
+      height: 28px;
       display: grid;
       place-items: center;
+      background: #00d4aa;
       color: #06233f;
-      font-size: 24px;
+      font-size: 15px;
       font-weight: 900;
     }
 
-    .trust-radar-node {
-      position: absolute;
-      z-index: 1;
-      width: 13px;
-      height: 13px;
-      border-radius: 999px;
-      background: rgba(0, 212, 170, 0.95);
-      box-shadow:
-        0 0 0 8px rgba(0, 212, 170, 0.10),
-        0 0 24px rgba(0, 212, 170, 0.55);
-      pointer-events: none;
+    .trust-life-node small {
+      color: rgba(255, 255, 255, 0.34);
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      text-transform: lowercase;
     }
 
-    .trust-radar-node.node-1 {
-      left: 39%;
-      top: 48%;
-    }
-
-    .trust-radar-node.node-2 {
-      left: 57%;
-      top: 42%;
-      opacity: 0.8;
-    }
-
-    .trust-radar-node.node-3 {
-      left: 63%;
-      top: 62%;
-      opacity: 0.75;
-    }
+    .trust-life-node.n1 { left: 6%; }
+    .trust-life-node.n2 { left: 36%; }
+    .trust-life-node.n3 { left: 66%; }
+    .trust-life-node.n4 { left: 94%; }
 
     .trust-content {
       position: relative;
       z-index: 3;
-      max-width: 850px;
+      max-width: 860px;
       margin: 0 auto;
       text-align: center;
-    }
-
-    .trust-header {
-      max-width: 850px;
-      margin: 0 auto;
     }
 
     .trust-header h2 {
@@ -2067,7 +2050,7 @@
 
     .trust-header p {
       margin: 0 auto;
-      max-width: 760px;
+      max-width: 780px;
       color: rgba(255, 255, 255, 0.78);
       font-size: 1.08rem;
       line-height: 1.85;
@@ -2096,32 +2079,21 @@
       letter-spacing: -0.01em;
     }
 
-    @keyframes trustRadarSweep {
-      from {
-        transform: translate(-50%, -50%) rotate(0deg);
-      }
-
-      to {
-        transform: translate(-50%, -50%) rotate(360deg);
-      }
-    }
-
     @media (max-width: 900px) {
       .trust-section {
         padding: 88px 22px 96px;
       }
 
       .trust-panel {
-        min-height: 600px;
-        padding: 60px 40px;
+        min-height: 560px;
+        padding: 68px 40px;
         border-radius: 24px;
       }
 
-      .trust-panel::before,
-      .trust-panel::after,
-      .trust-radar-lines {
-        width: 560px;
-        height: 560px;
+      .trust-lifecycle-bg {
+        top: 60%;
+        width: 92%;
+        opacity: 0.34;
       }
     }
 
@@ -2131,23 +2103,9 @@
       }
 
       .trust-panel {
-        min-height: 570px;
-        padding: 44px 24px;
+        min-height: 590px;
+        padding: 52px 24px;
         border-radius: 22px;
-      }
-
-      .trust-panel::before,
-      .trust-panel::after,
-      .trust-radar-lines {
-        top: 61%;
-        width: 460px;
-        height: 460px;
-      }
-
-      .trust-radar-center {
-        top: 61%;
-        width: 50px;
-        height: 50px;
       }
 
       .trust-header h2 {
@@ -2170,16 +2128,55 @@
         font-size: 0.97rem;
         line-height: 1.65;
       }
+
+      .trust-lifecycle-bg {
+        top: 67%;
+        width: 108%;
+        opacity: 0.28;
+      }
+
+      .trust-life-node small {
+        display: none;
+      }
+
+      .trust-life-node.active .dot {
+        width: 44px;
+        height: 44px;
+      }
+
+      .trust-life-node.n1 { left: 8%; }
+      .trust-life-node.n2 { left: 38%; }
+      .trust-life-node.n3 { left: 68%; }
+      .trust-life-node.n4 { left: 94%; }
     }
   </style>
 
   <div class="container">
     <div class="trust-panel">
-      <div class="trust-radar-lines"></div>
-      <div class="trust-radar-center"></div>
-      <div class="trust-radar-node node-1"></div>
-      <div class="trust-radar-node node-2"></div>
-      <div class="trust-radar-node node-3"></div>
+
+      <div class="trust-lifecycle-bg" aria-hidden="true">
+        <div class="trust-lifecycle-line"></div>
+
+        <div class="trust-life-node n1">
+          <span class="dot"></span>
+          <small>defined</small>
+        </div>
+
+        <div class="trust-life-node n2 active">
+          <span class="dot"></span>
+          <small>validated</small>
+        </div>
+
+        <div class="trust-life-node n3">
+          <span class="dot"></span>
+          <small>committed</small>
+        </div>
+
+        <div class="trust-life-node n4 final">
+          <span class="dot">✓</span>
+          <small>triggered</small>
+        </div>
+      </div>
 
       <div class="trust-content">
         <div class="trust-header fade-in">
@@ -2199,6 +2196,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
