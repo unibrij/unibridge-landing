@@ -1013,13 +1013,9 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
 <section class="solutions-section" id="solutions">
   <style>
     .solutions-section {
-      background:
-        radial-gradient(circle at 50% 0%, rgba(0, 212, 170, 0.14), transparent 34%),
-        linear-gradient(135deg, #0b1230 0%, #08254a 55%, #003366 100%);
+      background: #ffffff;
       padding: 108px 24px 116px;
-      color: #ffffff;
-      position: relative;
-      overflow: hidden;
+      color: #003366;
     }
 
     .solutions-section .container {
@@ -1035,7 +1031,7 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
 
     .solutions-section .section-title {
       margin: 0 0 18px;
-      color: #ffffff;
+      color: #003366;
       font-size: clamp(2rem, 3.5vw, 3.15rem);
       line-height: 1.18;
       font-weight: 650;
@@ -1045,7 +1041,7 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
     .solutions-section .section-subtitle {
       margin: 0 auto;
       max-width: 760px;
-      color: rgba(255, 255, 255, 0.72);
+      color: #5a6c7d;
       font-size: 1.05rem;
       line-height: 1.8;
       font-weight: 400;
@@ -1061,12 +1057,12 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
       position: relative;
       min-height: 238px;
       padding: 34px 34px 32px;
-      background: rgba(255, 255, 255, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      border: 1px solid rgba(0, 51, 102, 0.075);
       border-radius: 22px;
       box-shadow:
-        0 24px 70px rgba(0, 0, 0, 0.16),
-        0 8px 24px rgba(0, 51, 102, 0.08);
+        0 18px 50px rgba(0, 51, 102, 0.055),
+        0 6px 18px rgba(0, 51, 102, 0.035);
       overflow: hidden;
       transition:
         transform 0.28s ease,
@@ -1078,8 +1074,7 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
       content: "";
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(circle at 18% 15%, rgba(0, 212, 170, 0.10), transparent 34%);
+      background: radial-gradient(circle at 18% 15%, rgba(0, 212, 170, 0.10), transparent 34%);
       opacity: 0;
       transition: opacity 0.28s ease;
       pointer-events: none;
@@ -1087,10 +1082,10 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
 
     .solution-card:hover {
       transform: translateY(-4px);
-      border-color: rgba(0, 212, 170, 0.28);
+      border-color: rgba(0, 212, 170, 0.22);
       box-shadow:
-        0 28px 76px rgba(0, 0, 0, 0.20),
-        0 12px 32px rgba(0, 212, 170, 0.10);
+        0 24px 64px rgba(0, 51, 102, 0.09),
+        0 10px 28px rgba(0, 212, 170, 0.08);
     }
 
     .solution-card:hover::before {
@@ -1107,8 +1102,7 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
       justify-content: center;
       margin-bottom: 28px;
       color: #ffffff;
-      background:
-        linear-gradient(135deg, #003366 0%, #062f57 100%);
+      background: linear-gradient(135deg, #003366 0%, #062f57 100%);
       border-radius: 14px;
       box-shadow:
         0 14px 30px rgba(0, 51, 102, 0.18),
@@ -1226,11 +1220,8 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
         </div>
-
         <h3>Routing Is Committed — Then Enforced</h3>
-        <p>
-          Execution follows a committed route defined before movement begins.
-        </p>
+        <p>Execution follows a committed route defined before movement begins.</p>
       </div>
 
       <div class="solution-card fade-in">
@@ -1241,11 +1232,8 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
             <path d="M9 12l2 2 4-4"></path>
           </svg>
         </div>
-
         <h3>No Custody by Design</h3>
-        <p>
-          Funds are never held. Coordination happens before execution, not after.
-        </p>
+        <p>Funds are never held. Coordination happens before execution, not after.</p>
       </div>
 
       <div class="solution-card fade-in">
@@ -1256,11 +1244,8 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
             <path d="M14 7h7v7"></path>
           </svg>
         </div>
-
         <h3>Scales Without Prefunding</h3>
-        <p>
-          New corridors can be added without prefunding or balance-sheet exposure.
-        </p>
+        <p>New corridors can be added without prefunding or balance-sheet exposure.</p>
       </div>
 
       <div class="solution-card fade-in">
@@ -1273,15 +1258,13 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
             <path d="M17 12h.01"></path>
           </svg>
         </div>
-
         <h3>Fixed Fee by Design</h3>
-        <p>
-          UniBridge applies a fixed coordination fee per transfer, without prefunding or balance-sheet exposure.
-        </p>
+        <p>UniBridge applies a fixed coordination fee per transfer, without prefunding or balance-sheet exposure.</p>
       </div>
     </div>
   </div>
 </section>
+
     
 <!-- TRUST SECTION -->
 <section class="trust-section" id="trust">
