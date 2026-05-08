@@ -962,7 +962,6 @@
     .problem-section {
       background: #f8fafc;
       padding: 108px 24px 112px;
-      color: #003366;
     }
 
     .problem-section .container {
@@ -970,26 +969,50 @@
       margin: 0 auto;
     }
 
-    .problem-section .section-header {
-      max-width: 820px;
-      margin: 0 auto 64px;
-      text-align: center;
+    .problem-panel {
+      background:
+        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.22), transparent 34%),
+        linear-gradient(135deg, #008c8c 0%, #006f86 48%, #003f66 100%);
+      color: #ffffff;
+      border-radius: 28px;
+      padding: 68px 64px;
+      box-shadow:
+        0 28px 80px rgba(0, 51, 102, 0.16),
+        0 12px 34px rgba(0, 0, 0, 0.10);
+      overflow: hidden;
+      position: relative;
     }
 
-    .problem-section .section-title {
+    .problem-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      pointer-events: none;
+    }
+
+    .problem-header {
+      max-width: 780px;
+      margin-bottom: 54px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .problem-header h2 {
       margin: 0 0 18px;
-      color: #003366;
-      font-size: clamp(2rem, 3.5vw, 3.1rem);
-      line-height: 1.18;
+      color: #ffffff;
+      font-size: clamp(2rem, 3.6vw, 3.2rem);
+      line-height: 1.16;
       font-weight: 650;
-      letter-spacing: -0.034em;
+      letter-spacing: -0.035em;
     }
 
-    .problem-section .section-subtitle {
-      margin: 0 auto;
-      max-width: 790px;
-      color: #5a6c7d;
-      font-size: 1.04rem;
+    .problem-header p {
+      margin: 0;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 1.05rem;
       line-height: 1.82;
       font-weight: 400;
     }
@@ -997,110 +1020,68 @@
     .problem-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 30px;
+      gap: 34px;
+      position: relative;
+      z-index: 1;
     }
 
     .problem-card {
-      position: relative;
-      min-height: 250px;
-      padding: 34px 30px 32px;
-      background: #ffffff;
-      border: 1px solid rgba(0, 51, 102, 0.07);
-      border-radius: 22px;
-      box-shadow:
-        0 18px 48px rgba(0, 51, 102, 0.055),
-        0 6px 18px rgba(0, 51, 102, 0.035);
-      overflow: hidden;
-      transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease;
-    }
-
-    .problem-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        circle at 20% 12%,
-        rgba(0, 212, 170, 0.09),
-        transparent 34%
-      );
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      pointer-events: none;
-    }
-
-    .problem-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(0, 212, 170, 0.18);
-      box-shadow:
-        0 24px 60px rgba(0, 51, 102, 0.08),
-        0 10px 26px rgba(0, 212, 170, 0.06);
-    }
-
-    .problem-card:hover::before {
-      opacity: 1;
+      padding-top: 2px;
     }
 
     .problem-icon {
-      position: relative;
-      z-index: 1;
-      width: 54px;
-      height: 54px;
+      width: 42px;
+      height: 42px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 28px;
-      color: #003366;
-      background: rgba(0, 212, 170, 0.12);
-      border: 1px solid rgba(0, 212, 170, 0.18);
-      border-radius: 16px;
+      margin-bottom: 22px;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 13px;
     }
 
     .problem-icon svg {
-      width: 23px;
-      height: 23px;
+      width: 21px;
+      height: 21px;
       stroke-width: 2;
     }
 
     .problem-card h3 {
-      position: relative;
-      z-index: 1;
-      margin: 0 0 14px;
-      color: #003366;
-      font-size: 1.16rem;
+      margin: 0 0 12px;
+      color: #ffffff;
+      font-size: 1.12rem;
       line-height: 1.38;
       font-weight: 650;
       letter-spacing: -0.018em;
     }
 
     .problem-card p {
-      position: relative;
-      z-index: 1;
       margin: 0;
-      color: #5a6c7d;
-      font-size: 0.96rem;
-      line-height: 1.75;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.95rem;
+      line-height: 1.72;
       font-weight: 400;
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 900px) {
       .problem-section {
-        padding: 88px 22px 96px;
+        padding: 86px 22px 96px;
       }
 
-      .problem-section .section-header {
-        margin-bottom: 48px;
+      .problem-panel {
+        padding: 52px 38px;
+        border-radius: 24px;
       }
 
       .problem-grid {
         grid-template-columns: 1fr;
-        gap: 24px;
+        gap: 32px;
       }
 
-      .problem-card {
-        min-height: auto;
+      .problem-header {
+        margin-bottom: 42px;
       }
     }
 
@@ -1109,29 +1090,23 @@
         padding: 76px 18px 84px;
       }
 
-      .problem-section .section-title {
+      .problem-panel {
+        padding: 42px 24px;
+        border-radius: 22px;
+      }
+
+      .problem-header h2 {
         font-size: 2rem;
         line-height: 1.22;
       }
 
-      .problem-section .section-subtitle {
+      .problem-header p {
         font-size: 0.98rem;
         line-height: 1.75;
       }
 
-      .problem-card {
-        padding: 28px 24px;
-        border-radius: 18px;
-      }
-
-      .problem-icon {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 24px;
-      }
-
       .problem-card h3 {
-        font-size: 1.08rem;
+        font-size: 1.06rem;
       }
 
       .problem-card p {
@@ -1141,61 +1116,63 @@
   </style>
 
   <div class="container">
-    <div class="section-header fade-in">
-      <h2 class="section-title">What still breaks in hard payout corridors</h2>
+    <div class="problem-panel">
+      <div class="problem-header fade-in">
+        <h2>What still breaks in hard payout corridors</h2>
 
-      <p class="section-subtitle">
-        Stablecoin funding solved movement. It did not solve destination execution.
-        Hard corridors still break on local payout readiness, fragmented counterparties,
-        and routes that are not committed before funds move.
-      </p>
-    </div>
-
-    <div class="problem-grid">
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-          </svg>
-        </div>
-
-        <h3>Speed does not remove local dependencies</h3>
         <p>
-          Each corridor still introduces distinct partners, payout rails, and operating conditions.
+          Stablecoin funding solved movement. It did not solve destination execution.
+          Hard corridors still break on local payout readiness, fragmented counterparties,
+          and routes that are not committed before funds move.
         </p>
       </div>
 
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+      <div class="problem-grid">
+        <div class="problem-card fade-in">
+          <div class="problem-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+
+          <h3>Speed does not remove local dependencies</h3>
+          <p>
+            Each corridor still introduces distinct partners, payout rails, and operating conditions.
+          </p>
         </div>
 
-        <h3>Execution remains fragmented across parties</h3>
-        <p>
-          Ramps, liquidity sources, executors, and local payout providers do not operate as one committed system.
-        </p>
-      </div>
+        <div class="problem-card fade-in">
+          <div class="problem-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
 
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
+          <h3>Execution remains fragmented across parties</h3>
+          <p>
+            Ramps, liquidity sources, executors, and local payout providers do not operate as one committed system.
+          </p>
         </div>
 
-        <h3>Funds can move before execution is secured</h3>
-        <p>
-          Without committed execution, faster settlement can still precede payout certainty.
-        </p>
+        <div class="problem-card fade-in">
+          <div class="problem-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+
+          <h3>Funds can move before execution is secured</h3>
+          <p>
+            Without committed execution, faster settlement can still precede payout certainty.
+          </p>
+        </div>
       </div>
     </div>
   </div>
