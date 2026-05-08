@@ -1001,76 +1001,63 @@
     }
 
     .problem-card {
-      position: relative;
-      min-height: 246px;
-      padding: 34px 30px 32px;
-      background: #ffffff;
-      border: 1px solid rgba(0, 51, 102, 0.07);
-      border-radius: 22px;
-      box-shadow:
-        0 16px 44px rgba(0, 51, 102, 0.045),
-        0 6px 16px rgba(0, 51, 102, 0.025);
-      overflow: hidden;
-      transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease;
-    }
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 42px 32px;
+  min-height: 220px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
+  border: 1px solid rgba(0, 51, 102, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
-    .problem-card::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, #00d4aa, rgba(0, 212, 170, 0));
-      opacity: 0.75;
-    }
+.problem-card::before {
+  display: none;
+}
 
-    .problem-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(0, 212, 170, 0.18);
-      box-shadow:
-        0 22px 58px rgba(0, 51, 102, 0.075),
-        0 8px 22px rgba(0, 212, 170, 0.055);
-    }
+.problem-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0, 51, 102, 0.08);
+}
 
-    .problem-icon {
-      width: 50px;
-      height: 50px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 26px;
-      color: #003366;
-      background: rgba(0, 212, 170, 0.105);
-      border: 1px solid rgba(0, 212, 170, 0.18);
-      border-radius: 15px;
-    }
+.problem-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #00d4aa;
+  color: #ffffff;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 12px 24px rgba(0, 212, 170, 0.18);
+}
 
-    .problem-icon svg {
-      width: 22px;
-      height: 22px;
-      stroke-width: 2;
-    }
+.problem-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
 
-    .problem-card h3 {
-      margin: 0 0 14px;
-      color: #003366;
-      font-size: 1.14rem;
-      line-height: 1.38;
-      font-weight: 650;
-      letter-spacing: -0.018em;
-    }
+.problem-card h3 {
+  margin: 0 auto 16px;
+  max-width: 280px;
+  color: #003366;
+  font-size: 1.22rem;
+  line-height: 1.42;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
 
-    .problem-card p {
-      margin: 0;
-      color: #5a6c7d;
-      font-size: 0.96rem;
-      line-height: 1.75;
-      font-weight: 400;
-    }
+.problem-card p {
+  margin: 0 auto;
+  max-width: 300px;
+  color: #6b7a88;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  font-weight: 400;
+}
 
     @media (max-width: 960px) {
       .problem-section {
