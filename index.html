@@ -1072,26 +1072,130 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
 <!-- TRUST SECTION -->
 <section class="trust-section" id="trust">
   <style>
-    /* حل بصري داخل نفس المقطع، بدون أي كلاسات إضافية */
-    .trust-section p:last-of-type strong {
+    .trust-section {
+      background:
+        radial-gradient(circle at 18% 20%, rgba(0, 212, 170, 0.16), transparent 34%),
+        linear-gradient(135deg, #0b1230 0%, #08254a 52%, #003366 100%);
+      color: #ffffff;
+      padding: 112px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .trust-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.035),
+          transparent
+        );
+      pointer-events: none;
+    }
+
+    .trust-section .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .trust-header {
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .trust-header h2 {
+      margin: 0 0 26px;
+      color: #ffffff;
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      line-height: 1.18;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+    }
+
+    .trust-header p {
+      margin: 0 auto;
+      max-width: 780px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 1.08rem;
+      line-height: 1.85;
+      font-weight: 400;
+    }
+
+    .trust-statement {
+      margin: 36px auto 0;
+      max-width: 760px;
+      padding: 22px 28px;
+      border: 1px solid rgba(0, 212, 170, 0.24);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow:
+        0 22px 60px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .trust-statement span {
       display: block;
+      color: rgba(255, 255, 255, 0.94);
+      font-size: 1.05rem;
+      line-height: 1.7;
       font-weight: 600;
-      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+
+    .trust-accent {
+      color: #00d4aa;
+    }
+
+    @media (max-width: 640px) {
+      .trust-section {
+        padding: 82px 20px;
+      }
+
+      .trust-header h2 {
+        font-size: 2rem;
+      }
+
+      .trust-header p {
+        font-size: 1rem;
+        line-height: 1.75;
+      }
+
+      .trust-statement {
+        padding: 20px 20px;
+        margin-top: 30px;
+        border-radius: 16px;
+      }
+
+      .trust-statement span {
+        font-size: 0.98rem;
+      }
     }
   </style>
 
   <div class="container">
     <div class="trust-header fade-in">
-      <h2>Built for institutions that need committed payout execution across regulated partners.</h2>
+      <h2>
+        Built for institutions that need committed payout execution across regulated partners.
+      </h2>
 
       <p>
-        UniBridge coordinates destination execution before funds move, while custody, licensing, and final execution remain with the appropriate regulated parties.
+        UniBridge coordinates destination execution before funds move, while custody,
+        licensing, and final execution remain with the appropriate regulated parties.
       </p>
-      <p style="margin-top:32px;">
-  <span style="display:block; font-weight:600; font-size:1.05rem; margin-bottom:8px;">
-    Routing decisions are finalized before funds move, while execution authority remains with regulated participants.
-  </span>
-</p>
+
+      <div class="trust-statement">
+        <span>
+          Routing decisions are finalized before funds move, while execution authority
+          remains with <span class="trust-accent">regulated participants</span>.
+        </span>
+      </div>
     </div>
   </div>
 </section>
