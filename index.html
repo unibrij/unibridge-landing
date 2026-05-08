@@ -1182,130 +1182,344 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
                 </div>
             </div>
         </div>
-    </section>
-<!-- FOOTER -->
+    </section><!-- FOOTER -->
 <footer class="footer">
-    <div class="footer-container">
-
-        <!-- Logo + About -->
-        <img
-  src="public/icons/social/Ub.png"
-  alt="UniBridge Logo"
-  class="footer-logo"
-  style="opacity: 0.55; filter: grayscale(1);"
-/>
-
-        <div class="footer-content">
-
-            <div class="footer-about">
-                <p>UniBridge access is granted in stages, based on partner review, corridor fit, and operational readiness.</p>                 <p>© 2026 UniBridge Technologies Ltd. — All rights reserved.</p>
-                <p>Operating across UK and U.S. legal and commercial frameworks.</p>
-            </div>
-
-            <!-- Company -->
-            <div class="footer-links">
-                <h3>Company</h3>
-                <ul>
-                    <li><a href="/about/">About UniBridge</a></li>
-                    <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-                    <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-                    <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-                </ul>
-            </div>
-
-            <!-- Resources -->
-<div class="footer-links footer-resources">
   <style>
+    .footer {
+      background: #0b1230;
+      color: #ffffff;
+      padding: 96px 48px 52px;
+    }
+
+    .footer-container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      width: 152px;
+      height: auto;
+      margin-bottom: 56px;
+      display: block;
+      opacity: 0.92;
+      filter: brightness(0) invert(1);
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1.35fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .footer-about {
+      max-width: 390px;
+    }
+
+    .footer-about p {
+      margin: 0 0 18px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 15px;
+      line-height: 1.75;
+      font-weight: 400;
+    }
+
+    .footer-about p:last-child {
+      margin-bottom: 0;
+    }
+
+    .footer-links h3 {
+      margin: 0 0 22px;
+      color: #00a98a;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-links li {
+      margin-bottom: 13px;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: #ffffff;
+    }
+
+    .footer-links a.disabled {
+      color: rgba(255, 255, 255, 0.42);
+      cursor: default;
+      pointer-events: none;
+    }
+
     .footer-resources li {
-      margin-bottom: 18px;
+      margin-bottom: 22px;
     }
 
     .footer-resources a {
       display: block;
-      color: rgba(255, 255, 255, 0.86);
-      font-weight: 500;
-      line-height: 1.35;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
     }
 
     .footer-resources a:hover {
-      color: #00D4AA;
+      color: #00d4aa;
     }
 
-    .footer-resources .footer-link-note {
+    .footer-link-note {
       display: block;
-      margin-top: 5px;
-      color: rgba(255, 255, 255, 0.52);
-      font-size: 12px;
-      line-height: 1.45;
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 13px;
+      line-height: 1.55;
       font-weight: 400;
-      max-width: 280px;
+      max-width: 300px;
+    }
+
+    .footer-bottom {
+      margin-top: 76px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .footer-social {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .footer-social a {
+      display: inline-flex;
+      width: 22px;
+      height: 22px;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.72;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .footer-social a:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .footer-social img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
+    .footer-legal {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .footer-legal a {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 14px;
+      line-height: 1.5;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-legal a:hover {
+      color: #ffffff;
+    }
+
+    @media (max-width: 900px) {
+      .footer {
+        padding: 76px 28px 44px;
+      }
+
+      .footer-logo {
+        width: 142px;
+        margin-bottom: 48px;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 48px 40px;
+      }
+
+      .footer-about {
+        grid-column: 1 / -1;
+        max-width: 520px;
+      }
+
+      .footer-bottom {
+        margin-top: 60px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .footer {
+        padding: 68px 22px 40px;
+      }
+
+      .footer-logo {
+        width: 136px;
+        margin-bottom: 42px;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 42px;
+      }
+
+      .footer-about p {
+        font-size: 14px;
+        line-height: 1.75;
+      }
+
+      .footer-links h3 {
+        font-size: 15px;
+        margin-bottom: 18px;
+      }
+
+      .footer-links a,
+      .footer-resources a {
+        font-size: 15px;
+      }
+
+      .footer-link-note {
+        font-size: 12.5px;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 26px;
+        margin-top: 56px;
+      }
+
+      .footer-legal {
+        gap: 22px;
+      }
     }
   </style>
 
-  <h3>Resources</h3>
-  <ul>
-    <li>
-      <a href="#request-access">Partner Documentation (Private Access)</a>
-      <span class="footer-link-note">
-        Scope, boundaries, security, evidence, and pilot review.
-      </span>
-    </li>
+  <div class="footer-container">
 
-    <li>
-  <a href="/partner-docs/">API Reference (Private Access)</a>
-  <span class="footer-link-note">
-    Endpoints, authentication, status mapping, and integration flow.
-  </span>
-</li>
+    <!-- Logo -->
+    <img
+      src="public/icons/social/Ub.png"
+      alt="UniBridge Logo"
+      class="footer-logo"
+    />
 
-  </ul>
-</div>
+    <div class="footer-content">
 
-        </div> <!-- footer-content -->
+      <!-- About -->
+      <div class="footer-about">
+        <p>
+          UniBridge access is granted in stages, based on partner review,
+          corridor fit, and operational readiness.
+        </p>
 
-        <!-- NEW FOOTER BOTTOM -->
-        <div class="footer-bottom">
+        <p>
+          Non-custodial execution coordination for stablecoin-settled payout corridors.
+        </p>
 
-            <!-- SOCIAL ICONS -->
-            <div class="footer-social" style="display:flex; gap:14px; align-items:center; margin-bottom:20px;">
+        <p>
+          © 2026 UniBridge Technologies Ltd. All rights reserved.
+        </p>
+      </div>
 
-                <a href="https://www.linkedin.com/company/unibrij/" target="_blank">
-                    <img src="public/icons/social/img_linkedin.svg"
-                         alt="LinkedIn"
-                         style="width:28px; height:28px; object-fit:contain;" />
-                </a>
+      <!-- Company -->
+      <div class="footer-links">
+        <h3>Company</h3>
+        <ul>
+          <li><a href="/about/">About UniBridge</a></li>
+          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
+          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
+          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
+        </ul>
+      </div>
 
-                
-                <a href="https://t.me/UniBridgeProtocol" target="_blank">
-                    <img src="public/icons/social/img_telegram.svg"
-                         alt="Telegram"
-                         style="width:28px; height:28px; object-fit:contain;" />
-                </a>
+      <!-- Resources -->
+      <div class="footer-links footer-resources">
+        <h3>Resources</h3>
+        <ul>
+          <li>
+            <a href="#request-access">Partner Documentation</a>
+            <span class="footer-link-note">
+              Scope, boundaries, security, evidence, and pilot review.
+            </span>
+          </li>
 
-                <a href="https://youtube.com/@unibridgeprotocol" target="_blank">
-                    <img src="public/icons/social/img_youtube.svg"
-                         alt="YouTube"
-                         style="width:28px; height:28px; object-fit:contain;" />
-                </a>
+          <li>
+            <a href="/partner-docs/">API Reference</a>
+            <span class="footer-link-note">
+              Endpoints, authentication, status mapping, and integration flow.
+            </span>
+          </li>
 
-                <a href="https://x.com/UnibridgeHQ" target="_blank">
-                    <img src="public/icons/social/img_twitter.svg"
-                         alt="X"
-                         style="width:28px; height:28px; object-fit:contain;" />
-                </a>
-
-            </div>
-
-            <!-- LEGAL LINKS -->
-            <div class="footer-legal">
-                <a href="/privacy.html">Privacy</a>
-                <a href="/legal.html">Terms</a>
-                <a href="#contact-us">Contact</a>
-            </div>
-
-        </div> <!-- footer-bottom -->
+          <li>
+            <a href="/how-it-works/">Operating Model</a>
+            <span class="footer-link-note">
+              How execution paths are committed before funding begins.
+            </span>
+          </li>
+        </ul>
+      </div>
 
     </div>
+
+    <!-- Bottom -->
+    <div class="footer-bottom">
+
+      <!-- Social Icons -->
+      <div class="footer-social">
+        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
+        </a>
+
+        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
+        </a>
+
+        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
+        </a>
+
+        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
+          <img src="public/icons/social/img_twitter.svg" alt="X" />
+        </a>
+      </div>
+
+      <!-- Legal Links -->
+      <div class="footer-legal">
+        <a href="/privacy.html">Privacy</a>
+        <a href="/legal.html">Terms</a>
+        <a href="#contact-us">Contact</a>
+      </div>
+
+    </div>
+
+  </div>
 </footer>
 
 
