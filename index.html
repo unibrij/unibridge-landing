@@ -1322,39 +1322,43 @@
 
     <svg class="corridor-world-map" viewBox="0 0 1200 520" aria-hidden="true">
       <defs>
-        <pattern id="dotPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-          <circle cx="3" cy="3" r="2.25" fill="#7893ad" />
+        <pattern id="ubDots" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="1.75" fill="#8fa6b8" />
         </pattern>
-
-        <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
 
-      <!-- simplified dotted world map blobs -->
-      <g opacity="0.48">
+      <g class="world-dots">
         <!-- North America -->
-        <path fill="url(#dotPattern)" d="M95 160 C145 105, 245 95, 330 120 C405 143, 440 198, 397 255 C365 297, 286 295, 250 260 C213 224, 135 242, 95 210 C72 192, 75 178, 95 160 Z" />
+        <path d="M80 175 C120 130 185 112 245 115 C300 118 350 136 390 168 C430 200 435 245 405 275 C374 306 315 300 278 272 C250 250 225 244 190 256 C150 270 108 248 82 218 C66 200 63 190 80 175 Z" />
+
+        <!-- Greenland -->
+        <path d="M318 72 C360 45 432 48 465 82 C490 110 465 145 410 148 C360 151 312 130 300 100 C295 88 303 80 318 72 Z" />
+
         <!-- South America -->
-        <path fill="url(#dotPattern)" d="M346 285 C392 305, 420 350, 405 405 C391 455, 360 505, 322 490 C285 474, 280 415, 295 370 C308 330, 310 296, 346 285 Z" />
+        <path d="M330 292 C372 306 402 346 400 390 C398 432 374 470 348 498 C328 520 304 505 300 466 C296 425 282 392 292 356 C302 320 305 297 330 292 Z" />
+
         <!-- Europe -->
-        <path fill="url(#dotPattern)" d="M555 145 C596 118, 665 125, 700 160 C732 192, 705 230, 655 220 C615 213, 574 222, 548 195 C530 176, 535 158, 555 145 Z" />
+        <path d="M535 150 C575 124 640 126 680 152 C715 175 710 212 670 224 C625 238 560 220 535 188 C522 172 523 158 535 150 Z" />
+
         <!-- Africa -->
-        <path fill="url(#dotPattern)" d="M600 238 C660 220, 728 250, 748 314 C768 380, 725 455, 655 455 C600 455, 568 395, 578 333 C584 295, 566 254, 600 238 Z" />
+        <path d="M575 236 C630 214 700 238 725 294 C755 365 718 452 655 460 C604 466 572 410 572 350 C572 305 545 250 575 236 Z" />
+
         <!-- Asia -->
-        <path fill="url(#dotPattern)" d="M705 145 C785 95, 950 100, 1068 155 C1148 193, 1125 275, 1035 285 C970 292, 942 250, 890 275 C835 302, 735 270, 703 220 C682 187, 682 160, 705 145 Z" />
-        <!-- Australia / SEA mass -->
-        <path fill="url(#dotPattern)" d="M935 342 C995 326, 1068 350, 1094 395 C1115 433, 1070 465, 1010 455 C952 445, 905 410, 915 375 C919 360, 923 348, 935 342 Z" />
+        <path d="M680 150 C760 95 918 94 1048 150 C1130 185 1145 245 1085 280 C1038 308 980 280 932 282 C875 285 835 326 765 298 C708 275 662 215 680 150 Z" />
+
+        <!-- Middle East / India extension -->
+        <path d="M735 248 C790 235 850 260 858 305 C866 352 805 365 760 338 C725 316 700 264 735 248 Z" />
+
+        <!-- Southeast Asia -->
+        <path d="M900 300 C940 292 995 318 1015 350 C1032 378 1002 398 960 388 C918 378 882 336 900 300 Z" />
+
+        <!-- Australia -->
+        <path d="M925 385 C985 360 1070 382 1100 425 C1125 460 1080 490 1015 478 C955 467 900 425 925 385 Z" />
       </g>
 
-      <!-- faint route arcs -->
-      <path d="M245 235 C405 130, 600 120, 805 250" fill="none" stroke="#00ccb1" stroke-width="1.2" opacity="0.18"/>
-      <path d="M805 250 C675 350, 500 385, 350 365" fill="none" stroke="#00ccb1" stroke-width="1.2" opacity="0.18"/>
-      <path d="M620 185 C760 170, 880 210, 980 285" fill="none" stroke="#003366" stroke-width="1" opacity="0.12"/>
+      <path class="route-line" d="M170 245 C350 145 555 135 760 265" />
+      <path class="route-line" d="M760 265 C640 360 470 390 330 360" />
+      <path class="route-line muted" d="M565 185 C720 170 870 205 990 310" />
     </svg>
 
     <div class="corridor-point us"><span>🇺🇸</span></div>
@@ -1366,12 +1370,14 @@
     <div class="corridor-point ph"><span>🇵🇭</span></div>
 
   </div>
-    <div class="corridor-map-copy">
-  <h2>Local funding. Cross-border payout.</h2>
-  <p>
-    Fund locally across the US, the UK, Europe, and the UAE, then deliver payouts across supported corridors.
-  </p>
-    </div>
+
+  <div class="corridor-map-copy fade-in">
+    <h2>Local funding. Cross-border payouts.</h2>
+    <p>
+      Fund locally across the US, the UK, Europe, and the UAE, then deliver payouts
+      across supported corridors.
+    </p>
+  </div>
 
 </section>
 
