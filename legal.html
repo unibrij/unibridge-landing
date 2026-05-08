@@ -1,207 +1,584 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Partner Access Terms – UniBridge</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style>
-        body {
-            margin: 0;
-            background-color: #0C274F;
-            color: #e7eef7;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-            line-height: 1.75;
-        }
+  <title>Partner Access Terms | UniBridge Protocol</title>
+  <meta name="description" content="Partner Access Terms for controlled UniBridge documentation, review access, technical evaluation, and phased partner enablement." />
 
-        .header {
-            text-align: center;
-            padding: 40px 0 20px;
-            background-color: #0C274F;
-        }
+  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="https://unibrij.io/favicon.png" />
 
-        .header img {
-            width: 140px;
-            height: auto;
-            filter: none;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-        .container {
-            max-width: 800px;
-            margin: 40px auto 80px;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 40px 35px;
-            border-radius: 14px;
-            box-shadow: 0px 0px 18px rgba(0,0,0,0.3);
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        h1, h2 {
-            color: #61c8ff;
-            text-shadow: 0 0 8px rgba(0, 130, 255, 0.25);
-        }
+    body {
+      margin: 0;
+      background: #f8fafc;
+      color: #243244;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      line-height: 1.75;
+    }
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 25px;
-        }
+    a {
+      color: #00a98a;
+      text-decoration: none;
+      font-weight: 600;
+    }
 
-        h2 {
-            margin-top: 40px;
-            margin-bottom: 16px;
-        }
+    a:hover {
+      text-decoration: underline;
+    }
 
-        a {
-            color: #61c8ff;
-            text-decoration: none;
-        }
+    .site-header {
+      background: #ffffff;
+      border-bottom: 1px solid rgba(0, 51, 102, 0.06);
+    }
 
-        a:hover {
-            text-decoration: underline;
-        }
+    .nav {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
 
-        ul {
-            padding-left: 22px;
-        }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
 
-        strong {
-            color: #ffffff;
-        }
-    </style>
+    .logo img {
+      width: 118px;
+      height: auto;
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a {
+      color: #243244;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: #00a98a;
+    }
+
+    .nav-button {
+      padding: 11px 20px;
+      border-radius: 8px;
+      background: #00d4aa;
+      color: #003366 !important;
+      font-weight: 650 !important;
+      box-shadow: 0 10px 24px rgba(0, 212, 170, 0.18);
+    }
+
+    .nav-button:hover {
+      background: #00b894;
+      text-decoration: none !important;
+    }
+
+    .hero {
+      position: relative;
+      padding: 88px 24px 54px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 72% 22%, rgba(0, 212, 170, 0.12), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+
+    .hero-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 16px;
+      color: #00a98a;
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      color: #003366;
+      font-size: clamp(2.35rem, 5vw, 4.1rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.055em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: #5a6c7d;
+      font-size: 1.08rem;
+      line-height: 1.82;
+    }
+
+    .page-wrap {
+      padding: 22px 24px 112px;
+    }
+
+    .terms-card {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid rgba(0, 51, 102, 0.07);
+      border-radius: 24px;
+      box-shadow:
+        0 28px 80px rgba(0, 51, 102, 0.08),
+        0 10px 30px rgba(0, 51, 102, 0.04);
+      overflow: hidden;
+    }
+
+    .terms-top {
+      padding: 34px 42px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0, 212, 170, 0.10), transparent 32%),
+        linear-gradient(135deg, #003366 0%, #062f57 52%, #0b1230 100%);
+      color: #ffffff;
+    }
+
+    .terms-top strong {
+      color: #ffffff;
+    }
+
+    .terms-top p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 0.98rem;
+      line-height: 1.72;
+    }
+
+    .terms-content {
+      padding: 46px 42px 52px;
+    }
+
+    .last-updated {
+      display: inline-flex;
+      align-items: center;
+      margin: 0 0 28px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: rgba(0, 212, 170, 0.10);
+      color: #007f73;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 42px 0 14px;
+      color: #003366;
+      font-size: 1.35rem;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    h2:first-of-type {
+      margin-top: 28px;
+    }
+
+    p {
+      margin: 0 0 18px;
+      color: #46596b;
+      font-size: 1rem;
+      line-height: 1.78;
+    }
+
+    ul {
+      margin: 0 0 22px;
+      padding-left: 22px;
+      color: #46596b;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.72;
+    }
+
+    strong {
+      color: #003366;
+      font-weight: 700;
+    }
+
+    .note-box {
+      margin: 34px 0;
+      padding: 20px 22px;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid rgba(0, 51, 102, 0.08);
+      color: #46596b;
+    }
+
+    .note-box p {
+      margin: 0;
+    }
+
+    .footer-note {
+      margin-top: 46px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(0, 51, 102, 0.08);
+      color: #6b7a88;
+      font-size: 0.94rem;
+    }
+
+    .site-footer {
+      background: #0b1230;
+      color: rgba(255, 255, 255, 0.78);
+      padding: 58px 24px 36px;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 48px;
+      align-items: end;
+    }
+
+    .footer-brand img {
+      width: 108px;
+      height: auto;
+      display: block;
+      margin-bottom: 18px;
+      opacity: 0.92;
+    }
+
+    .footer-brand p {
+      margin: 0;
+      max-width: 420px;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.94rem;
+      line-height: 1.72;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.72);
+      font-weight: 500;
+      font-size: 0.92rem;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: #00d4aa;
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        padding: 20px 18px;
+        align-items: flex-start;
+      }
+
+      .logo img {
+        width: 94px;
+      }
+
+      .nav-links {
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .nav-links a {
+        font-size: 0.86rem;
+      }
+
+      .nav-button {
+        padding: 9px 14px;
+      }
+
+      .hero {
+        padding: 62px 18px 36px;
+      }
+
+      .page-wrap {
+        padding: 16px 18px 82px;
+      }
+
+      .terms-card {
+        border-radius: 20px;
+      }
+
+      .terms-top {
+        padding: 28px 24px;
+      }
+
+      .terms-content {
+        padding: 34px 24px 40px;
+      }
+
+      h1 {
+        font-size: 2.35rem;
+        line-height: 1.12;
+      }
+
+      h2 {
+        font-size: 1.18rem;
+        margin-top: 34px;
+      }
+
+      p,
+      li {
+        font-size: 0.96rem;
+      }
+
+      .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .footer-links {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .nav {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+
+      .hero p {
+        font-size: 0.98rem;
+      }
+
+      .terms-content {
+        padding: 30px 20px 36px;
+      }
+
+      .terms-top {
+        padding: 24px 20px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <img src="unibridge-landing/images/unibridge-logo2.png" alt="UniBridge Logo" />
-    </div>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="logo" href="/">
+        <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png" alt="UniBridge Protocol Logo" />
+      </a>
 
-    <div class="container">
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/docs.html">Operating Model</a>
+        <a href="/surface">Validation</a>
+        <a href="/#contact" class="nav-button">Request Access</a>
+      </div>
+    </nav>
+  </header>
 
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <p class="eyebrow">Partner Access</p>
         <h1>Partner Access Terms</h1>
-        <p><strong>Last Updated: 2026</strong></p>
-
         <p>
+          Terms governing controlled partner access to UniBridge documentation,
+          technical materials, review environments, and phased enablement pathways.
+        </p>
+      </div>
+    </section>
+
+    <section class="page-wrap">
+      <article class="terms-card">
+        <div class="terms-top">
+          <p>
+            UniBridge access is designed for controlled review, corridor evaluation,
+            and partner-led validation. Access does not imply production approval,
+            live transaction rights, or unrestricted corridor enablement.
+          </p>
+        </div>
+
+        <div class="terms-content">
+          <p class="last-updated">Last Updated: 2026</p>
+
+          <p>
             UniBridge Technologies Ltd. (“UniBridge”, “we”, “our”) provides controlled partner access to private
             documentation, technical materials, communications, and selected integration or coordination
             pathways for evaluation, onboarding review, and phased enablement. UniBridge operates as a
-            <strong>non-custodial infrastructure coordination layer</strong> for cross-border settlement routing
-            and execution across regulated counterparties. These Partner Access Terms govern your access to
-            UniBridge materials and any related technical access made available to you.
-        </p>
+            <strong>non-custodial infrastructure coordination layer</strong> for stablecoin-settled payout review,
+            route coordination, and execution tracking across approved regulated counterparties. These Partner
+            Access Terms govern your access to UniBridge materials and any related technical access made
+            available to you.
+          </p>
 
-        <h2>1. Controlled Partner Access</h2>
-        <p>
+          <h2>1. Controlled Partner Access</h2>
+          <p>
             UniBridge access is controlled and may be granted in stages. Access may include documentation,
-            technical review, selected API or integration access, and other partner materials, depending on
-            use case fit, corridor scope, partner status, and operational readiness.
-        </p>
-        <ul>
+            technical review, sandbox or review-only environments, selected API or integration access, and other
+            partner materials, depending on use case fit, corridor scope, partner status, and operational readiness.
+          </p>
+          <ul>
             <li>Access is provided solely for internal evaluation, partnership review, and technical assessment.</li>
             <li>Access does not imply production approval, live transaction rights, unrestricted API availability, or corridor enablement.</li>
             <li>UniBridge may grant, limit, expand, suspend, or revoke access at its discretion.</li>
-        </ul>
+          </ul>
 
-        <h2>2. Infrastructure Role; No Custody</h2>
-        <p>
+          <h2>2. Infrastructure Role; No Custody</h2>
+          <p>
             UniBridge acts as an infrastructure coordination layer and does not custody client funds, maintain
             user balances or wallets, or directly onboard retail financial customers.
-        </p>
-        <ul>
-            <li>Settlement execution occurs directly between integrated regulated partners and execution providers.</li>
+          </p>
+          <ul>
+            <li>Settlement or payout execution occurs directly between integrated regulated partners and execution providers.</li>
             <li>Access to UniBridge materials or technical pathways does not by itself constitute the provision of financial services, payment services, money transmission, or regulated execution services.</li>
             <li>Nothing in UniBridge materials, communications, or documentation changes the allocation of operational responsibility between UniBridge, partners, and regulated counterparties.</li>
-        </ul>
+          </ul>
 
-        <h2>3. Compliance Responsibilities</h2>
-        <p>
+          <h2>3. Compliance Responsibilities</h2>
+          <p>
             UniBridge applies a risk-based approach to partner onboarding, jurisdictional and corridor review,
             and infrastructure-level transaction flow integrity. Partner access is subject to compliance,
             operational, and corridor considerations.
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>Licensing and regulatory compliance remain the responsibility of each partner and its regulated counterparties.</li>
             <li>All KYC/KYB, AML/CFT, sanctions screening, and transaction monitoring obligations remain with the relevant partner or regulated provider.</li>
             <li>UniBridge may decline, suspend, restrict, or discontinue access or integrations that present elevated compliance, sanctions, or operational risk.</li>
             <li>Nothing in UniBridge materials, communications, or documentation constitutes legal, compliance, or regulatory advice.</li>
-        </ul>
+          </ul>
 
-        <h2>4. No Production Reliance Unless Expressly Approved</h2>
-        <p>
+          <h2>4. No Production Reliance Unless Expressly Approved</h2>
+          <p>
             UniBridge materials, route descriptions, examples, corridor references, and technical access are
             provided for evaluation and integration review unless we expressly confirm otherwise in writing.
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>You must not rely on private documentation or evaluation access as authorization for production use.</li>
             <li>Any route logic, examples, operational descriptions, or corridor references are illustrative unless specifically approved for your use case.</li>
             <li>Production access, live transaction handling, and corridor enablement require separate confirmation from UniBridge.</li>
-        </ul>
+          </ul>
 
-        <h2>5. Data Handling, Privacy, and Logs</h2>
-        <p>
+          <h2>5. Data Handling, Privacy, and Logs</h2>
+          <p>
             UniBridge may log requests, communications, and technical interactions for security, debugging,
             reliability, partner assessment, and access-control purposes.
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>Do not submit production customer data or unnecessary personal data unless expressly authorized in writing.</li>
             <li>Use test data, placeholders, or hashed identifiers wherever reasonably possible.</li>
             <li>By sending any data to UniBridge, you confirm that you have the right to disclose and process that data for the relevant purpose.</li>
-        </ul>
+          </ul>
 
-        <h2>6. Intellectual Property and Usage Restrictions</h2>
-        <p>
-            UniBridge Protocol, the UniBridge brand, its settlement orchestration architecture,
-            coordination methods, route resolution framework, deterministic session and settlement
-            lifecycle designs, the Bridge Key Directory (BKD) concept, and all related materials,
-            workflows, designs, and documentation are the intellectual property of
+          <h2>6. Intellectual Property and Usage Restrictions</h2>
+          <p>
+            UniBridge Protocol, the UniBridge brand, its coordination architecture, route resolution framework,
+            deterministic session and settlement lifecycle designs, execution-lifecycle concepts, and all related
+            materials, workflows, designs, and documentation are the intellectual property of
             <strong>UniBridge Technologies Ltd.</strong>
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>All materials are provided on a limited, non-transferable, evaluation-only basis unless otherwise agreed in writing.</li>
             <li>You may not copy, distribute, publish, sublicense, commercialize, reverse engineer, or create derivative materials from UniBridge content without prior written consent.</li>
             <li>No commercial rights, license grants, or ownership interests are transferred by access to UniBridge materials.</li>
-        </ul>
+          </ul>
 
-        <h2>7. No Warranties; Limited Availability</h2>
-        <p>
+          <h2>7. No Warranties; Limited Availability</h2>
+          <p>
             UniBridge access, materials, and technical pathways are provided on an “as is” and “as available”
             basis, without warranties of availability, accuracy, completeness, performance, or fitness for any
             particular purpose.
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>UniBridge may modify, restrict, or discontinue any materials or access pathway at any time.</li>
             <li>No uptime commitment, service-level commitment, or production-readiness guarantee applies unless separately agreed in writing.</li>
             <li>Partners remain responsible for their own technical, operational, legal, and regulatory decisions.</li>
-        </ul>
+          </ul>
 
-        <h2>8. Third-Party Infrastructure and Services</h2>
-        <p>
+          <h2>8. Third-Party Infrastructure and Services</h2>
+          <p>
             UniBridge may rely on third-party infrastructure or service providers in connection with
             communications, hosting, logging, monitoring, documentation delivery, or messaging.
-        </p>
-        <ul>
+          </p>
+          <ul>
             <li>Any such third-party provider is not a party to any agreement between you and UniBridge unless expressly stated otherwise.</li>
             <li>Additional third-party terms may apply where relevant.</li>
-        </ul>
+          </ul>
 
-        <h2>9. Governing Law</h2>
-        <p>Unless otherwise agreed in writing, these Partner Access Terms and any related dispute are governed
-by the laws of <strong>England and Wales</strong>.
-        </p>
+          <h2>9. Governing Law</h2>
+          <p>
+            Unless otherwise agreed in writing, these Partner Access Terms and any related dispute are governed
+            by the laws of <strong>England and Wales</strong>.
+          </p>
 
-        <h2>10. Contact</h2>
-        <p>
-            For legal or partnership inquiries, contact:<br>
-            <strong>UniBridge Technologies Ltd.</strong><br>
+          <h2>10. Contact</h2>
+          <p>
+            For legal or partnership inquiries, contact:<br />
+            <strong>UniBridge Technologies Ltd.</strong><br />
             Email: <a href="mailto:ceo@unibrij.io">ceo@unibrij.io</a>
-        </p>
+          </p>
 
-        <p style="margin-top: 40px; opacity: 0.7;">
-            © 2026 UniBridge Technologies Ltd. – All rights reserved.
-            <br>
-            These terms apply to controlled partner access, private materials, communications, and related technical evaluation pathways.
-        </p>
+          <div class="note-box">
+            <p>
+              These terms apply to controlled partner access, private materials, communications,
+              sandbox or review-only environments, and related technical evaluation pathways.
+            </p>
+          </div>
 
+          <p class="footer-note">
+            © 2026 UniBridge Technologies Ltd. — All rights reserved.
+          </p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png" alt="UniBridge Protocol Logo" />
+        <p>
+          UniBridge provides controlled partner access for corridor review,
+          technical evaluation, and non-custodial payout coordination readiness.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/docs.html">Operating Model</a>
+        <a href="/surface">Validation</a>
+        <a href="/#contact">Request Access</a>
+      </div>
     </div>
+  </footer>
 
 </body>
 </html>
