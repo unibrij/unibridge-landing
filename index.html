@@ -2058,7 +2058,7 @@
     }
 
     .trust-statement {
-      margin: 38px auto 0;
+      margin: 22px auto 0;
       max-width: 760px;
       padding: 22px 28px;
       border: 1px solid rgba(0, 212, 170, 0.24);
@@ -2091,11 +2091,14 @@
       }
 
       .trust-lifecycle-bg {
-        top: 60%;
-        width: 92%;
-        opacity: 0.34;
-      }
-    }
+  position: relative;
+  width: min(820px, 100%);
+  height: 92px;
+  margin: 34px auto 0;
+  z-index: 2;
+  opacity: 0.72;
+  pointer-events: none;
+}
 
     @media (max-width: 640px) {
       .trust-section {
@@ -2153,55 +2156,49 @@
 
   <div class="container">
     <div class="trust-panel">
+<div class="trust-content">
+  <div class="trust-header fade-in">
+    <h2>
+      <span class="trust-accent">Proof before rollout.</span>
+    </h2>
 
-      <div class="trust-lifecycle-bg" aria-hidden="true">
-        <div class="trust-lifecycle-line"></div>
+    <p>
+      UniBridge gives partners a controlled way to review the payout flow before scaling it:
+      test execution, inspect route status, and verify payout evidence.
+    </p>
 
-        <div class="trust-life-node n1">
-          <span class="dot"></span>
-          <small>defined</small>
-        </div>
+    <div class="trust-lifecycle-bg" aria-hidden="true">
+      <div class="trust-lifecycle-line"></div>
 
-        <div class="trust-life-node n2 active">
-          <span class="dot"></span>
-          <small>validated</small>
-        </div>
-
-        <div class="trust-life-node n3">
-          <span class="dot"></span>
-          <small>committed</small>
-        </div>
-
-        <div class="trust-life-node n4 final">
-          <span class="dot">✓</span>
-          <small>triggered</small>
-        </div>
+      <div class="trust-life-node n1">
+        <span class="dot"></span>
+        <small>defined</small>
       </div>
 
-      <div class="trust-content">
-        <div class="trust-header fade-in">
-          <h2>
-            <span class="trust-accent">Proof before rollout.</span>
-          </h2>
-
-          <p>
-            UniBridge gives partners a controlled way to review the payout flow before scaling it:
-            test execution, inspect route status, and verify payout evidence.
-          </p>
-
-          <div class="trust-statement">
-            <span>
-              Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
-            </span>
-          </div>
-        </div>
+      <div class="trust-life-node n2 active">
+        <span class="dot"></span>
+        <small>validated</small>
       </div>
 
+      <div class="trust-life-node n3">
+        <span class="dot"></span>
+        <small>committed</small>
+      </div>
+
+      <div class="trust-life-node n4 final">
+        <span class="dot">✓</span>
+        <small>triggered</small>
+      </div>
+    </div>
+
+    <div class="trust-statement">
+      <span>
+        Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
+      </span>
     </div>
   </div>
-</section>
-
-
+</div>
+    </section>
 
     <!-- CONTACT SECTION -->
 <section class="contact-section" id="contact">
@@ -2218,7 +2215,48 @@
 
     .contact-container {
       display: grid;
-      grid-template-columns: 1fr 0.95fr;
+      grid-template-c<div class="trust-content">
+  <div class="trust-header fade-in">
+    <h2>
+      <span class="trust-accent">Proof before rollout.</span>
+    </h2>
+
+    <p>
+      UniBridge gives partners a controlled way to review the payout flow before scaling it:
+      test execution, inspect route status, and verify payout evidence.
+    </p>
+
+    <div class="trust-lifecycle-bg" aria-hidden="true">
+      <div class="trust-lifecycle-line"></div>
+
+      <div class="trust-life-node n1">
+        <span class="dot"></span>
+        <small>defined</small>
+      </div>
+
+      <div class="trust-life-node n2 active">
+        <span class="dot"></span>
+        <small>validated</small>
+      </div>
+
+      <div class="trust-life-node n3">
+        <span class="dot"></span>
+        <small>committed</small>
+      </div>
+
+      <div class="trust-life-node n4 final">
+        <span class="dot">✓</span>
+        <small>triggered</small>
+      </div>
+    </div>
+
+    <div class="trust-statement">
+      <span>
+        Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
+      </span>
+    </div>
+  </div>
+        </div>olumns: 1fr 0.95fr;
       gap: 72px;
       align-items: start;
     }
