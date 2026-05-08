@@ -959,158 +959,436 @@
     </div>
   </section>
 
-  <!-- SURFACE SECTION -->
-  <section class="surface-section">
-    <div class="container">
-      <div class="surface-container">
+  /* ===== SURFACE SECTION — CONTACT STYLE ===== */
+.surface-section {
+  padding: 104px 0 118px;
+  background: #f8fafc;
+}
 
-        <!-- LEFT SIDE: INSTRUCTIONS -->
-        <div class="surface-info fade-in">
-          <h2>Before you test</h2>
+.surface-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 0.95fr);
+  gap: 72px;
+  align-items: center;
+}
 
-          <p>
-            This controlled surface helps verify the payout path before a payment is started.
-            Review the flow below before continuing to the transfer form.
-          </p>
+/* LEFT SIDE */
+.surface-info {
+  max-width: 560px;
+  padding-top: 0;
+}
 
-          <div class="instruction-panel">
-            <div class="instruction-card">
-              <h3>How this controlled test works</h3>
-              <ul>
-                <li>Select the source country, destination country, and amount.</li>
-                <li>UniBridge prepares the execution path before payment begins.</li>
-                <li>After the quote, provide the required destination payout details, such as a local payout key or account information.</li>
-                <li>Before payment, review the quote, payout details, provider, amount, and destination information.</li>
-              </ul>
-            </div>
+.surface-info h2 {
+  margin: 0 0 18px;
+  color: var(--navy);
+  font-size: clamp(2.1rem, 3.4vw, 3.15rem);
+  line-height: 1.14;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
 
-            <div class="instruction-card">
-              <h3>Before you pay</h3>
-              <ul>
-                <li>Payment is handled by the provider shown during checkout.</li>
-                <li>UniBridge <strong>does not process the payment or receive customer funds</strong>.</li>
-                <li>UniBridge <strong>does not collect card details or personal information</strong> in this controlled test surface.</li>
-                <li>Use only a small amount. If your bank or provider rejects it, stop.</li>
-              </ul>
-            </div>
-          </div>
+.surface-info > p {
+  margin: 0;
+  max-width: 520px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.85;
+  font-weight: 400;
+}
 
-          <div class="surface-proof">
-            <div class="proof-item">
-              <strong>Quote</strong>
-              <span>Route prepared before payment</span>
-            </div>
+.instruction-panel {
+  margin-top: 30px;
+  display: grid;
+  gap: 16px;
+}
 
-            <div class="proof-item">
-              <strong>Funding</strong>
-              <span>Handled by checkout provider</span>
-            </div>
+.instruction-card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
 
-            <div class="proof-item">
-              <strong>Execution</strong>
-              <span>Status tracked after funding</span>
-            </div>
-          </div>
-        </div>
+.instruction-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
 
-        <!-- RIGHT SIDE: FORM -->
-        <div class="surface-form-wrap fade-in">
-          <div class="steps">
-            <div id="step1" class="step active">Setup</div>
-            <div id="step2" class="step">Route</div>
-            <div id="step3" class="step">Payment</div>
-            <div id="step4" class="step">Processing</div>
-            <div id="step5" class="step">Done</div>
-          </div>
+.instruction-card h3::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--navy);
+  opacity: 0.9;
+  flex: 0 0 auto;
+}
 
-          <div class="surface-form">
-            <div class="form-header">
-              <h2>Start test transfer</h2>
-              <p>
-                Select a source corridor and destination. UniBridge will prepare
-                the execution path before payment begins.
-              </p>
-            </div>
+.instruction-card ul {
+  margin: 0;
+  padding-left: 19px;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.75;
+}
 
-            <div id="summary" class="summary">
-              <div><strong>Amount</strong>: <span id="sumAmount"></span></div>
-              <div><strong>Country</strong>: <span id="sumCountry"></span></div>
-              <div id="executorFeeRow" style="display:none;">
-                <strong>Execution fee</strong>: <span id="sumExecutorFee"></span>
-              </div>
-            </div>
+.instruction-card li {
+  margin: 7px 0;
+}
 
-            <label class="field-label" for="amount">Amount</label>
-            <input id="amount" type="number" step="0.01" value="10" placeholder="Amount" />
-            <div id="amountLimitHint"></div>
+.instruction-card strong {
+  color: var(--navy);
+  font-weight: 750;
+}
 
-            <label class="field-label" for="source_country">Source country</label>
-            <select id="source_country">
-              <option value="US">United States</option>
-              <option value="EU">Europe</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AE">United Arab Emirates</option>
-            </select>
+.surface-proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 28px;
+}
 
-            <label class="field-label" for="country">Destination country</label>
-            <select id="country">
-              <option value="BR">Brazil</option>
-            </select>
+.proof-item {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 51, 102, 0.07);
+  border-radius: 14px;
+  padding: 13px 12px;
+  box-shadow: 0 10px 26px rgba(0, 51, 102, 0.04);
+}
 
-            <button id="sendBtn" type="button" class="surface-button">Get quote</button>
+.proof-item strong {
+  display: block;
+  color: var(--navy);
+  font-size: 0.78rem;
+  margin-bottom: 5px;
+  letter-spacing: -0.01em;
+}
 
-            <div id="pixBox">
-              <h3>Destination details</h3>
+.proof-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
 
-              <label class="field-label" for="pix">PIX key</label>
-              <input id="pix" placeholder="Enter PIX key" />
+/* RIGHT SIDE — SAME FEEL AS CONTACT FORM */
+.surface-form-wrap {
+  position: relative;
+}
 
-              <div id="taxBox">
-                <label class="field-label" for="taxId">Tax ID</label>
-                <input id="taxId" placeholder="CPF / CNPJ" />
-              </div>
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  margin: 0 0 16px;
+  font-size: 11px;
+  color: #94a3b8;
+}
 
-              <button id="continueBtn" type="button" class="surface-button" disabled>
-                Continue to payment
-              </button>
+.step {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(0, 51, 102, 0.06);
+  box-shadow: 0 8px 20px rgba(0, 51, 102, 0.035);
+}
 
-              <div class="muted">
-                Enter a valid PIX key for the test recipient.
-              </div>
-            </div>
+.step.active {
+  color: #ffffff;
+  font-weight: 800;
+  background: var(--navy);
+  border-color: rgba(0, 51, 102, 0.22);
+  box-shadow: 0 10px 24px rgba(0, 51, 102, 0.14);
+}
 
-            <div id="authBox">
-              <h3 id="authTitle">Authentication</h3>
+.surface-form {
+  background: #ffffff;
+  border: 1px solid rgba(0, 51, 102, 0.075);
+  border-radius: 22px;
+  padding: 36px;
+  box-shadow:
+    0 24px 70px rgba(0, 51, 102, 0.08),
+    0 8px 24px rgba(0, 51, 102, 0.045);
+  position: relative;
+  overflow: hidden;
+}
 
-              <label class="field-label" for="authEmail">Email</label>
-              <input id="authEmail" type="email" placeholder="Enter email" />
+.surface-form::before {
+  display: none;
+}
 
-              <label class="field-label" for="authOtp" id="authOtpLabel" style="display:none;">OTP</label>
-              <input id="authOtp" type="text" placeholder="Enter OTP" style="display:none;" />
+.surface-form > * {
+  position: relative;
+  z-index: 1;
+}
 
-              <button id="authBtn" type="button" class="surface-button" style="display:none;">
-                Continue
-              </button>
+.form-header {
+  margin-bottom: 24px;
+}
 
-              <div class="muted" id="authHint">
-                Complete the required authentication step.
-              </div>
-            </div>
+.form-header h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 2rem;
+  line-height: 1.18;
+  font-weight: 650;
+  letter-spacing: -0.032em;
+}
 
-            <div id="status"></div>
+.form-header p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
 
-            <div class="disclaimer">
-              <strong>Controlled test only.</strong>
-              This surface is intended to demonstrate execution readiness, not public
-              remittance availability. Continue only from the official UniBridge test URL:
-              <strong>https://www.unibrij.io/surface</strong>.
-            </div>
-          </div>
-        </div>
+.summary {
+  display: none;
+  background: rgba(0, 51, 102, 0.04);
+  border: 1px solid rgba(0, 51, 102, 0.08);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
 
-      </div>
-    </div>
-  </section>
+.summary div {
+  margin: 7px 0;
+  color: #334155;
+}
+
+.summary strong {
+  color: var(--navy);
+}
+
+.field-label {
+  display: block;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+input,
+select {
+  min-height: 48px;
+  border: 1px solid #dbe5ee;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #23282f;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  padding: 13px 14px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+input::placeholder {
+  color: rgba(90, 108, 125, 0.58);
+}
+
+input:focus,
+select:focus {
+  border-color: rgba(0, 51, 102, 0.42);
+  box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.08);
+  background: #ffffff;
+}
+
+.surface-button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: var(--navy);
+  color: #ffffff;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  font-weight: 750;
+  padding: 15px 18px;
+  cursor: pointer;
+  margin-top: 24px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-shadow: 0 12px 28px rgba(0, 51, 102, 0.18);
+}
+
+.surface-button:hover {
+  background: #062f57;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(0, 51, 102, 0.22);
+}
+
+.surface-button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 20px rgba(0, 51, 102, 0.16);
+}
+
+.surface-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#pixBox,
+#taxBox,
+#authBox {
+  display: none;
+  margin-top: 16px;
+}
+
+.surface-form h3 {
+  margin: 24px 0 12px;
+  color: var(--navy);
+  font-size: 1.15rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.muted {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.55;
+}
+
+#status {
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.status-success {
+  color: #059669;
+  font-weight: 750;
+}
+
+.status-error {
+  color: var(--danger);
+  font-weight: 750;
+}
+
+#amountLimitHint {
+  display: none;
+  font-size: 12px;
+  margin-top: 7px;
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.disclaimer {
+  margin-top: 22px;
+  padding: 14px 15px;
+  border: 1px solid rgba(0, 51, 102, 0.08);
+  border-radius: 14px;
+  background: rgba(0, 51, 102, 0.035);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.58;
+}
+
+.disclaimer strong {
+  color: var(--navy);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .surface-container {
+    grid-template-columns: 1fr;
+    gap: 42px;
+    align-items: start;
+  }
+
+  .surface-info {
+    max-width: 720px;
+  }
+
+  .surface-form-wrap {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .surface-section {
+    padding: 72px 0 82px;
+  }
+
+  .surface-info h2 {
+    font-size: 2rem;
+    line-height: 1.22;
+  }
+
+  .surface-info > p {
+    font-size: 0.96rem;
+    line-height: 1.75;
+  }
+
+  .instruction-panel {
+    gap: 22px;
+  }
+
+  .instruction-card ul {
+    font-size: 0.9rem;
+  }
+
+  .surface-proof {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .step {
+    padding: 7px 2px;
+  }
+
+  .surface-form {
+    padding: 24px;
+    border-radius: 18px;
+  }
+
+  .form-header h2 {
+    font-size: 1.65rem;
+  }
+
+  input,
+  select {
+    font-size: 0.94rem;
+    padding: 12px 13px;
+  }
+
+  .surface-button {
+    padding: 14px 16px;
+  }
+}
+  
 
   <!-- FOOTER -->
   <footer class="footer">
