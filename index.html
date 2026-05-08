@@ -1074,8 +1074,9 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
   <style>
     .trust-section {
       background:
-        radial-gradient(circle at 18% 20%, rgba(0, 212, 170, 0.16), transparent 34%),
-        linear-gradient(135deg, #0b1230 0%, #08254a 52%, #003366 100%);
+        radial-gradient(circle at 50% 18%, rgba(0, 212, 170, 0.18), transparent 34%),
+        radial-gradient(circle at 12% 82%, rgba(0, 169, 138, 0.12), transparent 30%),
+        linear-gradient(135deg, #0b1230 0%, #08254a 55%, #003366 100%);
       color: #ffffff;
       padding: 112px 24px;
       position: relative;
@@ -1112,10 +1113,14 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
     .trust-header h2 {
       margin: 0 0 26px;
       color: #ffffff;
-      font-size: clamp(2rem, 4vw, 3.35rem);
-      line-height: 1.18;
-      font-weight: 700;
-      letter-spacing: -0.035em;
+      font-size: clamp(1.85rem, 3.6vw, 3rem);
+      line-height: 1.22;
+      font-weight: 650;
+      letter-spacing: -0.028em;
+    }
+
+    .trust-accent {
+      color: #00d4aa;
     }
 
     .trust-header p {
@@ -1131,11 +1136,12 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
       margin: 36px auto 0;
       max-width: 760px;
       padding: 22px 28px;
-      border: 1px solid rgba(0, 212, 170, 0.24);
+      border: 1px solid rgba(0, 212, 170, 0.28);
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.055);
+      background: rgba(0, 212, 170, 0.055);
       box-shadow:
         0 22px 60px rgba(0, 0, 0, 0.18),
+        0 0 45px rgba(0, 212, 170, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(8px);
     }
@@ -1149,10 +1155,6 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
       letter-spacing: -0.01em;
     }
 
-    .trust-accent {
-      color: #00d4aa;
-    }
-
     @media (max-width: 640px) {
       .trust-section {
         padding: 82px 20px;
@@ -1160,6 +1162,7 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
 
       .trust-header h2 {
         font-size: 2rem;
+        line-height: 1.25;
       }
 
       .trust-header p {
@@ -1182,7 +1185,9 @@ Hard corridors still break on local payout readiness, fragmented counterparties,
   <div class="container">
     <div class="trust-header fade-in">
       <h2>
-        Built for institutions that need committed payout execution across regulated partners.
+        Built for institutions that need
+        <span class="trust-accent">committed payout execution</span>
+        across regulated partners.
       </h2>
 
       <p>
