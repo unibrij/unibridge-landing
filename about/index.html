@@ -116,6 +116,7 @@
       font-weight: 500;
       font-size: 16px;
       transition: color 0.25s ease;
+      white-space: nowrap;
     }
 
     .nav-link:hover {
@@ -135,6 +136,7 @@
       font-size: 16px;
       text-decoration: none;
       display: inline-block;
+      white-space: nowrap;
     }
 
     .nav-button:hover {
@@ -445,12 +447,16 @@
     @media (max-width: 900px) {
       .navbar {
         flex-direction: column;
-        gap: 20px;
+        gap: 18px;
+        padding: 24px 0 22px;
+      }
+
+      .nav-logo {
+        height: 150px;
       }
 
       .nav-links {
-        flex-direction: column;
-        gap: 16px;
+        display: none;
       }
 
       .signals-grid {
@@ -574,7 +580,7 @@
           <a href="/#problem" class="nav-link">Why It Breaks</a>
           <a href="/#trust" class="nav-link">Control Model</a>
           <a href="/docs.html" class="nav-link">Execution Flow</a>
-          <a href="/#request-access" class="nav-button">Request Access</a>
+          <a href="/#contact" class="nav-button">Request Access</a>
         </div>
       </nav>
     </div>
@@ -692,7 +698,7 @@
           <h3>Resources</h3>
           <ul>
             <li>
-              <a href="/#request-access">Partner Documentation</a>
+              <a href="/#contact">Partner Documentation</a>
               <span class="footer-link-note">
                 Scope, boundaries, security, evidence, and pilot review.
               </span>
@@ -730,7 +736,7 @@
         <div class="footer-legal">
           <a href="/privacy.html">Privacy</a>
           <a href="/legal.html">Terms</a>
-          <a href="/#contact-us">Contact</a>
+          <a href="/#contact">Contact</a>
         </div>
       </div>
     </div>
