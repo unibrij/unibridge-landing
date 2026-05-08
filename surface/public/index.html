@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>Controlled Live Test | UniBridge Protocol</title>
+  <title>Controlled Validation | UniBridge Protocol</title>
   <meta
     name="description"
-    content="Run a small controlled payout test. UniBridge prepares the execution path before payment begins, without receiving customer funds."
+    content="Validate a controlled UniBridge payout flow with route review, funding visibility, payout tracking, and non-custodial execution evidence."
   />
 
   <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
@@ -157,7 +157,7 @@
       line-height: 1.03;
       letter-spacing: -0.058em;
       font-weight: 720;
-      max-width: 820px;
+      max-width: 860px;
     }
 
     .surface-hero p {
@@ -165,7 +165,7 @@
       color: var(--muted);
       font-size: clamp(1rem, 1.4vw, 1.24rem);
       line-height: 1.72;
-      max-width: 720px;
+      max-width: 760px;
       font-weight: 400;
     }
 
@@ -229,7 +229,7 @@
 
     .surface-info > p {
       margin: 0;
-      max-width: 520px;
+      max-width: 540px;
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.85;
@@ -938,10 +938,10 @@
         </a>
 
         <div class="nav-links">
-          <a href="/#solutions" class="nav-link">Protocol</a>
-          <a href="/#problem" class="nav-link">Why It Breaks</a>
-          <a href="/#trust" class="nav-link">Control Model</a>
-          <a href="/docs.html" class="nav-link">Execution Flow</a>
+          <a href="/#platform" class="nav-link">Platform</a>
+          <a href="/#solutions" class="nav-link">Model</a>
+          <a href="/#trust" class="nav-link">Validation</a>
+          <a href="/docs.html" class="nav-link">Operating Model</a>
           <a href="/#contact" class="nav-button">Request Access</a>
         </div>
       </nav>
@@ -952,19 +952,19 @@
   <section class="surface-hero">
     <div class="container">
       <div class="surface-hero-inner fade-in">
-        <div class="eyebrow">Controlled live test</div>
+        <div class="eyebrow">Controlled validation</div>
 
-        <h1>Small-value payout test</h1>
+        <h1>Test a UniBridge payout flow</h1>
 
         <p>
-          Use this page to run a small controlled payout test. Review the quote,
-          enter the required destination details, and continue only if everything
-          looks correct.
+          Use this page to validate a small payout flow before broader rollout. Review the route,
+          funding details, destination requirements, and payout status before continuing.
         </p>
 
         <div class="surface-hero-meta">
-          <span class="surface-badge">Controlled test surface</span>
-          <span class="surface-badge">Execution path prepared before payment</span>
+          <span class="surface-badge">Controlled live test</span>
+          <span class="surface-badge">Non-custodial payout flow</span>
+          <span class="surface-badge">Evidence before rollout</span>
         </div>
       </div>
     </div>
@@ -977,49 +977,56 @@
 
         <!-- LEFT SIDE: INSTRUCTIONS -->
         <div class="surface-info fade-in">
-          <h2>Before you test</h2>
+          <h2>What this test validates</h2>
 
           <p>
-            This controlled surface helps verify the payout path before a payment is started.
-            Review the flow below before continuing to the transfer form.
+            This surface is designed for small-value corridor validation. It helps review route behavior,
+            funding visibility, payout requirements, and execution evidence before broader activation.
           </p>
 
           <div class="instruction-panel">
             <div class="instruction-card">
-              <h3>How this controlled test works</h3>
+              <h3>Controlled scope</h3>
               <ul>
-                <li>Select the source country, destination country, and amount.</li>
-                <li>UniBridge prepares the execution path before payment begins.</li>
-                <li>After the quote, provide the required destination payout details, such as a local payout key or account information.</li>
-                <li>Before payment, review the quote, payout details, provider, amount, and destination information.</li>
+                <li>Use only small-value test amounts.</li>
+                <li>Review quote, corridor, and destination details before continuing.</li>
+                <li>This surface is for validation, not public consumer remittance.</li>
               </ul>
             </div>
 
             <div class="instruction-card">
-              <h3>Before you pay</h3>
+              <h3>Non-custodial flow</h3>
               <ul>
-                <li>Payment is handled by the provider shown during checkout.</li>
-                <li>UniBridge <strong>does not process the payment or receive customer funds</strong>.</li>
-                <li>UniBridge <strong>does not collect card details or personal information</strong> in this controlled test surface.</li>
-                <li>Use only a small amount. If your bank or provider rejects it, stop.</li>
+                <li>UniBridge coordinates the payout flow without holding customer funds.</li>
+                <li>Funding, checks, and execution remain with the relevant approved participants.</li>
+                <li>Destination requirements may vary by corridor and payout method.</li>
+              </ul>
+            </div>
+
+            <div class="instruction-card">
+              <h3>Execution evidence</h3>
+              <ul>
+                <li>Route status, funding confirmation, and payout progress may be used for review.</li>
+                <li>Delivery or return handling follows the selected payout flow state.</li>
+                <li>Use the result as validation evidence before broader rollout.</li>
               </ul>
             </div>
           </div>
 
           <div class="surface-proof">
             <div class="proof-item">
-              <strong>Quote</strong>
-              <span>Route prepared before payment</span>
+              <strong>Route review</strong>
+              <span>Selected corridor and payout method before funding.</span>
             </div>
 
             <div class="proof-item">
-              <strong>Funding</strong>
-              <span>Handled by checkout provider</span>
+              <strong>Funding visibility</strong>
+              <span>Status review from funding start to confirmation.</span>
             </div>
 
             <div class="proof-item">
-              <strong>Execution</strong>
-              <span>Status tracked after funding</span>
+              <strong>Payout evidence</strong>
+              <span>Execution status for partner validation.</span>
             </div>
           </div>
         </div>
@@ -1036,10 +1043,9 @@
 
           <div class="surface-form">
             <div class="form-header">
-              <h2>Start test transfer</h2>
+              <h2>Validate payout flow</h2>
               <p>
-                Select a source corridor and destination. UniBridge will prepare
-                the execution path before payment begins.
+                Enter the corridor and destination details to review the test flow before funding continues.
               </p>
             </div>
 
@@ -1111,10 +1117,9 @@
             <div id="status"></div>
 
             <div class="disclaimer">
-              <strong>Controlled test only.</strong>
-              This surface is intended to demonstrate execution readiness, not public
-              remittance availability. Continue only from the official UniBridge test URL:
-              <strong>https://www.unibrij.io/surface</strong>.
+              <strong>Controlled validation only.</strong>
+              This surface is used for small-value payout flow review. UniBridge does not hold customer funds,
+              operate local payout rails directly, or replace regulated ramp and execution providers.
             </div>
           </div>
         </div>
@@ -1128,7 +1133,7 @@
     <div class="footer-container">
 
       <img
-        src="public/icons/social/Ub.png"
+        src="/public/icons/social/Ub.png"
         alt="UniBridge Logo"
         class="footer-logo"
       />
@@ -1176,6 +1181,13 @@
                 Endpoints, authentication, status mapping, and integration flow.
               </span>
             </li>
+
+            <li>
+              <a href="/docs.html">Operating Model</a>
+              <span class="footer-link-note">
+                Execution lifecycle, control model, use case, and operating layers.
+              </span>
+            </li>
           </ul>
         </div>
 
@@ -1184,19 +1196,19 @@
       <div class="footer-bottom">
         <div class="footer-social">
           <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
+            <img src="/public/icons/social/img_linkedin.svg" alt="LinkedIn" />
           </a>
 
           <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-            <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
+            <img src="/public/icons/social/img_telegram.svg" alt="Telegram" />
           </a>
 
           <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-            <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
+            <img src="/public/icons/social/img_youtube.svg" alt="YouTube" />
           </a>
 
           <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-            <img src="public/icons/social/img_twitter.svg" alt="X" />
+            <img src="/public/icons/social/img_twitter.svg" alt="X" />
           </a>
         </div>
 
