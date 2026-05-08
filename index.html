@@ -33,6 +33,7 @@
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://unibrij.io/" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ===== RESET & BASE STYLES ===== */
@@ -987,6 +988,14 @@
 .hero-accent {
   color: #00a98a;
 }
+
+        .hero-title {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.08;
+        }
+        
 </style>
     <!-- ضع الكود هنا قبل إغلاق head -->
 
@@ -1289,7 +1298,7 @@
 
         <h3>Compliance and reconciliation</h3>
         <p>
-          Partner-led checks with route status, funding visibility, and payout tracking.
+          Regulated partners handle checks while UniBridge tracks funding and payout status.
         </p>
       </div>
     </div>
@@ -1927,7 +1936,7 @@
   <div class="container">
     <div class="contact-container">
       <div class="contact-info fade-in">
-        <h2 id="contact-title">Ready to see UniBridge in your payout flow?</h2>
+        <h2 id="contact-title">Ready to validate UniBridge in your payout flow?</h2>
 
         <div id="dynamic-text" class="dynamic-text">
           <!-- Dynamic text will be inserted here by JavaScript -->
@@ -2395,7 +2404,7 @@ function updateContactText() {
         return;
     }
 
-    contactTitle.textContent = 'Ready to see UniBridge in your payout flow?';
+    contactTitle.textContent = 'Ready to validate UniBridge in your payout flow?';
     dynamicText.textContent = 'Request access for corridor review, live testing, or partner evaluation.';
     submitButton.textContent = 'Request Partner Access';
 }
