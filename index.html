@@ -1897,10 +1897,10 @@
       position: relative;
       overflow: hidden;
       border-radius: 28px;
-      padding: 76px 64px;
+      padding: 72px 64px;
       background:
-        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.13), transparent 32%),
-        radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.06), transparent 28%),
+        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.14), transparent 32%),
+        radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.07), transparent 30%),
         linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
       box-shadow:
         0 30px 90px rgba(0, 51, 102, 0.18),
@@ -1912,30 +1912,43 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.035),
-          transparent
-        );
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.035), transparent);
       pointer-events: none;
     }
 
-    .trust-header {
+    .trust-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: radial-gradient(circle at 68% 48%, black 0%, transparent 72%);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .trust-content {
       position: relative;
-      z-index: 1;
-      max-width: 860px;
-      margin: 0 auto;
-      text-align: center;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 54px;
+      align-items: center;
+    }
+
+    .trust-header {
+      max-width: 500px;
     }
 
     .trust-header h2 {
-      margin: 0 0 26px;
+      margin: 0 0 24px;
       color: #ffffff;
-      font-size: clamp(1.9rem, 3.6vw, 3.1rem);
-      line-height: 1.2;
-      font-weight: 650;
-      letter-spacing: -0.032em;
+      font-size: clamp(2.15rem, 4.3vw, 3.6rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.05em;
     }
 
     .trust-accent {
@@ -1943,18 +1956,16 @@
     }
 
     .trust-header p {
-      margin: 0 auto;
-      max-width: 780px;
+      margin: 0;
       color: rgba(255, 255, 255, 0.76);
-      font-size: 1.08rem;
-      line-height: 1.85;
+      font-size: 1.06rem;
+      line-height: 1.82;
       font-weight: 400;
     }
 
     .trust-statement {
-      margin: 38px auto 0;
-      max-width: 760px;
-      padding: 22px 28px;
+      margin-top: 30px;
+      padding: 20px 22px;
       border: 1px solid rgba(0, 212, 170, 0.24);
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.075);
@@ -1967,10 +1978,224 @@
     .trust-statement span {
       display: block;
       color: rgba(255, 255, 255, 0.94);
-      font-size: 1.05rem;
-      line-height: 1.7;
+      font-size: 0.98rem;
+      line-height: 1.65;
       font-weight: 600;
       letter-spacing: -0.01em;
+    }
+
+    .trust-scan-visual {
+      position: relative;
+      min-height: 330px;
+      border-radius: 24px;
+      padding: 28px;
+      background:
+        radial-gradient(circle at 52% 52%, rgba(0, 212, 170, 0.16), transparent 34%),
+        rgba(3, 24, 39, 0.46);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 24px 70px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    .trust-scan-visual::before {
+      content: "";
+      position: absolute;
+      top: -20%;
+      bottom: -20%;
+      left: 44%;
+      width: 86px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 212, 170, 0.05),
+        rgba(0, 212, 170, 0.26),
+        rgba(0, 212, 170, 0.05),
+        transparent
+      );
+      transform: skewX(-8deg);
+      animation: trustScanMove 4.8s ease-in-out infinite;
+      opacity: 0.9;
+    }
+
+    .trust-scan-title {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+
+    .trust-scan-title i {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #00d4aa;
+      box-shadow: 0 0 18px rgba(0, 212, 170, 0.95);
+    }
+
+    .trust-scan-lines {
+      position: relative;
+      z-index: 2;
+      max-width: 370px;
+      margin-top: 28px;
+      display: grid;
+      gap: 11px;
+    }
+
+    .trust-scan-lines div {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 11px 13px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.055);
+      border: 1px solid rgba(255, 255, 255, 0.075);
+      backdrop-filter: blur(10px);
+    }
+
+    .trust-scan-lines span,
+    .trust-scan-lines strong {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .trust-scan-lines span {
+      color: rgba(255, 255, 255, 0.56);
+    }
+
+    .trust-scan-lines strong {
+      color: #b7fff2;
+      font-weight: 650;
+    }
+
+    .trust-route-path {
+      position: relative;
+      z-index: 3;
+      margin-top: 46px;
+      display: grid;
+      grid-template-columns: auto 1fr auto 1fr auto 1fr auto;
+      align-items: center;
+    }
+
+    .trust-route-line {
+      height: 2px;
+      background: linear-gradient(90deg, rgba(0, 212, 170, 0.25), rgba(0, 212, 170, 0.75));
+      box-shadow: 0 0 20px rgba(0, 212, 170, 0.22);
+    }
+
+    .trust-route-node {
+      display: grid;
+      justify-items: center;
+      gap: 9px;
+      min-width: 72px;
+    }
+
+    .trust-route-node span {
+      position: relative;
+      width: 17px;
+      height: 17px;
+      border-radius: 999px;
+      background: #d7fff8;
+      border: 2px solid rgba(0, 212, 170, 0.9);
+      box-shadow:
+        0 0 0 6px rgba(0, 212, 170, 0.10),
+        0 0 24px rgba(0, 212, 170, 0.38);
+    }
+
+    .trust-route-node.active span {
+      width: 40px;
+      height: 40px;
+      background:
+        radial-gradient(circle, #ffffff 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.14) 53% 100%);
+      border: 1px solid rgba(183, 255, 242, 0.95);
+      box-shadow:
+        0 0 0 12px rgba(0, 212, 170, 0.12),
+        0 0 0 24px rgba(0, 212, 170, 0.06),
+        0 0 42px rgba(0, 212, 170, 0.65);
+    }
+
+    .trust-route-node.active span::after {
+      content: "";
+      position: absolute;
+      top: -20px;
+      bottom: -20px;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, rgba(183, 255, 242, 0.9), transparent);
+    }
+
+    .trust-route-node.verified span {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      background: #00d4aa;
+      color: #03233c;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .trust-route-node small {
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+
+    .trust-route-node.active small,
+    .trust-route-node.verified small {
+      color: #d7fff8;
+    }
+
+    .trust-review-pill {
+      position: relative;
+      z-index: 3;
+      margin-top: 28px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .trust-review-pill span {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0, 212, 170, 0.11);
+      border: 1px solid rgba(0, 212, 170, 0.25);
+      color: #b7fff2;
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+
+    @keyframes trustScanMove {
+      0% {
+        transform: translateX(-170px) skewX(-8deg);
+        opacity: 0;
+      }
+
+      18% {
+        opacity: 0.9;
+      }
+
+      50% {
+        transform: translateX(86px) skewX(-8deg);
+        opacity: 1;
+      }
+
+      82% {
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: translateX(210px) skewX(-8deg);
+        opacity: 0;
+      }
     }
 
     @media (max-width: 900px) {
@@ -1979,8 +2204,25 @@
       }
 
       .trust-panel {
-        padding: 60px 40px;
+        padding: 56px 38px;
         border-radius: 24px;
+      }
+
+      .trust-content {
+        grid-template-columns: 1fr;
+        gap: 42px;
+      }
+
+      .trust-header {
+        max-width: 760px;
+        text-align: center;
+        margin: 0 auto;
+      }
+
+      .trust-statement {
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
 
@@ -1990,13 +2232,13 @@
       }
 
       .trust-panel {
-        padding: 44px 24px;
+        padding: 42px 22px;
         border-radius: 22px;
       }
 
       .trust-header h2 {
-        font-size: 2rem;
-        line-height: 1.24;
+        font-size: 2.15rem;
+        line-height: 1.12;
       }
 
       .trust-header p {
@@ -2005,34 +2247,128 @@
       }
 
       .trust-statement {
-        padding: 20px 20px;
-        margin-top: 30px;
+        padding: 18px 18px;
+        margin-top: 26px;
         border-radius: 16px;
       }
 
       .trust-statement span {
-        font-size: 0.97rem;
-        line-height: 1.65;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .trust-scan-visual {
+        min-height: 430px;
+        padding: 22px;
+        border-radius: 20px;
+      }
+
+      .trust-scan-lines {
+        max-width: none;
+      }
+
+      .trust-route-path {
+        margin-top: 36px;
+        grid-template-columns: 1fr;
+        gap: 13px;
+        justify-items: center;
+      }
+
+      .trust-route-line {
+        width: 2px;
+        height: 24px;
+        background: linear-gradient(180deg, rgba(0, 212, 170, 0.25), rgba(0, 212, 170, 0.75));
+      }
+
+      .trust-route-node {
+        min-width: auto;
+      }
+
+      .trust-review-pill {
+        justify-content: center;
       }
     }
   </style>
 
   <div class="container">
     <div class="trust-panel">
-      <div class="trust-header fade-in">
-        <h2>
-          <span class="trust-accent">Proof before rollout.</span>
-        </h2>
+      <div class="trust-content">
 
-        <p>
-          UniBridge gives partners a controlled way to review the payout flow before scaling it: test execution, inspect route status, and verify payout evidence.
-        </p>
+        <div class="trust-header fade-in">
+          <h2>
+            <span class="trust-accent">Proof before rollout.</span>
+          </h2>
 
-        <div class="trust-statement">
-          <span>
-            Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
-          </span>
+          <p>
+            UniBridge gives partners a controlled way to review the payout flow before scaling it:
+            test execution, inspect route status, and verify payout evidence.
+          </p>
+
+          <div class="trust-statement">
+            <span>
+              Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
+            </span>
+          </div>
         </div>
+
+        <div class="trust-scan-visual fade-in" aria-hidden="true">
+          <div class="trust-scan-title">
+            <i></i>
+            <span>Route scan</span>
+          </div>
+
+          <div class="trust-scan-lines">
+            <div>
+              <span>route.status</span>
+              <strong>committed</strong>
+            </div>
+            <div>
+              <span>funding.check</span>
+              <strong>confirmed</strong>
+            </div>
+            <div>
+              <span>execution.test</span>
+              <strong>passed</strong>
+            </div>
+            <div>
+              <span>evidence</span>
+              <strong>attached</strong>
+            </div>
+          </div>
+
+          <div class="trust-route-path">
+            <div class="trust-route-node">
+              <span></span>
+              <small>Funding</small>
+            </div>
+
+            <div class="trust-route-line"></div>
+
+            <div class="trust-route-node active">
+              <span></span>
+              <small>Route checked</small>
+            </div>
+
+            <div class="trust-route-line"></div>
+
+            <div class="trust-route-node">
+              <span></span>
+              <small>Execution</small>
+            </div>
+
+            <div class="trust-route-line"></div>
+
+            <div class="trust-route-node verified">
+              <span>✓</span>
+              <small>Evidence</small>
+            </div>
+          </div>
+
+          <div class="trust-review-pill">
+            <span>Ready for partner review</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
