@@ -13,6 +13,8 @@
   <style>
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     html {
@@ -20,11 +22,11 @@
     }
 
     body {
-      margin: 0;
       background: #f8fafc;
       color: #243244;
       font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       line-height: 1.75;
+      overflow-x: hidden;
     }
 
     a {
@@ -37,15 +39,17 @@
       text-decoration: underline;
     }
 
+    /* ===== HEADER ===== */
+
     .site-header {
       background: #ffffff;
       border-bottom: 1px solid rgba(0, 51, 102, 0.06);
     }
 
     .nav {
-      max-width: 1120px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 22px 24px;
+      padding: 22px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -59,42 +63,46 @@
     }
 
     .logo img {
-      width: 118px;
-      height: auto;
+      height: 120px;
+      width: auto;
       display: block;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 32px;
     }
 
     .nav-links a {
-      color: #243244;
-      font-size: 0.95rem;
+      color: #23282F;
+      font-size: 16px;
       font-weight: 500;
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: color 0.3s ease;
     }
 
     .nav-links a:hover {
-      color: #00a98a;
+      color: #00D4AA;
     }
 
     .nav-button {
-      padding: 11px 20px;
-      border-radius: 8px;
-      background: #00d4aa;
+      background: #00D4AA;
       color: #003366 !important;
-      font-weight: 650 !important;
-      box-shadow: 0 10px 24px rgba(0, 212, 170, 0.18);
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 600 !important;
+      text-decoration: none !important;
+      transition: all 0.3s ease;
     }
 
     .nav-button:hover {
       background: #00b894;
-      text-decoration: none !important;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
     }
+
+    /* ===== HERO ===== */
 
     .hero {
       position: relative;
@@ -136,6 +144,8 @@
       line-height: 1.82;
     }
 
+    /* ===== TERMS CONTENT ===== */
+
     .page-wrap {
       padding: 22px 24px 112px;
     }
@@ -160,13 +170,9 @@
       color: #ffffff;
     }
 
-    .terms-top strong {
-      color: #ffffff;
-    }
-
     .terms-top p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.76);
+      color: rgba(255, 255, 255, 0.78);
       font-size: 0.98rem;
       line-height: 1.72;
     }
@@ -244,77 +250,130 @@
       font-size: 0.94rem;
     }
 
-    .site-footer {
-      background: #0b1230;
-      color: rgba(255, 255, 255, 0.78);
-      padding: 58px 24px 36px;
+    /* ===== FOOTER - UNIBRIDGE SITE STYLE ===== */
+
+    .footer {
+      background: #0C274F;
+      color: white;
+      padding: 80px 0 40px;
     }
 
-    .footer-inner {
-      max-width: 1120px;
+    .footer-container {
+      max-width: 1200px;
       margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .footer-logo {
+      height: 200px;
+      margin-bottom: 32px;
+    }
+
+    .footer-content {
       display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 48px;
-      align-items: end;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 60px;
+      margin-bottom: 60px;
     }
 
-    .footer-brand img {
-      width: 108px;
-      height: auto;
-      display: block;
-      margin-bottom: 18px;
-      opacity: 0.92;
+    .footer-about p {
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+      margin: 0 0 24px;
+      max-width: 380px;
     }
 
-    .footer-brand p {
+    .footer-links h3 {
+      color: white;
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 20px;
+    }
+
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
       margin: 0;
-      max-width: 420px;
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 0.94rem;
-      line-height: 1.72;
     }
 
-    .footer-links {
-      display: flex;
-      justify-content: flex-end;
-      gap: 24px;
-      flex-wrap: wrap;
+    .footer-links li {
+      margin-bottom: 12px;
     }
 
     .footer-links a {
-      color: rgba(255, 255, 255, 0.72);
-      font-weight: 500;
-      font-size: 0.92rem;
+      color: rgba(255, 255, 255, 0.8);
       text-decoration: none;
+      transition: color 0.3s ease;
+      font-weight: 400;
     }
 
     .footer-links a:hover {
-      color: #00d4aa;
+      color: #00D4AA;
     }
 
-    @media (max-width: 760px) {
+    .footer-links a.disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    .footer-links a.disabled:hover {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+    }
+
+    .footer-legal {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-legal a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-weight: 400;
+    }
+
+    .footer-legal a:hover {
+      color: #00D4AA;
+    }
+
+    /* ===== RESPONSIVE ===== */
+
+    @media (max-width: 1024px) {
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
       .nav {
-        padding: 20px 18px;
-        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+        padding: 24px 18px 22px;
+        align-items: center;
       }
 
       .logo img {
-        width: 94px;
+        height: 128px;
       }
 
       .nav-links {
-        gap: 16px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-
-      .nav-links a {
-        font-size: 0.86rem;
-      }
-
-      .nav-button {
-        padding: 9px 14px;
+        display: none;
       }
 
       .hero {
@@ -352,25 +411,25 @@
         font-size: 0.96rem;
       }
 
-      .footer-inner {
+      .footer-content {
         grid-template-columns: 1fr;
-        gap: 32px;
+        gap: 40px;
       }
 
-      .footer-links {
-        justify-content: flex-start;
+      .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+      }
+
+      .footer-logo {
+        height: 150px;
       }
     }
 
     @media (max-width: 480px) {
-      .nav {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      .nav-links {
-        justify-content: flex-start;
+      .logo img {
+        height: 116px;
       }
 
       .hero p {
@@ -384,16 +443,29 @@
       .terms-top {
         padding: 24px 20px;
       }
+
+      .footer-logo {
+        height: 130px;
+      }
+
+      .footer-legal {
+        gap: 18px;
+        flex-wrap: wrap;
+      }
     }
   </style>
 </head>
 
 <body>
 
+  <!-- HEADER -->
   <header class="site-header">
     <nav class="nav">
       <a class="logo" href="/">
-        <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png" alt="UniBridge Protocol Logo" />
+        <img
+          src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+          alt="UniBridge Protocol Logo"
+        />
       </a>
 
       <div class="nav-links">
@@ -406,17 +478,19 @@
   </header>
 
   <main>
+    <!-- HERO -->
     <section class="hero">
       <div class="hero-inner">
         <p class="eyebrow">Partner Access</p>
         <h1>Partner Access Terms</h1>
         <p>
-          Terms governing controlled partner access to UniBridge documentation,
-          technical materials, review environments, and phased enablement pathways.
+          Terms governing controlled UniBridge documentation, technical materials,
+          review environments, and phased partner enablement.
         </p>
       </div>
     </section>
 
+    <!-- TERMS -->
     <section class="page-wrap">
       <article class="terms-card">
         <div class="terms-top">
@@ -561,21 +635,62 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png" alt="UniBridge Protocol Logo" />
-        <p>
-          UniBridge provides controlled partner access for corridor review,
-          technical evaluation, and non-custodial payout coordination readiness.
-        </p>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-content">
+
+        <div class="footer-about">
+          <img
+            src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+            alt="UniBridge Protocol Logo"
+            class="footer-logo"
+          />
+
+          <p>
+            UniBridge access is granted in stages, based on partner review,
+            corridor fit, and operational readiness.
+          </p>
+
+          <p>
+            Non-custodial execution coordination for stablecoin-settled payout corridors.
+          </p>
+
+          <p>
+            © 2026 UniBridge Technologies Ltd. All rights reserved.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about/">About UniBridge</a></li>
+            <li><a href="#" class="disabled">Careers</a></li>
+            <li><a href="#" class="disabled">Blog</a></li>
+            <li><a href="#" class="disabled">Press</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="/docs.html">Operating Model</a></li>
+            <li><a href="/surface">Controlled Validation</a></li>
+            <li><a href="/partner-access-terms.html">Partner Access Terms</a></li>
+            <li><a href="/#contact">Request Access</a></li>
+          </ul>
+        </div>
+
       </div>
 
-      <div class="footer-links">
-        <a href="/">Home</a>
-        <a href="/docs.html">Operating Model</a>
-        <a href="/surface">Validation</a>
-        <a href="/#contact">Request Access</a>
+      <div class="footer-bottom">
+        <p></p>
+
+        <div class="footer-legal">
+          <a href="/privacy.html">Privacy</a>
+          <a href="/partner-access-terms.html">Terms</a>
+          <a href="/#contact">Contact</a>
+        </div>
       </div>
     </div>
   </footer>
