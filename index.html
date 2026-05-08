@@ -1027,6 +1027,196 @@
 .toast.show {
   opacity: 1;
 }
+
+    .corridor-map-section {
+  position: relative;
+  padding: 92px 20px 88px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(0, 204, 177, 0.08), transparent 36%),
+    #f8fafc;
+  overflow: hidden;
+  text-align: center;
+}
+
+.corridor-map-wrap {
+  position: relative;
+  max-width: 1040px;
+  height: 420px;
+  margin: 0 auto 36px;
+}
+
+.corridor-world-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.corridor-point {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 204, 177, 0.38);
+  box-shadow: 0 16px 36px rgba(0, 51, 102, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  z-index: 3;
+}
+
+.corridor-point::before,
+.corridor-point::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 204, 177, 0.26);
+  inset: -12px;
+  animation: corridorPulse 3s ease-out infinite;
+}
+
+.corridor-point::after {
+  inset: -24px;
+  opacity: 0.5;
+  animation-delay: 0.9s;
+}
+
+.corridor-point span {
+  position: relative;
+  z-index: 2;
+}
+
+/* positions */
+.corridor-point.us {
+  left: 20%;
+  top: 39%;
+}
+
+.corridor-point.uk {
+  left: 47%;
+  top: 29%;
+}
+
+.corridor-point.eu {
+  left: 53%;
+  top: 35%;
+}
+
+.corridor-point.uae {
+  left: 67%;
+  top: 48%;
+}
+
+.corridor-point.br {
+  left: 33%;
+  top: 68%;
+}
+
+.corridor-point.ng {
+  left: 55%;
+  top: 59%;
+}
+
+.corridor-point.ph {
+  left: 82%;
+  top: 56%;
+}
+
+.corridor-map-copy {
+  position: relative;
+  z-index: 4;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.corridor-map-copy h2 {
+  margin: 0 0 14px;
+  color: #003366;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.corridor-map-copy p {
+  margin: 0 auto;
+  max-width: 680px;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+@keyframes corridorPulse {
+  0% {
+    transform: scale(0.78);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .corridor-map-section {
+    padding: 76px 16px 70px;
+  }
+
+  .corridor-map-wrap {
+    height: 330px;
+    max-width: 680px;
+    margin-bottom: 30px;
+  }
+
+  .corridor-point {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .corridor-point.us {
+    left: 13%;
+    top: 39%;
+  }
+
+  .corridor-point.uk {
+    left: 43%;
+    top: 28%;
+  }
+
+  .corridor-point.eu {
+    left: 51%;
+    top: 35%;
+  }
+
+  .corridor-point.uae {
+    left: 66%;
+    top: 48%;
+  }
+
+  .corridor-point.br {
+    left: 30%;
+    top: 69%;
+  }
+
+  .corridor-point.ng {
+    left: 53%;
+    top: 60%;
+  }
+
+  .corridor-point.ph {
+    left: 82%;
+    top: 57%;
+  }
+}
 </style>
 
 </head>
@@ -1093,6 +1283,67 @@
             </div>
         </div>
     </section>
+
+
+    <!-- CORRIDOR MAP SECTION -->
+<section class="corridor-map-section">
+  <div class="corridor-map-wrap">
+
+    <svg class="corridor-world-map" viewBox="0 0 1200 520" aria-hidden="true">
+      <defs>
+        <pattern id="dotPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="2.1" fill="#9fb3c8" />
+        </pattern>
+
+        <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- simplified dotted world map blobs -->
+      <g opacity="0.28">
+        <!-- North America -->
+        <path fill="url(#dotPattern)" d="M95 160 C145 105, 245 95, 330 120 C405 143, 440 198, 397 255 C365 297, 286 295, 250 260 C213 224, 135 242, 95 210 C72 192, 75 178, 95 160 Z" />
+        <!-- South America -->
+        <path fill="url(#dotPattern)" d="M346 285 C392 305, 420 350, 405 405 C391 455, 360 505, 322 490 C285 474, 280 415, 295 370 C308 330, 310 296, 346 285 Z" />
+        <!-- Europe -->
+        <path fill="url(#dotPattern)" d="M555 145 C596 118, 665 125, 700 160 C732 192, 705 230, 655 220 C615 213, 574 222, 548 195 C530 176, 535 158, 555 145 Z" />
+        <!-- Africa -->
+        <path fill="url(#dotPattern)" d="M600 238 C660 220, 728 250, 748 314 C768 380, 725 455, 655 455 C600 455, 568 395, 578 333 C584 295, 566 254, 600 238 Z" />
+        <!-- Asia -->
+        <path fill="url(#dotPattern)" d="M705 145 C785 95, 950 100, 1068 155 C1148 193, 1125 275, 1035 285 C970 292, 942 250, 890 275 C835 302, 735 270, 703 220 C682 187, 682 160, 705 145 Z" />
+        <!-- Australia / SEA mass -->
+        <path fill="url(#dotPattern)" d="M935 342 C995 326, 1068 350, 1094 395 C1115 433, 1070 465, 1010 455 C952 445, 905 410, 915 375 C919 360, 923 348, 935 342 Z" />
+      </g>
+
+      <!-- faint route arcs -->
+      <path d="M245 235 C405 130, 600 120, 805 250" fill="none" stroke="#00ccb1" stroke-width="1.2" opacity="0.18"/>
+      <path d="M805 250 C675 350, 500 385, 350 365" fill="none" stroke="#00ccb1" stroke-width="1.2" opacity="0.18"/>
+      <path d="M620 185 C760 170, 880 210, 980 285" fill="none" stroke="#003366" stroke-width="1" opacity="0.12"/>
+    </svg>
+
+    <div class="corridor-point us"><span>🇺🇸</span></div>
+    <div class="corridor-point uk"><span>🇬🇧</span></div>
+    <div class="corridor-point eu"><span>🇪🇺</span></div>
+    <div class="corridor-point uae"><span>🇦🇪</span></div>
+    <div class="corridor-point br"><span>🇧🇷</span></div>
+    <div class="corridor-point ng"><span>🇳🇬</span></div>
+    <div class="corridor-point ph"><span>🇵🇭</span></div>
+
+  </div>
+
+  <div class="corridor-map-copy">
+    <h2>Local funding, cross-border payout execution</h2>
+    <p>
+      Coordinate payout flows across the US, UK, Europe, UAE, Brazil, Nigeria,
+      and the Philippines — without UniBridge holding customer funds.
+    </p>
+  </div>
+</section>
 
     <!-- PROBLEM SECTION -->
 <section class="problem-section" id="problem">
