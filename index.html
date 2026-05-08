@@ -970,18 +970,19 @@
     }
 
     .problem-panel {
-      background:
-        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.22), transparent 34%),
-        linear-gradient(135deg, #008c8c 0%, #006f86 48%, #003f66 100%);
-      color: #ffffff;
-      border-radius: 28px;
-      padding: 68px 64px;
-      box-shadow:
-        0 28px 80px rgba(0, 51, 102, 0.16),
-        0 12px 34px rgba(0, 0, 0, 0.10);
-      overflow: hidden;
-      position: relative;
-    }
+  background:
+    radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.12), transparent 32%),
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.06), transparent 28%),
+    linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
+  color: #ffffff;
+  border-radius: 26px;
+  padding: 68px 64px;
+  box-shadow:
+    0 28px 80px rgba(0, 51, 102, 0.18),
+    0 12px 34px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  position: relative;
+}
 
     .problem-panel::before {
       content: "";
@@ -1020,49 +1021,53 @@
     .problem-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 34px;
+      gap: .problem-card {
+  padding: 28px 26px;
+  min-height: 210px;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow: none;
+  position: relative;
+}
+
+.problem-icon {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+  color: #ffffff;
+  background: rgba(0, 212, 170, 0.16);
+  border: 1px solid rgba(0, 212, 170, 0.22);
+  border-radius: 13px;
+}
+
+.problem-icon svg {
+  width: 21px;
+  height: 21px;
+  stroke-width: 2;
+}
+
+.problem-card h3 {
+  margin: 0 0 12px;
+  color: #ffffff;
+  font-size: 1.12rem;
+  line-height: 1.38;
+  font-weight: 650;
+  letter-spacing: -0.018em;
+}
+
+.problem-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.72;
+  font-weight: 400;
+}34px;
       position: relative;
       z-index: 1;
-    }
-
-    .problem-card {
-      padding-top: 2px;
-    }
-
-    .problem-icon {
-      width: 42px;
-      height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 22px;
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 13px;
-    }
-
-    .problem-icon svg {
-      width: 21px;
-      height: 21px;
-      stroke-width: 2;
-    }
-
-    .problem-card h3 {
-      margin: 0 0 12px;
-      color: #ffffff;
-      font-size: 1.12rem;
-      line-height: 1.38;
-      font-weight: 650;
-      letter-spacing: -0.018em;
-    }
-
-    .problem-card p {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.72);
-      font-size: 0.95rem;
-      line-height: 1.72;
-      font-weight: 400;
     }
 
     @media (max-width: 900px) {
