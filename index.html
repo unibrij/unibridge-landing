@@ -838,9 +838,17 @@
                 padding: 24px;
             }
 
-            .hero-video-container {
-                height: 320px;
-            }
+            @media (max-width: 480px) {
+    .hero-video-container {
+        height: 320px;
+        background: linear-gradient(135deg, #003366 0%, #001a33 100%);
+    }
+
+    .hero-video-container .video-bg {
+        object-fit: contain;
+        object-position: center center;
+    }
+}
 
             .trust-logos {
                 gap: 30px;
