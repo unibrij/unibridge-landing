@@ -1,0 +1,64 @@
+<svg style="background: #f8f9fa;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" height="650" width="1200">
+  
+  
+  
+  <g opacity="0.85">
+    <circle fill="#81c2ff" r="2.5" cy="180" cx="180"></circle>
+    <circle fill="#81c2ff" r="2" cy="165" cx="195"></circle>
+    <circle fill="#81c2ff" r="3" cy="190" cx="210"></circle>
+    <circle fill="#81c2ff" r="2" cy="210" cx="165"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="145" cx="230"></circle>
+    <circle fill="#81c2ff" r="2" cy="170" cx="250"></circle>
+    <circle fill="#81c2ff" r="3" cy="155" cx="280"></circle>
+    <circle fill="#81c2ff" r="2" cy="195" cx="300"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="230" cx="195"></circle>
+  </g>
+
+  
+  <g opacity="0.85">
+    <circle fill="#81c2ff" r="3" cy="380" cx="280"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="420" cx="295"></circle>
+    <circle fill="#81c2ff" r="3" cy="460" cx="265"></circle>
+    <circle fill="#81c2ff" r="2" cy="510" cx="290"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="480" cx="310"></circle>
+  </g>
+
+  
+  <g opacity="0.85">
+    
+    <circle fill="#81c2ff" r="2.5" cy="190" cx="520"></circle>
+    <circle fill="#81c2ff" r="2" cy="175" cx="550"></circle>
+    <circle fill="#81c2ff" r="3" cy="205" cx="580"></circle>
+    <circle fill="#81c2ff" r="2" cy="185" cx="610"></circle>
+    
+    <circle fill="#81c2ff" r="3" cy="220" cx="720"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="190" cx="780"></circle>
+    <circle fill="#81c2ff" r="3" cy="240" cx="850"></circle>
+    <circle fill="#81c2ff" r="2" cy="260" cx="900"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="280" cx="680"></circle>
+  </g>
+
+  
+  <g opacity="0.85">
+    <circle fill="#81c2ff" r="3" cy="340" cx="520"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="390" cx="480"></circle>
+    <circle fill="#81c2ff" r="3" cy="420" cx="550"></circle>
+    <circle fill="#81c2ff" r="2" cy="480" cx="510"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="380" cx="580"></circle>
+  </g>
+
+  
+  <g opacity="0.85">
+    <circle fill="#81c2ff" r="3" cy="320" cx="720"></circle>
+    <circle fill="#81c2ff" r="2" cy="350" cx="760"></circle>
+  </g>
+
+  
+  <g opacity="0.85">
+    <circle fill="#81c2ff" r="3" cy="480" cx="950"></circle>
+    <circle fill="#81c2ff" r="2.5" cy="500" cx="980"></circle>
+    <circle fill="#81c2ff" r="2" cy="490" cx="1020"></circle>
+  </g>
+
+  
+</svg>
