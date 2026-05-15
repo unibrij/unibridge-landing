@@ -38,6 +38,10 @@ let nextActionProcessing = false;
 let currentRouteQuote = null;
 let paymentStarted = false;
 
+let coinsPhChannelOptions = [];
+let coinsPhChannelsLoaded = false;
+let coinsPhChannelsLoading = false;
+
 const STORAGE_KEY = "ub_settlement";
 
 /* =========================
@@ -46,12 +50,25 @@ const STORAGE_KEY = "ub_settlement";
 
 const sendBtn = document.getElementById("sendBtn");
 const continueBtn = document.getElementById("continueBtn");
+const coinsPhContinueBtn = document.getElementById("coinsPhContinueBtn");
 const signBtn = document.getElementById("signBtn");
 const statusBox = document.getElementById("status");
+
+const coinsPhBankSelect = document.getElementById("coinsPhBank");
+const coinsPhRecipientFields = document.getElementById("coinsPhRecipientFields");
+const coinsPhRecipientNameInput = document.getElementById("coinsPhRecipientName");
+const coinsPhRecipientAccountInput = document.getElementById("coinsPhRecipientAccount");
+const coinsPhRecipientAddressInput = document.getElementById("coinsPhRecipientAddress");
+const coinsPhRemarksInput = document.getElementById("coinsPhRemarks");
+const coinsPhHint = document.getElementById("coinsPhHint");
 
 if (signBtn) {
   signBtn.disabled = true;
   signBtn.style.display = "none";
+}
+
+if (coinsPhContinueBtn) {
+  coinsPhContinueBtn.disabled = true;
 }
 
 /* =========================
@@ -133,28 +150,60 @@ function isFundingReturn() {
 }
 
 /* =========================
-   HELPERS
+   BASIC HELPERS
 ========================= */
+
+function getDestinationCountryCode() {
+  return String(getValue("country")?.value || "")
+    .toUpperCase()
+    .trim();
+}
+
+function isPhilippinesDestination() {
+  return getDestinationCountryCode() === "PH";
+}
+
+function isBrazilDestination() {
+  return getDestinationCountryCode() === "BR";
+}
 
 function resetQuoteState() {
   currentRouteQuote = null;
   currentFundingProvider = null;
+  resetCoinsPhState();
 }
 
 function setContinueButtonMode(mode) {
-  if (!continueBtn) return;
+  const label =
+    mode === "prepare_payment"
+      ? "Prepare payment"
+      : mode === "open_payment"
+        ? "Continue to payment"
+        : "Continue";
 
-  if (mode === "prepare_payment") {
-    continueBtn.innerText = "Prepare payment";
-    return;
+  if (continueBtn) {
+    continueBtn.innerText = label;
   }
 
-  if (mode === "open_payment") {
-    continueBtn.innerText = "Continue to payment";
-    return;
+  if (coinsPhContinueBtn) {
+    coinsPhContinueBtn.innerText = label;
+  }
+}
+
+function setContinueButtonsDisabled(disabled) {
+  if (continueBtn) {
+    continueBtn.disabled = Boolean(disabled);
   }
 
-  continueBtn.innerText = "Continue";
+  if (coinsPhContinueBtn) {
+    coinsPhContinueBtn.disabled = Boolean(disabled);
+  }
+}
+
+function getActiveContinueButton() {
+  return isPhilippinesDestination()
+    ? coinsPhContinueBtn
+    : continueBtn;
 }
 
 function resetUiToStart() {
@@ -163,12 +212,14 @@ function resetUiToStart() {
 
 function getCountryLabel() {
   const receiver =
-    String(getValue("country")?.value || "")
-      .toUpperCase()
-      .trim();
+    getDestinationCountryCode();
 
   if (receiver === "BR") {
     return "Brazil";
+  }
+
+  if (receiver === "PH") {
+    return "Philippines";
   }
 
   if (receiver === "GB" || receiver === "UK") {
@@ -205,10 +256,13 @@ function setCurrentFundingProvider(value) {
 }
 
 function refreshAmountLimitUi() {
+  const activeContinueBtn =
+    getActiveContinueButton() || continueBtn;
+
   const result = applyAmountLimitUi({
     amountInput: getValue("amount"),
     messageEl: document.getElementById("amountLimitHint"),
-    continueBtn,
+    continueBtn: activeContinueBtn,
     provider: currentFundingProvider,
     country: getSourceCountryCode()
   });
@@ -216,7 +270,7 @@ function refreshAmountLimitUi() {
   /*
   --------------------------------------------------
   Quote button guard
-  --------------------------------------------------
+
   Before quote, provider may be null. amount-limits.js
   falls back to source-country limits, so controlled
   corridors such as AE are blocked visually before
@@ -250,9 +304,483 @@ function resetFlowForRouteInputChange() {
     sendBtn.disabled = !limitCheck.ok;
   }
 
-  if (continueBtn) {
-    continueBtn.disabled = true;
+  setContinueButtonsDisabled(true);
+}
+
+/* =========================
+   COINSPH / PHILIPPINES HELPERS
+========================= */
+
+function resetCoinsPhState() {
+  coinsPhChannelOptions = [];
+  coinsPhChannelsLoaded = false;
+  coinsPhChannelsLoading = false;
+
+  if (coinsPhBankSelect) {
+    coinsPhBankSelect.innerHTML =
+      '<option value="">Select payout institution</option>';
+    coinsPhBankSelect.disabled = false;
   }
+
+  if (coinsPhRecipientFields) {
+    coinsPhRecipientFields.style.display = "none";
+  }
+
+  if (coinsPhRecipientNameInput) {
+    coinsPhRecipientNameInput.value = "";
+  }
+
+  if (coinsPhRecipientAccountInput) {
+    coinsPhRecipientAccountInput.value = "";
+  }
+
+  if (coinsPhRecipientAddressInput) {
+    coinsPhRecipientAddressInput.value = "";
+  }
+
+  if (coinsPhRemarksInput) {
+    coinsPhRemarksInput.value = "";
+  }
+
+  if (coinsPhHint) {
+    coinsPhHint.innerText =
+      "Select a payout institution, then enter the recipient details required for the Philippines payout.";
+  }
+
+  if (coinsPhContinueBtn) {
+    coinsPhContinueBtn.disabled = true;
+  }
+}
+
+function normalizeDigits(value) {
+  return String(value || "")
+    .replace(/[^\d]/g, "")
+    .trim();
+}
+
+function normalizeOptionalText(value) {
+  const normalized =
+    String(value || "").trim();
+
+  return normalized || null;
+}
+
+function getSelectedCoinsPhChannelOption() {
+  if (!coinsPhBankSelect) {
+    return null;
+  }
+
+  const index =
+    Number(coinsPhBankSelect.value);
+
+  if (!Number.isInteger(index) || index < 0) {
+    return null;
+  }
+
+  return coinsPhChannelOptions[index] || null;
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderCoinsPhBankOptions(options = []) {
+  coinsPhChannelOptions =
+    Array.isArray(options)
+      ? options
+      : [];
+
+  if (!coinsPhBankSelect) {
+    return;
+  }
+
+  if (!coinsPhChannelOptions.length) {
+    coinsPhBankSelect.innerHTML =
+      '<option value="">No payout institutions available</option>';
+    coinsPhBankSelect.disabled = true;
+    return;
+  }
+
+  const optionHtml =
+    coinsPhChannelOptions
+      .map((option, index) => {
+        const label =
+          escapeHtml(
+            option.label ||
+              option.bankName ||
+              option.channelSubject ||
+              ""
+          );
+
+        const channel =
+          escapeHtml(
+            option.channelName || ""
+          );
+
+        return `<option value="${index}">${label}${channel ? ` — ${channel}` : ""}</option>`;
+      })
+      .join("");
+
+  coinsPhBankSelect.innerHTML =
+    `<option value="">Select payout institution</option>${optionHtml}`;
+
+  coinsPhBankSelect.disabled = false;
+}
+
+async function loadCoinsPhPayoutChannels() {
+  if (!isPhilippinesDestination()) {
+    return;
+  }
+
+  if (!coinsPhBankSelect) {
+    return;
+  }
+
+  /*
+  --------------------------------------------------
+  Important:
+  Do not pass amount here.
+
+  The final PHP payout amount may depend on the ramp
+  fill / USDC amount actually sold into the route.
+  So the Surface loads general supported PH payout
+  institutions and leaves amount validation to the
+  provider/execution stage.
+  --------------------------------------------------
+  */
+
+  if (
+    coinsPhChannelsLoaded &&
+    coinsPhChannelOptions.length
+  ) {
+    updateCoinsPhContinueState();
+    return;
+  }
+
+  coinsPhChannelsLoading = true;
+
+  coinsPhBankSelect.disabled = true;
+  coinsPhBankSelect.innerHTML =
+    '<option value="">Loading payout institutions...</option>';
+
+  if (coinsPhRecipientFields) {
+    coinsPhRecipientFields.style.display = "none";
+  }
+
+  if (coinsPhContinueBtn) {
+    coinsPhContinueBtn.disabled = true;
+  }
+
+  if (coinsPhHint) {
+    coinsPhHint.innerText =
+      "Loading Philippines payout institutions...";
+  }
+
+  try {
+    const response =
+      await apiGet(
+        "surface/options/coinsph/ph-payout-channels",
+        {}
+      );
+
+    if (!response?.ok) {
+      throw new Error(
+        response?.error ||
+        "COINSPH_CHANNELS_LOAD_FAILED"
+      );
+    }
+
+    renderCoinsPhBankOptions(response.options || []);
+
+    coinsPhChannelsLoaded =
+      true;
+
+    if (coinsPhHint) {
+      coinsPhHint.innerText =
+        response.count
+          ? "Select a payout institution, then enter recipient details."
+          : "No payout institutions are currently available.";
+    }
+
+    updateCoinsPhContinueState();
+  } catch (err) {
+    coinsPhChannelOptions = [];
+    coinsPhChannelsLoaded = false;
+
+    coinsPhBankSelect.innerHTML =
+      '<option value="">Could not load payout institutions</option>';
+    coinsPhBankSelect.disabled = true;
+
+    if (coinsPhHint) {
+      coinsPhHint.innerText =
+        "Could not load Philippines payout institutions. Please try again.";
+    }
+
+    throw err;
+  } finally {
+    coinsPhChannelsLoading = false;
+  }
+}
+
+function updateCoinsPhRecipientFieldsVisibility() {
+  if (!coinsPhRecipientFields) {
+    return;
+  }
+
+  const selected =
+    getSelectedCoinsPhChannelOption();
+
+  coinsPhRecipientFields.style.display =
+    selected
+      ? "block"
+      : "none";
+}
+
+function validateCoinsPhDestinationInput() {
+  const selected =
+    getSelectedCoinsPhChannelOption();
+
+  if (!selected) {
+    return {
+      ok: false,
+      error: "COINSPH_BANK_REQUIRED"
+    };
+  }
+
+  const recipientName =
+    normalizeOptionalText(
+      coinsPhRecipientNameInput?.value
+    );
+
+  const recipientAccountNumber =
+    normalizeDigits(
+      coinsPhRecipientAccountInput?.value
+    );
+
+  const recipientAddress =
+    normalizeOptionalText(
+      coinsPhRecipientAddressInput?.value
+    );
+
+  const remarks =
+    normalizeOptionalText(
+      coinsPhRemarksInput?.value
+    );
+
+  if (!recipientName) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_NAME_REQUIRED"
+    };
+  }
+
+  if (recipientName.length < 2) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_NAME_TOO_SHORT"
+    };
+  }
+
+  if (recipientName.length > 80) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_NAME_TOO_LONG"
+    };
+  }
+
+  if (!recipientAccountNumber) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_ACCOUNT_NUMBER_REQUIRED"
+    };
+  }
+
+  if (recipientAccountNumber.length < 6) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_ACCOUNT_NUMBER_TOO_SHORT"
+    };
+  }
+
+  if (recipientAccountNumber.length > 30) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_ACCOUNT_NUMBER_TOO_LONG"
+    };
+  }
+
+  if (
+    recipientAddress &&
+    recipientAddress.length > 160
+  ) {
+    return {
+      ok: false,
+      error: "COINSPH_RECIPIENT_ADDRESS_TOO_LONG"
+    };
+  }
+
+  if (
+    remarks &&
+    remarks.length > 120
+  ) {
+    return {
+      ok: false,
+      error: "COINSPH_REMARKS_TOO_LONG"
+    };
+  }
+
+  return {
+    ok: true,
+    option: selected,
+    recipientName,
+    recipientAccountNumber,
+    recipientAddress,
+    remarks
+  };
+}
+
+function updateCoinsPhContinueState() {
+  updateCoinsPhRecipientFieldsVisibility();
+
+  if (!coinsPhContinueBtn) {
+    return;
+  }
+
+  if (!isPhilippinesDestination()) {
+    coinsPhContinueBtn.disabled = true;
+    return;
+  }
+
+  if (coinsPhChannelsLoading) {
+    coinsPhContinueBtn.disabled = true;
+    return;
+  }
+
+  const validation =
+    validateCoinsPhDestinationInput();
+
+  coinsPhContinueBtn.disabled =
+    !validation.ok;
+}
+
+function buildBrazilDestinationPayload() {
+  const pix =
+    getValue("pix")?.value.trim();
+
+  const taxIdEl =
+    getValue("taxId");
+
+  const taxId =
+    taxIdEl
+      ? taxIdEl.value.trim()
+      : "";
+
+  if (!pix) {
+    throw new Error("PIX_required");
+  }
+
+  return taxId
+    ? {
+        pix,
+        tax_id: taxId
+      }
+    : {
+        pix
+      };
+}
+
+function buildPhilippinesDestinationPayload() {
+  const validation =
+    validateCoinsPhDestinationInput();
+
+  if (!validation.ok) {
+    throw new Error(validation.error);
+  }
+
+  const {
+    option,
+    recipientName,
+    recipientAccountNumber,
+    recipientAddress,
+    remarks
+  } =
+    validation;
+
+  const channelName =
+    option.channelName ||
+    option.transactionChannel;
+
+  const channelSubject =
+    option.channelSubject ||
+    option.transactionSubject;
+
+  if (!channelName) {
+    throw new Error("COINSPH_CHANNEL_NAME_MISSING");
+  }
+
+  if (!channelSubject) {
+    throw new Error("COINSPH_CHANNEL_SUBJECT_MISSING");
+  }
+
+  const destination = {
+    country:
+      "PH",
+
+    currency:
+      "PHP",
+
+    bankId:
+      option.id || null,
+
+    bankName:
+      option.label || null,
+
+    bankCode:
+      channelSubject,
+
+    channelName,
+    channelSubject,
+
+    transactionChannel:
+      option.transactionChannel || channelName,
+
+    transactionSubject:
+      option.transactionSubject || channelSubject,
+
+    name:
+      recipientName,
+
+    account:
+      recipientAccountNumber
+  };
+
+  if (recipientAddress) {
+    destination.recipientAddress =
+      recipientAddress;
+  }
+
+  if (remarks) {
+    destination.remarks =
+      remarks;
+  }
+
+  return destination;
+}
+
+function buildDestinationPayload() {
+  if (isPhilippinesDestination()) {
+    return buildPhilippinesDestinationPayload();
+  }
+
+  if (isBrazilDestination()) {
+    return buildBrazilDestinationPayload();
+  }
+
+  throw new Error("unsupported_destination_country");
 }
 
 /* =========================
@@ -341,9 +869,7 @@ function clearState() {
     signBtn.disabled = true;
   }
 
-  if (continueBtn) {
-    continueBtn.disabled = true;
-  }
+  setContinueButtonsDisabled(true);
 
   if (sendBtn) {
     sendBtn.disabled = false;
@@ -381,7 +907,7 @@ async function refreshSettlementState() {
   handleSettlementStatus({
     status,
     signBtn,
-    continueBtn,
+    continueBtn: getActiveContinueButton() || continueBtn,
     emit,
     setStatus,
     clearState
@@ -441,9 +967,7 @@ async function startFlow() {
       sendBtn.disabled = true;
     }
 
-    if (continueBtn) {
-      continueBtn.disabled = true;
-    }
+    setContinueButtonsDisabled(true);
 
     if (signBtn) {
       signBtn.disabled = true;
@@ -511,12 +1035,19 @@ async function startFlow() {
 
     emit("unibridge:quote");
 
+    setContinueButtonMode("prepare_payment");
+    refreshAmountLimitUi();
+
+    if (isPhilippinesDestination()) {
+      await loadCoinsPhPayoutChannels();
+      updateCoinsPhContinueState();
+      setStatus("Select payout institution and enter recipient details.");
+      return;
+    }
+
     if (continueBtn) {
       continueBtn.disabled = false;
     }
-
-    setContinueButtonMode("prepare_payment");
-    refreshAmountLimitUi();
 
     setStatus("Enter PIX key");
   } catch (e) {
@@ -524,13 +1055,24 @@ async function startFlow() {
 
     const limitCheck = refreshAmountLimitUi();
 
-    if (continueBtn && (!limitCheck || limitCheck.ok)) {
-      continueBtn.disabled = false;
+    const activeBtn =
+      getActiveContinueButton();
+
+    if (activeBtn && (!limitCheck || limitCheck.ok)) {
+      if (isPhilippinesDestination()) {
+        updateCoinsPhContinueState();
+      } else {
+        activeBtn.disabled = false;
+      }
     }
   } finally {
     processing = false;
 
     refreshAmountLimitUi();
+
+    if (isPhilippinesDestination()) {
+      updateCoinsPhContinueState();
+    }
   }
 }
 
@@ -540,6 +1082,9 @@ async function startFlow() {
 
 async function continueFlow() {
   if (processing) return;
+
+  const activeContinueBtn =
+    getActiveContinueButton() || continueBtn;
 
   try {
     const limitCheck = refreshAmountLimitUi();
@@ -557,16 +1102,8 @@ async function continueFlow() {
 
     processing = true;
 
-    if (continueBtn) {
-      continueBtn.disabled = true;
-    }
-
-    const pix = getValue("pix")?.value.trim();
-    const taxIdEl = getValue("taxId");
-    const taxId = taxIdEl ? taxIdEl.value.trim() : "";
-
-    if (!pix) {
-      throw new Error("PIX_required");
+    if (activeContinueBtn) {
+      activeContinueBtn.disabled = true;
     }
 
     if (!sessionId) {
@@ -583,9 +1120,7 @@ async function continueFlow() {
       }
 
       const destination =
-        taxId
-          ? { pix, tax_id: taxId }
-          : { pix };
+        buildDestinationPayload();
 
       const redirect_url = buildFundingReturnUrl(sessionId);
 
@@ -646,8 +1181,8 @@ async function continueFlow() {
 
       setStatus("Payment prepared. Tap again to continue.");
 
-      if (continueBtn) {
-        continueBtn.disabled = false;
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled = false;
       }
 
       return;
@@ -660,8 +1195,8 @@ async function continueFlow() {
         action.label || "Waiting for payment confirmation..."
       );
 
-      if (continueBtn) {
-        continueBtn.disabled = false;
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled = false;
       }
 
       return;
@@ -673,8 +1208,8 @@ async function continueFlow() {
         buildKycPayload,
         setStatus,
         setContinueDisabled(value) {
-          if (continueBtn) {
-            continueBtn.disabled = value;
+          if (activeContinueBtn) {
+            activeContinueBtn.disabled = value;
           }
         },
         setContinueMode(mode) {
@@ -715,8 +1250,8 @@ async function continueFlow() {
       setContinueButtonMode("open_payment");
       setStatus("Payment prepared. Tap again to continue.");
 
-      if (continueBtn) {
-        continueBtn.disabled = false;
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled = false;
       }
 
       return;
@@ -728,8 +1263,12 @@ async function continueFlow() {
 
     const limitCheck = refreshAmountLimitUi();
 
-    if (continueBtn && (!limitCheck || limitCheck.ok)) {
-      continueBtn.disabled = false;
+    if (activeContinueBtn && (!limitCheck || limitCheck.ok)) {
+      if (isPhilippinesDestination()) {
+        updateCoinsPhContinueState();
+      } else {
+        activeContinueBtn.disabled = false;
+      }
     }
   } finally {
     processing = false;
@@ -751,6 +1290,9 @@ async function resumeFlowFromState() {
     setCurrentFundingProvider(
       getFundingSelectedProvider(status)
     );
+
+    const activeContinueBtn =
+      getActiveContinueButton() || continueBtn;
 
     if (status?.status === "waiting_ramp_payment") {
       if (!paymentStarted) {
@@ -782,8 +1324,8 @@ async function resumeFlowFromState() {
 
       setContinueButtonMode("open_payment");
 
-      if (continueBtn) {
-        continueBtn.disabled = false;
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled = false;
       }
 
       setStatus(
@@ -800,7 +1342,7 @@ async function resumeFlowFromState() {
     handleSettlementStatus({
       status,
       signBtn,
-      continueBtn,
+      continueBtn: activeContinueBtn,
       emit,
       setStatus,
       clearState
@@ -885,6 +1427,16 @@ const countryInput = getValue("country");
 
 if (amountInput) {
   amountInput.addEventListener("input", () => {
+    if (
+      sessionId ||
+      routeId ||
+      settlementId ||
+      currentRouteQuote
+    ) {
+      resetFlowForRouteInputChange();
+      return;
+    }
+
     refreshAmountLimitUi();
   });
 
@@ -905,6 +1457,27 @@ if (countryInput) {
   });
 }
 
+if (coinsPhBankSelect) {
+  coinsPhBankSelect.addEventListener("change", () => {
+    updateCoinsPhContinueState();
+  });
+}
+
+[
+  coinsPhRecipientNameInput,
+  coinsPhRecipientAccountInput,
+  coinsPhRecipientAddressInput,
+  coinsPhRemarksInput
+].forEach((input) => {
+  input?.addEventListener("input", () => {
+    updateCoinsPhContinueState();
+  });
+
+  input?.addEventListener("blur", () => {
+    updateCoinsPhContinueState();
+  });
+});
+
 /* =========================
    EVENTS
 ========================= */
@@ -915,4 +1488,8 @@ if (sendBtn) {
 
 if (continueBtn) {
   continueBtn.onclick = continueFlow;
+}
+
+if (coinsPhContinueBtn) {
+  coinsPhContinueBtn.onclick = continueFlow;
 }
