@@ -2193,6 +2193,36 @@
       .trust-life-node.n3 { left: 68%; }
       .trust-life-node.n4 { left: 93%; }
     }
+
+      .trust-statement span {
+  display: block;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.trust-typewriter::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 4px;
+  vertical-align: -0.12em;
+  background: rgba(0, 212, 170, 0.95);
+  animation: trustCursorBlink 0.85s steps(1) infinite;
+}
+
+.trust-typewriter.is-complete::after {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes trustCursorBlink {
+  50% {
+    opacity: 0;
+  }
+}
   </style>
 
   <div class="container">
@@ -2209,11 +2239,12 @@
           </p>
 
           <div class="trust-statement">
-            <span>
-              Controlled live tests, private documentation, and execution evidence support partner review before broader activation.
-            </span>
-          </div>
-
+  <span
+    class="trust-typewriter"
+    data-typewriter="Controlled live tests, private documentation, and execution evidence support partner review before broader activation."
+  ></span>
+</div>
+            
           <div class="trust-lifecycle-bg" aria-hidden="true">
             <div class="trust-lifecycle-line"></div>
 
@@ -3002,7 +3033,44 @@ window.addEventListener('load', updateContactText);
 </script>
 
 <div id="toast" class="toast"></div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const el = document.querySelector("[data-typewriter]");
 
+    if (!el) return;
+
+    const fullText = el.getAttribute("data-typewriter");
+    let started = false;
+
+    function typeText() {
+      let index = 0;
+      const speed = 26;
+
+      const timer = window.setInterval(() => {
+        el.textContent = fullText.slice(0, index + 1);
+        index += 1;
+
+        if (index >= fullText.length) {
+          window.clearInterval(timer);
+          el.classList.add("is-complete");
+        }
+      }, speed);
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && !started) {
+          started = true;
+          typeText();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.45 }
+    );
+
+    observer.observe(el);
+  });
+</script>
 </body>
     
 
