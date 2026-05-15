@@ -14,6 +14,14 @@ const ALLOWED = new Set([
   "funding/session",
   "settlement/status",
 
+  /*
+  --------------------------------------------------
+  Surface payout options
+  --------------------------------------------------
+  */
+
+  "surface/options/coinsph/ph-payout-channels",
+
   "ramp/auth/start",
   "ramp/auth/verify",
   "ramp/user",
@@ -69,7 +77,8 @@ function getAllowedMethod(endpoint) {
     endpoint === "settlement/status" ||
     endpoint === "ramp/user" ||
     endpoint === "ramp/kyc/requirement" ||
-    endpoint === "ramp/order/status"
+    endpoint === "ramp/order/status" ||
+    endpoint === "surface/options/coinsph/ph-payout-channels"
   ) {
     return "GET";
   }
