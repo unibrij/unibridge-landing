@@ -61,7 +61,6 @@
       padding: 0 20px;
     }
 
-    /* ===== NAVIGATION ===== */
     header {
       background: transparent;
       position: relative;
@@ -125,7 +124,6 @@
       text-decoration: none;
     }
 
-    /* ===== HERO ===== */
     .surface-hero {
       padding: 74px 0 88px;
       background:
@@ -200,7 +198,6 @@
       flex: 0 0 auto;
     }
 
-    /* ===== SURFACE SECTION ===== */
     .surface-section {
       padding: 104px 0 118px;
       background: #f8fafc;
@@ -319,7 +316,6 @@
       line-height: 1.4;
     }
 
-    /* ===== FORM SIDE ===== */
     .surface-form-wrap {
       position: relative;
     }
@@ -491,9 +487,15 @@
 
     #pixBox,
     #taxBox,
-    #authBox {
+    #authBox,
+    #coinsPhBox {
       display: none;
       margin-top: 16px;
+    }
+
+    #coinsPhRecipientFields {
+      display: none;
+      margin-top: 4px;
     }
 
     .surface-form h3 {
@@ -552,7 +554,6 @@
       color: var(--navy);
     }
 
-    /* ===== FOOTER ===== */
     .footer {
       background: #0b1230;
       color: #ffffff;
@@ -701,7 +702,6 @@
       color: #ffffff;
     }
 
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 1024px) {
       .surface-container {
         gap: 56px;
@@ -925,7 +925,6 @@
 </head>
 
 <body>
-  <!-- NAVIGATION -->
   <header>
     <div class="container">
       <nav class="navbar">
@@ -948,7 +947,6 @@
     </div>
   </header>
 
-  <!-- HERO -->
   <section class="surface-hero">
     <div class="container">
       <div class="surface-hero-inner fade-in">
@@ -970,12 +968,9 @@
     </div>
   </section>
 
-  <!-- SURFACE SECTION -->
   <section class="surface-section">
     <div class="container">
       <div class="surface-container">
-
-        <!-- LEFT SIDE: INSTRUCTIONS -->
         <div class="surface-info fade-in">
           <h2>What this test validates</h2>
 
@@ -1031,7 +1026,6 @@
           </div>
         </div>
 
-        <!-- RIGHT SIDE: FORM -->
         <div class="surface-form-wrap fade-in">
           <div class="steps">
             <div id="step1" class="step active">Setup</div>
@@ -1072,6 +1066,7 @@
             <label class="field-label" for="country">Destination country</label>
             <select id="country">
               <option value="BR">Brazil</option>
+              <option value="PH">Philippines</option>
             </select>
 
             <button id="sendBtn" type="button" class="surface-button">Get quote</button>
@@ -1093,6 +1088,64 @@
 
               <div class="muted">
                 Enter a valid PIX key for the test recipient.
+              </div>
+            </div>
+
+            <div id="coinsPhBox">
+              <h3>Philippines payout details</h3>
+
+              <label class="field-label" for="coinsPhBank">
+                Bank / payout institution
+              </label>
+              <select id="coinsPhBank">
+                <option value="">Loading payout institutions...</option>
+              </select>
+
+              <div id="coinsPhRecipientFields">
+                <label class="field-label" for="coinsPhRecipientName">
+                  Recipient full legal name
+                </label>
+                <input
+                  id="coinsPhRecipientName"
+                  type="text"
+                  placeholder="Name as registered with the receiving bank"
+                />
+
+                <label class="field-label" for="coinsPhRecipientAccount">
+                  Bank account number
+                </label>
+                <input
+                  id="coinsPhRecipientAccount"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Enter bank account number"
+                />
+
+                <label class="field-label" for="coinsPhRecipientAddress">
+                  Recipient address
+                </label>
+                <input
+                  id="coinsPhRecipientAddress"
+                  type="text"
+                  placeholder="Optional"
+                />
+
+                <label class="field-label" for="coinsPhRemarks">
+                  Remarks
+                </label>
+                <input
+                  id="coinsPhRemarks"
+                  type="text"
+                  placeholder="Optional payment note"
+                />
+              </div>
+
+              <button id="coinsPhContinueBtn" type="button" class="surface-button" disabled>
+                Continue to payment
+              </button>
+
+              <div class="muted" id="coinsPhHint">
+                Select a payout institution, then enter the recipient details required for the Philippines payout.
               </div>
             </div>
 
@@ -1123,15 +1176,12 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-container">
-
       <img
         src="/public/icons/social/Ub.png"
         alt="UniBridge Logo"
@@ -1139,7 +1189,6 @@
       />
 
       <div class="footer-content">
-
         <div class="footer-about">
           <p>
             UniBridge access is granted in stages, based on partner review,
@@ -1190,7 +1239,6 @@
             </li>
           </ul>
         </div>
-
       </div>
 
       <div class="footer-bottom">
@@ -1218,7 +1266,6 @@
           <a href="/#contact">Contact</a>
         </div>
       </div>
-
     </div>
   </footer>
 
@@ -1242,6 +1289,12 @@
     const pixBox = document.getElementById("pixBox");
     const taxBox = document.getElementById("taxBox");
     const authBox = document.getElementById("authBox");
+    const coinsPhBox = document.getElementById("coinsPhBox");
+    const coinsPhRecipientFields = document.getElementById("coinsPhRecipientFields");
+
+    function getSelectedDestinationCountry() {
+      return document.getElementById("country")?.value || "BR";
+    }
 
     function showSummary() {
       summaryBox.style.display = "block";
@@ -1275,57 +1328,93 @@
       authBox.style.display = "none";
     }
 
-    function resetUiToStart() {
-      hideSummary();
+    function showCoinsPhBox() {
+      coinsPhBox.style.display = "block";
+    }
+
+    function hideCoinsPhBox() {
+      coinsPhBox.style.display = "none";
+      if (coinsPhRecipientFields) {
+        coinsPhRecipientFields.style.display = "none";
+      }
+    }
+
+    function showDestinationBox() {
+      if (getSelectedDestinationCountry() === "PH") {
+        hidePixBox();
+        hideTaxBox();
+        showCoinsPhBox();
+        return;
+      }
+
+      hideCoinsPhBox();
+      showPixBox();
+    }
+
+    function hideDestinationBoxes() {
       hidePixBox();
       hideTaxBox();
+      hideCoinsPhBox();
+    }
+
+    function resetUiToStart() {
+      hideSummary();
+      hideDestinationBoxes();
       hideAuthBox();
       setStep(1);
     }
 
     window.resetUiToStart = resetUiToStart;
+    window.showDestinationBox = showDestinationBox;
+    window.hideDestinationBoxes = hideDestinationBoxes;
+    window.showCoinsPhBox = showCoinsPhBox;
+    window.hideCoinsPhBox = hideCoinsPhBox;
 
     window.addEventListener("unibridge:quote", () => {
       showSummary();
-      showPixBox();
-      hideTaxBox();
+      showDestinationBox();
       hideAuthBox();
       setStep(2);
     });
 
     window.addEventListener("unibridge:payment", () => {
       showSummary();
-      showPixBox();
-      hideTaxBox();
+      showDestinationBox();
       hideAuthBox();
       setStep(3);
     });
 
     window.addEventListener("unibridge:funding", () => {
       showSummary();
-      hidePixBox();
-      hideTaxBox();
+      hideDestinationBoxes();
       hideAuthBox();
       setStep(4);
     });
 
     window.addEventListener("unibridge:auth", () => {
       showSummary();
-      hidePixBox();
+      hideDestinationBoxes();
       showAuthBox();
       setStep(3);
     });
 
     window.addEventListener("unibridge:done", () => {
       showSummary();
-      hidePixBox();
-      hideTaxBox();
+      hideDestinationBoxes();
       hideAuthBox();
       setStep(5);
     });
 
     document.addEventListener("DOMContentLoaded", () => {
       resetUiToStart();
+
+      const countrySelect = document.getElementById("country");
+
+      countrySelect?.addEventListener("change", () => {
+        if (summaryBox.style.display === "block") {
+          showDestinationBox();
+        }
+      });
 
       const fadeElements = document.querySelectorAll(".fade-in");
       const observer = new IntersectionObserver((entries) => {
