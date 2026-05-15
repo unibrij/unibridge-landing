@@ -1218,75 +1218,116 @@
 
 @media (max-width: 768px) {
   .corridor-map-section {
-    padding: 58px 14px 56px;
+    padding: 44px 0 48px !important;
+    background:
+      radial-gradient(circle at 50% 34%, rgba(0, 204, 177, 0.10), transparent 38%),
+      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
   }
 
   .corridor-map-wrap {
-    height: 350px;
-    max-width: 720px;
-    margin-bottom: 14px;
+    height: 260px !important;
+    max-width: 100% !important;
+    margin: 0 auto 18px !important;
+    overflow: hidden !important;
   }
 
   .corridor-world-map {
-    transform: scale(1.22);
+    width: 118% !important;
+    height: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) scale(1.02) !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    opacity: 0.92 !important;
+    filter: contrast(1.08) saturate(1.06);
   }
 
   .corridor-point {
-    width: 38px;
-    height: 38px;
-    font-size: 17px;
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 16px !important;
+    box-shadow:
+      0 10px 22px rgba(0, 51, 102, 0.10),
+      0 0 0 1px rgba(255, 255, 255, 0.90) !important;
   }
 
   .corridor-point::before {
-    inset: -13px;
+    inset: -10px !important;
   }
 
   .corridor-point::after {
-    inset: -25px;
+    inset: -20px !important;
   }
 
   .corridor-point.us {
-    left: 16%;
-    top: 43%;
+    left: 18% !important;
+    top: 44% !important;
   }
 
   .corridor-point.uk {
-    left: 46%;
-    top: 30%;
+    left: 49% !important;
+    top: 31% !important;
   }
 
   .corridor-point.eu {
-    left: 53%;
-    top: 38%;
+    left: 57% !important;
+    top: 38% !important;
   }
 
   .corridor-point.uae {
-    left: 66%;
-    top: 50%;
+    left: 68% !important;
+    top: 52% !important;
   }
 
   .corridor-point.br {
-    left: 31%;
-    top: 68%;
+    left: 33% !important;
+    top: 64% !important;
   }
 
   .corridor-point.ng {
-    left: 54%;
-    top: 62%;
+    left: 57% !important;
+    top: 62% !important;
   }
 
   .corridor-point.ph {
-    left: 81%;
-    top: 58%;
+    left: 82% !important;
+    top: 58% !important;
+  }
+
+  .corridor-map-copy {
+    max-width: 340px !important;
+    padding: 0 18px !important;
   }
 
   .corridor-map-copy h2 {
-    font-size: clamp(2rem, 7vw, 2.6rem);
+    font-size: 1.8rem !important;
+    line-height: 1.16 !important;
+    letter-spacing: -0.04em !important;
+    margin-bottom: 12px !important;
   }
 
-  .corridor-map-copy p {
-    font-size: 0.98rem;
-    line-height: 1.7;
+  .corridor-map-copy p,
+  .corridor-map-copy .hero-subtitle {
+    font-size: 0.94rem !important;
+    line-height: 1.68 !important;
+    margin: 0 auto !important;
+    max-width: 330px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .corridor-map-wrap {
+    height: 235px !important;
+  }
+
+  .corridor-map-copy h2 {
+    font-size: 1.62rem !important;
+  }
+
+  .corridor-point {
+    width: 31px !important;
+    height: 31px !important;
+    font-size: 14px !important;
   }
 }
 
