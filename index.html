@@ -1079,8 +1079,10 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  transform: scale(1.08);
+  transform: scale(1.04);
   pointer-events: none;
+    opacity: 0.95;
+    z-index: 1;
 }
 
 .world-dots path {
@@ -1360,46 +1362,12 @@
 <section class="corridor-map-section">
   <div class="corridor-map-wrap">
 
-    <svg class="corridor-world-map" viewBox="0 0 1200 520" aria-hidden="true">
-      <defs>
-        <pattern id="ubDots" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-          <circle cx="3" cy="3" r="1.25" fill="#8fa6b8" />
-        </pattern>
-      </defs>
-
-      <g class="world-dots" fill="url(#ubDots)" opacity="0.22">
-        <!-- North America -->
-        <path d="M80 175 C120 130 185 112 245 115 C300 118 350 136 390 168 C430 200 435 245 405 275 C374 306 315 300 278 272 C250 250 225 244 190 256 C150 270 108 248 82 218 C66 200 63 190 80 175 Z" />
-
-        <!-- Greenland -->
-        <path d="M318 72 C360 45 432 48 465 82 C490 110 465 145 410 148 C360 151 312 130 300 100 C295 88 303 80 318 72 Z" />
-
-        <!-- South America -->
-        <path d="M330 292 C372 306 402 346 400 390 C398 432 374 470 348 498 C328 520 304 505 300 466 C296 425 282 392 292 356 C302 320 305 297 330 292 Z" />
-
-        <!-- Europe -->
-        <path d="M535 150 C575 124 640 126 680 152 C715 175 710 212 670 224 C625 238 560 220 535 188 C522 172 523 158 535 150 Z" />
-
-        <!-- Africa -->
-        <path d="M575 236 C630 214 700 238 725 294 C755 365 718 452 655 460 C604 466 572 410 572 350 C572 305 545 250 575 236 Z" />
-
-        <!-- Asia -->
-        <path d="M680 150 C760 95 918 94 1048 150 C1130 185 1145 245 1085 280 C1038 308 980 280 932 282 C875 285 835 326 765 298 C708 275 662 215 680 150 Z" />
-
-        <!-- Middle East / India extension -->
-        <path d="M735 248 C790 235 850 260 858 305 C866 352 805 365 760 338 C725 316 700 264 735 248 Z" />
-
-        <!-- Southeast Asia -->
-        <path d="M900 300 C940 292 995 318 1015 350 C1032 378 1002 398 960 388 C918 378 882 336 900 300 Z" />
-
-        <!-- Australia -->
-        <path d="M925 385 C985 360 1070 382 1100 425 C1125 460 1080 490 1015 478 C955 467 900 425 925 385 Z" />
-      </g>
-
-      <path class="route-line" d="M170 245 C350 145 555 135 760 265" />
-      <path class="route-line" d="M760 265 C640 360 470 390 330 360" />
-      <path class="route-line muted" d="M565 185 C720 170 870 205 990 310" />
-    </svg>
+    <img
+      class="corridor-world-map"
+      src="images/world-map.png"
+      alt=""
+      aria-hidden="true"
+    />
 
     <div class="corridor-point us"><span>🇺🇸</span></div>
     <div class="corridor-point uk"><span>🇬🇧</span></div>
@@ -1414,10 +1382,10 @@
   <div class="corridor-map-copy fade-in">
     <h2>Fund locally. Pay out locally.</h2>
     <p class="hero-subtitle">
-      UniBridge connects supported funding markets with approved local payout partners, using stablecoins as the digital settlement layer.
+      UniBridge connects supported funding markets with approved local payout partners,
+      using stablecoins as the digital settlement layer.
     </p>
   </div>
-
 </section>
 
     <!-- PROBLEM SECTION -->
