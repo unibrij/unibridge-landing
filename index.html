@@ -2529,9 +2529,6 @@
       <div class="contact-info fade-in">
         <h2 id="contact-title">Review a Controlled Pilot</h2>
 
-        <div id="dynamic-text" class="dynamic-text">
-          <!-- Dynamic text will be inserted here by JavaScript -->
-        </div>
 
         <p>
           <strong>
@@ -2610,7 +2607,7 @@
           ></div>
 
           <button type="submit" class="submit-button">
-            Request Route Review
+            Request Pilot Review
           </button>
         </form>
       </div>
@@ -2975,29 +2972,26 @@ function showToast(message) {
 
 function updateContactText() {
     const hash = window.location.hash;
-    const dynamicText = document.getElementById('dynamic-text');
+
     const contactTitle = document.getElementById('contact-title');
     const submitButton = document.querySelector('.submit-button');
 
-    if (!dynamicText || !contactTitle || !submitButton) return;
+ if (!contactTitle || !submitButton) return;
 
     if (hash === '#support') {
         contactTitle.textContent = 'Technical Support';
-        dynamicText.textContent = 'Technical support for live integrations.';
         submitButton.textContent = 'Get Support';
         return;
     }
 
     if (hash === '#contact-us') {
         contactTitle.textContent = 'Contact UniBridge';
-        dynamicText.textContent = 'For general inquiries, please use the form below.';
         submitButton.textContent = 'Send Message';
         return;
     }
 
     contactTitle.textContent = 'Review a controlled corridor pilot.';
-    dynamicText.textContent = 'Request a capped corridor pilot or partner evaluation.';
-    submitButton.textContent = 'Request Route Review';
+    submitButton.textContent = 'Request Pilot Review';
 }
 
 function scrollToContactIfNeeded() {
