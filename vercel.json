@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/partner",
+      "destination": "https://unibridge-ops.vercel.app/partner"
+    },
+    {
+      "source": "/partner/:path*",
+      "destination": "https://unibridge-ops.vercel.app/partner/:path*"
+    },
+    {
       "source": "/surface",
       "destination": "/surface/public/index.html"
     },
