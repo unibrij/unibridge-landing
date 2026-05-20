@@ -2,11 +2,19 @@
   "rewrites": [
     {
       "source": "/partner",
-      "destination": "https://unibridge-ops.vercel.app/partner"
+      "destination": "https://unibridge-ops.vercel.app/partner/login"
     },
     {
-      "source": "/partner/:path*",
-      "destination": "https://unibridge-ops.vercel.app/partner/:path*"
+      "source": "/partner/login",
+      "destination": "https://unibridge-ops.vercel.app/partner/login"
+    },
+    {
+      "source": "/partner/routes",
+      "destination": "https://unibridge-ops.vercel.app/partner/routes"
+    },
+    {
+      "source": "/partner/routes/:path*",
+      "destination": "https://unibridge-ops.vercel.app/partner/routes/:path*"
     },
     {
       "source": "/surface",
