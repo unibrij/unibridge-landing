@@ -53,7 +53,7 @@ async function createBackendConnectSession() {
 
     const response =
       await fetch(
-        "https://api.unibrij.io/v2/connect/session",
+        "https://unibridge-v2-vqia6yp7wq-uc.a.run.app/v2/connect/session",
         {
           method: "POST",
           headers: {
