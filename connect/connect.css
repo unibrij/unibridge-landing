@@ -44,3 +44,9 @@ p {
 #wallet-button {
   margin-top: 12px;
 }
+
+appkit-button {
+  --w3m-accent: #14b8a6;
+  --w3m-color-mix: #0b1020;
+  --w3m-color-mix-strength: 20%;
+}
