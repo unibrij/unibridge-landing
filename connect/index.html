@@ -7,7 +7,7 @@
 
   <title>UniBridge Connect</title>
 
-  <link rel="icon" href="../public/icons/social/Ub.png" />
+  <link rel="icon" type="image/png" href="../favicon.png" />
   <link rel="stylesheet" href="./connect.css" />
 </head>
 <body>
@@ -25,7 +25,15 @@
       Use your wallet to fund verified payout routes.
     </p>
 
-    <div id="wallet-button"></div>
+    <div class="wallet-actions">
+      <div id="wallet-button"></div>
+
+      <div class="connected-card">
+        <span>Wallet status</span>
+        <appkit-account-button></appkit-account-button>
+        <appkit-network-button></appkit-network-button>
+      </div>
+    </div>
   </main>
 
   <script type="module" src="./reown.js"></script>
