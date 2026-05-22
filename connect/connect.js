@@ -9,9 +9,7 @@ if (container) {
 }
 
 async function createBackendConnectSession() {
-
   try {
-
     const appkit =
       window.appKit;
 
@@ -34,21 +32,13 @@ async function createBackendConnectSession() {
         "https://api.unibrij.io/v2/connect/session",
         {
           method: "POST",
-
           headers: {
-            "Content-Type":
-              "application/json"
+            "Content-Type": "application/json"
           },
-
           body: JSON.stringify({
-            wallet_address:
-              account.address,
-
-            chain_id:
-              network?.chainId || 137,
-
-            source:
-              "reown"
+            wallet_address: account.address,
+            chain_id: network?.chainId || 137,
+            source: "reown"
           })
         }
       );
@@ -60,26 +50,21 @@ async function createBackendConnectSession() {
       "UniBridge connect session:",
       data
     );
-
   } catch (err) {
-
     console.error(
       "connect session failed",
       err
     );
-
   }
-
 }
 
 /*
 -----------------------------------------
-Wait for wallet connection
+Wait for wallet address
 -----------------------------------------
 */
 
 setInterval(() => {
-
   const appkit =
     window.appKit;
 
@@ -91,14 +76,10 @@ setInterval(() => {
     appkit.getAccount();
 
   if (
-    account?.isConnected &&
+    account?.address &&
     !window.__ub_connect_sent
   ) {
-
     window.__ub_connect_sent = true;
-
     createBackendConnectSession();
-
   }
-
 }, 1000);
