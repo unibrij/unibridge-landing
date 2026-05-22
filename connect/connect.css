@@ -2,7 +2,8 @@ body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
   background:
-  radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.12), transparent 30%),
+    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.12), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
   color: #ffffff;
 }
 
