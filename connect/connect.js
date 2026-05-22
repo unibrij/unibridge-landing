@@ -1,5 +1,7 @@
-// unibridge-landing/connect/connect.js
+// connect/connect.js
 
-const container = document.getElementById("wallet-button");
+const walletButtonContainer = document.getElementById("wallet-button");
 
-container.innerHTML = "<appkit-button></appkit-button>";
+if (walletButtonContainer) {
+  walletButtonContainer.innerHTML = "<appkit-button></appkit-button>";
+}
