@@ -2,8 +2,8 @@ body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
   background:
-    radial-gradient(circle at 50% 44%, rgba(20, 184, 166, 0.22), transparent 32%),
-    linear-gradient(180deg, #10243a 0%, #0f2f46 50%, #eef7fb 100%);
+    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.18), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
   color: #ffffff;
 }
 
@@ -19,11 +19,11 @@ body {
 }
 
 .logo {
-  width: 112px;
+  width: 118px;
   height: auto;
   filter:
-    drop-shadow(0 0 22px rgba(45, 212, 191, 0.38))
-    drop-shadow(0 12px 28px rgba(3, 20, 35, 0.22));
+    drop-shadow(0 0 18px rgba(45, 212, 191, 0.32))
+    drop-shadow(0 12px 30px rgba(0, 0, 0, 0.28));
 }
 
 h1 {
@@ -36,7 +36,7 @@ h1 {
 p {
   margin: 0;
   max-width: 420px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.68);
   font-size: 16px;
   line-height: 1.5;
 }
