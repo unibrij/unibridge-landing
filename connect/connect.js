@@ -1,5 +1,5 @@
 // connect/connect.js
- 
+
 const container =
   document.getElementById("wallet-button");
 
@@ -12,44 +12,93 @@ const debugBox =
   document.createElement("pre");
 
 debugBox.style.cssText =
-  "margin-top:16px;max-width:420px;white-space:pre-wrap;font-size:12px;line-height:1.4;color:rgba(255,255,255,.75);text-align:left;";
+  "margin-top:16px;max-width:520px;white-space:pre-wrap;font-size:12px;line-height:1.4;color:rgba(255,255,255,.78);text-align:left;";
 
 debugBox.textContent =
-  "Connect debug: waiting...";
+  "Connect debug: script loaded";
 
 document.querySelector(".connect-shell")
   ?.appendChild(debugBox);
 
-function writeDebug(label, value) {
-  debugBox.textContent =
-    `${label}\n` +
-    JSON.stringify(value, null, 2);
+function safeJson(value) {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
-async function createBackendConnectSession() {
+function writeDebug(label, value = {}) {
+  debugBox.textContent =
+    `${label}\n` + safeJson(value);
+}
+
+window.addEventListener("error", event => {
+  writeDebug("Window error", {
+    message: event.message,
+    source: event.filename,
+    line: event.lineno,
+    column: event.colno
+  });
+});
+
+window.addEventListener("unhandledrejection", event => {
+  writeDebug("Unhandled promise rejection", {
+    reason: String(event.reason?.message || event.reason)
+  });
+});
+
+function getAccountSafe(appkit) {
+  if (!appkit) return null;
+
+  if (typeof appkit.getAccount === "function") {
+    return appkit.getAccount();
+  }
+
+  if (typeof appkit.getAddress === "function") {
+    return {
+      address: appkit.getAddress()
+    };
+  }
+
+  return null;
+}
+
+function getNetworkSafe(appkit) {
+  if (!appkit) return null;
+
+  if (typeof appkit.getNetwork === "function") {
+    return appkit.getNetwork();
+  }
+
+  return null;
+}
+
+function getWalletAddress(account) {
+  return (
+    account?.address ||
+    account?.caipAddress?.split(":").pop() ||
+    account?.allAccounts?.[0]?.address ||
+    account?.allAccounts?.[0]?.caipAddress?.split(":").pop() ||
+    null
+  );
+}
+
+function getChainId(network) {
+  return (
+    network?.chainId ||
+    network?.caipNetwork?.id ||
+    network?.caipNetworkId?.split(":").pop() ||
+    137
+  );
+}
+
+async function createBackendConnectSession(address, chainId) {
   try {
-    const appkit =
-      window.appKit;
-
-    if (!appkit) {
-      writeDebug("No appKit", {});
-      return;
-    }
-
-    const account =
-      appkit.getAccount();
-
-    const network =
-      appkit.getNetwork();
-
-    writeDebug("Detected account/network", {
-      account,
-      network
+    writeDebug("Sending connect session", {
+      wallet_address: address,
+      chain_id: chainId
     });
-
-    if (!account?.address) {
-      return;
-    }
 
     const response =
       await fetch(
@@ -60,8 +109,8 @@ async function createBackendConnectSession() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            wallet_address: account.address,
-            chain_id: network?.chainId || 137,
+            wallet_address: address,
+            chain_id: Number(chainId),
             source: "reown"
           })
         }
@@ -71,55 +120,49 @@ async function createBackendConnectSession() {
       await response.json();
 
     writeDebug("UniBridge connect session response", data);
-
-    console.log(
-      "UniBridge connect session:",
-      data
-    );
   } catch (err) {
     writeDebug("connect session failed", {
       message: err.message
     });
-
-    console.error(
-      "connect session failed",
-      err
-    );
   }
 }
-
-/*
------------------------------------------
-Wait for wallet address
------------------------------------------
-*/
 
 setInterval(() => {
   const appkit =
     window.appKit;
 
   if (!appkit) {
-    writeDebug("Waiting for window.appKit", {});
+    writeDebug("Waiting for window.appKit", {
+      hasWindowAppKit: false
+    });
     return;
   }
 
   const account =
-    appkit.getAccount();
+    getAccountSafe(appkit);
 
   const network =
-    appkit.getNetwork();
+    getNetworkSafe(appkit);
+
+  const address =
+    getWalletAddress(account);
+
+  const chainId =
+    getChainId(network);
 
   writeDebug("Polling AppKit", {
     account,
     network,
+    address,
+    chainId,
     sent: Boolean(window.__ub_connect_sent)
   });
 
   if (
-    account?.address &&
+    address &&
     !window.__ub_connect_sent
   ) {
     window.__ub_connect_sent = true;
-    createBackendConnectSession();
+    createBackendConnectSession(address, chainId);
   }
 }, 3000);
