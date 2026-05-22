@@ -22,16 +22,22 @@ export const metadata = {
   ]
 }
 
-createAppKit({
-  adapters: [new EthersAdapter()],
+window.appKit = createAppKit({
+  adapters: [
+    new EthersAdapter()
+  ],
+
   networks: [
     mainnet,
     polygon,
     base,
     arbitrum
   ],
+
   metadata,
+
   projectId,
+
   features: {
     analytics: false
   }
