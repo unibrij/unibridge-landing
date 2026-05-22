@@ -41,33 +41,9 @@ p {
   line-height: 1.5;
 }
 
-.wallet-actions {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  align-items: center;
-}
-
 #wallet-button {
+  margin-top: 12px;
   transform: none;
-}
-
-.connected-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(12px);
-}
-
-.connected-card span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.55);
 }
 
 appkit-button {
