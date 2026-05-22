@@ -19,30 +19,22 @@ body {
 }
 
 .logo {
-  width: 118px;
-  height: auto;
-  filter:
-    drop-shadow(0 0 18px rgba(45, 212, 191, 0.32))
-    drop-shadow(0 12px 30px rgba(0, 0, 0, 0.28));
+  width: 92px;
 }
 
 h1 {
-  margin: 0;
-  font-size: 36px;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: 54px;
+  line-height: 1.05;
 }
 
 p {
-  margin: 0;
-  max-width: 420px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: 18px;
+  max-width: 520px;
 }
 
 #wallet-button {
-  margin-top: 12px;
+  margin-top: 20px;
+  transform: scale(1.08);
 }
 
 appkit-button {
