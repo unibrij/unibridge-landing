@@ -2,9 +2,9 @@ body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
   background:
-    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.18), transparent 34%),
-    linear-gradient(180deg, #f8fbff 0%, #eef6fb 100%);
-  color: #062b49;
+    radial-gradient(circle at 50% 44%, rgba(20, 184, 166, 0.22), transparent 32%),
+    linear-gradient(180deg, #10243a 0%, #0f2f46 50%, #eef7fb 100%);
+  color: #ffffff;
 }
 
 .connect-shell {
@@ -19,9 +19,11 @@ body {
 }
 
 .logo {
-  width: 116px;
+  width: 112px;
   height: auto;
-  filter: drop-shadow(0 16px 34px rgba(5, 30, 52, 0.18));
+  filter:
+    drop-shadow(0 0 22px rgba(45, 212, 191, 0.38))
+    drop-shadow(0 12px 28px rgba(3, 20, 35, 0.22));
 }
 
 h1 {
@@ -34,7 +36,7 @@ h1 {
 p {
   margin: 0;
   max-width: 420px;
-  color: rgba(6, 43, 73, 0.68);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 16px;
   line-height: 1.5;
 }
