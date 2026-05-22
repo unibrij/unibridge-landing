@@ -26,6 +26,39 @@
     </p>
 
     <div id="wallet-button"></div>
+
+    <section id="payout-form" class="payout-form hidden">
+      <div class="route-label">Brazil PIX route</div>
+
+      <label>
+        Amount
+        <input id="payout-amount" type="number" min="1" placeholder="100" />
+      </label>
+
+      <label>
+        Asset
+        <select id="payout-asset">
+          <option value="USDT">USDT</option>
+          <option value="USDC">USDC</option>
+        </select>
+      </label>
+
+      <label>
+        Recipient name
+        <input id="recipient-name" type="text" placeholder="Recipient name" />
+      </label>
+
+      <label>
+        PIX key
+        <input id="recipient-pix" type="text" placeholder="email, CPF, phone, or random key" />
+      </label>
+
+      <button id="create-payout-intent" type="button">
+        Create payout intent
+      </button>
+
+      <pre id="connect-debug" class="connect-debug"></pre>
+    </section>
   </main>
 
   <script type="module" src="./reown.js"></script>
