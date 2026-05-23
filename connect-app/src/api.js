@@ -231,3 +231,32 @@ export async function createSettlement({
 
   return data;
 }
+
+export async function getPayoutIntent({
+  payoutIntentId
+}) {
+  const response = await fetch(
+    `${API_BASE}/connect/payout-intent/${encodeURIComponent(payoutIntentId)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const data =
+    await parseJson(response);
+
+  await assertOk(
+    response,
+    data,
+    "get_payout_intent_failed"
+  );
+
+  if (!data.payout_intent) {
+    throw new Error("payout_intent_missing");
+  }
+
+  return data.payout_intent;
+}
