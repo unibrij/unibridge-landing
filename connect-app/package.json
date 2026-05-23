@@ -12,6 +12,7 @@
     "@reown/appkit": "latest",
     "@reown/appkit-adapter-wagmi": "latest",
     "@tanstack/react-query": "latest",
+    "@vitejs/plugin-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "viem": "latest",
