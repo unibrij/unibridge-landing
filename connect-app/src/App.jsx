@@ -1,7 +1,7 @@
 // connect-app/src/App.jsx
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 
 import {
@@ -15,22 +15,71 @@ import { validateRouteForm } from "./form";
 import {
   createConnectSession,
   createPayoutIntent,
-  requestAuthorizationMessage,
-  submitAuthorization,
-  startKyc
+  startKyc,
+  createSettlement,
+  getPayoutIntent
 } from "./api";
+
+const FLOW_STORAGE_KEY = "unibridge_connect_flow";
 
 function readPayoutIntentFromUrl() {
   const params = new URLSearchParams(window.location.search);
   return params.get("payout_intent_id");
 }
 
+function readStoredFlow() {
+  try {
+    return JSON.parse(localStorage.getItem(FLOW_STORAGE_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function storeFlowSnapshot(snapshot) {
+  localStorage.setItem(FLOW_STORAGE_KEY, JSON.stringify(snapshot));
+}
+
+function clearStoredFlow() {
+  localStorage.removeItem(FLOW_STORAGE_KEY);
+}
+
+function resolveRouteIdFromIntent(intent = {}) {
+  const rail = String(intent.rail || "").toUpperCase();
+  const country = String(intent.country || "").toUpperCase();
+
+  const route =
+    ROUTES.find(item =>
+      String(item.rail || "").toUpperCase() === rail &&
+      String(item.country || "").toUpperCase() === country
+    ) || ROUTES[0];
+
+  return route.id;
+}
+
+function buildFormFromIntent(intent = {}, fallbackRoute = ROUTES[0]) {
+  return {
+    amount:
+      intent.amount ?? "",
+
+    asset:
+      intent.asset || fallbackRoute.assets[0],
+
+    beneficiary:
+      intent.beneficiary ||
+      getInitialBeneficiary(fallbackRoute)
+  };
+}
+
 export default function App() {
   const { open } = useAppKit();
   const { address, chainId, isConnected } = useAccount();
-  const { signMessageAsync } = useSignMessage();
 
-  const [selectedRouteId, setSelectedRouteId] = useState("br_pix");
+  const returnedPayoutIntentId = readPayoutIntentFromUrl();
+  const storedFlow = readStoredFlow();
+
+  const [selectedRouteId, setSelectedRouteId] = useState(
+    storedFlow?.route_id || "br_pix"
+  );
 
   const selectedRoute = useMemo(
     () => getRouteById(selectedRouteId),
@@ -40,17 +89,32 @@ export default function App() {
   const [connectSessionId, setConnectSessionId] = useState(null);
 
   const [payoutIntentId, setPayoutIntentId] = useState(
-    () => readPayoutIntentFromUrl() || null
+    returnedPayoutIntentId || storedFlow?.payout_intent_id || null
   );
 
+  const [settlement, setSettlement] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [debug, setDebug] = useState("Waiting for wallet connection...");
+
+  const [debug, setDebug] = useState(
+    returnedPayoutIntentId
+      ? "Loading payout route..."
+      : "Waiting for wallet connection..."
+  );
 
   const [form, setForm] = useState(() => ({
-    amount: "",
-    asset: ROUTES[0].assets[0],
-    beneficiary: getInitialBeneficiary(ROUTES[0])
+    amount:
+      storedFlow?.form?.amount || "",
+
+    asset:
+      storedFlow?.form?.asset || ROUTES[0].assets[0],
+
+    beneficiary:
+      storedFlow?.form?.beneficiary ||
+      getInitialBeneficiary(ROUTES[0])
   }));
+
+  const isReturnedFlow =
+    Boolean(returnedPayoutIntentId);
 
   function writeDebug(label, value = {}) {
     setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
@@ -71,13 +135,58 @@ export default function App() {
 
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
+    setSettlement(null);
 
     setForm({
       amount: "",
       asset: route.assets[0],
       beneficiary: getInitialBeneficiary(route)
     });
+
+    clearStoredFlow();
   }
+
+  useEffect(() => {
+    if (!returnedPayoutIntentId) {
+      return;
+    }
+
+    async function loadReturnedIntent() {
+      try {
+        setIsBusy(true);
+
+        const intent = await getPayoutIntent({
+          payoutIntentId: returnedPayoutIntentId
+        });
+
+        const routeId =
+          resolveRouteIdFromIntent(intent);
+
+        const route =
+          getRouteById(routeId);
+
+        setSelectedRouteId(routeId);
+        setPayoutIntentId(intent.payout_intent_id);
+        setForm(buildFormFromIntent(intent, route));
+
+        storeFlowSnapshot({
+          payout_intent_id: intent.payout_intent_id,
+          route_id: routeId,
+          form: buildFormFromIntent(intent, route)
+        });
+
+        writeDebug("Verification complete. Ready to prepare funding instructions.", intent);
+      } catch (err) {
+        writeDebug("Load payout intent failed", {
+          message: err.message
+        });
+      } finally {
+        setIsBusy(false);
+      }
+    }
+
+    loadReturnedIntent();
+  }, [returnedPayoutIntentId]);
 
   useEffect(() => {
     if (!isConnected || !address || connectSessionId) {
@@ -102,69 +211,83 @@ export default function App() {
     });
   }, [isConnected, address, chainId, connectSessionId]);
 
-  async function authorizePayoutIntent(nextPayoutIntentId) {
-    const messageData = await requestAuthorizationMessage({
-      payoutIntentId: nextPayoutIntentId
+  async function startNewFlow() {
+    if (!isConnected) {
+      await open();
+      return;
+    }
+
+    if (!connectSessionId) {
+      writeDebug("Connect session is still preparing. Try again in a moment.");
+      return;
+    }
+
+    validateRouteForm({
+      form,
+      route: selectedRoute
     });
 
-    const signature = await signMessageAsync({
-      message: messageData.message
+    setIsBusy(true);
+    writeDebug("Preparing payout route...");
+
+    const intent = await createPayoutIntent({
+      connectSessionId,
+      walletAddress: address,
+      route: selectedRoute,
+      form
     });
 
-    return submitAuthorization({
-      payoutIntentId: nextPayoutIntentId,
-      message: messageData.message,
-      nonce: messageData.nonce,
-      signature
+    setPayoutIntentId(intent.payout_intent_id);
+
+    storeFlowSnapshot({
+      payout_intent_id: intent.payout_intent_id,
+      route_id: selectedRoute.id,
+      form
     });
+
+    writeDebug("Starting verification...", {
+      payout_intent_id: intent.payout_intent_id
+    });
+
+    const kyc = await startKyc({
+      payoutIntentId: intent.payout_intent_id
+    });
+
+    window.location.href = kyc.url;
   }
 
-  async function reviewAndContinue() {
+  async function continueAfterKyc() {
+    if (!payoutIntentId) {
+      writeDebug("Missing payout intent");
+      return;
+    }
+
+    setIsBusy(true);
+
+    writeDebug("Preparing funding instructions...", {
+      payout_intent_id: payoutIntentId
+    });
+
+    const result = await createSettlement({
+      payoutIntentId
+    });
+
+    setSettlement(result);
+
+    clearStoredFlow();
+
+    writeDebug("Funding instructions ready", result);
+  }
+
+  async function handleSend() {
     try {
-      if (!isConnected) {
-        await open();
-        return;
+      if (isReturnedFlow) {
+        await continueAfterKyc();
+      } else {
+        await startNewFlow();
       }
-
-      if (!connectSessionId) {
-        writeDebug("Connect session is still preparing. Try again in a moment.");
-        return;
-      }
-
-      validateRouteForm({
-        form,
-        route: selectedRoute
-      });
-
-      setIsBusy(true);
-      writeDebug("Preparing payout route...");
-
-      const intent = await createPayoutIntent({
-        connectSessionId,
-        walletAddress: address,
-        route: selectedRoute,
-        form
-      });
-
-      setPayoutIntentId(intent.payout_intent_id);
-
-      writeDebug("Requesting route authorization...", {
-        payout_intent_id: intent.payout_intent_id
-      });
-
-      const authorization = await authorizePayoutIntent(
-        intent.payout_intent_id
-      );
-
-      writeDebug("Route authorized. Starting verification...", authorization);
-
-      const kyc = await startKyc({
-        payoutIntentId: intent.payout_intent_id
-      });
-
-      window.location.href = kyc.url;
     } catch (err) {
-      writeDebug("Review and continue failed", {
+      writeDebug("Send failed", {
         message: err.message
       });
     } finally {
@@ -184,18 +307,20 @@ export default function App() {
 
       <p>Use your wallet to fund verified payout routes.</p>
 
-      <button className="wallet-button" onClick={() => open()}>
-        {isConnected ? "Wallet connected" : "Connect Wallet"}
-      </button>
+      {!isConnected && !isReturnedFlow && (
+        <button className="wallet-button" onClick={() => open()}>
+          Connect Wallet
+        </button>
+      )}
 
-      {isConnected && (
+      {(isConnected || isReturnedFlow) && (
         <section className="payout-form">
           <label>
             Route
             <select
               value={selectedRouteId}
               onChange={e => changeRoute(e.target.value)}
-              disabled={isBusy}
+              disabled={isBusy || isReturnedFlow}
             >
               {ROUTES.map(route => (
                 <option key={route.id} value={route.id}>
@@ -212,7 +337,7 @@ export default function App() {
               min="1"
               placeholder="100"
               value={form.amount}
-              disabled={isBusy}
+              disabled={isBusy || isReturnedFlow}
               onChange={e =>
                 setForm({
                   ...form,
@@ -226,7 +351,7 @@ export default function App() {
             Asset
             <select
               value={form.asset}
-              disabled={isBusy}
+              disabled={isBusy || isReturnedFlow}
               onChange={e =>
                 setForm({
                   ...form,
@@ -249,7 +374,7 @@ export default function App() {
                 type={field.type || "text"}
                 placeholder={field.placeholder}
                 required={field.required}
-                disabled={isBusy}
+                disabled={isBusy || isReturnedFlow}
                 value={form.beneficiary[field.name] || ""}
                 onChange={e =>
                   updateBeneficiaryField(field.name, e.target.value)
@@ -258,8 +383,8 @@ export default function App() {
             </label>
           ))}
 
-          <button onClick={reviewAndContinue} disabled={isBusy}>
-            {isBusy ? "Preparing route..." : "Review & continue"}
+          <button onClick={handleSend} disabled={isBusy}>
+            {isBusy ? "Preparing..." : "Send"}
           </button>
 
           {payoutIntentId ? (
@@ -268,7 +393,13 @@ export default function App() {
             </p>
           ) : null}
 
-          <pre className="connect-debug">{debug}</pre>
+          {settlement?.funding ? (
+            <pre className="connect-debug">
+              {JSON.stringify(settlement.funding, null, 2)}
+            </pre>
+          ) : (
+            <pre className="connect-debug">{debug}</pre>
+          )}
         </section>
       )}
     </main>
