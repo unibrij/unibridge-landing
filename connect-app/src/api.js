@@ -202,3 +202,32 @@ export async function startKyc({
 
   return data;
 }
+
+export async function createSettlement({
+  payoutIntentId
+}) {
+  const response = await fetch(
+    `${API_BASE}/connect/payout-intent/create-settlement`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        payout_intent_id:
+          payoutIntentId
+      })
+    }
+  );
+
+  const data =
+    await parseJson(response);
+
+  await assertOk(
+    response,
+    data,
+    "create_settlement_failed"
+  );
+
+  return data;
+}
