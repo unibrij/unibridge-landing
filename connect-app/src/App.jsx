@@ -1,29 +1,86 @@
 // connect-app/src/App.jsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 
 const API_BASE =
   "https://unibridge-v2-vqia6yp7wq-uc.a.run.app/v2";
 
+const ROUTES = [
+  {
+    id: "br_pix",
+    label: "Brazil PIX route",
+    country: "BR",
+    rail: "PIX",
+    network: "polygon",
+    assets: ["USDT", "USDC"],
+    beneficiaryFields: [
+      {
+        name: "pix_key",
+        label: "PIX key",
+        type: "text",
+        placeholder: "email, CPF, phone, or random key",
+        required: true
+      }
+    ]
+  }
+];
+
+function getInitialBeneficiary(route) {
+  return route.beneficiaryFields.reduce((acc, field) => {
+    acc[field.name] = "";
+    return acc;
+  }, {});
+}
+
 export default function App() {
   const { open } = useAppKit();
   const { address, chainId, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
+  const [selectedRouteId, setSelectedRouteId] = useState("br_pix");
+  const selectedRoute = useMemo(
+    () => ROUTES.find(route => route.id === selectedRouteId) || ROUTES[0],
+    [selectedRouteId]
+  );
+
   const [connectSessionId, setConnectSessionId] = useState(null);
   const [payoutIntentId, setPayoutIntentId] = useState(null);
   const [debug, setDebug] = useState("Waiting for wallet connection...");
-  const [form, setForm] = useState({
+
+  const [form, setForm] = useState(() => ({
     amount: "",
-    asset: "USDT",
-    recipientName: "",
-    pixKey: ""
-  });
+    asset: ROUTES[0].assets[0],
+    beneficiary: getInitialBeneficiary(ROUTES[0])
+  }));
 
   function writeDebug(label, value = {}) {
     setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
+  }
+
+  function updateBeneficiaryField(name, value) {
+    setForm(current => ({
+      ...current,
+      beneficiary: {
+        ...current.beneficiary,
+        [name]: value
+      }
+    }));
+  }
+
+  function changeRoute(routeId) {
+    const route =
+      ROUTES.find(item => item.id === routeId) || ROUTES[0];
+
+    setSelectedRouteId(route.id);
+    setPayoutIntentId(null);
+
+    setForm({
+      amount: "",
+      asset: route.assets[0],
+      beneficiary: getInitialBeneficiary(route)
+    });
   }
 
   useEffect(() => {
@@ -76,16 +133,15 @@ export default function App() {
         body: JSON.stringify({
           connect_session_id: connectSessionId,
           wallet_address: address,
-          country: "BR",
-          rail: "PIX",
+          country: selectedRoute.country,
+          rail: selectedRoute.rail,
           amount: form.amount,
           asset: form.asset,
-          network: "polygon",
+          network: selectedRoute.network,
           beneficiary: {
-            name: form.recipientName,
-            rail: "PIX",
-            country: "BR",
-            pix_key: form.pixKey
+            rail: selectedRoute.rail,
+            country: selectedRoute.country,
+            ...form.beneficiary
           }
         })
       });
@@ -187,7 +243,19 @@ export default function App() {
 
       {isConnected && (
         <section className="payout-form">
-          <div className="route-label">Brazil PIX route</div>
+          <label>
+            Route
+            <select
+              value={selectedRouteId}
+              onChange={e => changeRoute(e.target.value)}
+            >
+              {ROUTES.map(route => (
+                <option key={route.id} value={route.id}>
+                  {route.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label>
             Amount
@@ -210,34 +278,28 @@ export default function App() {
                 setForm({ ...form, asset: e.target.value })
               }
             >
-              <option value="USDT">USDT</option>
-              <option value="USDC">USDC</option>
+              {selectedRoute.assets.map(asset => (
+                <option key={asset} value={asset}>
+                  {asset}
+                </option>
+              ))}
             </select>
           </label>
 
-          <label>
-            Recipient name
-            <input
-              type="text"
-              placeholder="Recipient name"
-              value={form.recipientName}
-              onChange={e =>
-                setForm({ ...form, recipientName: e.target.value })
-              }
-            />
-          </label>
-
-          <label>
-            PIX key
-            <input
-              type="text"
-              placeholder="email, CPF, phone, or random key"
-              value={form.pixKey}
-              onChange={e =>
-                setForm({ ...form, pixKey: e.target.value })
-              }
-            />
-          </label>
+          {selectedRoute.beneficiaryFields.map(field => (
+            <label key={field.name}>
+              {field.label}
+              <input
+                type={field.type || "text"}
+                placeholder={field.placeholder}
+                required={field.required}
+                value={form.beneficiary[field.name] || ""}
+                onChange={e =>
+                  updateBeneficiaryField(field.name, e.target.value)
+                }
+              />
+            </label>
+          ))}
 
           <button onClick={createPayoutIntent}>
             Create payout intent
