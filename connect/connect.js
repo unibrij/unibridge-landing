@@ -1,24 +1,28 @@
 // connect/connect.js
 
+const API_BASE =
+  "https://unibridge-v2-vqia6yp7wq-uc.a.run.app/v2";
+
 const container =
   document.getElementById("wallet-button");
+
+const payoutForm =
+  document.getElementById("payout-form");
+
+const debugBox =
+  document.getElementById("connect-debug");
+
+const createPayoutIntentButton =
+  document.getElementById("create-payout-intent");
 
 if (container) {
   container.innerHTML =
     "<appkit-button></appkit-button>";
 }
 
-const debugBox =
-  document.createElement("pre");
-
-debugBox.style.cssText =
-  "margin-top:16px;max-width:520px;white-space:pre-wrap;font-size:12px;line-height:1.4;color:rgba(255,255,255,.78);text-align:left;";
-
-debugBox.textContent =
-  "Connect debug: script loaded";
-
-document.querySelector(".connect-shell")
-  ?.appendChild(debugBox);
+let activeConnectSession = null;
+let activeWalletAddress = null;
+let activeChainId = null;
 
 function safeJson(value) {
   try {
@@ -29,6 +33,8 @@ function safeJson(value) {
 }
 
 function writeDebug(label, value = {}) {
+  if (!debugBox) return;
+
   debugBox.textContent =
     `${label}\n` + safeJson(value);
 }
@@ -93,25 +99,117 @@ function getChainId(network) {
   );
 }
 
+function showPayoutForm() {
+  if (payoutForm) {
+    payoutForm.classList.remove("hidden");
+  }
+}
+
 async function createBackendConnectSession(address, chainId) {
+  writeDebug("Sending connect session", {
+    wallet_address: address,
+    chain_id: chainId
+  });
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/session`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          wallet_address: address,
+          chain_id: Number(chainId),
+          source: "reown"
+        })
+      }
+    );
+
+  const data =
+    await response.json();
+
+  if (!response.ok || !data?.ok) {
+    throw new Error(data?.error || "connect_session_failed");
+  }
+
+  activeConnectSession =
+    data.connect_session_id;
+
+  activeWalletAddress =
+    data.wallet_address || address;
+
+  activeChainId =
+    data.chain_id || Number(chainId);
+
+  showPayoutForm();
+
+  writeDebug("Connect session ready", data);
+
+  return data;
+}
+
+async function createPayoutIntent() {
   try {
-    writeDebug("Sending connect session", {
-      wallet_address: address,
-      chain_id: chainId
-    });
+    if (!activeConnectSession) {
+      writeDebug("Missing connect session", {});
+      return;
+    }
+
+    const amount =
+      document.getElementById("payout-amount")?.value;
+
+    const asset =
+      document.getElementById("payout-asset")?.value;
+
+    const recipientName =
+      document.getElementById("recipient-name")?.value;
+
+    const pixKey =
+      document.getElementById("recipient-pix")?.value;
 
     const response =
       await fetch(
-        "https://unibridge-v2-vqia6yp7wq-uc.a.run.app/v2/connect/session",
+        `${API_BASE}/connect/payout-intent`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            wallet_address: address,
-            chain_id: Number(chainId),
-            source: "reown"
+            connect_session_id:
+              activeConnectSession,
+
+            wallet_address:
+              activeWalletAddress,
+
+            country:
+              "BR",
+
+            rail:
+              "PIX",
+
+            amount,
+
+            asset,
+
+            network:
+              "polygon",
+
+            beneficiary: {
+              name:
+                recipientName,
+
+              rail:
+                "PIX",
+
+              country:
+                "BR",
+
+              pix_key:
+                pixKey
+            }
           })
         }
       );
@@ -119,13 +217,23 @@ async function createBackendConnectSession(address, chainId) {
     const data =
       await response.json();
 
-    writeDebug("UniBridge connect session response", data);
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.error || "payout_intent_failed");
+    }
+
+    writeDebug("Payout intent created", data);
   } catch (err) {
-    writeDebug("connect session failed", {
+    writeDebug("Create payout intent failed", {
       message: err.message
     });
   }
 }
+
+createPayoutIntentButton
+  ?.addEventListener(
+    "click",
+    createPayoutIntent
+  );
 
 setInterval(() => {
   const appkit =
@@ -150,19 +258,29 @@ setInterval(() => {
   const chainId =
     getChainId(network);
 
-  writeDebug("Polling AppKit", {
-    account,
-    network,
-    address,
-    chainId,
-    sent: Boolean(window.__ub_connect_sent)
-  });
-
   if (
     address &&
     !window.__ub_connect_sent
   ) {
     window.__ub_connect_sent = true;
-    createBackendConnectSession(address, chainId);
+
+    createBackendConnectSession(
+      address,
+      chainId
+    ).catch(err => {
+      writeDebug("connect session failed", {
+        message: err.message
+      });
+    });
+
+    return;
+  }
+
+  if (!activeConnectSession) {
+    writeDebug("Waiting for wallet connection", {
+      address,
+      chainId,
+      sent: Boolean(window.__ub_connect_sent)
+    });
   }
 }, 3000);
