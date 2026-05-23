@@ -123,6 +123,13 @@ appkit-button {
   cursor: pointer;
 }
 
+.payout-form button.secondary-action {
+  margin-top: 10px;
+  background: transparent;
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.42);
+}
+
 .connect-debug {
   margin: 14px 0 0;
   white-space: pre-wrap;
