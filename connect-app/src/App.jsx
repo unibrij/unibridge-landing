@@ -298,7 +298,7 @@ export default function App() {
   return (
     <main className="connect-shell">
       <img
-        src="./icons/social/Ub.png"
+        src="/connect/icons/social/Ub.png"
         className="logo"
         alt="UniBridge"
       />
