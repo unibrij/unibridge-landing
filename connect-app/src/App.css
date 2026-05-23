@@ -1,0 +1,137 @@
+// connect-app/src/App.css
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.12), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
+  color: #ffffff;
+}
+
+.connect-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  text-align: center;
+}
+
+.logo {
+  width: 118px;
+  height: auto;
+  filter:
+    drop-shadow(0 0 18px rgba(45, 212, 191, 0.32))
+    drop-shadow(0 12px 30px rgba(0, 0, 0, 0.28));
+}
+
+h1 {
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+p {
+  margin: 0;
+  max-width: 420px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.wallet-button {
+  margin-top: 12px;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 15px;
+  background: #14b8a6;
+  color: #04111f;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.payout-form {
+  width: min(100%, 420px);
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 22px;
+  background: rgba(8, 17, 31, 0.72);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  text-align: left;
+}
+
+.route-label {
+  margin-bottom: 14px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.payout-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.payout-form input,
+.payout-form select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-size: 15px;
+  outline: none;
+}
+
+.payout-form input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.payout-form input:focus,
+.payout-form select:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.payout-form button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px 15px;
+  border: 0;
+  border-radius: 15px;
+  background: #14b8a6;
+  color: #04111f;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.payout-form button.secondary-action {
+  margin-top: 10px;
+  background: transparent;
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.42);
+}
+
+.connect-debug {
+  margin: 14px 0 0;
+  white-space: pre-wrap;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  line-height: 1.45;
+}
