@@ -4,34 +4,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 
-const API_BASE =
-  "https://unibridge-v2-vqia6yp7wq-uc.a.run.app/v2";
+import {
+  ROUTES,
+  getRouteById,
+  getInitialBeneficiary
+} from "./routes";
 
-const ROUTES = [
-  {
-    id: "br_pix",
-    label: "Brazil PIX route",
-    country: "BR",
-    rail: "PIX",
-    network: "polygon",
-    assets: ["USDT", "USDC"],
-    beneficiaryFields: [
-      {
-        name: "pix_key",
-        label: "PIX key",
-        type: "text",
-        placeholder: "email, CPF, phone, or random key",
-        required: true
-      }
-    ]
-  }
-];
+import { validateRouteForm } from "./form";
 
-function getInitialBeneficiary(route) {
-  return route.beneficiaryFields.reduce((acc, field) => {
-    acc[field.name] = "";
-    return acc;
-  }, {});
+import {
+  createConnectSession,
+  createPayoutIntent,
+  requestAuthorizationMessage,
+  submitAuthorization,
+  startKyc
+} from "./api";
+
+function readPayoutIntentFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("payout_intent_id");
 }
 
 export default function App() {
@@ -40,13 +31,19 @@ export default function App() {
   const { signMessageAsync } = useSignMessage();
 
   const [selectedRouteId, setSelectedRouteId] = useState("br_pix");
+
   const selectedRoute = useMemo(
-    () => ROUTES.find(route => route.id === selectedRouteId) || ROUTES[0],
+    () => getRouteById(selectedRouteId),
     [selectedRouteId]
   );
 
   const [connectSessionId, setConnectSessionId] = useState(null);
-  const [payoutIntentId, setPayoutIntentId] = useState(null);
+
+  const [payoutIntentId, setPayoutIntentId] = useState(
+    () => readPayoutIntentFromUrl() || null
+  );
+
+  const [isBusy, setIsBusy] = useState(false);
   const [debug, setDebug] = useState("Waiting for wallet connection...");
 
   const [form, setForm] = useState(() => ({
@@ -70,8 +67,7 @@ export default function App() {
   }
 
   function changeRoute(routeId) {
-    const route =
-      ROUTES.find(item => item.id === routeId) || ROUTES[0];
+    const route = getRouteById(routeId);
 
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
@@ -88,147 +84,98 @@ export default function App() {
       return;
     }
 
-    async function createConnectSession() {
-      const response = await fetch(`${API_BASE}/connect/session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          wallet_address: address,
-          chain_id: chainId || 137,
-          source: "reown"
-        })
+    async function prepareConnectSession() {
+      const data = await createConnectSession({
+        walletAddress: address,
+        chainId,
+        source: "reown"
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data?.ok) {
-        throw new Error(data?.error || "connect_session_failed");
-      }
 
       setConnectSessionId(data.connect_session_id);
       writeDebug("Connect session ready", data);
     }
 
-    createConnectSession().catch(err => {
+    prepareConnectSession().catch(err => {
       writeDebug("Connect session failed", {
         message: err.message
       });
     });
   }, [isConnected, address, chainId, connectSessionId]);
 
-  async function createPayoutIntent() {
-    try {
-      if (!connectSessionId) {
-        writeDebug("Missing connect session");
-        return;
-      }
+  async function authorizePayoutIntent(nextPayoutIntentId) {
+    const messageData = await requestAuthorizationMessage({
+      payoutIntentId: nextPayoutIntentId
+    });
 
-      const response = await fetch(`${API_BASE}/connect/payout-intent`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          connect_session_id: connectSessionId,
-          wallet_address: address,
-          country: selectedRoute.country,
-          rail: selectedRoute.rail,
-          amount: form.amount,
-          asset: form.asset,
-          network: selectedRoute.network,
-          beneficiary: {
-            rail: selectedRoute.rail,
-            country: selectedRoute.country,
-            ...form.beneficiary
-          }
-        })
-      });
+    const signature = await signMessageAsync({
+      message: messageData.message
+    });
 
-      const data = await response.json();
-
-      if (!response.ok || !data?.ok) {
-        throw new Error(data?.error || "payout_intent_failed");
-      }
-
-      setPayoutIntentId(data.payout_intent_id);
-      writeDebug("Payout intent created", data);
-    } catch (err) {
-      writeDebug("Create payout intent failed", {
-        message: err.message
-      });
-    }
+    return submitAuthorization({
+      payoutIntentId: nextPayoutIntentId,
+      message: messageData.message,
+      nonce: messageData.nonce,
+      signature
+    });
   }
 
-  async function authorizeRoute() {
+  async function reviewAndContinue() {
     try {
-      if (!payoutIntentId) {
-        writeDebug("Missing payout intent");
+      if (!isConnected) {
+        await open();
         return;
       }
 
-      const messageResponse = await fetch(
-        `${API_BASE}/connect/payout-authorize/message`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            payout_intent_id: payoutIntentId
-          })
-        }
-      );
-
-      const messageData = await messageResponse.json();
-
-      if (!messageResponse.ok || !messageData?.ok) {
-        throw new Error(
-          messageData?.error || "authorization_message_failed"
-        );
+      if (!connectSessionId) {
+        writeDebug("Connect session is still preparing. Try again in a moment.");
+        return;
       }
 
-      const signature = await signMessageAsync({
-        message: messageData.message
+      validateRouteForm({
+        form,
+        route: selectedRoute
       });
 
-      const submitResponse = await fetch(
-        `${API_BASE}/connect/payout-authorize/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            payout_intent_id: payoutIntentId,
-            message: messageData.message,
-            nonce: messageData.nonce,
-            signature
-          })
-        }
+      setIsBusy(true);
+      writeDebug("Preparing payout route...");
+
+      const intent = await createPayoutIntent({
+        connectSessionId,
+        walletAddress: address,
+        route: selectedRoute,
+        form
+      });
+
+      setPayoutIntentId(intent.payout_intent_id);
+
+      writeDebug("Requesting route authorization...", {
+        payout_intent_id: intent.payout_intent_id
+      });
+
+      const authorization = await authorizePayoutIntent(
+        intent.payout_intent_id
       );
 
-      const submitData = await submitResponse.json();
+      writeDebug("Route authorized. Starting verification...", authorization);
 
-      if (!submitResponse.ok || !submitData?.ok) {
-        throw new Error(
-          submitData?.error || "authorization_submit_failed"
-        );
-      }
+      const kyc = await startKyc({
+        payoutIntentId: intent.payout_intent_id
+      });
 
-      writeDebug("Route authorized", submitData);
+      window.location.href = kyc.url;
     } catch (err) {
-      writeDebug("Authorize route failed", {
+      writeDebug("Review and continue failed", {
         message: err.message
       });
+    } finally {
+      setIsBusy(false);
     }
   }
 
   return (
     <main className="connect-shell">
       <img
-        src="/public/icons/social/Ub.png"
+        src="/icons/social/Ub.png"
         className="logo"
         alt="UniBridge"
       />
@@ -248,6 +195,7 @@ export default function App() {
             <select
               value={selectedRouteId}
               onChange={e => changeRoute(e.target.value)}
+              disabled={isBusy}
             >
               {ROUTES.map(route => (
                 <option key={route.id} value={route.id}>
@@ -264,8 +212,12 @@ export default function App() {
               min="1"
               placeholder="100"
               value={form.amount}
+              disabled={isBusy}
               onChange={e =>
-                setForm({ ...form, amount: e.target.value })
+                setForm({
+                  ...form,
+                  amount: e.target.value
+                })
               }
             />
           </label>
@@ -274,8 +226,12 @@ export default function App() {
             Asset
             <select
               value={form.asset}
+              disabled={isBusy}
               onChange={e =>
-                setForm({ ...form, asset: e.target.value })
+                setForm({
+                  ...form,
+                  asset: e.target.value
+                })
               }
             >
               {selectedRoute.assets.map(asset => (
@@ -293,6 +249,7 @@ export default function App() {
                 type={field.type || "text"}
                 placeholder={field.placeholder}
                 required={field.required}
+                disabled={isBusy}
                 value={form.beneficiary[field.name] || ""}
                 onChange={e =>
                   updateBeneficiaryField(field.name, e.target.value)
@@ -301,15 +258,15 @@ export default function App() {
             </label>
           ))}
 
-          <button onClick={createPayoutIntent}>
-            Create payout intent
+          <button onClick={reviewAndContinue} disabled={isBusy}>
+            {isBusy ? "Preparing route..." : "Review & continue"}
           </button>
 
-          {payoutIntentId && (
-            <button className="secondary-action" onClick={authorizeRoute}>
-              Authorize route
-            </button>
-          )}
+          {payoutIntentId ? (
+            <p className="connect-note">
+              Route reference: {payoutIntentId}
+            </p>
+          ) : null}
 
           <pre className="connect-debug">{debug}</pre>
         </section>
