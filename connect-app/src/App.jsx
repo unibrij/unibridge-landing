@@ -340,11 +340,20 @@ export default function App() {
       payoutIntentId: intent.payout_intent_id
     });
 
+    if (kyc.skipped) {
+      writeDebug("Verification already completed. Preparing funding...", {
+        payout_intent_id: intent.payout_intent_id
+      });
+
+      await continueAfterKyc(intent.payout_intent_id);
+      return;
+    }
+
     window.location.href = kyc.url;
   }
 
-  async function continueAfterKyc() {
-    if (!payoutIntentId) {
+  async function continueAfterKyc(intentId = payoutIntentId) {
+    if (!intentId) {
       writeDebug("Missing payout intent");
       return;
     }
@@ -352,11 +361,11 @@ export default function App() {
     setIsBusy(true);
 
     writeDebug("Preparing funding...", {
-      payout_intent_id: payoutIntentId
+      payout_intent_id: intentId
     });
 
     const result = await createSettlement({
-      payoutIntentId
+      payoutIntentId: intentId
     });
 
     setSettlement(result);
