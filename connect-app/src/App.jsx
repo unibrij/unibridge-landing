@@ -77,6 +77,18 @@ function clearStoredFlow() {
   localStorage.removeItem(FLOW_STORAGE_KEY);
 }
 
+function clearUrlQuery() {
+  if (!window.location.search) {
+    return;
+  }
+
+  window.history.replaceState(
+    {},
+    "",
+    window.location.pathname
+  );
+}
+
 function resolveRouteIdFromIntent(intent = {}) {
   const rail = String(intent.rail || "").toUpperCase();
   const country = String(intent.country || "").toUpperCase();
@@ -97,6 +109,14 @@ function buildFormFromIntent(intent = {}, fallbackRoute = ROUTES[0]) {
     beneficiary:
       intent.beneficiary ||
       getInitialBeneficiary(fallbackRoute)
+  };
+}
+
+function buildEmptyForm(route = ROUTES[0]) {
+  return {
+    amount: "",
+    asset: route.assets[0],
+    beneficiary: getInitialBeneficiary(route)
   };
 }
 
@@ -128,6 +148,33 @@ function pickFundingDepositAddress(funding = {}) {
   ).trim();
 }
 
+function isKycAlreadyPassed(payload = {}) {
+  const status =
+    String(
+      payload.kyc_status ||
+        payload.verification_status ||
+        payload.status ||
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const nextStep =
+    String(payload.next_step || "")
+      .trim()
+      .toLowerCase();
+
+  return (
+    status === "passed" ||
+    status === "approved" ||
+    status === "verified" ||
+    nextStep === "create_settlement" ||
+    nextStep === "prepare_funding" ||
+    nextStep === "create_funding" ||
+    nextStep === "funding"
+  );
+}
+
 export default function App() {
   useAppKit();
 
@@ -135,8 +182,11 @@ export default function App() {
   const { data: walletClient } = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
 
-  const returnedPayoutIntentId = readPayoutIntentFromUrl();
   const storedFlow = readStoredFlow();
+
+  const [returnedIntentId, setReturnedIntentId] = useState(
+    readPayoutIntentFromUrl()
+  );
 
   const [selectedRouteId, setSelectedRouteId] = useState(
     storedFlow?.route_id || "br_pix"
@@ -151,7 +201,7 @@ export default function App() {
   const [connectSessionWallet, setConnectSessionWallet] = useState(null);
 
   const [payoutIntentId, setPayoutIntentId] = useState(
-    returnedPayoutIntentId || storedFlow?.payout_intent_id || null
+    returnedIntentId || storedFlow?.payout_intent_id || null
   );
 
   const [settlement, setSettlement] = useState(null);
@@ -159,7 +209,7 @@ export default function App() {
   const [isBusy, setIsBusy] = useState(false);
 
   const [debug, setDebug] = useState(
-    returnedPayoutIntentId
+    returnedIntentId
       ? "Loading payout route..."
       : "Waiting for wallet connection..."
   );
@@ -172,10 +222,27 @@ export default function App() {
       getInitialBeneficiary(ROUTES[0])
   }));
 
-  const isReturnedFlow = Boolean(returnedPayoutIntentId);
+  const isReturnedFlow = Boolean(returnedIntentId);
 
   function writeDebug(label, value = {}) {
     setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
+  }
+
+  function resetRouteFlow() {
+    const route = getRouteById(selectedRouteId);
+
+    setReturnedIntentId(null);
+    setPayoutIntentId(null);
+    setSettlement(null);
+    setFundingTxHash(null);
+    setIsBusy(false);
+
+    setForm(buildEmptyForm(route));
+
+    clearStoredFlow();
+    clearUrlQuery();
+
+    writeDebug("Ready to start a new route.");
   }
 
   function updateBeneficiaryField(name, value) {
@@ -192,23 +259,23 @@ export default function App() {
     const route = getRouteById(routeId);
 
     setSelectedRouteId(route.id);
+    setReturnedIntentId(null);
     setPayoutIntentId(null);
     setSettlement(null);
     setFundingTxHash(null);
     setConnectSessionId(null);
     setConnectSessionWallet(null);
 
-    setForm({
-      amount: "",
-      asset: route.assets[0],
-      beneficiary: getInitialBeneficiary(route)
-    });
+    setForm(buildEmptyForm(route));
 
     clearStoredFlow();
+    clearUrlQuery();
+
+    writeDebug("Ready to start a new route.");
   }
 
   useEffect(() => {
-    if (!returnedPayoutIntentId) {
+    if (!returnedIntentId) {
       return;
     }
 
@@ -217,7 +284,7 @@ export default function App() {
         setIsBusy(true);
 
         const intent = await getPayoutIntent({
-          payoutIntentId: returnedPayoutIntentId
+          payoutIntentId: returnedIntentId
         });
 
         const routeId = resolveRouteIdFromIntent(intent);
@@ -248,7 +315,7 @@ export default function App() {
     }
 
     loadReturnedIntent();
-  }, [returnedPayoutIntentId]);
+  }, [returnedIntentId]);
 
   useEffect(() => {
     if (isConnected) {
@@ -317,6 +384,9 @@ export default function App() {
     });
 
     setIsBusy(true);
+    setSettlement(null);
+    setFundingTxHash(null);
+
     writeDebug("Preparing payout route...");
 
     const intent = await createPayoutIntent({
@@ -334,6 +404,18 @@ export default function App() {
       form
     });
 
+    if (isKycAlreadyPassed(intent)) {
+      writeDebug("Verification already completed. Preparing funding...", {
+        payout_intent_id: intent.payout_intent_id,
+        kyc_status: intent.kyc_status || null,
+        verification_status: intent.verification_status || null,
+        next_step: intent.next_step || null
+      });
+
+      await continueAfterKyc(intent.payout_intent_id);
+      return;
+    }
+
     writeDebug("Starting verification...", {
       payout_intent_id: intent.payout_intent_id
     });
@@ -342,13 +424,20 @@ export default function App() {
       payoutIntentId: intent.payout_intent_id
     });
 
-    if (kyc.skipped) {
+    if (kyc.skipped || isKycAlreadyPassed(kyc)) {
       writeDebug("Verification already completed. Preparing funding...", {
-        payout_intent_id: intent.payout_intent_id
+        payout_intent_id: intent.payout_intent_id,
+        kyc_status: kyc.kyc_status || null,
+        verification_status: kyc.verification_status || null,
+        next_step: kyc.next_step || null
       });
 
       await continueAfterKyc(intent.payout_intent_id);
       return;
+    }
+
+    if (!kyc.url) {
+      throw new Error("kyc_url_missing");
     }
 
     window.location.href = kyc.url;
@@ -614,6 +703,14 @@ export default function App() {
               : settlement?.funding
                 ? "Send funding"
                 : "Continue"}
+          </button>
+
+          <button
+            type="button"
+            onClick={resetRouteFlow}
+            disabled={isBusy}
+          >
+            Start new route
           </button>
 
           <p className="connect-note">
