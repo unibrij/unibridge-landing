@@ -21,6 +21,7 @@ import {
 } from "./api";
 
 const FLOW_STORAGE_KEY = "unibridge_connect_flow";
+const REQUIRED_CHAIN_ID = 137;
 
 function readPayoutIntentFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -58,12 +59,8 @@ function resolveRouteIdFromIntent(intent = {}) {
 
 function buildFormFromIntent(intent = {}, fallbackRoute = ROUTES[0]) {
   return {
-    amount:
-      intent.amount ?? "",
-
-    asset:
-      intent.asset || fallbackRoute.assets[0],
-
+    amount: intent.amount ?? "",
+    asset: intent.asset || fallbackRoute.assets[0],
     beneficiary:
       intent.beneficiary ||
       getInitialBeneficiary(fallbackRoute)
@@ -71,7 +68,8 @@ function buildFormFromIntent(intent = {}, fallbackRoute = ROUTES[0]) {
 }
 
 export default function App() {
-  const { open } = useAppKit();
+  useAppKit();
+
   const { address, chainId, isConnected } = useAccount();
 
   const returnedPayoutIntentId = readPayoutIntentFromUrl();
@@ -87,6 +85,7 @@ export default function App() {
   );
 
   const [connectSessionId, setConnectSessionId] = useState(null);
+  const [connectSessionWallet, setConnectSessionWallet] = useState(null);
 
   const [payoutIntentId, setPayoutIntentId] = useState(
     returnedPayoutIntentId || storedFlow?.payout_intent_id || null
@@ -102,19 +101,14 @@ export default function App() {
   );
 
   const [form, setForm] = useState(() => ({
-    amount:
-      storedFlow?.form?.amount || "",
-
-    asset:
-      storedFlow?.form?.asset || ROUTES[0].assets[0],
-
+    amount: storedFlow?.form?.amount || "",
+    asset: storedFlow?.form?.asset || ROUTES[0].assets[0],
     beneficiary:
       storedFlow?.form?.beneficiary ||
       getInitialBeneficiary(ROUTES[0])
   }));
 
-  const isReturnedFlow =
-    Boolean(returnedPayoutIntentId);
+  const isReturnedFlow = Boolean(returnedPayoutIntentId);
 
   function writeDebug(label, value = {}) {
     setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
@@ -136,6 +130,8 @@ export default function App() {
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
     setSettlement(null);
+    setConnectSessionId(null);
+    setConnectSessionWallet(null);
 
     setForm({
       amount: "",
@@ -159,23 +155,24 @@ export default function App() {
           payoutIntentId: returnedPayoutIntentId
         });
 
-        const routeId =
-          resolveRouteIdFromIntent(intent);
-
-        const route =
-          getRouteById(routeId);
+        const routeId = resolveRouteIdFromIntent(intent);
+        const route = getRouteById(routeId);
+        const rebuiltForm = buildFormFromIntent(intent, route);
 
         setSelectedRouteId(routeId);
         setPayoutIntentId(intent.payout_intent_id);
-        setForm(buildFormFromIntent(intent, route));
+        setForm(rebuiltForm);
 
         storeFlowSnapshot({
           payout_intent_id: intent.payout_intent_id,
           route_id: routeId,
-          form: buildFormFromIntent(intent, route)
+          form: rebuiltForm
         });
 
-        writeDebug("Verification complete. Ready to prepare funding instructions.", intent);
+        writeDebug(
+          "Verification complete. Ready to prepare funding instructions.",
+          intent
+        );
       } catch (err) {
         writeDebug("Load payout intent failed", {
           message: err.message
@@ -189,32 +186,59 @@ export default function App() {
   }, [returnedPayoutIntentId]);
 
   useEffect(() => {
-    if (!isConnected || !address || connectSessionId) {
+    if (isConnected) {
+      return;
+    }
+
+    setConnectSessionId(null);
+    setConnectSessionWallet(null);
+  }, [isConnected]);
+
+  useEffect(() => {
+    if (
+      !isConnected ||
+      !address ||
+      connectSessionWallet === address
+    ) {
       return;
     }
 
     async function prepareConnectSession() {
       const data = await createConnectSession({
         walletAddress: address,
-        chainId,
+        chainId: REQUIRED_CHAIN_ID,
         source: "reown"
       });
 
       setConnectSessionId(data.connect_session_id);
+      setConnectSessionWallet(address);
+
       writeDebug("Connect session ready", data);
     }
 
     prepareConnectSession().catch(err => {
+      setConnectSessionId(null);
+      setConnectSessionWallet(null);
+
       writeDebug("Connect session failed", {
         message: err.message
       });
     });
-  }, [isConnected, address, chainId, connectSessionId]);
+  }, [isConnected, address, connectSessionWallet]);
 
   async function startNewFlow() {
     if (!isConnected) {
-      await open();
+      writeDebug("Connect your wallet first.");
       return;
+    }
+
+    if (chainId && Number(chainId) !== REQUIRED_CHAIN_ID) {
+      writeDebug("Wallet network notice", {
+        message:
+          "This route uses Polygon USDT. If your wallet asks for a network, choose Polygon.",
+        expected_chain_id: REQUIRED_CHAIN_ID,
+        current_chain_id: chainId
+      });
     }
 
     if (!connectSessionId) {
@@ -273,7 +297,6 @@ export default function App() {
     });
 
     setSettlement(result);
-
     clearStoredFlow();
 
     writeDebug("Funding instructions ready", result);
@@ -307,10 +330,10 @@ export default function App() {
 
       <p>Use your wallet to fund verified payout routes.</p>
 
-      {!isConnected && !isReturnedFlow && (
-        <button className="wallet-button" onClick={() => open()}>
-          Connect Wallet
-        </button>
+      {!isReturnedFlow && (
+        <div className="wallet-connect-row">
+          <appkit-button />
+        </div>
       )}
 
       {(isConnected || isReturnedFlow) && (
@@ -386,6 +409,10 @@ export default function App() {
           <button onClick={handleSend} disabled={isBusy}>
             {isBusy ? "Preparing..." : "Send"}
           </button>
+
+          <p className="connect-note">
+            This route uses Polygon USDT only.
+          </p>
 
           {payoutIntentId ? (
             <p className="connect-note">
