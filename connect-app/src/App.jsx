@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   useAccount,
-  useWalletClient
+  useWalletClient,
+  useSwitchChain
 } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 import { parseUnits } from "viem";
@@ -132,6 +133,7 @@ export default function App() {
 
   const { address, chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const { switchChainAsync } = useSwitchChain();
 
   const returnedPayoutIntentId = readPayoutIntentFromUrl();
   const storedFlow = readStoredFlow();
@@ -298,7 +300,7 @@ export default function App() {
     if (chainId && Number(chainId) !== REQUIRED_CHAIN_ID) {
       writeDebug("Wallet network notice", {
         message:
-          "This route uses Polygon USDT. If your wallet asks for a network, choose Polygon.",
+          "This route uses Polygon. Your wallet may be asked to switch networks before funding.",
         expected_chain_id: REQUIRED_CHAIN_ID,
         current_chain_id: chainId
       });
@@ -375,6 +377,44 @@ export default function App() {
     writeDebug("Funding route ready. Send from wallet.", result);
   }
 
+  async function ensurePolygonNetwork() {
+    if (!chainId || Number(chainId) === REQUIRED_CHAIN_ID) {
+      return true;
+    }
+
+    if (!switchChainAsync) {
+      writeDebug("Wallet network switch unavailable", {
+        message:
+          "Your wallet is on the wrong network and automatic switching is unavailable.",
+        expected_chain_id: REQUIRED_CHAIN_ID,
+        current_chain_id: chainId
+      });
+
+      return false;
+    }
+
+    try {
+      writeDebug("Switching wallet network to Polygon...", {
+        expected_chain_id: REQUIRED_CHAIN_ID,
+        current_chain_id: chainId
+      });
+
+      await switchChainAsync({
+        chainId: REQUIRED_CHAIN_ID
+      });
+
+      return true;
+    } catch (err) {
+      writeDebug("Wallet network switch failed", {
+        message: err.message,
+        expected_chain_id: REQUIRED_CHAIN_ID,
+        current_chain_id: chainId
+      });
+
+      return false;
+    }
+  }
+
   async function sendFundingTransaction() {
     if (!settlement?.funding) {
       writeDebug("Missing funding instructions");
@@ -386,14 +426,10 @@ export default function App() {
       return;
     }
 
-    if (chainId && Number(chainId) !== REQUIRED_CHAIN_ID) {
-      writeDebug("Wrong wallet network", {
-        message:
-          "Switch your wallet to Polygon before sending.",
-        expected_chain_id: REQUIRED_CHAIN_ID,
-        current_chain_id: chainId
-      });
+    const isNetworkReady =
+      await ensurePolygonNetwork();
 
+    if (!isNetworkReady) {
       return;
     }
 
