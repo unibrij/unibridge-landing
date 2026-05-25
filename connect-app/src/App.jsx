@@ -1,8 +1,12 @@
 // connect-app/src/App.jsx
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount } from "wagmi";
+import {
+  useAccount,
+  useWalletClient
+} from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
+import { parseUnits } from "viem";
 
 import {
   ROUTES,
@@ -22,6 +26,34 @@ import {
 
 const FLOW_STORAGE_KEY = "unibridge_connect_flow";
 const REQUIRED_CHAIN_ID = 137;
+
+const POLYGON_TOKENS = {
+  USDT: {
+    address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    decimals: 6
+  },
+  USDC: {
+    address: "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    decimals: 6
+  },
+  "USDC.e": {
+    address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    decimals: 6
+  }
+};
+
+const ERC20_TRANSFER_ABI = [
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" }
+    ],
+    outputs: [{ name: "", type: "bool" }]
+  }
+];
 
 function readPayoutIntentFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -67,10 +99,39 @@ function buildFormFromIntent(intent = {}, fallbackRoute = ROUTES[0]) {
   };
 }
 
+function pickFundingAsset(funding = {}) {
+  return String(
+    funding.asset ||
+      funding.currency ||
+      funding.token ||
+      ""
+  ).trim();
+}
+
+function pickFundingAmount(funding = {}) {
+  return (
+    funding.amount ??
+    funding.expected_amount ??
+    funding.required_amount ??
+    ""
+  );
+}
+
+function pickFundingDepositAddress(funding = {}) {
+  return String(
+    funding.deposit_address ||
+      funding.address ||
+      funding.to_address ||
+      funding.target_address ||
+      ""
+  ).trim();
+}
+
 export default function App() {
   useAppKit();
 
   const { address, chainId, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
 
   const returnedPayoutIntentId = readPayoutIntentFromUrl();
   const storedFlow = readStoredFlow();
@@ -92,6 +153,7 @@ export default function App() {
   );
 
   const [settlement, setSettlement] = useState(null);
+  const [fundingTxHash, setFundingTxHash] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
 
   const [debug, setDebug] = useState(
@@ -130,6 +192,7 @@ export default function App() {
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
     setSettlement(null);
+    setFundingTxHash(null);
     setConnectSessionId(null);
     setConnectSessionWallet(null);
 
@@ -170,7 +233,7 @@ export default function App() {
         });
 
         writeDebug(
-          "Verification complete. Ready to prepare funding instructions.",
+          "Verification complete. Ready to prepare funding.",
           intent
         );
       } catch (err) {
@@ -288,7 +351,7 @@ export default function App() {
 
     setIsBusy(true);
 
-    writeDebug("Preparing funding instructions...", {
+    writeDebug("Preparing funding...", {
       payout_intent_id: payoutIntentId
     });
 
@@ -297,13 +360,107 @@ export default function App() {
     });
 
     setSettlement(result);
+    setFundingTxHash(null);
     clearStoredFlow();
 
-    writeDebug("Funding instructions ready", result);
+    writeDebug("Funding route ready. Send from wallet.", result);
+  }
+
+  async function sendFundingTransaction() {
+    if (!settlement?.funding) {
+      writeDebug("Missing funding instructions");
+      return;
+    }
+
+    if (!walletClient) {
+      writeDebug("Wallet not ready");
+      return;
+    }
+
+    if (chainId && Number(chainId) !== REQUIRED_CHAIN_ID) {
+      writeDebug("Wrong wallet network", {
+        message:
+          "Switch your wallet to Polygon before sending.",
+        expected_chain_id: REQUIRED_CHAIN_ID,
+        current_chain_id: chainId
+      });
+
+      return;
+    }
+
+    const funding = settlement.funding;
+
+    const asset = pickFundingAsset(funding);
+    const amount = pickFundingAmount(funding);
+    const depositAddress = pickFundingDepositAddress(funding);
+
+    const token = POLYGON_TOKENS[asset];
+
+    if (!token) {
+      writeDebug("Unsupported funding token", {
+        asset,
+        supported_assets: Object.keys(POLYGON_TOKENS)
+      });
+      return;
+    }
+
+    if (!depositAddress) {
+      writeDebug("Missing deposit address");
+      return;
+    }
+
+    if (!amount || Number(amount) <= 0) {
+      writeDebug("Invalid funding amount", {
+        amount
+      });
+      return;
+    }
+
+    setIsBusy(true);
+
+    try {
+      writeDebug("Opening wallet transfer...", {
+        asset,
+        amount,
+        deposit_address: depositAddress,
+        token_contract: token.address
+      });
+
+      const hash = await walletClient.writeContract({
+        address: token.address,
+        abi: ERC20_TRANSFER_ABI,
+        functionName: "transfer",
+        args: [
+          depositAddress,
+          parseUnits(String(amount), token.decimals)
+        ]
+      });
+
+      setFundingTxHash(hash);
+
+      writeDebug("Funding transaction submitted", {
+        tx_hash: hash,
+        asset,
+        amount,
+        deposit_address: depositAddress,
+        token_contract: token.address
+      });
+    } catch (err) {
+      writeDebug("Funding transaction failed", {
+        message: err.message
+      });
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   async function handleSend() {
     try {
+      if (settlement?.funding) {
+        await sendFundingTransaction();
+        return;
+      }
+
       if (isReturnedFlow) {
         await continueAfterKyc();
       } else {
@@ -417,6 +574,12 @@ export default function App() {
           {payoutIntentId ? (
             <p className="connect-note">
               Route reference: {payoutIntentId}
+            </p>
+          ) : null}
+
+          {fundingTxHash ? (
+            <p className="connect-note">
+              Funding transaction submitted: {fundingTxHash}
             </p>
           ) : null}
 
