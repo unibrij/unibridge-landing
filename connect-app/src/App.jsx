@@ -573,7 +573,11 @@ export default function App() {
           ))}
 
           <button onClick={handleSend} disabled={isBusy}>
-            {isBusy ? "Preparing..." : "Send"}
+            {isBusy
+              ? "Preparing..."
+              : settlement?.funding
+                ? "Send funding"
+                : "Continue"}
           </button>
 
           <p className="connect-note">
@@ -593,9 +597,13 @@ export default function App() {
           ) : null}
 
           {settlement?.funding ? (
-            <pre className="connect-debug">
-              {JSON.stringify(settlement.funding, null, 2)}
-            </pre>
+            <>
+              <pre className="connect-debug">
+                {JSON.stringify(settlement.funding, null, 2)}
+              </pre>
+
+              <pre className="connect-debug">{debug}</pre>
+            </>
           ) : (
             <pre className="connect-debug">{debug}</pre>
           )}
