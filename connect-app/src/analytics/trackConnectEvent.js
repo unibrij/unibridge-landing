@@ -71,9 +71,19 @@ function getSafePageUrl() {
 }
 
 function resolveEventsUrl() {
-  const baseUrl =
+  const rawBaseUrl =
     import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.UNIBRIDGE_API_BASE ||
     "";
+
+  const baseUrl =
+    String(rawBaseUrl)
+      .trim()
+      .replace(/\/$/, "");
+
+  if (baseUrl.endsWith("/v2")) {
+    return `${baseUrl}/connect/events`;
+  }
 
   return `${baseUrl}/v2/connect/events`;
 }
