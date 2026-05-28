@@ -52,44 +52,49 @@ p {
 }
 
 .motion-lines {
-  width: min(100%, 420px);
+  width: min(100%, 320px);
   display: grid;
   gap: 7px;
   margin: 2px 0 4px;
+  overflow: hidden;
 }
 
-.motion-lines div {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
+.motion-line {
+  display: block;
+  text-align: center;
   font-size: 15px;
   line-height: 1.25;
   opacity: 0;
-  transform: translateY(8px);
-  animation: lineIn 420ms ease forwards;
+  transform: translateX(-18px);
+  animation: sentenceIn 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.motion-lines div:nth-child(2) {
-  animation-delay: 120ms;
-}
-
-.motion-lines div:nth-child(3) {
-  animation-delay: 240ms;
-}
-
-.motion-lines strong {
+.motion-line strong {
   color: #5eead4;
   font-weight: 800;
 }
 
-.motion-lines span {
+.motion-line span {
+  margin-left: 5px;
   color: rgba(255, 255, 255, 0.78);
 }
 
-@keyframes lineIn {
+.motion-line:nth-child(1) {
+  animation-delay: 120ms;
+}
+
+.motion-line:nth-child(2) {
+  animation-delay: 620ms;
+}
+
+.motion-line:nth-child(3) {
+  animation-delay: 1120ms;
+}
+
+@keyframes sentenceIn {
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
@@ -300,10 +305,11 @@ p {
   }
 
   .motion-lines {
+    width: min(100%, 300px);
     gap: 6px;
   }
 
-  .motion-lines div {
+  .motion-line {
     font-size: 14px;
   }
 
