@@ -165,7 +165,22 @@ export default function App() {
 
       <h1>Connect your wallet</h1>
 
-      <p>Use your wallet to fund verified payout routes.</p>
+      <div className="motion-lines" aria-label="Connect. Fund. Pay.">
+        <div>
+          <strong>Connect</strong>
+          <span>your wallet</span>
+        </div>
+
+        <div>
+          <strong>Fund</strong>
+          <span>with stablecoins</span>
+        </div>
+
+        <div>
+          <strong>Pay</strong>
+          <span>local recipients</span>
+        </div>
+      </div>
 
       {!isReturnedFlow && (
         <div className="wallet-connect-row">
