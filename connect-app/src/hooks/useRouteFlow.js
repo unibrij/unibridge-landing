@@ -207,7 +207,14 @@ export function useRouteFlow({
         chainId: REQUIRED_CHAIN_ID
       });
 
-      return true;
+      writeDebug(
+        "Wallet network switched. Press Send funding again.",
+        {
+          expected_chain_id: REQUIRED_CHAIN_ID
+        }
+      );
+
+      return false;
     } catch (err) {
       writeDebug("Wallet network switch failed", {
         message: err.message,
