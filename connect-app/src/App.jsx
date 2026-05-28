@@ -165,12 +165,7 @@ export default function App() {
 
       <h1>Connect your wallet</h1>
 
-      <div className="motion-lines" aria-label="Connect. Fund. Pay.">
-        <div className="motion-line">
-          <strong>Connect</strong>
-          <span>your wallet</span>
-        </div>
-
+      <div className="motion-lines" aria-label="Fund. Pay. Save.">
         <div className="motion-line">
           <strong>Fund</strong>
           <span>with stablecoins</span>
@@ -178,7 +173,12 @@ export default function App() {
 
         <div className="motion-line">
           <strong>Pay</strong>
-          <span>local recipients</span>
+          <span>back home</span>
+        </div>
+
+        <div className="motion-line">
+          <strong>Save</strong>
+          <span>for next time</span>
         </div>
       </div>
 
