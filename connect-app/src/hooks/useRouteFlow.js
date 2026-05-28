@@ -288,8 +288,9 @@ export function useRouteFlow({
 
       setFundingTxHash(hash);
 
-      writeDebug("Funding transaction submitted", {
+      writeDebug("Wallet transaction submitted.", {
         tx_hash: hash,
+        status: "wallet_submitted_only",
         asset,
         amount,
         deposit_address: depositAddress,
