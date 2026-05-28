@@ -1,6 +1,12 @@
 // connect-app/src/App.jsx
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import {
   useAccount,
   useWalletClient,
@@ -29,8 +35,16 @@ import useRouteFlow from "./hooks/useRouteFlow";
 
 import PayoutForm from "./components/PayoutForm";
 
+import {
+  trackConnectEvent
+} from "./analytics/trackConnectEvent";
+
 export default function App() {
   useAppKit();
+
+  const pageViewTrackedRef = useRef(false);
+  const walletConnectedTrackedRef = useRef(false);
+  const routeCreatedTrackedRef = useRef(false);
 
   const { address, chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -76,6 +90,56 @@ export default function App() {
 
   const isReturnedFlow =
     Boolean(returnedPayoutIntentId);
+
+  useEffect(() => {
+    if (pageViewTrackedRef.current) return;
+
+    pageViewTrackedRef.current = true;
+
+    trackConnectEvent("page_view", {
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        returned_flow: isReturnedFlow
+      }
+    });
+  }, [form.asset, isReturnedFlow, selectedRouteId]);
+
+  useEffect(() => {
+    if (!isConnected || !address) return;
+    if (walletConnectedTrackedRef.current) return;
+
+    walletConnectedTrackedRef.current = true;
+
+    trackConnectEvent("wallet_connected", {
+      wallet_address: address,
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        chain_id: chainId
+      }
+    });
+  }, [address, chainId, form.asset, isConnected, selectedRouteId]);
+
+  useEffect(() => {
+    if (!settlement) return;
+    if (routeCreatedTrackedRef.current) return;
+
+    routeCreatedTrackedRef.current = true;
+
+    trackConnectEvent("route_created", {
+      wallet_address: address,
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        settlement_id:
+          settlement?.settlement_id ||
+          settlement?.id ||
+          null,
+        payout_intent_id: payoutIntentId
+      }
+    });
+  }, [address, form.asset, payoutIntentId, selectedRouteId, settlement]);
 
   const writeDebug = useCallback((label, value = {}) => {
     setDebug(
@@ -128,6 +192,27 @@ export default function App() {
       writeDebug
     });
 
+  const trackedHandleSend = useCallback(async () => {
+    await trackConnectEvent("route_started", {
+      wallet_address: address,
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        amount: form.amount,
+        payout_intent_id: payoutIntentId
+      }
+    });
+
+    return handleSend();
+  }, [
+    address,
+    form.amount,
+    form.asset,
+    handleSend,
+    payoutIntentId,
+    selectedRouteId
+  ]);
+
   function updateBeneficiaryField(name, value) {
     setForm(current => ({
       ...current,
@@ -146,6 +231,8 @@ export default function App() {
     setPayoutIntentId(null);
     setSettlement(null);
     setFundingTxHash(null);
+
+    routeCreatedTrackedRef.current = false;
 
     resetConnectSession();
 
@@ -183,7 +270,15 @@ export default function App() {
       </div>
 
       {!isReturnedFlow && (
-        <div className="wallet-connect-row">
+        <div
+          className="wallet-connect-row"
+          onClick={() => {
+            trackConnectEvent("wallet_connect_started", {
+              route_id: selectedRouteId,
+              asset: form.asset
+            });
+          }}
+        >
           <appkit-button />
         </div>
       )}
@@ -201,7 +296,7 @@ export default function App() {
           walletConfirmationPending={walletConfirmationPending}
           payoutIntentId={payoutIntentId}
           debug={debug}
-          handleSend={handleSend}
+          handleSend={trackedHandleSend}
           changeRoute={changeRoute}
           updateBeneficiaryField={updateBeneficiaryField}
           routes={ROUTES}
