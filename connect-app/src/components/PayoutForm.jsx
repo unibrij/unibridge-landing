@@ -19,6 +19,17 @@ function shortId(value = "") {
   return `${text.slice(0, 10)}...${text.slice(-6)}`;
 }
 
+async function copyToClipboard(value) {
+  const text =
+    String(value || "").trim();
+
+  if (!text) {
+    return;
+  }
+
+  await navigator.clipboard.writeText(text);
+}
+
 function resolveDisplayStatus({
   settlement,
   fundingTxHash
@@ -32,6 +43,31 @@ function resolveDisplayStatus({
   }
 
   return "Route ready";
+}
+
+function CopyableValue({
+  value,
+  label
+}) {
+  return (
+    <span className="route-info-action">
+      <span
+        className="route-info-value"
+        title={value}
+      >
+        {shortId(value)}
+      </span>
+
+      <button
+        type="button"
+        className="copy-button"
+        onClick={() => copyToClipboard(value)}
+        aria-label={label}
+      >
+        ⧉
+      </button>
+    </span>
+  );
 }
 
 export default function PayoutForm({
@@ -154,12 +190,10 @@ export default function PayoutForm({
               Route reference
             </span>
 
-            <span
-              className="route-info-value"
-              title={payoutIntentId}
-            >
-              {shortId(payoutIntentId)}
-            </span>
+            <CopyableValue
+              value={payoutIntentId}
+              label="Copy route reference"
+            />
           </div>
         ) : null}
 
@@ -180,12 +214,10 @@ export default function PayoutForm({
             Wallet transaction
           </span>
 
-          <span
-            className="route-info-value"
-            title={fundingTxHash}
-          >
-            {shortId(fundingTxHash)}
-          </span>
+          <CopyableValue
+            value={fundingTxHash}
+            label="Copy wallet transaction"
+          />
         </div>
       ) : null}
 
