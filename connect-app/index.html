@@ -9,10 +9,27 @@
     />
 
     <title>UniBridge Connect</title>
+
+    <link rel="manifest" href="/connect/manifest.webmanifest" />
+    <meta name="theme-color" content="#14b8a6" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="UniBridge" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/connect/icons/social/Ub.png" />
   </head>
 
   <body>
     <div id="root"></div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/connect/service-worker.js");
+        });
+      }
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
