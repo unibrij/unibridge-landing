@@ -103,7 +103,8 @@ export default function App() {
   });
 
   const {
-    handleSend
+    handleSend,
+    walletConfirmationPending
   } =
     useRouteFlow({
       isConnected,
@@ -182,6 +183,7 @@ export default function App() {
           isReturnedFlow={isReturnedFlow}
           settlement={settlement}
           fundingTxHash={fundingTxHash}
+          walletConfirmationPending={walletConfirmationPending}
           payoutIntentId={payoutIntentId}
           debug={debug}
           handleSend={handleSend}
