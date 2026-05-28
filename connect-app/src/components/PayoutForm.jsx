@@ -1,5 +1,9 @@
 // connect-app/src/components/PayoutForm.jsx
 
+const SHOW_DEBUG =
+  import.meta.env.DEV ||
+  new URLSearchParams(window.location.search).get("debug") === "1";
+
 export default function PayoutForm({
   selectedRouteId,
   selectedRoute,
@@ -109,21 +113,21 @@ export default function PayoutForm({
 
       {fundingTxHash ? (
         <p className="connect-note">
-          Funding transaction submitted: {fundingTxHash}
+          Wallet transaction submitted: {fundingTxHash}
         </p>
       ) : null}
 
-      {settlement?.funding ? (
+      {SHOW_DEBUG ? (
         <>
-          <pre className="connect-debug">
-            {JSON.stringify(settlement.funding, null, 2)}
-          </pre>
+          {settlement?.funding ? (
+            <pre className="connect-debug">
+              {JSON.stringify(settlement.funding, null, 2)}
+            </pre>
+          ) : null}
 
           <pre className="connect-debug">{debug}</pre>
         </>
-      ) : (
-        <pre className="connect-debug">{debug}</pre>
-      )}
+      ) : null}
     </section>
   );
 }
