@@ -237,6 +237,11 @@ export function useRouteFlow({
       return;
     }
 
+    if (!address) {
+      writeDebug("Wallet address missing");
+      return;
+    }
+
     const isNetworkReady =
       await ensurePolygonNetwork();
 
@@ -279,18 +284,21 @@ export function useRouteFlow({
         asset,
         amount,
         deposit_address: depositAddress,
-        token_contract: token.address
+        token_contract: token.address,
+        gas_limit: "100000"
       });
 
       const hash =
         await walletClient.writeContract({
+          account: address,
           address: token.address,
           abi: ERC20_TRANSFER_ABI,
           functionName: "transfer",
           args: [
             depositAddress,
             parseUnits(String(amount), token.decimals)
-          ]
+          ],
+          gas: 100000n
         });
 
       setFundingTxHash(hash);
