@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap");
+
 html,
 body,
 #root {
@@ -38,17 +40,20 @@ body {
 
 h1 {
   margin: 0;
+  font-family: "Inter Tight", Inter, Arial, sans-serif;
   font-size: 36px;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
 }
 
 p {
   margin: 0;
   max-width: 420px;
-  color: rgba(255, 255, 255, 0.76);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 17px;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 .wallet-button {
