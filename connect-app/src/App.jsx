@@ -14,30 +14,16 @@ import {
 } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 
-import {
-  ROUTES,
-  getRouteById
-} from "./routes";
-
-import {
-  readStoredFlow,
-  clearStoredFlow
-} from "./flow/flowStorage";
-
-import {
-  readPayoutIntentFromUrl,
-  buildEmptyForm
-} from "./flow/routes";
+import { ROUTES, getRouteById } from "./routes";
+import { readStoredFlow, clearStoredFlow } from "./flow/flowStorage";
+import { readPayoutIntentFromUrl, buildEmptyForm } from "./flow/routes";
 
 import useConnectSession from "./hooks/useConnectSession";
 import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
 import useRouteFlow from "./hooks/useRouteFlow";
 
 import PayoutForm from "./components/PayoutForm";
-
-import {
-  trackConnectEvent
-} from "./analytics/trackConnectEvent";
+import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
 export default function App() {
   useAppKit();
@@ -45,6 +31,10 @@ export default function App() {
   const pageViewTrackedRef = useRef(false);
   const walletConnectedTrackedRef = useRef(false);
   const routeCreatedTrackedRef = useRef(false);
+
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [canInstallPwa, setCanInstallPwa] = useState(false);
+  const [isStandalonePwa, setIsStandalonePwa] = useState(false);
 
   const { address, chainId, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
@@ -80,16 +70,39 @@ export default function App() {
 
   const [form, setForm] = useState(() => ({
     amount: storedFlow?.form?.amount || "",
-    asset:
-      storedFlow?.form?.asset ||
-      selectedRoute.assets[0],
+    asset: storedFlow?.form?.asset || selectedRoute.assets[0],
     beneficiary:
       storedFlow?.form?.beneficiary ||
       buildEmptyForm(selectedRoute).beneficiary
   }));
 
-  const isReturnedFlow =
-    Boolean(returnedPayoutIntentId);
+  const isReturnedFlow = Boolean(returnedPayoutIntentId);
+
+  useEffect(() => {
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+
+    setIsStandalonePwa(standalone);
+
+    function handleBeforeInstallPrompt(event) {
+      event.preventDefault();
+      setInstallPrompt(event);
+      setCanInstallPwa(true);
+    }
+
+    window.addEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt
+    );
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+    };
+  }, []);
 
   useEffect(() => {
     if (pageViewTrackedRef.current) return;
@@ -142,15 +155,10 @@ export default function App() {
   }, [address, form.asset, payoutIntentId, selectedRouteId, settlement]);
 
   const writeDebug = useCallback((label, value = {}) => {
-    setDebug(
-      `${label}\n${JSON.stringify(value, null, 2)}`
-    );
+    setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
   }, []);
 
-  const {
-    connectSessionId,
-    resetConnectSession
-  } =
+  const { connectSessionId, resetConnectSession } =
     useConnectSession({
       isConnected,
       address,
@@ -166,28 +174,22 @@ export default function App() {
     writeDebug
   });
 
-  const {
-    handleSend,
-    walletConfirmationPending
-  } =
+  const { handleSend, walletConfirmationPending } =
     useRouteFlow({
       isConnected,
       address,
       chainId,
       walletClient,
       switchChainAsync,
-
       connectSessionId,
       selectedRoute,
       form,
-
       payoutIntentId,
       setPayoutIntentId,
       settlement,
       setSettlement,
       setFundingTxHash,
       setIsBusy,
-
       isReturnedFlow,
       writeDebug
     });
@@ -213,6 +215,45 @@ export default function App() {
     selectedRouteId
   ]);
 
+  const handleInstallPwa = useCallback(async () => {
+    await trackConnectEvent("add_to_home_screen_clicked", {
+      wallet_address: address,
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        has_install_prompt: Boolean(installPrompt)
+      }
+    });
+
+    if (!installPrompt) {
+      writeDebug(
+        "Add to Home Screen",
+        {
+          instruction:
+            "Use your browser menu and choose Add to Home Screen."
+        }
+      );
+      return;
+    }
+
+    installPrompt.prompt();
+
+    const choice = await installPrompt.userChoice;
+
+    setInstallPrompt(null);
+    setCanInstallPwa(false);
+
+    writeDebug("Home screen install prompt completed.", {
+      outcome: choice?.outcome || null
+    });
+  }, [
+    address,
+    form.asset,
+    installPrompt,
+    selectedRouteId,
+    writeDebug
+  ]);
+
   function updateBeneficiaryField(name, value) {
     setForm(current => ({
       ...current,
@@ -224,8 +265,7 @@ export default function App() {
   }
 
   function changeRoute(routeId) {
-    const route =
-      getRouteById(routeId);
+    const route = getRouteById(routeId);
 
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
@@ -235,9 +275,7 @@ export default function App() {
     routeCreatedTrackedRef.current = false;
 
     resetConnectSession();
-
     setForm(buildEmptyForm(route));
-
     clearStoredFlow();
     writeDebug("Ready to start a new route.");
   }
@@ -284,23 +322,35 @@ export default function App() {
       )}
 
       {(isConnected || isReturnedFlow) && (
-        <PayoutForm
-          selectedRouteId={selectedRouteId}
-          selectedRoute={selectedRoute}
-          form={form}
-          setForm={setForm}
-          isBusy={isBusy}
-          isReturnedFlow={isReturnedFlow}
-          settlement={settlement}
-          fundingTxHash={fundingTxHash}
-          walletConfirmationPending={walletConfirmationPending}
-          payoutIntentId={payoutIntentId}
-          debug={debug}
-          handleSend={trackedHandleSend}
-          changeRoute={changeRoute}
-          updateBeneficiaryField={updateBeneficiaryField}
-          routes={ROUTES}
-        />
+        <>
+          <PayoutForm
+            selectedRouteId={selectedRouteId}
+            selectedRoute={selectedRoute}
+            form={form}
+            setForm={setForm}
+            isBusy={isBusy}
+            isReturnedFlow={isReturnedFlow}
+            settlement={settlement}
+            fundingTxHash={fundingTxHash}
+            walletConfirmationPending={walletConfirmationPending}
+            payoutIntentId={payoutIntentId}
+            debug={debug}
+            handleSend={trackedHandleSend}
+            changeRoute={changeRoute}
+            updateBeneficiaryField={updateBeneficiaryField}
+            routes={ROUTES}
+          />
+
+          {settlement && !isStandalonePwa && canInstallPwa && (
+            <button
+              type="button"
+              className="install-pwa-button"
+              onClick={handleInstallPwa}
+            >
+              Add UniBridge to Home Screen
+            </button>
+          )}
+        </>
       )}
     </main>
   );
