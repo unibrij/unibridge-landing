@@ -4,6 +4,36 @@ const SHOW_DEBUG =
   import.meta.env.DEV ||
   new URLSearchParams(window.location.search).get("debug") === "1";
 
+function shortId(value = "") {
+  const text =
+    String(value || "").trim();
+
+  if (!text) {
+    return "—";
+  }
+
+  if (text.length <= 20) {
+    return text;
+  }
+
+  return `${text.slice(0, 10)}...${text.slice(-6)}`;
+}
+
+function resolveDisplayStatus({
+  settlement,
+  fundingTxHash
+}) {
+  if (fundingTxHash) {
+    return "Wallet submitted";
+  }
+
+  if (settlement?.funding) {
+    return "Ready to fund";
+  }
+
+  return "Route ready";
+}
+
 export default function PayoutForm({
   selectedRouteId,
   selectedRoute,
@@ -20,6 +50,12 @@ export default function PayoutForm({
   updateBeneficiaryField,
   routes
 }) {
+  const displayStatus =
+    resolveDisplayStatus({
+      settlement,
+      fundingTxHash
+    });
+
   return (
     <section className="payout-form">
       <label>
@@ -101,20 +137,56 @@ export default function PayoutForm({
             : "Continue"}
       </button>
 
-      <p className="connect-note">
-        This route uses Polygon USDT only.
-      </p>
+      <div className="route-info-grid">
+        <div className="route-info-card">
+          <span className="route-info-label">
+            Network
+          </span>
 
-      {payoutIntentId ? (
-        <p className="connect-note">
-          Route reference: {payoutIntentId}
-        </p>
-      ) : null}
+          <span className="route-info-value">
+            Polygon · USDT
+          </span>
+        </div>
+
+        {payoutIntentId ? (
+          <div className="route-info-card">
+            <span className="route-info-label">
+              Route reference
+            </span>
+
+            <span
+              className="route-info-value"
+              title={payoutIntentId}
+            >
+              {shortId(payoutIntentId)}
+            </span>
+          </div>
+        ) : null}
+
+        <div className="route-info-card">
+          <span className="route-info-label">
+            Status
+          </span>
+
+          <span className="route-status-pill">
+            {displayStatus}
+          </span>
+        </div>
+      </div>
 
       {fundingTxHash ? (
-        <p className="connect-note">
-          Wallet transaction submitted: {fundingTxHash}
-        </p>
+        <div className="wallet-tx-card">
+          <span className="route-info-label">
+            Wallet transaction
+          </span>
+
+          <span
+            className="route-info-value"
+            title={fundingTxHash}
+          >
+            {shortId(fundingTxHash)}
+          </span>
+        </div>
       ) : null}
 
       {SHOW_DEBUG ? (
