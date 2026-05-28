@@ -126,6 +126,52 @@ p {
   border: 1px solid rgba(45, 212, 191, 0.42);
 }
 
+.route-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.route-info-card,
+.wallet-tx-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.wallet-tx-card {
+  margin-top: 8px;
+}
+
+.route-info-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.52);
+  white-space: nowrap;
+}
+
+.route-info-value {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.route-status-pill {
+  font-size: 11px;
+  color: #99f6e4;
+  background: rgba(20, 184, 166, 0.13);
+  border: 1px solid rgba(45, 212, 191, 0.26);
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .connect-debug {
   margin: 14px 0 0;
   white-space: pre-wrap;
