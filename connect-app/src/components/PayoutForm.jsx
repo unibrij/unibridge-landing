@@ -32,10 +32,15 @@ async function copyToClipboard(value) {
 
 function resolveDisplayStatus({
   settlement,
-  fundingTxHash
+  fundingTxHash,
+  walletConfirmationPending
 }) {
   if (fundingTxHash) {
     return "Wallet submitted";
+  }
+
+  if (walletConfirmationPending) {
+    return "Confirm in wallet";
   }
 
   if (settlement?.funding) {
@@ -43,6 +48,26 @@ function resolveDisplayStatus({
   }
 
   return "Route ready";
+}
+
+function resolveButtonLabel({
+  isBusy,
+  settlement,
+  walletConfirmationPending
+}) {
+  if (walletConfirmationPending) {
+    return "Open wallet again";
+  }
+
+  if (isBusy) {
+    return "Preparing...";
+  }
+
+  if (settlement?.funding) {
+    return "Send funding";
+  }
+
+  return "Continue";
 }
 
 function CopyableValue({
@@ -79,6 +104,7 @@ export default function PayoutForm({
   isReturnedFlow,
   settlement,
   fundingTxHash,
+  walletConfirmationPending,
   payoutIntentId,
   debug,
   handleSend,
@@ -89,7 +115,15 @@ export default function PayoutForm({
   const displayStatus =
     resolveDisplayStatus({
       settlement,
-      fundingTxHash
+      fundingTxHash,
+      walletConfirmationPending
+    });
+
+  const buttonLabel =
+    resolveButtonLabel({
+      isBusy,
+      settlement,
+      walletConfirmationPending
     });
 
   const networkLabel =
@@ -168,13 +202,18 @@ export default function PayoutForm({
         </label>
       ))}
 
-      <button onClick={handleSend} disabled={isBusy}>
-        {isBusy
-          ? "Preparing..."
-          : settlement?.funding
-            ? "Send funding"
-            : "Continue"}
+      <button onClick={handleSend} disabled={isBusy && !walletConfirmationPending}>
+        {buttonLabel}
       </button>
+
+      {walletConfirmationPending && !fundingTxHash ? (
+        <div className="wallet-pending-card">
+          <strong>Wallet confirmation pending</strong>
+          <span>
+            Return to your wallet and confirm the transaction.
+          </span>
+        </div>
+      ) : null}
 
       <div className="route-info-grid">
         <div className="route-info-card">
