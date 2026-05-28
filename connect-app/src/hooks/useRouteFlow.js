@@ -1,5 +1,7 @@
 // connect-app/src/hooks/useRouteFlow.js
 
+import { useState } from "react";
+
 import {
   encodeFunctionData,
   parseUnits
@@ -55,6 +57,11 @@ export function useRouteFlow({
   isReturnedFlow,
   writeDebug
 }) {
+  const [
+    walletConfirmationPending,
+    setWalletConfirmationPending
+  ] = useState(false);
+
   async function continueAfterKyc(intentId = payoutIntentId) {
     if (!intentId) {
       writeDebug("Missing payout intent");
@@ -74,6 +81,7 @@ export function useRouteFlow({
 
     setSettlement(result);
     setFundingTxHash(null);
+    setWalletConfirmationPending(false);
     clearStoredFlow();
 
     writeDebug("Funding route ready. Send from wallet.", result);
@@ -107,6 +115,7 @@ export function useRouteFlow({
     setIsBusy(true);
     setSettlement(null);
     setFundingTxHash(null);
+    setWalletConfirmationPending(false);
 
     writeDebug("Preparing payout route...");
 
@@ -281,6 +290,7 @@ export function useRouteFlow({
     }
 
     setIsBusy(true);
+    setWalletConfirmationPending(true);
 
     try {
       const transferData =
@@ -295,6 +305,7 @@ export function useRouteFlow({
 
       writeDebug("Opening wallet transfer...", {
         mode: "send_transaction_encoded_transfer",
+        status: "wallet_confirmation_pending",
         asset,
         amount,
         deposit_address: depositAddress,
@@ -311,6 +322,7 @@ export function useRouteFlow({
         });
 
       setFundingTxHash(hash);
+      setWalletConfirmationPending(false);
 
       writeDebug("Wallet transaction submitted.", {
         tx_hash: hash,
@@ -322,6 +334,8 @@ export function useRouteFlow({
         token_contract: token.address
       });
     } catch (err) {
+      setWalletConfirmationPending(false);
+
       writeDebug("Funding transaction failed", {
         message: err.message
       });
@@ -343,6 +357,8 @@ export function useRouteFlow({
         await startNewFlow();
       }
     } catch (err) {
+      setWalletConfirmationPending(false);
+
       writeDebug("Send failed", {
         message: err.message
       });
@@ -355,7 +371,8 @@ export function useRouteFlow({
     startNewFlow,
     continueAfterKyc,
     sendFundingTransaction,
-    handleSend
+    handleSend,
+    walletConfirmationPending
   };
 }
 
