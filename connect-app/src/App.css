@@ -65,6 +65,7 @@ p {
 
 .payout-form {
   width: min(100%, 420px);
+  box-sizing: border-box;
   margin-top: 14px;
   padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -221,7 +222,7 @@ p {
   .connect-shell {
     gap: 12px;
     padding: 18px;
-    justify-content: flex-start;
+    justify-content: center;
     padding-top: max(18px, env(safe-area-inset-top));
     padding-bottom: max(18px, env(safe-area-inset-bottom));
   }
@@ -240,6 +241,6 @@ p {
 
   .payout-form {
     margin-top: 8px;
-    padding: 16px;
+    padding: 14px;
   }
 }
