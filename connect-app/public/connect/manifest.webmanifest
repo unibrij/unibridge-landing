@@ -1,0 +1,24 @@
+{
+  "name": "UniBridge Connect",
+  "short_name": "UniBridge",
+  "description": "Connect your wallet. Fund with stablecoins. Pay back home.",
+  "start_url": "/connect/",
+  "scope": "/connect/",
+  "display": "standalone",
+  "background_color": "#08111f",
+  "theme_color": "#14b8a6",
+  "icons": [
+    {
+      "src": "/connect/icons/social/Ub.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/connect/icons/social/Ub.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
