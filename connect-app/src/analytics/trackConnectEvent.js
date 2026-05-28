@@ -70,6 +70,36 @@ function getSafePageUrl() {
   return `${window.location.origin}${window.location.pathname}`;
 }
 
+function resolveEventsUrl() {
+  const baseUrl =
+    import.meta.env.VITE_API_BASE_URL ||
+    "";
+
+  return `${baseUrl}/v2/connect/events`;
+}
+
+async function sendEvent(event) {
+  if (typeof fetch === "undefined") {
+    return;
+  }
+
+  try {
+    await fetch(resolveEventsUrl(), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(event),
+      keepalive: true
+    });
+  } catch (error) {
+    console.warn(
+      "[connect_event_send_failed]",
+      error
+    );
+  }
+}
+
 export async function trackConnectEvent(name, payload = {}) {
   const event = {
     event_id: createId("evt"),
@@ -90,6 +120,8 @@ export async function trackConnectEvent(name, payload = {}) {
   };
 
   console.log("[connect_event]", event);
+
+  await sendEvent(event);
 
   return event;
 }
