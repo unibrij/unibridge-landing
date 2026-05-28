@@ -33,8 +33,7 @@ export async function createConnectSession({
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -59,42 +58,23 @@ export async function createPayoutIntent({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        connect_session_id:
-          connectSessionId,
-
-        wallet_address:
-          walletAddress,
-
-        country:
-          route.country,
-
-        rail:
-          route.rail,
-
-        amount:
-          form.amount,
-
-        asset:
-          form.asset,
-
-        network:
-          route.network,
-
+        connect_session_id: connectSessionId,
+        wallet_address: walletAddress,
+        country: route.country,
+        rail: route.rail,
+        amount: form.amount,
+        asset: form.asset,
+        network: route.network,
         beneficiary: {
-          rail:
-            route.rail,
-
-          country:
-            route.country,
-
+          rail: route.rail,
+          country: route.country,
           ...form.beneficiary
         }
       })
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -116,14 +96,12 @@ export async function requestAuthorizationMessage({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        payout_intent_id:
-          payoutIntentId
+        payout_intent_id: payoutIntentId
       })
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -148,9 +126,7 @@ export async function submitAuthorization({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        payout_intent_id:
-          payoutIntentId,
-
+        payout_intent_id: payoutIntentId,
         message,
         nonce,
         signature
@@ -158,8 +134,7 @@ export async function submitAuthorization({
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -181,14 +156,12 @@ export async function startKyc({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        payout_intent_id:
-          payoutIntentId
+        payout_intent_id: payoutIntentId
       })
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -196,7 +169,7 @@ export async function startKyc({
     "kyc_session_failed"
   );
 
-  if (!data.url) {
+  if (!data.skipped && !data.url) {
     throw new Error("kyc_url_missing");
   }
 
@@ -214,14 +187,12 @@ export async function createSettlement({
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        payout_intent_id:
-          payoutIntentId
+        payout_intent_id: payoutIntentId
       })
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -245,8 +216,7 @@ export async function getPayoutIntent({
     }
   );
 
-  const data =
-    await parseJson(response);
+  const data = await parseJson(response);
 
   await assertOk(
     response,
@@ -259,4 +229,27 @@ export async function getPayoutIntent({
   }
 
   return data.payout_intent;
+}
+
+export async function submitWalletFundingTx(payload) {
+  const response = await fetch(
+    `${API_BASE}/connect/submit-wallet-tx`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  const data = await parseJson(response);
+
+  await assertOk(
+    response,
+    data,
+    "submit_wallet_tx_failed"
+  );
+
+  return data;
 }
