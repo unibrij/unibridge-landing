@@ -1,6 +1,9 @@
 // connect-app/src/hooks/useRouteFlow.js
 
-import { parseUnits } from "viem";
+import {
+  encodeFunctionData,
+  parseUnits
+} from "viem";
 
 import {
   createPayoutIntent,
@@ -280,7 +283,18 @@ export function useRouteFlow({
     setIsBusy(true);
 
     try {
+      const transferData =
+        encodeFunctionData({
+          abi: ERC20_TRANSFER_ABI,
+          functionName: "transfer",
+          args: [
+            depositAddress,
+            parseUnits(String(amount), token.decimals)
+          ]
+        });
+
       writeDebug("Opening wallet transfer...", {
+        mode: "send_transaction_encoded_transfer",
         asset,
         amount,
         deposit_address: depositAddress,
@@ -289,15 +303,10 @@ export function useRouteFlow({
       });
 
       const hash =
-        await walletClient.writeContract({
+        await walletClient.sendTransaction({
           account: address,
-          address: token.address,
-          abi: ERC20_TRANSFER_ABI,
-          functionName: "transfer",
-          args: [
-            depositAddress,
-            parseUnits(String(amount), token.decimals)
-          ],
+          to: token.address,
+          data: transferData,
           gas: 100000n
         });
 
@@ -306,6 +315,7 @@ export function useRouteFlow({
       writeDebug("Wallet transaction submitted.", {
         tx_hash: hash,
         status: "wallet_submitted_only",
+        mode: "send_transaction_encoded_transfer",
         asset,
         amount,
         deposit_address: depositAddress,
