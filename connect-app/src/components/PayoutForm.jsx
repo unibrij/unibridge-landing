@@ -92,6 +92,9 @@ export default function PayoutForm({
       fundingTxHash
     });
 
+  const networkLabel =
+    `Polygon · ${form.asset || "USDT"}`;
+
   return (
     <section className="payout-form">
       <label>
@@ -180,7 +183,7 @@ export default function PayoutForm({
           </span>
 
           <span className="route-info-value">
-            Polygon · USDT
+            {networkLabel}
           </span>
         </div>
 
