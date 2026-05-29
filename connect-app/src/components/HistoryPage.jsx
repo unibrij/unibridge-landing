@@ -20,15 +20,38 @@ function shortId(value = "") {
   return `${text.slice(0, 8)}...${text.slice(-6)}`;
 }
 
+function normalizeStatus(status = "") {
+  return String(status || "").trim().toLowerCase();
+}
+
+function isSuccessStatus(status = "") {
+  return [
+    "completed",
+    "complete",
+    "paid",
+    "executed",
+    "success",
+    "succeeded",
+    "payout_completed"
+  ].includes(normalizeStatus(status));
+}
+
 function formatStatus(status = "") {
-  const value = String(status || "").trim();
+  const value = normalizeStatus(status);
 
   const labels = {
     created: "Route ready",
     waiting_ramp_payment: "Waiting for payment",
     funding_pending: "Funding pending",
     funding_confirmed: "Funding confirmed",
-    wallet_submitted: "Wallet submitted"
+    wallet_submitted: "Wallet submitted",
+    completed: "Completed",
+    complete: "Completed",
+    paid: "Completed",
+    executed: "Completed",
+    success: "Completed",
+    succeeded: "Completed",
+    payout_completed: "Completed"
   };
 
   return labels[value] || value || "—";
@@ -95,7 +118,15 @@ export default function HistoryPage() {
 
                 <div className="history-row">
                   <span>Status</span>
-                  <strong>{formatStatus(item.status)}</strong>
+                  <strong
+                    className={
+                      isSuccessStatus(item.status)
+                        ? "history-status-success"
+                        : ""
+                    }
+                  >
+                    {formatStatus(item.status)}
+                  </strong>
                 </div>
 
                 <div className="history-row">
