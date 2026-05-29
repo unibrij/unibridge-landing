@@ -42,6 +42,29 @@ function getSettlementId(settlement) {
   );
 }
 
+function formatStatus(status = "") {
+  const value = String(status || "").trim();
+
+  const labels = {
+    created: "Route ready",
+    waiting_ramp_payment: "Waiting for payment",
+    funding_pending: "Funding pending",
+    funding_confirmed: "Funding confirmed",
+    wallet_submitted: "Wallet submitted"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function formatPayoutAmount(form) {
+  const amount = String(form?.amount || "").trim();
+  const asset = String(form?.asset || "").trim();
+
+  if (!amount) return "—";
+
+  return `${amount}${asset ? ` ${asset}` : ""}`;
+}
+
 function saveRouteHistoryItem(item) {
   try {
     const raw = window.localStorage.getItem("unibridge_route_history");
@@ -80,13 +103,13 @@ function buildSupportUrl({
   const message = `
 Hi UniBridge Support,
 
-I need help with my payout.
+I need help with this payout.
 
 Reference ID: ${getSettlementId(settlement)}
 Wallet: ${hashWallet(address)}
-Corridor: ${selectedRoute?.label || selectedRouteId || "N/A"}
-Amount: ${form?.amount || "N/A"} ${form?.asset || ""}
-Status: ${settlement?.status || "created"}
+Payout: ${formatPayoutAmount(form)}
+Route: ${selectedRoute?.label || selectedRouteId || "N/A"}
+Status: ${formatStatus(settlement?.status || "created")}
 `.trim();
 
   return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
