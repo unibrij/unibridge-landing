@@ -20,6 +20,33 @@ function shortId(value = "") {
   return `${text.slice(0, 8)}...${text.slice(-6)}`;
 }
 
+function formatStatus(status = "") {
+  const value = String(status || "").trim();
+
+  const labels = {
+    created: "Route ready",
+    waiting_ramp_payment: "Waiting for payment",
+    funding_pending: "Funding pending",
+    funding_confirmed: "Funding confirmed",
+    wallet_submitted: "Wallet submitted"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+
+  try {
+    return new Date(value).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric"
+    });
+  } catch {
+    return "—";
+  }
+}
+
 export default function HistoryPage() {
   const history = readRouteHistory();
 
@@ -31,19 +58,19 @@ export default function HistoryPage() {
         alt="UniBridge"
       />
 
-      <h1>Route history</h1>
+      <h1>Payout history</h1>
 
       <section className="payout-form">
         {history.length === 0 ? (
           <p className="history-empty">
-            No saved routes yet.
+            No saved payouts yet.
           </p>
         ) : (
           <div className="history-list">
             {history.map((item, index) => (
               <div className="history-card" key={item.id || index}>
                 <div className="history-row">
-                  <span>Route</span>
+                  <span>Reference ID</span>
                   <strong>{shortId(item.route_id)}</strong>
                 </div>
 
@@ -53,13 +80,20 @@ export default function HistoryPage() {
                 </div>
 
                 <div className="history-row">
-                  <span>Asset</span>
-                  <strong>{item.asset || "—"}</strong>
+                  <span>Amount</span>
+                  <strong>
+                    {item.amount ? `${item.amount} ${item.asset || ""}` : item.asset || "—"}
+                  </strong>
                 </div>
 
                 <div className="history-row">
                   <span>Status</span>
-                  <strong>{item.status || "—"}</strong>
+                  <strong>{formatStatus(item.status)}</strong>
+                </div>
+
+                <div className="history-row">
+                  <span>Date</span>
+                  <strong>{formatDate(item.created_at)}</strong>
                 </div>
               </div>
             ))}
@@ -67,7 +101,7 @@ export default function HistoryPage() {
         )}
 
         <a href="/connect/" className="route-action-link history-back-link">
-          Back to route
+          Back to payout
         </a>
       </section>
     </main>
