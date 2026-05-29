@@ -3,6 +3,9 @@ name: Generate app icons
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   generate-icons:
     runs-on: ubuntu-latest
@@ -17,8 +20,8 @@ jobs:
       - name: Generate PWA icons
         run: |
           mkdir -p connect-app/public/icons/app
-          magick connect-app/public/icons/app/source-icon.png -resize 512x512 connect-app/public/icons/app/ub-app-icon-512.png
-          magick connect-app/public/icons/app/source-icon.png -resize 192x192 connect-app/public/icons/app/ub-app-icon-192.png
+          convert connect-app/public/icons/app/source-icon.png -resize 512x512 connect-app/public/icons/app/ub-app-icon-512.png
+          convert connect-app/public/icons/app/source-icon.png -resize 192x192 connect-app/public/icons/app/ub-app-icon-192.png
 
       - name: Commit generated icons
         uses: stefanzweifel/git-auto-commit-action@v5
