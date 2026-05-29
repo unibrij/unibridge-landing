@@ -34,6 +34,15 @@ function formatStatus(status = "") {
   return labels[value] || value || "—";
 }
 
+function formatAmount(item) {
+  const amount = String(item?.amount || "").trim();
+  const asset = String(item?.asset || "").trim();
+
+  if (!amount) return "—";
+
+  return `${amount}${asset ? ` ${asset}` : ""}`;
+}
+
 function formatDate(value) {
   if (!value) return "—";
 
@@ -81,9 +90,7 @@ export default function HistoryPage() {
 
                 <div className="history-row">
                   <span>Amount</span>
-                  <strong>
-                    {item.amount ? `${item.amount} ${item.asset || ""}` : item.asset || "—"}
-                  </strong>
+                  <strong>{formatAmount(item)}</strong>
                 </div>
 
                 <div className="history-row">
