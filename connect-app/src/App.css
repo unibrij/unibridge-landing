@@ -371,6 +371,10 @@ p {
   overflow-wrap: anywhere;
 }
 
+.history-status-success {
+  color: #5eead4 !important;
+}
+
 .history-back-link {
   display: block;
   margin-top: 12px;
