@@ -23,6 +23,7 @@ import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
 import useRouteFlow from "./hooks/useRouteFlow";
 
 import PayoutForm from "./components/PayoutForm";
+import HistoryPage from "./components/HistoryPage";
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
 const SUPPORT_WHATSAPP_NUMBER = "5541996608113";
@@ -39,6 +40,33 @@ function getSettlementId(settlement) {
     settlement?.route_id ||
     "N/A"
   );
+}
+
+function saveRouteHistoryItem(item) {
+  try {
+    const raw = window.localStorage.getItem("unibridge_route_history");
+    const current = JSON.parse(raw || "[]");
+    const list = Array.isArray(current) ? current : [];
+
+    const next = [
+      {
+        id: item.id,
+        route_id: item.route_id,
+        corridor: item.corridor,
+        asset: item.asset,
+        status: item.status,
+        created_at: new Date().toISOString()
+      },
+      ...list.filter(existing => existing.id !== item.id)
+    ].slice(0, 20);
+
+    window.localStorage.setItem(
+      "unibridge_route_history",
+      JSON.stringify(next)
+    );
+  } catch {
+    // ignore local history failures
+  }
 }
 
 function buildSupportUrl({
@@ -157,6 +185,7 @@ export default function App() {
   }));
 
   const isReturnedFlow = Boolean(returnedPayoutIntentId);
+  const isHistoryPage = window.location.pathname === "/connect/history";
 
   useEffect(() => {
     const standalone =
@@ -185,6 +214,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (isHistoryPage) return;
     if (pageViewTrackedRef.current) return;
 
     pageViewTrackedRef.current = true;
@@ -196,9 +226,10 @@ export default function App() {
         returned_flow: isReturnedFlow
       }
     });
-  }, [form.asset, isReturnedFlow, selectedRouteId]);
+  }, [form.asset, isHistoryPage, isReturnedFlow, selectedRouteId]);
 
   useEffect(() => {
+    if (isHistoryPage) return;
     if (!isConnected || !address) return;
     if (walletConnectedTrackedRef.current) return;
 
@@ -212,9 +243,10 @@ export default function App() {
         chain_id: chainId
       }
     });
-  }, [address, chainId, form.asset, isConnected, selectedRouteId]);
+  }, [address, chainId, form.asset, isConnected, isHistoryPage, selectedRouteId]);
 
   useEffect(() => {
+    if (isHistoryPage) return;
     if (!settlement) return;
     if (routeCreatedTrackedRef.current) return;
 
@@ -232,7 +264,23 @@ export default function App() {
         payout_intent_id: payoutIntentId
       }
     });
-  }, [address, form.asset, payoutIntentId, selectedRouteId, settlement]);
+
+    saveRouteHistoryItem({
+      id: getSettlementId(settlement),
+      route_id: getSettlementId(settlement),
+      corridor: selectedRoute?.label || selectedRouteId,
+      asset: form.asset,
+      status: settlement?.status || "created"
+    });
+  }, [
+    address,
+    form.asset,
+    isHistoryPage,
+    payoutIntentId,
+    selectedRoute,
+    selectedRouteId,
+    settlement
+  ]);
 
   const writeDebug = useCallback((label, value = {}) => {
     setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
@@ -398,6 +446,10 @@ export default function App() {
     setForm(buildEmptyForm(route));
     clearStoredFlow();
     writeDebug("Ready to start a new route.");
+  }
+
+  if (isHistoryPage) {
+    return <HistoryPage />;
   }
 
   return (
