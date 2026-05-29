@@ -53,6 +53,7 @@ function saveRouteHistoryItem(item) {
         id: item.id,
         route_id: item.route_id,
         corridor: item.corridor,
+        amount: item.amount,
         asset: item.asset,
         status: item.status,
         created_at: new Date().toISOString()
@@ -79,12 +80,12 @@ function buildSupportUrl({
   const message = `
 Hi UniBridge Support,
 
-I need help with my route.
+I need help with my payout.
 
-Route ID: ${getSettlementId(settlement)}
+Reference ID: ${getSettlementId(settlement)}
 Wallet: ${hashWallet(address)}
 Corridor: ${selectedRoute?.label || selectedRouteId || "N/A"}
-Asset: ${form?.asset || "N/A"}
+Amount: ${form?.amount || "N/A"} ${form?.asset || ""}
 Status: ${settlement?.status || "created"}
 `.trim();
 
@@ -118,7 +119,7 @@ function RouteActions({
       </button>
 
       <a href="/connect/?view=history" className="route-action-link">
-        View route history
+        View payout history
       </a>
 
       <a
@@ -127,7 +128,7 @@ function RouteActions({
         rel="noreferrer"
         className="route-action-link"
       >
-        Send support message
+        Contact support
       </a>
     </div>
   );
@@ -271,11 +272,13 @@ export default function App() {
       id: getSettlementId(settlement),
       route_id: getSettlementId(settlement),
       corridor: selectedRoute?.label || selectedRouteId,
+      amount: form.amount,
       asset: form.asset,
       status: settlement?.status || "created"
     });
   }, [
     address,
+    form.amount,
     form.asset,
     isHistoryPage,
     payoutIntentId,
@@ -357,7 +360,7 @@ export default function App() {
 
     if (!installPrompt) {
       writeDebug(
-        "Add to Home Screen",
+        "Open routes faster next time",
         {
           instruction:
             "Use your browser menu and choose Add to Home Screen."
@@ -413,7 +416,7 @@ export default function App() {
     }));
 
     clearStoredFlow();
-    writeDebug("Ready to use this route again.");
+    writeDebug("Ready to start another payout.");
   }, [
     address,
     form.asset,
@@ -447,7 +450,7 @@ export default function App() {
     resetConnectSession();
     setForm(buildEmptyForm(route));
     clearStoredFlow();
-    writeDebug("Ready to start a new route.");
+    writeDebug("Ready to start a new payout.");
   }
 
   if (isHistoryPage) {
@@ -530,7 +533,7 @@ export default function App() {
               className="install-pwa-button"
               onClick={handleInstallPwa}
             >
-              Add UniBridge to Home Screen
+              Open routes faster next time
             </button>
           )}
         </>
