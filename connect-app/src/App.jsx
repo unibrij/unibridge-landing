@@ -114,10 +114,10 @@ function RouteActions({
   return (
     <div className="route-actions">
       <button type="button" onClick={onUseAgain}>
-        Use this route again
+        Start another payout
       </button>
 
-      <a href="/connect/history" className="route-action-link">
+      <a href="/connect/?view=history" className="route-action-link">
         View route history
       </a>
 
@@ -127,7 +127,7 @@ function RouteActions({
         rel="noreferrer"
         className="route-action-link"
       >
-        Contact support
+        Send support message
       </a>
     </div>
   );
@@ -185,7 +185,9 @@ export default function App() {
   }));
 
   const isReturnedFlow = Boolean(returnedPayoutIntentId);
-  const isHistoryPage = window.location.pathname === "/connect/history";
+
+  const isHistoryPage =
+    new URLSearchParams(window.location.search).get("view") === "history";
 
   useEffect(() => {
     const standalone =
