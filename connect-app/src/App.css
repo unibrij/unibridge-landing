@@ -380,6 +380,120 @@ p {
   margin-top: 12px;
 }
 
+.review-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(3, 7, 18, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+.review-card {
+  width: min(100%, 360px);
+  box-sizing: border-box;
+  border-radius: 22px;
+  padding: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: rgba(8, 17, 31, 0.94);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  text-align: center;
+}
+
+.review-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.review-card p {
+  max-width: none;
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+
+.review-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.review-option,
+.review-submit,
+.review-later {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.review-option {
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(20, 184, 166, 0.07);
+  color: #5eead4;
+}
+
+.review-option.selected {
+  background: #14b8a6;
+  color: #04111f;
+  border-color: rgba(20, 184, 166, 0.58);
+}
+
+.review-note {
+  width: 100%;
+  min-height: 82px;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+}
+
+.review-note::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.review-note:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.review-submit {
+  margin-top: 8px;
+  border: 0;
+  background: #14b8a6;
+  color: #04111f;
+}
+
+.review-later {
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.review-option:active,
+.review-submit:active,
+.review-later:active {
+  transform: scale(0.98);
+}
+
 .connect-debug {
   margin: 12px 0 0;
   white-space: pre-wrap;
@@ -445,5 +559,10 @@ p {
   .payout-form {
     margin-top: 6px;
     padding: 13px;
+  }
+
+  .review-card {
+    width: min(100%, 350px);
+    padding: 16px;
   }
 }
