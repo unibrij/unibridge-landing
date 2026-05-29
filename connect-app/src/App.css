@@ -334,6 +334,48 @@ p {
   transform: scale(0.98);
 }
 
+.history-empty {
+  max-width: none;
+  text-align: center;
+  font-size: 13px;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+
+.history-row span {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.history-row strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.history-back-link {
+  display: block;
+  margin-top: 12px;
+}
+
 .connect-debug {
   margin: 12px 0 0;
   white-space: pre-wrap;
