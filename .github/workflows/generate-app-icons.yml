@@ -1,0 +1,27 @@
+name: Generate app icons
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-icons:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Generate PWA icons
+        run: |
+          mkdir -p connect-app/public/icons/app
+          magick connect-app/public/icons/app/source-icon.png -resize 512x512 connect-app/public/icons/app/ub-app-icon-512.png
+          magick connect-app/public/icons/app/source-icon.png -resize 192x192 connect-app/public/icons/app/ub-app-icon-192.png
+
+      - name: Commit generated icons
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Generate PWA app icons"
+          file_pattern: connect-app/public/icons/app/*.png
