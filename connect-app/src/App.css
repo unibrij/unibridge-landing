@@ -299,6 +299,41 @@ p {
   white-space: nowrap;
 }
 
+.route-actions {
+  width: min(100%, 392px);
+  box-sizing: border-box;
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.route-actions button,
+.route-action-link {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: rgba(20, 184, 166, 0.07);
+  color: #5eead4;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.route-actions button:hover,
+.route-action-link:hover {
+  background: rgba(20, 184, 166, 0.13);
+}
+
+.route-actions button:active,
+.route-action-link:active {
+  transform: scale(0.98);
+}
+
 .connect-debug {
   margin: 12px 0 0;
   white-space: pre-wrap;
@@ -353,8 +388,12 @@ p {
     font-size: 14px;
   }
 
-  .payout-form {
+  .payout-form,
+  .route-actions {
     width: min(100%, 378px);
+  }
+
+  .payout-form {
     margin-top: 6px;
     padding: 13px;
   }
