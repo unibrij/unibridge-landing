@@ -25,6 +25,86 @@ import useRouteFlow from "./hooks/useRouteFlow";
 import PayoutForm from "./components/PayoutForm";
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
+const SUPPORT_WHATSAPP_NUMBER = "5541996608113";
+
+function hashWallet(address) {
+  if (!address) return "not connected";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function getSettlementId(settlement) {
+  return (
+    settlement?.settlement_id ||
+    settlement?.id ||
+    settlement?.route_id ||
+    "N/A"
+  );
+}
+
+function buildSupportUrl({
+  settlement,
+  address,
+  selectedRouteId,
+  selectedRoute,
+  form
+}) {
+  const message = `
+Hi UniBridge Support,
+
+I need help with my route.
+
+Route ID: ${getSettlementId(settlement)}
+Wallet: ${hashWallet(address)}
+Corridor: ${selectedRoute?.label || selectedRouteId || "N/A"}
+Asset: ${form?.asset || "N/A"}
+Status: ${settlement?.status || "created"}
+`.trim();
+
+  return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    message
+  )}`;
+}
+
+function RouteActions({
+  settlement,
+  address,
+  selectedRouteId,
+  selectedRoute,
+  form,
+  onUseAgain
+}) {
+  if (!settlement) return null;
+
+  const supportUrl = buildSupportUrl({
+    settlement,
+    address,
+    selectedRouteId,
+    selectedRoute,
+    form
+  });
+
+  return (
+    <div className="route-actions">
+      <button type="button" onClick={onUseAgain}>
+        Use this route again
+      </button>
+
+      <a href="/connect/history" className="route-action-link">
+        View route history
+      </a>
+
+      <a
+        href={supportUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="route-action-link"
+      >
+        Contact support
+      </a>
+    </div>
+  );
+}
+
 export default function App() {
   useAppKit();
 
@@ -254,6 +334,46 @@ export default function App() {
     writeDebug
   ]);
 
+  const handleUseRouteAgain = useCallback(async () => {
+    await trackConnectEvent("use_route_again_clicked", {
+      wallet_address: address,
+      route_id: selectedRouteId,
+      asset: form.asset,
+      metadata: {
+        previous_settlement_id: getSettlementId(settlement)
+      }
+    });
+
+    setPayoutIntentId(null);
+    setSettlement(null);
+    setFundingTxHash(null);
+    setIsBusy(false);
+
+    routeCreatedTrackedRef.current = false;
+
+    resetConnectSession();
+
+    setForm(current => ({
+      ...current,
+      amount: "",
+      asset: current.asset || selectedRoute.assets[0],
+      beneficiary:
+        current.beneficiary ||
+        buildEmptyForm(selectedRoute).beneficiary
+    }));
+
+    clearStoredFlow();
+    writeDebug("Ready to use this route again.");
+  }, [
+    address,
+    form.asset,
+    resetConnectSession,
+    selectedRoute,
+    selectedRouteId,
+    settlement,
+    writeDebug
+  ]);
+
   function updateBeneficiaryField(name, value) {
     setForm(current => ({
       ...current,
@@ -339,6 +459,15 @@ export default function App() {
             changeRoute={changeRoute}
             updateBeneficiaryField={updateBeneficiaryField}
             routes={ROUTES}
+          />
+
+          <RouteActions
+            settlement={settlement}
+            address={address}
+            selectedRouteId={selectedRouteId}
+            selectedRoute={selectedRoute}
+            form={form}
+            onUseAgain={handleUseRouteAgain}
           />
 
           {settlement && !isStandalonePwa && canInstallPwa && (
