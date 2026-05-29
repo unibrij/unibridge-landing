@@ -17,6 +17,7 @@ import { useAppKit } from "@reown/appkit/react";
 import { ROUTES, getRouteById } from "./routes";
 import { readStoredFlow, clearStoredFlow } from "./flow/flowStorage";
 import { readPayoutIntentFromUrl, buildEmptyForm } from "./flow/routes";
+import { saveRouteHistoryItem } from "./history/routeHistory";
 
 import useConnectSession from "./hooks/useConnectSession";
 import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
@@ -24,14 +25,9 @@ import useRouteFlow from "./hooks/useRouteFlow";
 
 import PayoutForm from "./components/PayoutForm";
 import HistoryPage from "./components/HistoryPage";
+import PayoutReviewManager from "./components/PayoutReviewManager";
+import RouteActions from "./components/RouteActions";
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
-
-const SUPPORT_WHATSAPP_NUMBER = "5541996608113";
-
-function hashWallet(address) {
-  if (!address) return "not connected";
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
 
 function getSettlementId(settlement) {
   return (
@@ -39,121 +35,6 @@ function getSettlementId(settlement) {
     settlement?.id ||
     settlement?.route_id ||
     "N/A"
-  );
-}
-
-function formatStatus(status = "") {
-  const value = String(status || "").trim();
-
-  const labels = {
-    created: "Route ready",
-    waiting_ramp_payment: "Waiting for payment",
-    funding_pending: "Funding pending",
-    funding_confirmed: "Funding confirmed",
-    wallet_submitted: "Wallet submitted"
-  };
-
-  return labels[value] || value || "—";
-}
-
-function formatPayoutAmount(form) {
-  const amount = String(form?.amount || "").trim();
-  const asset = String(form?.asset || "").trim();
-
-  if (!amount) return "—";
-
-  return `${amount}${asset ? ` ${asset}` : ""}`;
-}
-
-function saveRouteHistoryItem(item) {
-  try {
-    const raw = window.localStorage.getItem("unibridge_route_history");
-    const current = JSON.parse(raw || "[]");
-    const list = Array.isArray(current) ? current : [];
-
-    const next = [
-      {
-        id: item.id,
-        route_id: item.route_id,
-        corridor: item.corridor,
-        amount: item.amount,
-        asset: item.asset,
-        status: item.status,
-        created_at: new Date().toISOString()
-      },
-      ...list.filter(existing => existing.id !== item.id)
-    ].slice(0, 20);
-
-    window.localStorage.setItem(
-      "unibridge_route_history",
-      JSON.stringify(next)
-    );
-  } catch {
-    // ignore local history failures
-  }
-}
-
-function buildSupportUrl({
-  settlement,
-  address,
-  selectedRouteId,
-  selectedRoute,
-  form
-}) {
-  const message = `
-Hi UniBridge Support,
-
-I need help with this payout.
-
-Reference ID: ${getSettlementId(settlement)}
-Wallet: ${hashWallet(address)}
-Payout: ${formatPayoutAmount(form)}
-Route: ${selectedRoute?.label || selectedRouteId || "N/A"}
-Status: ${formatStatus(settlement?.status || "created")}
-`.trim();
-
-  return `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    message
-  )}`;
-}
-
-function RouteActions({
-  settlement,
-  address,
-  selectedRouteId,
-  selectedRoute,
-  form,
-  onUseAgain
-}) {
-  if (!settlement) return null;
-
-  const supportUrl = buildSupportUrl({
-    settlement,
-    address,
-    selectedRouteId,
-    selectedRoute,
-    form
-  });
-
-  return (
-    <div className="route-actions">
-      <button type="button" onClick={onUseAgain}>
-        Start another payout
-      </button>
-
-      <a href="/connect/?view=history" className="route-action-link">
-        View payout history
-      </a>
-
-      <a
-        href={supportUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="route-action-link"
-      >
-        Contact support
-      </a>
-    </div>
   );
 }
 
@@ -269,7 +150,14 @@ export default function App() {
         chain_id: chainId
       }
     });
-  }, [address, chainId, form.asset, isConnected, isHistoryPage, selectedRouteId]);
+  }, [
+    address,
+    chainId,
+    form.asset,
+    isConnected,
+    isHistoryPage,
+    selectedRouteId
+  ]);
 
   useEffect(() => {
     if (isHistoryPage) return;
@@ -548,6 +436,15 @@ export default function App() {
             selectedRoute={selectedRoute}
             form={form}
             onUseAgain={handleUseRouteAgain}
+          />
+
+          <PayoutReviewManager
+            settlement={settlement}
+            payoutIntentId={payoutIntentId}
+            routeId={selectedRouteId}
+            amount={form.amount}
+            asset={form.asset}
+            walletAddress={address}
           />
 
           {settlement && !isStandalonePwa && canInstallPwa && (
