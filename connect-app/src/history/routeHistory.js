@@ -10,6 +10,7 @@ export function saveRouteHistoryItem(item) {
       {
         id: item.id,
         route_id: item.route_id,
+        payout_intent_id: item.payout_intent_id || null,
         corridor: item.corridor,
         amount: item.amount,
         asset: item.asset,
