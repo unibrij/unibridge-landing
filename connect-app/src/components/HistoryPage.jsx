@@ -28,11 +28,11 @@ function isSuccessStatus(status = "") {
   return [
     "completed",
     "complete",
-    "paid",
     "executed",
     "success",
     "succeeded",
-    "payout_completed"
+    "payout_completed",
+    "execution_completed"
   ].includes(normalizeStatus(status));
 }
 
@@ -47,11 +47,11 @@ function formatStatus(status = "") {
     wallet_submitted: "Wallet submitted",
     completed: "Completed",
     complete: "Completed",
-    paid: "Completed",
     executed: "Completed",
     success: "Completed",
     succeeded: "Completed",
-    payout_completed: "Completed"
+    payout_completed: "Completed",
+    execution_completed: "Completed"
   };
 
   return labels[value] || value || "—";
