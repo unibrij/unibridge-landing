@@ -28,6 +28,10 @@ body {
   text-align: center;
 }
 
+.history-shell {
+  justify-content: flex-start;
+  padding-top: 84px;
+}
 .logo {
   width: 82px;
   height: auto;
@@ -529,6 +533,11 @@ p {
     padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
 
+  .history-shell {
+  justify-content: flex-start;
+  padding-top: max(72px, env(safe-area-inset-top));
+  }
+  
   .logo {
     width: 78px;
   }
