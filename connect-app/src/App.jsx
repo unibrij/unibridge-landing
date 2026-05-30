@@ -17,7 +17,6 @@ import { useAppKit } from "@reown/appkit/react";
 import { ROUTES, getRouteById } from "./routes";
 import { readStoredFlow, clearStoredFlow } from "./flow/flowStorage";
 import { readPayoutIntentFromUrl, buildEmptyForm } from "./flow/routes";
-import { saveRouteHistoryItem } from "./history/routeHistory";
 
 import useConnectSession from "./hooks/useConnectSession";
 import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
@@ -178,22 +177,11 @@ export default function App() {
         payout_intent_id: payoutIntentId
       }
     });
-
-    saveRouteHistoryItem({
-      id: getSettlementId(settlement),
-      route_id: getSettlementId(settlement),
-      corridor: selectedRoute?.label || selectedRouteId,
-      amount: form.amount,
-      asset: form.asset,
-      status: settlement?.status || "created"
-    });
   }, [
     address,
-    form.amount,
     form.asset,
     isHistoryPage,
     payoutIntentId,
-    selectedRoute,
     selectedRouteId,
     settlement
   ]);
@@ -365,7 +353,7 @@ export default function App() {
   }
 
   if (isHistoryPage) {
-    return <HistoryPage />;
+    return <HistoryPage walletAddress={address} />;
   }
 
   return (
