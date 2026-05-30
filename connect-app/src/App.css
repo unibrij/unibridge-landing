@@ -76,7 +76,7 @@ p {
   line-height: 1.25;
   opacity: 0;
   transform: translateY(10px);
-  animation: rotateSentence 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  animation: rotateSentence 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .motion-line strong {
@@ -93,7 +93,7 @@ p {
 }
 
 .motion-line:nth-child(2) {
-  animation-delay: 2s;
+  animation-delay: 3s;
 }
 
 @keyframes rotateSentence {
