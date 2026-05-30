@@ -231,6 +231,37 @@ export async function getPayoutIntent({
   return data.payout_intent;
 }
 
+export async function getWalletPayoutHistory({
+  walletAddress,
+  limit = 20
+}) {
+  const params =
+    new URLSearchParams({
+      wallet_address: walletAddress,
+      limit: String(limit)
+    });
+
+  const response = await fetch(
+    `${API_BASE}/connect/payout-history?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const data = await parseJson(response);
+
+  await assertOk(
+    response,
+    data,
+    "get_wallet_payout_history_failed"
+  );
+
+  return Array.isArray(data.items) ? data.items : [];
+}
+
 export async function submitWalletFundingTx(payload) {
   const response = await fetch(
     `${API_BASE}/connect/submit-wallet-tx`,
