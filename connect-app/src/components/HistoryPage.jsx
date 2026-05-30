@@ -133,7 +133,7 @@ export default function HistoryPage({ walletAddress }) {
   }, [walletAddress]);
 
   return (
-    <main className="connect-shell">
+    <main className="connect-shell history-shell">
       <img
         src="/connect/icons/social/Ub.png"
         className="logo"
