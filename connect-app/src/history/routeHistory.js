@@ -14,6 +14,27 @@ export function readRouteHistory() {
   }
 }
 
+function toTime(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const time = new Date(value).getTime();
+    return Number.isNaN(time) ? 0 : time;
+  }
+
+  if (value?._seconds) {
+    return value._seconds * 1000;
+  }
+
+  if (value?.seconds) {
+    return value.seconds * 1000;
+  }
+
+  return 0;
+}
+
 function normalizeHistoryItem(item = {}) {
   return {
     id: item.id,
@@ -74,12 +95,9 @@ export function mergeRouteHistoryItems(items = []) {
 
     const next =
       Array.from(merged.values())
-        .sort((a, b) => {
-          const aTime = new Date(a.created_at || 0).getTime();
-          const bTime = new Date(b.created_at || 0).getTime();
-
-          return bTime - aTime;
-        })
+        .sort((a, b) => (
+          toTime(b.created_at) - toTime(a.created_at)
+        ))
         .slice(0, MAX_ROUTE_HISTORY_ITEMS);
 
     writeRouteHistory(next);
