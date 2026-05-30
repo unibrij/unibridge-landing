@@ -1,6 +1,9 @@
 // connect-app/src/hooks/useRouteFlow.js
 
-import { useState } from "react";
+import {
+  useRef,
+  useState
+} from "react";
 
 import {
   encodeFunctionData,
@@ -10,7 +13,8 @@ import {
 import {
   createPayoutIntent,
   startKyc,
-  createSettlement
+  createSettlement,
+  getPayoutIntent
 } from "../api";
 
 import {
@@ -35,6 +39,74 @@ import {
   pickFundingAmount,
   pickFundingDepositAddress
 } from "../flow/funding";
+
+import {
+  saveRouteHistoryItem
+} from "../history/routeHistory";
+
+const STATUS_POLL_INTERVAL_MS = 4000;
+const STATUS_POLL_MAX_ATTEMPTS = 24;
+
+function sleep(ms) {
+  return new Promise(resolve => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function normalizeStatus(status = "") {
+  return String(status || "")
+    .trim()
+    .toLowerCase();
+}
+
+function isCompletedStatus(status = "") {
+  return [
+    "payout_completed"
+  ].includes(normalizeStatus(status));
+}
+
+function isTerminalFailureStatus(status = "") {
+  return [
+    "failed",
+    "failure",
+    "cancelled",
+    "canceled",
+    "expired",
+    "rejected",
+    "payout_failed",
+    "execution_failed"
+  ].includes(normalizeStatus(status));
+}
+
+function getSettlementId(settlement) {
+  return (
+    settlement?.settlement_id ||
+    settlement?.id ||
+    settlement?.route_id ||
+    "N/A"
+  );
+}
+
+function pickSettlementLike(intent) {
+  return {
+    ...intent,
+    settlement_id:
+      intent?.settlement_id ||
+      null,
+    status:
+      intent?.public_route_status ||
+      intent?.live_settlement_status ||
+      intent?.settlement_status ||
+      intent?.status ||
+      null,
+    live_settlement_status:
+      intent?.live_settlement_status ||
+      null,
+    public_route_status:
+      intent?.public_route_status ||
+      null
+  };
+}
 
 export function useRouteFlow({
   isConnected,
@@ -62,6 +134,8 @@ export function useRouteFlow({
     setWalletConfirmationPending
   ] = useState(false);
 
+  const statusPollTokenRef = useRef(null);
+
   async function continueAfterKyc(intentId = payoutIntentId) {
     if (!intentId) {
       writeDebug("Missing payout intent");
@@ -85,6 +159,113 @@ export function useRouteFlow({
     clearStoredFlow();
 
     writeDebug("Funding route ready. Send from wallet.", result);
+  }
+
+  async function pollSettlementAfterFunding({
+    intentId,
+    txHash,
+    asset,
+    amount
+  }) {
+    if (!intentId) {
+      writeDebug("Wallet submitted. Waiting for route update.", {
+        tx_hash: txHash,
+        reason: "missing_payout_intent_id"
+      });
+      return;
+    }
+
+    const pollToken =
+      `${intentId}:${txHash}:${Date.now()}`;
+
+    statusPollTokenRef.current = pollToken;
+
+    writeDebug("Wallet submitted. Checking route status...", {
+      payout_intent_id: intentId,
+      tx_hash: txHash,
+      polling_interval_ms: STATUS_POLL_INTERVAL_MS,
+      max_attempts: STATUS_POLL_MAX_ATTEMPTS
+    });
+
+    for (
+      let attempt = 1;
+      attempt <= STATUS_POLL_MAX_ATTEMPTS;
+      attempt += 1
+    ) {
+      if (statusPollTokenRef.current !== pollToken) {
+        return;
+      }
+
+      await sleep(STATUS_POLL_INTERVAL_MS);
+
+      try {
+        const intent =
+          await getPayoutIntent({
+            payoutIntentId: intentId
+          });
+
+        const refreshed =
+          pickSettlementLike(intent);
+
+        if (statusPollTokenRef.current !== pollToken) {
+          return;
+        }
+
+        setSettlement(refreshed);
+
+        saveRouteHistoryItem({
+          id: getSettlementId(refreshed),
+          route_id: getSettlementId(refreshed),
+          corridor: selectedRoute?.label || selectedRoute?.id || "—",
+          amount: form.amount || amount || "",
+          asset: form.asset || asset || "",
+          status: refreshed?.status || "wallet_submitted"
+        });
+
+        if (isCompletedStatus(refreshed?.status)) {
+          writeDebug("Payout completed.", {
+            payout_intent_id: intentId,
+            settlement_id: getSettlementId(refreshed),
+            tx_hash: txHash,
+            status: refreshed?.status,
+            live_settlement_status:
+              refreshed?.live_settlement_status || null,
+            public_route_status:
+              refreshed?.public_route_status || null
+          });
+
+          return;
+        }
+
+        if (isTerminalFailureStatus(refreshed?.status)) {
+          writeDebug("Payout did not complete.", {
+            payout_intent_id: intentId,
+            settlement_id: getSettlementId(refreshed),
+            tx_hash: txHash,
+            status: refreshed?.status,
+            live_settlement_status:
+              refreshed?.live_settlement_status || null,
+            public_route_status:
+              refreshed?.public_route_status || null
+          });
+
+          return;
+        }
+      } catch (err) {
+        writeDebug("Route status check failed", {
+          payout_intent_id: intentId,
+          tx_hash: txHash,
+          attempt,
+          message: err.message
+        });
+      }
+    }
+
+    writeDebug("Wallet submitted. Route completion still pending.", {
+      payout_intent_id: intentId,
+      tx_hash: txHash,
+      status: "still_waiting"
+    });
   }
 
   async function startNewFlow() {
@@ -116,6 +297,8 @@ export function useRouteFlow({
     setSettlement(null);
     setFundingTxHash(null);
     setWalletConfirmationPending(false);
+
+    statusPollTokenRef.current = null;
 
     writeDebug("Preparing payout route...");
 
@@ -326,12 +509,28 @@ export function useRouteFlow({
 
       writeDebug("Wallet transaction submitted.", {
         tx_hash: hash,
-        status: "wallet_submitted_only",
+        status: "wallet_submitted",
         mode: "send_transaction_encoded_transfer",
         asset,
         amount,
         deposit_address: depositAddress,
         token_contract: token.address
+      });
+
+      saveRouteHistoryItem({
+        id: getSettlementId(settlement),
+        route_id: getSettlementId(settlement),
+        corridor: selectedRoute?.label || selectedRoute?.id || "—",
+        amount: form.amount || amount || "",
+        asset: form.asset || asset || "",
+        status: "wallet_submitted"
+      });
+
+      pollSettlementAfterFunding({
+        intentId: payoutIntentId,
+        txHash: hash,
+        asset,
+        amount
       });
     } catch (err) {
       setWalletConfirmationPending(false);
