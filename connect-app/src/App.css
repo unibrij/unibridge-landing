@@ -135,7 +135,7 @@ p {
 }
 
 .payout-form {
-  width: min(100%, 392px);
+  width: min(100%, 440px);
   box-sizing: border-box;
   margin-top: 8px;
   padding: 14px;
@@ -348,8 +348,8 @@ p {
 .history-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.045);
-  border-radius: 14px;
-  padding: 10px 12px;
+  border-radius: 16px;
+  padding: 14px 16px;
 }
 
 .history-row {
@@ -553,7 +553,7 @@ p {
   .payout-form,
   .route-actions,
   .install-pwa-button {
-    width: min(100%, 378px);
+    width: min(100%, 392px);
   }
 
   .payout-form {
