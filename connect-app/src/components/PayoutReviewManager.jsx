@@ -14,11 +14,11 @@ function isCompletedStatus(status = "") {
   return [
     "completed",
     "complete",
-    "paid",
     "executed",
     "success",
     "succeeded",
-    "payout_completed"
+    "payout_completed",
+    "execution_completed"
   ].includes(normalizeStatus(status));
 }
 
