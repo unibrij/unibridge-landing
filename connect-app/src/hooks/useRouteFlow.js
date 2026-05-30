@@ -213,16 +213,17 @@ export function useRouteFlow({
 
         setSettlement(refreshed);
 
-        saveRouteHistoryItem({
-          id: getSettlementId(refreshed),
-          route_id: getSettlementId(refreshed),
-          corridor: selectedRoute?.label || selectedRoute?.id || "—",
-          amount: form.amount || amount || "",
-          asset: form.asset || asset || "",
-          status: refreshed?.status || "wallet_submitted"
-        });
-
         if (isCompletedStatus(refreshed?.status)) {
+          saveRouteHistoryItem({
+            id: getSettlementId(refreshed),
+            route_id: getSettlementId(refreshed),
+            payout_intent_id: intentId,
+            corridor: selectedRoute?.label || selectedRoute?.id || "—",
+            amount: form.amount || amount || "",
+            asset: form.asset || asset || "",
+            status: refreshed?.status || "payout_completed"
+          });
+
           writeDebug("Payout completed.", {
             payout_intent_id: intentId,
             settlement_id: getSettlementId(refreshed),
@@ -515,15 +516,6 @@ export function useRouteFlow({
         amount,
         deposit_address: depositAddress,
         token_contract: token.address
-      });
-
-      saveRouteHistoryItem({
-        id: getSettlementId(settlement),
-        route_id: getSettlementId(settlement),
-        corridor: selectedRoute?.label || selectedRoute?.id || "—",
-        amount: form.amount || amount || "",
-        asset: form.asset || asset || "",
-        status: "wallet_submitted"
       });
 
       pollSettlementAfterFunding({
