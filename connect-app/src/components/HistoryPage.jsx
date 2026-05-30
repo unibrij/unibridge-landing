@@ -62,7 +62,20 @@ function formatDate(value) {
   if (!value) return "—";
 
   try {
-    return new Date(value).toLocaleDateString(undefined, {
+    const date =
+      typeof value === "string" || typeof value === "number"
+        ? new Date(value)
+        : value?._seconds
+          ? new Date(value._seconds * 1000)
+          : value?.seconds
+            ? new Date(value.seconds * 1000)
+            : null;
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return "—";
+    }
+
+    return date.toLocaleDateString(undefined, {
       month: "short",
       day: "numeric"
     });
