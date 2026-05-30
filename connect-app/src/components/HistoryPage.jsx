@@ -1,15 +1,12 @@
 // connect-app/src/components/HistoryPage.jsx
 
-function readRouteHistory() {
-  try {
-    const raw = window.localStorage.getItem("unibridge_route_history");
-    const parsed = JSON.parse(raw || "[]");
+import { useEffect, useState } from "react";
 
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+import { getWalletPayoutHistory } from "../api";
+import {
+  readRouteHistory,
+  mergeRouteHistoryItems
+} from "../history/routeHistory";
 
 function shortId(value = "") {
   const text = String(value || "").trim();
@@ -74,11 +71,53 @@ function formatDate(value) {
   }
 }
 
-export default function HistoryPage() {
-  const history =
-    readRouteHistory().filter(item =>
-      isSuccessStatus(item?.status)
-    );
+function completedOnly(items = []) {
+  return items.filter(item =>
+    isSuccessStatus(item?.status)
+  );
+}
+
+export default function HistoryPage({ walletAddress }) {
+  const [history, setHistory] = useState(() =>
+    completedOnly(readRouteHistory())
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function syncWalletHistory() {
+      if (!walletAddress) {
+        return;
+      }
+
+      try {
+        const items =
+          await getWalletPayoutHistory({
+            walletAddress,
+            limit: 20
+          });
+
+        if (cancelled) {
+          return;
+        }
+
+        const merged =
+          mergeRouteHistoryItems(items);
+
+        setHistory(completedOnly(merged));
+      } catch {
+        if (!cancelled) {
+          setHistory(completedOnly(readRouteHistory()));
+        }
+      }
+    }
+
+    syncWalletHistory();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [walletAddress]);
 
   return (
     <main className="connect-shell">
