@@ -40,11 +40,6 @@ function formatStatus(status = "") {
   const value = normalizeStatus(status);
 
   const labels = {
-    created: "Route ready",
-    waiting_ramp_payment: "Waiting for payment",
-    funding_pending: "Funding pending",
-    funding_confirmed: "Funding confirmed",
-    wallet_submitted: "Wallet submitted",
     completed: "Completed",
     complete: "Completed",
     executed: "Completed",
@@ -80,7 +75,10 @@ function formatDate(value) {
 }
 
 export default function HistoryPage() {
-  const history = readRouteHistory();
+  const history =
+    readRouteHistory().filter(item =>
+      isSuccessStatus(item?.status)
+    );
 
   return (
     <main className="connect-shell">
@@ -95,7 +93,7 @@ export default function HistoryPage() {
       <section className="payout-form">
         {history.length === 0 ? (
           <p className="history-empty">
-            No saved payouts yet.
+            No completed payouts yet.
           </p>
         ) : (
           <div className="history-list">
@@ -118,13 +116,7 @@ export default function HistoryPage() {
 
                 <div className="history-row">
                   <span>Status</span>
-                  <strong
-                    className={
-                      isSuccessStatus(item.status)
-                        ? "history-status-success"
-                        : ""
-                    }
-                  >
+                  <strong className="history-status-success">
                     {formatStatus(item.status)}
                   </strong>
                 </div>
