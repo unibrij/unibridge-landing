@@ -31,7 +31,9 @@ body {
 .history-shell {
   justify-content: flex-start;
   padding-top: 84px;
+  padding-bottom: 40px;
 }
+
 .logo {
   width: 82px;
   height: auto;
@@ -536,7 +538,8 @@ p {
   .history-shell {
   justify-content: flex-start;
   padding-top: max(72px, env(safe-area-inset-top));
-  }
+  padding-bottom: max(40px, env(safe-area-inset-bottom));
+}
   
   .logo {
     width: 78px;
