@@ -13,6 +13,28 @@ async function assertOk(response, data, fallback) {
   }
 }
 
+export async function getConnectRoutes() {
+  const response = await fetch(
+    `${API_BASE}/connect/routes`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const data = await parseJson(response);
+
+  await assertOk(
+    response,
+    data,
+    "get_connect_routes_failed"
+  );
+
+  return Array.isArray(data.routes) ? data.routes : [];
+}
+
 export async function createConnectSession({
   walletAddress,
   chainId,
