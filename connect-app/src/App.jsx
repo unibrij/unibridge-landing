@@ -32,6 +32,7 @@ import PayoutForm from "./components/PayoutForm";
 import HistoryPage from "./components/HistoryPage";
 import PayoutReviewManager from "./components/PayoutReviewManager";
 import RouteActions from "./components/RouteActions";
+import ConnectFaq from "./components/ConnectFaq";
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
 function getSettlementId(settlement) {
@@ -502,6 +503,8 @@ export default function App() {
           )}
         </>
       )}
+
+      <ConnectFaq />
     </main>
   );
 }
