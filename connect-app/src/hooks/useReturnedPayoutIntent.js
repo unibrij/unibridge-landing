@@ -7,7 +7,8 @@ import {
 } from "../api";
 
 import {
-  getRouteById
+  getRouteById,
+  ROUTES
 } from "../routes";
 
 import {
@@ -21,6 +22,7 @@ import {
 
 export function useReturnedPayoutIntent({
   returnedPayoutIntentId,
+  routes = ROUTES,
   setSelectedRouteId,
   setPayoutIntentId,
   setForm,
@@ -48,10 +50,10 @@ export function useReturnedPayoutIntent({
         }
 
         const routeId =
-          resolveRouteIdFromIntent(intent);
+          resolveRouteIdFromIntent(intent, routes);
 
         const route =
-          getRouteById(routeId);
+          getRouteById(routeId, routes);
 
         const rebuiltForm =
           buildFormFromIntent(intent, route);
@@ -92,6 +94,7 @@ export function useReturnedPayoutIntent({
     };
   }, [
     returnedPayoutIntentId,
+    routes,
     setSelectedRouteId,
     setPayoutIntentId,
     setForm,
