@@ -14,7 +14,13 @@ import {
 } from "wagmi";
 import { useAppKit } from "@reown/appkit/react";
 
-import { ROUTES, getRouteById } from "./routes";
+import {
+  ROUTES,
+  getRouteById,
+  normalizeBackendRoutes
+} from "./routes";
+
+import { getConnectRoutes } from "./api";
 import { readStoredFlow, clearStoredFlow } from "./flow/flowStorage";
 import { readPayoutIntentFromUrl, buildEmptyForm } from "./flow/routes";
 
@@ -37,6 +43,13 @@ function getSettlementId(settlement) {
   );
 }
 
+function hasRoute(routes = [], routeId) {
+  return routes.some(route =>
+    route.id === routeId ||
+    route.route_id === routeId
+  );
+}
+
 export default function App() {
   useAppKit();
 
@@ -55,13 +68,15 @@ export default function App() {
   const storedFlow = readStoredFlow();
   const returnedPayoutIntentId = readPayoutIntentFromUrl();
 
+  const [routes, setRoutes] = useState(ROUTES);
+
   const [selectedRouteId, setSelectedRouteId] = useState(
-    storedFlow?.route_id || "br_pix"
+    storedFlow?.route_id || ROUTES[0]?.id || "br_pix"
   );
 
   const selectedRoute = useMemo(
-    () => getRouteById(selectedRouteId),
-    [selectedRouteId]
+    () => getRouteById(selectedRouteId, routes),
+    [routes, selectedRouteId]
   );
 
   const [payoutIntentId, setPayoutIntentId] = useState(
@@ -92,6 +107,50 @@ export default function App() {
 
   const isHistoryPage =
     new URLSearchParams(window.location.search).get("view") === "history";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRoutes() {
+      try {
+        const backendRoutes =
+          await getConnectRoutes();
+
+        if (cancelled) {
+          return;
+        }
+
+        const normalized =
+          normalizeBackendRoutes(backendRoutes);
+
+        setRoutes(normalized);
+
+        if (!hasRoute(normalized, selectedRouteId)) {
+          const nextRoute =
+            normalized[0] || ROUTES[0];
+
+          setSelectedRouteId(nextRoute.id);
+
+          if (!storedFlow?.form && !returnedPayoutIntentId) {
+            setForm(buildEmptyForm(nextRoute));
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setRoutes(ROUTES);
+        }
+      }
+    }
+
+    loadRoutes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    returnedPayoutIntentId,
+    storedFlow?.form
+  ]);
 
   useEffect(() => {
     const standalone =
@@ -337,7 +396,8 @@ export default function App() {
   }
 
   function changeRoute(routeId) {
-    const route = getRouteById(routeId);
+    const route =
+      getRouteById(routeId, routes);
 
     setSelectedRouteId(route.id);
     setPayoutIntentId(null);
@@ -409,7 +469,7 @@ export default function App() {
             handleSend={trackedHandleSend}
             changeRoute={changeRoute}
             updateBeneficiaryField={updateBeneficiaryField}
-            routes={ROUTES}
+            routes={routes}
           />
 
           <RouteActions
