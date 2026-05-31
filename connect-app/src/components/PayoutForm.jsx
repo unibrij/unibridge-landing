@@ -30,6 +30,25 @@ async function copyToClipboard(value) {
   await navigator.clipboard.writeText(text);
 }
 
+function normalizeArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function getRouteAssets(route = {}) {
+  const assets =
+    normalizeArray(route.assets);
+
+  if (assets.length > 0) {
+    return assets;
+  }
+
+  return route.asset ? [route.asset] : ["USDT"];
+}
+
+function getBeneficiaryFields(route = {}) {
+  return normalizeArray(route.beneficiaryFields);
+}
+
 function resolveDisplayStatus({
   settlement,
   fundingTxHash,
@@ -112,6 +131,12 @@ export default function PayoutForm({
   updateBeneficiaryField,
   routes
 }) {
+  const routeAssets =
+    getRouteAssets(selectedRoute);
+
+  const beneficiaryFields =
+    getBeneficiaryFields(selectedRoute);
+
   const displayStatus =
     resolveDisplayStatus({
       settlement,
@@ -127,7 +152,7 @@ export default function PayoutForm({
     });
 
   const networkLabel =
-    `Polygon · ${form.asset || "USDT"}`;
+    `${selectedRoute?.network || "polygon"} · ${form.asset || routeAssets[0] || "USDT"}`;
 
   return (
     <section className="payout-form">
@@ -138,7 +163,7 @@ export default function PayoutForm({
           onChange={e => changeRoute(e.target.value)}
           disabled={isBusy || isReturnedFlow}
         >
-          {routes.map(route => (
+          {normalizeArray(routes).map(route => (
             <option key={route.id} value={route.id}>
               {route.label}
             </option>
@@ -166,7 +191,7 @@ export default function PayoutForm({
       <label>
         Asset
         <select
-          value={form.asset}
+          value={form.asset || routeAssets[0]}
           disabled={isBusy || isReturnedFlow}
           onChange={e =>
             setForm({
@@ -175,7 +200,7 @@ export default function PayoutForm({
             })
           }
         >
-          {selectedRoute.assets.map(asset => (
+          {routeAssets.map(asset => (
             <option key={asset} value={asset}>
               {asset}
             </option>
@@ -183,7 +208,7 @@ export default function PayoutForm({
         </select>
       </label>
 
-      {selectedRoute.beneficiaryFields.map(field => (
+      {beneficiaryFields.map(field => (
         <label key={field.name}>
           {field.label}
           <input
@@ -191,7 +216,7 @@ export default function PayoutForm({
             placeholder={field.placeholder}
             required={field.required}
             disabled={isBusy || isReturnedFlow}
-            value={form.beneficiary[field.name] || ""}
+            value={form.beneficiary?.[field.name] || ""}
             onChange={e =>
               updateBeneficiaryField(
                 field.name,
@@ -202,7 +227,10 @@ export default function PayoutForm({
         </label>
       ))}
 
-      <button onClick={handleSend} disabled={isBusy && !walletConfirmationPending}>
+      <button
+        onClick={handleSend}
+        disabled={isBusy && !walletConfirmationPending}
+      >
         {buttonLabel}
       </button>
 
