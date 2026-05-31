@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const FAQS = [
   {
     question: "Can I use MetaMask with UniBridge?",
@@ -35,3 +37,53 @@ const FAQS = [
       "A payout route is a ready path that connects funding, settlement, execution, and local payout delivery."
   }
 ];
+
+export default function ConnectFaq() {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  function toggleItem(index) {
+    setOpenIndex(current => (current === index ? null : index));
+  }
+
+  return (
+    <section className="connect-faq" aria-labelledby="connect-faq-title">
+      <p className="connect-faq-eyebrow">FAQ</p>
+      <h2 id="connect-faq-title">UniBridge Connect FAQ</h2>
+
+      <div className="connect-faq-list">
+        {FAQS.map((item, index) => {
+          const isOpen = openIndex === index;
+          const panelId = `connect-faq-panel-${index}`;
+
+          return (
+            <div
+              key={item.question}
+              className={`connect-faq-item ${isOpen ? "is-open" : ""}`}
+            >
+              <button
+                type="button"
+                className="connect-faq-question"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => toggleItem(index)}
+              >
+                <span>{item.question}</span>
+                <span className="connect-faq-icon" aria-hidden="true">
+                  +
+                </span>
+              </button>
+
+              <div
+                id={panelId}
+                className="connect-faq-answer"
+                hidden={!isOpen}
+              >
+                <p>{item.answer}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
