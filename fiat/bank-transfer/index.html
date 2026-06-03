@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>UniBridge — Bank Transfer Funding</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="card">
+      <header class="header">
+        <img
+          class="logo"
+          src="/unibrij-logo.png"
+          alt="UniBridge"
+        />
+
+        <div>
+          <p class="eyebrow">Bank transfer funding</p>
+          <h1>Fund this payout by bank transfer</h1>
+        </div>
+      </header>
+
+      <p class="intro">
+        Complete the required checks, generate bank transfer instructions,
+        and send funds to continue the payout route.
+      </p>
+
+      <section class="steps" aria-label="Funding steps">
+        <div class="step" data-step="kyc">
+          <span class="step-dot"></span>
+          <div>
+            <strong>Verify identity</strong>
+            <p>Complete identity verification if required.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="tos">
+          <span class="step-dot"></span>
+          <div>
+            <strong>Accept terms</strong>
+            <p>Accept Bridge terms for bank-transfer funding.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="customer">
+          <span class="step-dot"></span>
+          <div>
+            <strong>Create funding profile</strong>
+            <p>Prepare the verified Bridge customer profile.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="instructions">
+          <span class="step-dot"></span>
+          <div>
+            <strong>Get bank instructions</strong>
+            <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
+          </div>
+        </div>
+
+        <div class="step" data-step="waiting">
+          <span class="step-dot"></span>
+          <div>
+            <strong>Wait for funding</strong>
+            <p>UniBridge confirms receipt before payout execution.</p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="statusBox"
+        class="status-box"
+        aria-live="polite"
+      >
+        Preparing bank-transfer flow…
+      </section>
+
+      <section
+        id="instructionsBox"
+        class="instructions hidden"
+      ></section>
+
+      <footer class="actions">
+        <button
+          id="primaryAction"
+          class="button primary"
+          type="button"
+        >
+          Start bank transfer setup
+        </button>
+
+        <button
+          id="refreshStatus"
+          class="button secondary"
+          type="button"
+        >
+          Refresh status
+        </button>
+      </footer>
+    </section>
+  </main>
+
+  <script type="module" src="./js/bankTransferFlow.js"></script>
+</body>
+</html>
