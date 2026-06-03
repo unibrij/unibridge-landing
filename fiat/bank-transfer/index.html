@@ -31,14 +31,11 @@
         instructions, and send funds to continue execution.
       </p>
 
-      <section
-        id="entryBox"
-        class="entry-box"
-      >
+      <section id="entryBox" class="entry-box">
         <div class="entry-header">
           <h2>Create bank-transfer route</h2>
           <p>
-            Choose the source rail, destination route, and amount.
+            Choose the source rail, destination route, amount, and payout details.
           </p>
         </div>
 
@@ -73,6 +70,24 @@
           </label>
 
           <label class="field">
+            <span>PIX key</span>
+            <input
+              id="pix"
+              type="text"
+              placeholder="CPF, email, phone, or random PIX key"
+            />
+          </label>
+
+          <label class="field">
+            <span>Tax ID</span>
+            <input
+              id="taxId"
+              type="text"
+              placeholder="CPF / CNPJ"
+            />
+          </label>
+
+          <label class="field">
             <span>Customer email</span>
             <input
               id="email"
@@ -91,10 +106,7 @@
           </label>
         </div>
 
-        <div
-          id="quoteBox"
-          class="quote-box hidden"
-        ></div>
+        <div id="quoteBox" class="quote-box hidden"></div>
 
         <div class="actions">
           <button
@@ -116,10 +128,7 @@
         </div>
       </section>
 
-      <section
-        id="fundingBox"
-        class="hidden"
-      >
+      <section id="fundingBox" class="hidden">
         <section class="steps" aria-label="Funding steps">
           <div class="step" data-step="kyc">
             <span class="step-dot"></span>
