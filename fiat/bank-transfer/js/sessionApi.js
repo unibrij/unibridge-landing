@@ -1,9 +1,5 @@
 // fiat/bank-transfer/js/sessionApi.js
 
-import {
-  getBackendUrl
-} from "./config.js";
-
 async function parseJsonResponse(response) {
   const body =
     await response.json().catch(() => ({}));
@@ -27,10 +23,25 @@ async function parseJsonResponse(response) {
   return body;
 }
 
-async function postJson(path, payload = {}) {
+function normalizeEndpoint(endpoint) {
+  return String(endpoint || "")
+    .replace(/^\/+/, "")
+    .replace(/^v2\//, "");
+}
+
+function buildProxyUrl(endpoint) {
+  return (
+    "/api/proxy?endpoint=" +
+    encodeURIComponent(
+      normalizeEndpoint(endpoint)
+    )
+  );
+}
+
+async function postJson(endpoint, payload = {}) {
   const response =
     await fetch(
-      getBackendUrl(path),
+      buildProxyUrl(endpoint),
       {
         method: "POST",
         headers: {
@@ -47,28 +58,28 @@ async function postJson(path, payload = {}) {
 
 export function registerSession(payload = {}) {
   return postJson(
-    "/v2/session/register",
+    "session/register",
     payload
   );
 }
 
 export function resolveSession(payload = {}) {
   return postJson(
-    "/v2/session/resolve",
+    "session/resolve",
     payload
   );
 }
 
 export function quoteSession(payload = {}) {
   return postJson(
-    "/v2/session/quote",
+    "session/quote",
     payload
   );
 }
 
 export function createSettlement(payload = {}) {
   return postJson(
-    "/v2/settlement/create",
+    "settlement/create",
     payload
   );
 }
