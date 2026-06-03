@@ -27,82 +27,172 @@
       </header>
 
       <p class="intro">
-        Complete the required checks, generate bank transfer instructions,
-        and send funds to continue the payout route.
+        Create a payout route, review the quote, generate bank transfer
+        instructions, and send funds to continue execution.
       </p>
 
-      <section class="steps" aria-label="Funding steps">
-        <div class="step" data-step="kyc">
-          <span class="step-dot"></span>
-          <div>
-            <strong>Verify identity</strong>
-            <p>Complete identity verification if required.</p>
-          </div>
-        </div>
-
-        <div class="step" data-step="tos">
-          <span class="step-dot"></span>
-          <div>
-            <strong>Accept terms</strong>
-            <p>Accept Bridge terms for bank-transfer funding.</p>
-          </div>
-        </div>
-
-        <div class="step" data-step="customer">
-          <span class="step-dot"></span>
-          <div>
-            <strong>Create funding profile</strong>
-            <p>Prepare the verified Bridge customer profile.</p>
-          </div>
-        </div>
-
-        <div class="step" data-step="instructions">
-          <span class="step-dot"></span>
-          <div>
-            <strong>Get bank instructions</strong>
-            <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
-          </div>
-        </div>
-
-        <div class="step" data-step="waiting">
-          <span class="step-dot"></span>
-          <div>
-            <strong>Wait for funding</strong>
-            <p>UniBridge confirms receipt before payout execution.</p>
-          </div>
-        </div>
-      </section>
-
       <section
-        id="statusBox"
-        class="status-box"
-        aria-live="polite"
+        id="entryBox"
+        class="entry-box"
       >
-        Preparing bank-transfer flow…
+        <div class="entry-header">
+          <h2>Create bank-transfer route</h2>
+          <p>
+            Choose the source rail, destination route, and amount.
+          </p>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Source country</span>
+            <select id="sourceCountry">
+              <option value="US">United States</option>
+              <option value="EU">Europe / SEPA</option>
+              <option value="GB">United Kingdom</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Destination route</span>
+            <select id="routeId">
+              <option value="brl_pix">Brazil — PIX</option>
+              <option value="php_instapay">Philippines — InstaPay</option>
+              <option value="ngn_bank">Nigeria — Bank transfer</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Amount</span>
+            <input
+              id="amount"
+              type="number"
+              min="1"
+              step="0.01"
+              value="5"
+            />
+          </label>
+
+          <label class="field">
+            <span>Customer email</span>
+            <input
+              id="email"
+              type="email"
+              placeholder="customer@example.com"
+            />
+          </label>
+
+          <label class="field">
+            <span>Customer phone</span>
+            <input
+              id="phone"
+              type="tel"
+              placeholder="+12223334444"
+            />
+          </label>
+        </div>
+
+        <div
+          id="quoteBox"
+          class="quote-box hidden"
+        ></div>
+
+        <div class="actions">
+          <button
+            id="quoteAction"
+            class="button secondary"
+            type="button"
+          >
+            Get quote
+          </button>
+
+          <button
+            id="createSettlementAction"
+            class="button primary"
+            type="button"
+            disabled
+          >
+            Create payout route
+          </button>
+        </div>
       </section>
 
       <section
-        id="instructionsBox"
-        class="instructions hidden"
-      ></section>
+        id="fundingBox"
+        class="hidden"
+      >
+        <section class="steps" aria-label="Funding steps">
+          <div class="step" data-step="kyc">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Verify identity</strong>
+              <p>Complete identity verification if required.</p>
+            </div>
+          </div>
 
-      <footer class="actions">
-        <button
-          id="primaryAction"
-          class="button primary"
-          type="button"
-        >
-          Start bank transfer setup
-        </button>
+          <div class="step" data-step="tos">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Accept terms</strong>
+              <p>Accept Bridge terms for bank-transfer funding.</p>
+            </div>
+          </div>
 
-        <button
-          id="refreshStatus"
-          class="button secondary"
-          type="button"
+          <div class="step" data-step="customer">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Create funding profile</strong>
+              <p>Prepare the verified Bridge customer profile.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="instructions">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Get bank instructions</strong>
+              <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="waiting">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Wait for funding</strong>
+              <p>UniBridge confirms receipt before payout execution.</p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="statusBox"
+          class="status-box"
+          aria-live="polite"
         >
-          Refresh status
-        </button>
-      </footer>
+          Preparing bank-transfer flow…
+        </section>
+
+        <section
+          id="instructionsBox"
+          class="instructions hidden"
+        ></section>
+
+        <footer class="actions">
+          <button
+            id="primaryAction"
+            class="button primary"
+            type="button"
+          >
+            Start bank transfer setup
+          </button>
+
+          <button
+            id="refreshStatus"
+            class="button secondary"
+            type="button"
+          >
+            Refresh status
+          </button>
+        </footer>
+      </section>
     </section>
   </main>
 
