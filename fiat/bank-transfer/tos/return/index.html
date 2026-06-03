@@ -122,7 +122,8 @@
           params.get("settlement_id");
 
         const signedAgreementId =
-          params.get("signed_agreement_id");
+          params.get("signed_agreement_id") ||
+          params.get("signedAgreementId");
 
         if (!settlementId) {
           throw new Error("missing_settlement_id");
