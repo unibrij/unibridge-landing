@@ -113,6 +113,24 @@
         "status" + (kind ? " " + kind : "");
     }
 
+    function buildNextUrl(settlementId) {
+      return (
+        "/fiat/bank-transfer?settlement_id=" +
+        encodeURIComponent(settlementId) +
+        "&tos_accepted=1"
+      );
+    }
+
+    function redirectToBankTransferFlow(settlementId) {
+      const nextUrl =
+        buildNextUrl(settlementId);
+
+      window.setTimeout(() => {
+        window.location.href =
+          nextUrl;
+      }, 1200);
+    }
+
     async function confirmBridgeTosReturn() {
       try {
         const params =
@@ -145,7 +163,7 @@
           await fetch(url, {
             method: "GET",
             headers: {
-              "Accept": "application/json"
+              Accept: "application/json"
             }
           });
 
@@ -160,16 +178,26 @@
 
         setStatus({
           title: "Terms accepted",
-          message: "Your Bridge terms acceptance was recorded. You can now continue the fiat entry flow.",
-          status: "Settlement: " + settlementId,
-          kind: "success"
+          message:
+            "Your Bridge terms acceptance was recorded. Continuing bank transfer setup…",
+          status:
+            "Settlement: " + settlementId,
+          kind:
+            "success"
         });
+
+        redirectToBankTransferFlow(
+          settlementId
+        );
       } catch (err) {
         setStatus({
           title: "Could not confirm terms",
-          message: "UniBridge could not record the Bridge terms acceptance.",
-          status: err.message || "bridge_tos_return_failed",
-          kind: "failed"
+          message:
+            "UniBridge could not record the Bridge terms acceptance.",
+          status:
+            err.message || "bridge_tos_return_failed",
+          kind:
+            "failed"
         });
       }
     }
