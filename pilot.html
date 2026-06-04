@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Controlled Route Pilot Pack | UniBridge</title>
+
+  <meta
+    name="description"
+    content="UniBridge controlled pilot overview: payout route lifecycle, access boundaries, security model, and credential handling before production rollout."
+  />
+
+  <link rel="canonical" href="https://unibrij.io/pilot.html" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f8fb 45%, #ffffff 100%);
+      color: #082d46;
+      line-height: 1.7;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 6%;
+      background: #ffffff;
+    }
+
+    .logo {
+      width: 82px;
+      height: auto;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      color: #082d46;
+      text-decoration: none;
+    }
+
+    .cta {
+      background: #06c7ae;
+      color: #062033 !important;
+      padding: 13px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+
+    .hero {
+      padding: 78px 6% 52px;
+      max-width: 1100px;
+    }
+
+    .eyebrow {
+      color: #06b99f;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 6vw, 64px);
+      line-height: 1.05;
+      margin: 14px 0 22px;
+      color: #06395c;
+      max-width: 850px;
+    }
+
+    .hero p {
+      color: #6c7a89;
+      max-width: 760px;
+      font-size: 18px;
+    }
+
+    .wrap {
+      padding: 10px 6% 90px;
+    }
+
+    .card {
+      max-width: 1050px;
+      margin: 26px auto;
+      padding: 38px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(8, 45, 70, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(6, 57, 92, 0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #06395c;
+      font-size: 28px;
+    }
+
+    p, li {
+      color: #61707f;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .mini-card {
+      background: #f7fafc;
+      border: 1px solid rgba(8, 45, 70, 0.07);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .flow {
+      background: linear-gradient(135deg, #06395c, #08142f);
+      color: #ffffff;
+      padding: 22px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      margin-top: 18px;
+    }
+
+    .highlight {
+      color: #05bfa8;
+      font-weight: 800;
+    }
+
+    .footer {
+      background: #08142f;
+      color: #aeb8c4;
+      padding: 58px 6%;
+    }
+
+    .footer-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 40px;
+    }
+
+    .footer-logo {
+      width: 72px;
+      margin-bottom: 24px;
+    }
+
+    .footer a {
+      color: #d9e2ec;
+      text-decoration: none;
+      display: block;
+      margin: 8px 0;
+    }
+
+    .footer h4 {
+      color: #06c7ae;
+      margin-top: 0;
+    }
+
+    @media (max-width: 760px) {
+      .nav {
+        padding: 22px 5%;
+      }
+
+      .nav-links {
+        gap: 14px;
+        font-size: 12px;
+      }
+
+      .grid,
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="nav">
+    <a href="/">
+      <img src="/unibrij-logo.png" alt="UniBridge Protocol" class="logo" />
+    </a>
+
+    <div class="nav-links">
+      <a href="/">Platform</a>
+      <a href="/docs.html">Operating Model</a>
+      <a href="/pilot.html">Pilot Pack</a>
+      <a href="/#request" class="cta">Request Access</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow">UniBridge Pilot</p>
+    <h1>Controlled Route Pilot Pack</h1>
+    <p>
+      A public overview of how UniBridge runs controlled payout route review:
+      route creation, lifecycle visibility, access boundaries, credential
+      handling, and production approval boundaries.
+    </p>
+  </header>
+
+  <main class="wrap">
+
+    <section class="card">
+      <h2>What This Pilot Covers</h2>
+      <div class="grid">
+        <div class="mini-card">Create a controlled UniBridge-managed payout route.</div>
+        <div class="mini-card">Receive a route identifier for operational review.</div>
+        <div class="mini-card">Review simplified partner-facing route status.</div>
+        <div class="mini-card">Validate the flow before any production activation.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>What This Pilot Does Not Cover</h2>
+      <ul>
+        <li>Production payout volume</li>
+        <li>Direct provider access</li>
+        <li>Provider credentials</li>
+        <li>Bulk payout creation</li>
+        <li>Partner-controlled automated retries</li>
+        <li>Unrestricted production API access</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Route Lifecycle</h2>
+      <p>
+        Each route moves through a controlled UniBridge-managed lifecycle.
+        Partner-facing statuses are simplified for pilot review and do not expose
+        internal provider logic or execution secrets.
+      </p>
+
+      <div class="flow">
+        route locked → funding pending → funding detected → execution submitted → payout pending → payout completed
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Security & Credential Handling</h2>
+      <ul>
+        <li>No credentials are included in public documents.</li>
+        <li>Pilot credentials are shared separately through private channels.</li>
+        <li>Access is limited to the approved partner scope.</li>
+        <li>Internal execution secrets are not exposed.</li>
+        <li>Status access is limited to partner-owned routes.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Production Boundary</h2>
+      <p>
+        The pilot is intended for <span class="highlight">controlled route validation only</span>.
+        Production rollout, production volume, webhook access, or broader API
+        access require separate approval and review.
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <img src="/connect/icons/app/source-icon.png" alt="UniBridge" class="footer-logo" />
+        <p>
+          UniBridge coordinates non-custodial payout routes for
+          stablecoin-settled payout corridors.
+        </p>
+        <p>© 2026 UniBridge Technologies Ltd.</p>
+      </div>
+
+      <div>
+        <h4>Company</h4>
+        <a href="/">Home</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </div>
+
+      <div>
+        <h4>Resources</h4>
+        <a href="/docs.html">Operating Model</a>
+        <a href="/pilot.html">Controlled Pilot Pack</a>
+        <a href="/.well-known/security.txt">Security Contact</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
