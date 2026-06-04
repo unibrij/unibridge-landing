@@ -56,6 +56,27 @@ async function postJson(endpoint, payload = {}) {
   return parseJsonResponse(response);
 }
 
+async function getJson(endpoint) {
+  const response =
+    await fetch(
+      buildProxyUrl(endpoint),
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    );
+
+  return parseJsonResponse(response);
+}
+
+export function listBankTransferRoutes() {
+  return getJson(
+    "fiat/bank-transfer/routes"
+  );
+}
+
 export function registerSession(payload = {}) {
   return postJson(
     "session/register",
