@@ -51,11 +51,7 @@
 
           <label class="field">
             <span>Destination route</span>
-            <select id="routeId">
-              <option value="brl_pix">Brazil — PIX</option>
-              <option value="php_instapay">Philippines — InstaPay</option>
-              <option value="ngn_bank">Nigeria — Bank transfer</option>
-            </select>
+            <select id="routeId"></select>
           </label>
 
           <label class="field">
@@ -68,43 +64,12 @@
               value="5"
             />
           </label>
-
-          <label class="field">
-            <span>PIX key</span>
-            <input
-              id="pix"
-              type="text"
-              placeholder="CPF, email, phone, or random PIX key"
-            />
-          </label>
-
-          <label class="field">
-            <span>Tax ID</span>
-            <input
-              id="taxId"
-              type="text"
-              placeholder="CPF / CNPJ"
-            />
-          </label>
-
-          <label class="field">
-            <span>Customer email</span>
-            <input
-              id="email"
-              type="email"
-              placeholder="customer@example.com"
-            />
-          </label>
-
-          <label class="field">
-            <span>Customer phone</span>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="+12223334444"
-            />
-          </label>
         </div>
+
+        <div
+          id="destinationFields"
+          class="form-grid"
+        ></div>
 
         <div id="quoteBox" class="quote-box hidden"></div>
 
@@ -113,8 +78,9 @@
             id="quoteAction"
             class="button secondary"
             type="button"
+            disabled
           >
-            Get quote
+            Loading routes…
           </button>
 
           <button
