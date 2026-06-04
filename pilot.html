@@ -1,187 +1,215 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Controlled Route Pilot Pack | UniBridge</title>
+  <title>Partner Route Pilot Endpoint Test Pack | UniBridge</title>
 
-<meta
-  name="description"
-  content="UniBridge controlled pilot overview: payout route lifecycle, access boundaries, security model, and credential handling before production rollout."
-/>
+  <meta
+    name="description"
+    content="UniBridge controlled partner route pilot pack: route creation, route status review, partner access boundaries, security rules, and credential handling before production rollout."
+  />
 
-<link rel="canonical" href="https://unibrij.io/pilot.html" />
-<link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
+  <link rel="canonical" href="https://unibrij.io/pilot.html" />
+  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
 
-<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"TechArticle",
- "headline":"UniBridge Controlled Route Pilot Pack",
- "publisher":{
-   "@type":"Organization",
-   "name":"UniBridge",
-   "url":"https://unibrij.io"
- },
- "description":"Controlled payout route pilot lifecycle, access boundaries and validation process."
-}
-</script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"TechArticle",
+    "headline":"UniBridge Partner Route Pilot Endpoint Test Pack",
+    "publisher":{
+      "@type":"Organization",
+      "name":"UniBridge",
+      "url":"https://unibrij.io"
+    },
+    "description":"Controlled payout route creation and status review for approved pilot partners."
+  }
+  </script>
 
-<style>
-
-*{
- margin:0;
- padding:0;
- box-sizing:border-box;
-}
-
-body{
- font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
- color:#23282F;
- background:#f8fafc;
- line-height:1.6;
-}
-
-.container{
- max-width:1200px;
- margin:auto;
- padding:0 20px;
-}
-
-
-/* NAV FROM MAIN */
-
-.navbar{
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:24px 0;
-}
-
-.nav-logo{
- height:200px;
-}
-
-.nav-links{
- display:flex;
- gap:32px;
- align-items:center;
-}
-
-.nav-link{
- color:#23282F;
- text-decoration:none;
- font-weight:500;
-}
-
-.nav-link:hover{
- color:#00D4AA;
-}
-
-.nav-button{
- background:#00D4AA;
- color:#003366;
- padding:12px 24px;
- border-radius:6px;
- font-weight:600;
- text-decoration:none;
-}
-
-
-/* HERO */
-
-.hero{
- background:linear-gradient(135deg,#f8fafc,#ffffff);
- padding:60px 0 90px;
-}
-
-.hero h1{
- max-width:760px;
- color:#003366;
- font-size:clamp(2.4rem,6vw,4rem);
- line-height:1.08;
- letter-spacing:-0.04em;
- margin-bottom:24px;
-}
-
-.hero p{
- max-width:720px;
- color:#5A6C7D;
- font-size:1.2rem;
-}
-
-.badge{
- color:#00a98a;
- font-weight:700;
- margin-bottom:18px;
- text-transform:uppercase;
-}
-
-
-/* CONTENT */
-
-.section{
- padding:40px 20px;
-}
-
-.card{
- max-width:1050px;
- margin:28px auto;
- padding:42px;
- background:white;
- border-radius:22px;
- box-shadow:
- 0 24px 70px rgba(0,51,102,.08),
- 0 8px 24px rgba(0,51,102,.045);
-}
-
-.card h2{
- color:#003366;
- margin-bottom:22px;
- font-size:1.8rem;
-}
-
-.card p,
-.card li{
- color:#5A6C7D;
-}
-
-ul{
- padding-left:22px;
-}
-
-.grid{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:22px;
-}
-
-.mini{
- background:#f8fafc;
- padding:24px;
- border-radius:14px;
- border:1px solid rgba(0,51,102,.07);
-}
-
-.flow{
- margin-top:20px;
- background:linear-gradient(135deg,#003366,#08142f);
- color:white;
- padding:22px;
- border-radius:14px;
- text-align:center;
- font-weight:700;
-}
-
-
-/* FOOTER FROM MAIN */
-
-
-    <!-- FOOTER -->
-<footer class="footer">
   <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#23282F;
+      background:#f8fafc;
+      line-height:1.6;
+    }
+
+    .container{
+      max-width:1200px;
+      margin:auto;
+      padding:0 20px;
+    }
+
+    .navbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:24px 0;
+    }
+
+    .nav-logo{
+      height:200px;
+    }
+
+    .nav-links{
+      display:flex;
+      gap:32px;
+      align-items:center;
+    }
+
+    .nav-link{
+      color:#23282F;
+      text-decoration:none;
+      font-weight:500;
+    }
+
+    .nav-link:hover{
+      color:#00D4AA;
+    }
+
+    .nav-button{
+      background:#00D4AA;
+      color:#003366;
+      padding:12px 24px;
+      border-radius:6px;
+      font-weight:600;
+      text-decoration:none;
+    }
+
+    .hero{
+      background:linear-gradient(135deg,#f8fafc,#ffffff);
+      padding:60px 0 90px;
+    }
+
+    .hero h1{
+      max-width:840px;
+      color:#003366;
+      font-size:clamp(2.4rem,6vw,4rem);
+      line-height:1.08;
+      letter-spacing:-0.04em;
+      margin-bottom:24px;
+    }
+
+    .hero p{
+      max-width:760px;
+      color:#5A6C7D;
+      font-size:1.2rem;
+    }
+
+    .badge{
+      color:#00a98a;
+      font-weight:700;
+      margin-bottom:18px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .section{
+      padding:40px 20px;
+    }
+
+    .card{
+      max-width:1050px;
+      margin:28px auto;
+      padding:42px;
+      background:white;
+      border-radius:22px;
+      box-shadow:
+        0 24px 70px rgba(0,51,102,.08),
+        0 8px 24px rgba(0,51,102,.045);
+    }
+
+    .card h2{
+      color:#003366;
+      margin-bottom:22px;
+      font-size:1.8rem;
+    }
+
+    .card h3{
+      color:#003366;
+      margin-bottom:12px;
+      font-size:1.05rem;
+    }
+
+    .card p,
+    .card li{
+      color:#5A6C7D;
+    }
+
+    .card p{
+      margin-bottom:14px;
+    }
+
+    ul{
+      padding-left:22px;
+      margin-top:12px;
+    }
+
+    pre{
+      background:#eef2f7;
+      color:#26323f;
+      padding:18px;
+      border-radius:12px;
+      overflow:auto;
+      font-size:.92rem;
+      line-height:1.55;
+      margin:12px 0 22px;
+      white-space:pre-wrap;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:22px;
+      margin-top:22px;
+    }
+
+    .mini{
+      background:#f8fafc;
+      padding:24px;
+      border-radius:14px;
+      border:1px solid rgba(0,51,102,.07);
+    }
+
+    .flow{
+      margin:20px 0;
+      background:linear-gradient(135deg,#003366,#08142f);
+      color:white;
+      padding:22px;
+      border-radius:14px;
+      text-align:center;
+      font-weight:700;
+    }
+
+    .status-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+      margin-top:22px;
+    }
+
+    .status-box{
+      background:#f8fafc;
+      border:1px solid rgba(0,51,102,.07);
+      border-radius:14px;
+      padding:20px;
+    }
+
+    .status-box strong{
+      display:block;
+      color:#00a98a;
+      margin-bottom:6px;
+      font-size:.98rem;
+    }
+
     .footer {
       background: #0b1230;
       color: #ffffff;
@@ -347,6 +375,11 @@ ul{
     }
 
     @media (max-width: 900px) {
+      .grid,
+      .status-grid{
+        grid-template-columns:1fr;
+      }
+
       .footer {
         padding: 76px 28px 44px;
       }
@@ -372,6 +405,29 @@ ul{
     }
 
     @media (max-width: 640px) {
+      .navbar{
+        flex-direction:column;
+        gap:18px;
+      }
+
+      .nav-logo{
+        height:120px;
+      }
+
+      .nav-links{
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:18px;
+      }
+
+      .hero{
+        padding:40px 0 64px;
+      }
+
+      .card{
+        padding:28px;
+      }
+
       .footer {
         padding: 68px 22px 40px;
       }
@@ -417,109 +473,455 @@ ul{
       }
     }
   </style>
+</head>
 
-  <div class="footer-container">
+<body>
 
-    <!-- Logo -->
-    <img
-      src="public/icons/social/Ub.png"
-      alt="UniBridge Logo"
-      class="footer-logo"
-    />
+  <header class="container">
+    <nav class="navbar">
+      <a href="/">
+        <img src="public/icons/social/Ub.png" alt="UniBridge Logo" class="nav-logo" />
+      </a>
 
-    <div class="footer-content">
+      <div class="nav-links">
+        <a href="/about/" class="nav-link">About</a>
+        <a href="/docs.html" class="nav-link">Operating Model</a>
+        <a href="/partner-docs/" class="nav-link">API Reference</a>
+        <a href="#contact" class="nav-button">Contact</a>
+      </div>
+    </nav>
+  </header>
 
-      <!-- About -->
-      <div class="footer-about">
-  <p>
-    UniBridge access is granted in stages, based on partner review,
-    corridor fit, and operational readiness.
-  </p>
+  <main>
 
-  <p>
-    Non-custodial route coordination for stablecoin-settled payout corridors.
-  </p>
+    <section class="hero">
+      <div class="container">
+        <div class="badge">Partner Route Pilot Endpoint Test Pack</div>
+        <h1>Controlled payout route creation and status review for approved pilot partners.</h1>
+        <p>
+          A controlled UniBridge pilot overview covering route creation, route status review,
+          partner access boundaries, security rules, and credential handling before any
+          production rollout.
+        </p>
+      </div>
+    </section>
 
-  <p>
-    © 2026 UniBridge Technologies Ltd. All rights reserved.
-  </p>
-</div>
+    <section class="section">
 
-      <!-- Company -->
-      <div class="footer-links">
-        <h3>Company</h3>
+      <div class="card">
+        <h2>The Pilot</h2>
+        <p>
+          This endpoint test pack allows an approved partner to review a controlled
+          UniBridge payout route before any production rollout.
+        </p>
+        <p>
+          The pilot is limited to route creation, route status review, and operational
+          coordination with UniBridge.
+        </p>
+        <p>
+          <strong>This pilot is not a production API rollout.</strong>
+        </p>
+        <p>
+          All routes remain under controlled UniBridge review during the pilot phase.
+        </p>
+
+        <div class="grid">
+          <div class="mini">
+            <h3>What This Pack Covers</h3>
+            <ul>
+              <li>Create a controlled partner route</li>
+              <li>Receive a UniBridge-managed route_id</li>
+              <li>Review route status through the Partner Route Console</li>
+              <li>Optionally poll the route status endpoint</li>
+              <li>Share the route_id and external_reference with UniBridge for review</li>
+            </ul>
+          </div>
+
+          <div class="mini">
+            <h3>What This Pack Does Not Cover</h3>
+            <ul>
+              <li>Production payout volume</li>
+              <li>Full API reference access</li>
+              <li>Direct provider access</li>
+              <li>Provider credentials</li>
+              <li>Bulk payout creation</li>
+              <li>Webhook integration</li>
+              <li>Partner-controlled automated retries</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Route Creation</h2>
+        <p>
+          Approved pilot partners can create a controlled UniBridge-managed payout
+          route using the route creation endpoint.
+        </p>
+        <p>
+          Each request must include a partner identifier and a valid HMAC signature.
+          The response returns a UniBridge-managed route_id, route status, and console
+          access when available.
+        </p>
+
+        <div class="mini">
+          <h3>Endpoint</h3>
+          <pre>POST /v2/partner/routes</pre>
+
+          <h3>Required Headers</h3>
+          <pre>Content-Type: application/json
+x-ub-partner-id: &lt;partner_id&gt;
+x-ub-signature: &lt;hmac_sha256_hex_signature&gt;</pre>
+        </div>
+
+        <div class="mini">
+          <h3>Example Request</h3>
+          <pre>{
+  "external_reference": "pilot_test_001",
+  "source_country": "US",
+  "destination_country": "BR",
+  "amount": "100.00",
+  "currency": "USD",
+  "payout_rail": "pix",
+  "destination": {
+    "rail": "pix",
+    "pix_key": "recipient@email.com"
+  }
+}</pre>
+        </div>
+
         <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
+          <li>Use a new external_reference for each test.</li>
+          <li>Do not include credentials inside shared documents.</li>
+          <li>Share the returned route_id with UniBridge after testing.</li>
         </ul>
       </div>
 
-      <!-- Resources -->
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
+      <div class="card">
+        <h2>Route Status Review</h2>
+        <p>
+          Partners may review the progress of a created route through the UniBridge
+          Partner Route Console or through the optional route status endpoint.
+        </p>
+        <p>
+          The status endpoint is intended for controlled pilot review only.
+        </p>
+
+        <div class="mini">
+          <h3>Endpoint</h3>
+          <pre>GET /v2/partner/routes/{route_id}</pre>
+
+          <h3>Required Headers</h3>
+          <pre>x-ub-partner-id: &lt;partner_id&gt;
+Authorization: Bearer &lt;route_read_token&gt;</pre>
+        </div>
+
+        <div class="mini">
+          <h3>Example Response</h3>
+          <pre>{
+  "ok": true,
+  "route": {
+    "route_id": "sett_...",
+    "external_reference": "pilot_test_001",
+    "status": "funding_pending",
+    "stage": "funding",
+    "source_country": "US",
+    "destination_country": "BR",
+    "payout_rail": "pix"
+  },
+  "funding": {
+    "status": "pending",
+    "method": "sender",
+    "asset": "USDT",
+    "network": "polygon"
+  },
+  "execution": {
+    "status": null,
+    "provider_status": null,
+    "provider_reference": null
+  },
+  "payout": {
+    "status": "pending",
+    "evidence_status": "not_available"
+  },
+  "attention_required": false,
+  "mode": "pilot"
+}</pre>
+        </div>
+
         <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
+          <li>Use the route_id returned from route creation.</li>
+          <li>The read token is provided separately.</li>
+          <li>Partners can only access routes linked to their approved partner scope.</li>
+          <li>UniBridge may request the route_id and external_reference after the test.</li>
+        </ul>
+      </div>
 
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
+      <div class="card">
+        <h2>Status Lifecycle</h2>
+        <p>
+          Each route moves through a controlled UniBridge-managed lifecycle.
+        </p>
+        <p>
+          The status shown to the partner is simplified for pilot review and does not expose
+          internal provider logic or execution secrets.
+        </p>
 
+        <div class="status-grid">
+          <div class="status-box">
+            <strong>route_locked</strong>
+            The route has been created and locked.
+          </div>
+
+          <div class="status-box">
+            <strong>funding_pending</strong>
+            UniBridge is waiting for funding.
+          </div>
+
+          <div class="status-box">
+            <strong>funding_detected</strong>
+            Funding was detected.
+          </div>
+
+          <div class="status-box">
+            <strong>execution_submitted</strong>
+            Local payout execution has been submitted.
+          </div>
+
+          <div class="status-box">
+            <strong>payout_pending</strong>
+            Payout is processing.
+          </div>
+
+          <div class="status-box">
+            <strong>payout_completed</strong>
+            Payout completed.
+          </div>
+
+          <div class="status-box">
+            <strong>manual_review</strong>
+            The route requires UniBridge review.
+          </div>
+
+          <div class="status-box">
+            <strong>payout_failed</strong>
+            The route failed.
+          </div>
+
+          <div class="status-box">
+            <strong>expired</strong>
+            The route expired.
+          </div>
+        </div>
+
+        <ul>
+          <li>Partner-facing statuses are intended for operational review.</li>
+          <li>Internal routing, funding, execution, and provider details remain managed by UniBridge.</li>
+          <li>UniBridge may ask for the route_id when reviewing a pilot route.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Partner Test Steps</h2>
+        <p>
+          The pilot flow is intentionally limited to a controlled route review process.
+          Partners may use the supplied Postman collection or their own internal tooling
+          during the pilot.
+        </p>
+
+        <div class="flow">
+          Configure Credentials → Create Partner Route → Review Route Status → Share Route Reference
+        </div>
+
+        <div class="grid">
+          <div class="mini">
+            <h3>1. Configure Credentials</h3>
+            <p>Add the following values privately:</p>
+            <ul>
+              <li>partner_id</li>
+              <li>route_creation_secret</li>
+              <li>route_read_token</li>
+            </ul>
+            <p>
+              The partner_id is sent as x-ub-partner-id.
+              The route_creation_secret is used to generate x-ub-signature.
+              The route_read_token is used only for route status reads.
+            </p>
+            <p><strong>Credentials are transmitted separately from this document.</strong></p>
+          </div>
+
+          <div class="mini">
+            <h3>2. Create a Partner Route</h3>
+            <p>Submit a route creation request using:</p>
+            <pre>POST /v2/partner/routes</pre>
+            <p>Store the returned route_id and external_reference.</p>
+          </div>
+
+          <div class="mini">
+            <h3>3. Review Route Status</h3>
+            <p>
+              Review the route through the UniBridge Partner Route Console
+              or the optional route status endpoint.
+            </p>
+          </div>
+
+          <div class="mini">
+            <h3>4. Share Route Reference with UniBridge</h3>
+            <p>After testing, share the following with UniBridge for pilot review:</p>
+            <ul>
+              <li>route_id</li>
+              <li>external_reference</li>
+            </ul>
+          </div>
+        </div>
+
+        <ul>
+          <li>All pilot routes remain under controlled UniBridge review.</li>
+          <li>The pilot is intended for operational validation only.</li>
+          <li>Production rollout requires separate approval and review.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Security & Credential Handling</h2>
+        <p>
+          This pilot pack does not include credentials, provider access, or production
+          secrets.
+        </p>
+        <p>
+          All pilot credentials must be shared separately through a private channel.
+        </p>
+
+        <div class="grid">
+          <div class="mini">
+            <h3>Credential Rules</h3>
+            <ul>
+              <li>Do not place credentials inside this document.</li>
+              <li>Do not share credentials in public repositories.</li>
+              <li>Do not store credentials in shared tickets or open workspaces.</li>
+              <li>Do not forward credentials outside the approved pilot team.</li>
+            </ul>
+          </div>
+
+          <div class="mini">
+            <h3>Access Boundaries</h3>
+            <ul>
+              <li>UniBridge does not expose provider credentials.</li>
+              <li>UniBridge does not expose internal execution secrets.</li>
+              <li>Route access is limited to the approved partner scope.</li>
+              <li>Status access is limited to partner-owned routes.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mini">
+          <h3>Production Boundary</h3>
+          <p>
+            This pilot is for controlled route review only.
+            Production rollout, production volume, webhook access, or broader API access
+            require separate approval and review.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer" id="contact">
+    <div class="footer-container">
+
+      <img
+        src="public/icons/social/Ub.png"
+        alt="UniBridge Logo"
+        class="footer-logo"
+      />
+
+      <div class="footer-content">
+
+        <div class="footer-about">
+          <p>
+            UniBridge access is granted in stages, based on partner review,
+            corridor fit, and operational readiness.
+          </p>
+
+          <p>
+            Non-custodial route coordination for stablecoin-settled payout corridors.
+          </p>
+
+          <p>
+            © 2026 UniBridge Technologies Ltd. All rights reserved.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about/">About UniBridge</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Press</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links footer-resources">
+          <h3>Resources</h3>
+          <ul>
             <li>
-      <a href="/docs.html">Operating Model</a>
-      <span class="footer-link-note">
-        Execution lifecycle, control model, use case, and operating layers.
-      </span>
+              <a href="/pilot.html">Controlled Pilot Pack</a>
+              <span class="footer-link-note">
+                Route lifecycle, access boundaries, and pilot validation process.
+              </span>
             </li>
 
-        </ul>
+            <li>
+              <a href="/partner-docs/">API Reference</a>
+              <span class="footer-link-note">
+                Endpoints, authentication, status mapping, and integration flow.
+              </span>
+            </li>
+
+            <li>
+              <a href="/docs.html">Operating Model</a>
+              <span class="footer-link-note">
+                Execution lifecycle, control model, use case, and operating layers.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+
+        <div class="footer-social">
+          <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
+          </a>
+
+          <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+            <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
+          </a>
+
+          <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
+          </a>
+
+          <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
+            <img src="public/icons/social/img_twitter.svg" alt="X" />
+          </a>
+        </div>
+
+        <div class="footer-legal">
+          <a href="/privacy.html">Privacy</a>
+          <a href="/legal.html">Terms</a>
+          <a href="#contact">Contact</a>
+        </div>
+
       </div>
 
     </div>
-
-    <!-- Bottom -->
-    <div class="footer-bottom">
-
-      <!-- Social Icons -->
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
-
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
-
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
-
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="public/icons/social/img_twitter.svg" alt="X" />
-        </a>
-      </div>
-
-      <!-- Legal Links -->
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="#contact">Contact</a>
-      </div>
-
-    </div>
-
-  </div>
-</footer>
-
+  </footer>
 
 </body>
 </html>
