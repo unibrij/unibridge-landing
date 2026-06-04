@@ -92,6 +92,127 @@ h1 {
   line-height: 1.7;
 }
 
+.entry-box {
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.entry-header {
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+}
+
+.entry-header h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.entry-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: rgba(21, 94, 239, 0.55);
+  box-shadow: 0 0 0 4px rgba(21, 94, 239, 0.08);
+}
+
+.quote-box {
+  margin: 0 18px 18px;
+  border: 1px solid rgba(21, 94, 239, 0.18);
+  border-radius: 16px;
+  background: #f8fbff;
+  overflow: hidden;
+}
+
+.quote-header {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(21, 94, 239, 0.12);
+}
+
+.quote-header strong {
+  font-size: 14px;
+}
+
+.quote-header span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.quote-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quote-grid > div {
+  display: grid;
+  gap: 5px;
+  padding: 13px 16px;
+  border-top: 1px solid rgba(21, 94, 239, 0.1);
+}
+
+.quote-grid > div:nth-child(-n + 2) {
+  border-top: 0;
+}
+
+.quote-grid > div:nth-child(even) {
+  border-left: 1px solid rgba(21, 94, 239, 0.1);
+}
+
+.quote-grid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.quote-grid strong {
+  color: var(--text);
+  font-size: 14px;
+  word-break: break-word;
+}
+
 .steps {
   display: grid;
   gap: 12px;
@@ -261,6 +382,11 @@ h1 {
   margin-top: 24px;
 }
 
+.entry-box > .actions {
+  margin: 0;
+  padding: 0 18px 18px;
+}
+
 .button {
   appearance: none;
   border: 0;
@@ -320,6 +446,24 @@ h1 {
 
   h1 {
     font-size: 25px;
+  }
+
+  .form-grid,
+  .quote-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-grid > div,
+  .quote-grid > div:nth-child(-n + 2) {
+    border-top: 1px solid rgba(21, 94, 239, 0.1);
+  }
+
+  .quote-grid > div:first-child {
+    border-top: 0;
+  }
+
+  .quote-grid > div:nth-child(even) {
+    border-left: 0;
   }
 
   .instruction-row {
