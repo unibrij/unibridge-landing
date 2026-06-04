@@ -6,10 +6,14 @@ import {
 
 import {
   createSettlement,
+  listBankTransferRoutes,
   quoteSession,
   registerSession,
   resolveSession
 } from "./sessionApi.js";
+
+let availableRoutes =
+  [];
 
 function normalizeString(value) {
   return String(value || "").trim();
@@ -66,109 +70,251 @@ function resolveSourceRail(sourceCountry) {
   return getDefaultSourceRail();
 }
 
-function resolveRouteChoice(value) {
-  const route =
-    normalizeString(value).toLowerCase();
-
-  if (route === "brl_pix") {
-    return {
-      receiver_country: "BR",
-      expected_payout_rail: "pix"
-    };
-  }
-
-  if (route === "php_instapay") {
-    return {
-      receiver_country: "PH",
-      expected_payout_rail: "instapay"
-    };
-  }
-
-  if (route === "ngn_bank") {
-    return {
-      receiver_country: "NG",
-      expected_payout_rail: "bank_transfer"
-    };
-  }
-
-  throw new Error("unsupported_destination_route");
-}
-
-function pickRoute(quote = {}, form = {}) {
-  const routes =
-    Array.isArray(quote.routes)
-      ? quote.routes
-      : [];
-
-  if (!routes.length) {
-    throw new Error("no_routes");
-  }
-
-  const expectedRail =
-    normalizeString(
-      form.expected_payout_rail
-    ).toLowerCase();
-
-  const matched =
-    routes.find((route) => {
-      const rail =
-        normalizeString(
-          route.payout_rail
-        ).toLowerCase();
-
-      return expectedRail && rail === expectedRail;
-    }) || routes[0];
-
+function normalizeRoute(route = {}) {
   const routeId =
     normalizeString(
-      matched.route_id ||
-      matched.id
+      route.route_id ||
+      route.id
     );
 
   if (!routeId) {
-    throw new Error("quote_route_id_missing");
+    return null;
   }
 
   return {
+    ...route,
+
     route_id:
       routeId,
-    route:
-      matched
+
+    label:
+      normalizeString(route.label) ||
+      normalizeString(route.name) ||
+      routeId,
+
+    receiver_country:
+      normalizeString(route.receiver_country).toUpperCase(),
+
+    payout_rail:
+      normalizeString(
+        route.payout_rail ||
+        route.expected_payout_rail
+      ),
+
+    required_destination_fields:
+      Array.isArray(route.required_destination_fields)
+        ? route.required_destination_fields
+        : []
   };
 }
 
-function buildBrazilDestination() {
-  const pix =
-    normalizeString(
-      getEl("pix")?.value
-    );
+function resolveRoutesPayload(payload = {}) {
+  const rawRoutes =
+    Array.isArray(payload.routes)
+      ? payload.routes
+      : Array.isArray(payload.data)
+        ? payload.data
+        : [];
 
-  const taxId =
-    normalizeString(
-      getEl("taxId")?.value
-    );
-
-  if (!pix) {
-    throw new Error("PIX_required");
-  }
-
-  return taxId
-    ? {
-        pix,
-        tax_id:
-          taxId
-      }
-    : {
-        pix
-      };
+  return rawRoutes
+    .map(normalizeRoute)
+    .filter(Boolean);
 }
 
-function buildDestination(form = {}) {
-  if (form.receiver_country === "BR") {
-    return buildBrazilDestination();
+export async function loadBankTransferRoutes() {
+  const payload =
+    await listBankTransferRoutes();
+
+  availableRoutes =
+    resolveRoutesPayload(payload)
+      .filter((route) => route.enabled !== false);
+
+  if (!availableRoutes.length) {
+    throw new Error("no_enabled_bank_transfer_routes");
   }
 
-  throw new Error("destination_form_not_ready_for_selected_route");
+  renderRouteOptions();
+
+  renderDestinationFields();
+
+  return availableRoutes;
+}
+
+function getSelectedRouteId() {
+  return normalizeString(
+    getEl("routeId")?.value
+  );
+}
+
+function getSelectedRoute() {
+  const selectedRouteId =
+    getSelectedRouteId();
+
+  const route =
+    availableRoutes.find((item) => {
+      return item.route_id === selectedRouteId;
+    });
+
+  if (!route) {
+    throw new Error("selected_route_not_available");
+  }
+
+  return route;
+}
+
+function getPreparedRoute(routeId) {
+  const normalizedRouteId =
+    normalizeString(routeId);
+
+  const route =
+    availableRoutes.find((item) => {
+      return item.route_id === normalizedRouteId;
+    });
+
+  if (!route) {
+    throw new Error("prepared_route_not_available");
+  }
+
+  return route;
+}
+
+function renderRouteOptions() {
+  const select =
+    getEl("routeId");
+
+  if (!select) {
+    return;
+  }
+
+  select.innerHTML =
+    availableRoutes
+      .map((route) => {
+        return `
+          <option value="${escapeHtml(route.route_id)}">
+            ${escapeHtml(route.label)}
+          </option>
+        `;
+      })
+      .join("");
+}
+
+function resolveFieldType(field = {}) {
+  const type =
+    normalizeString(field.type).toLowerCase();
+
+  if (
+    type === "email" ||
+    type === "tel" ||
+    type === "number"
+  ) {
+    return type;
+  }
+
+  return "text";
+}
+
+function renderDestinationFields() {
+  const container =
+    getEl("destinationFields");
+
+  if (!container) {
+    return;
+  }
+
+  const route =
+    getSelectedRoute();
+
+  const fields =
+    route.required_destination_fields || [];
+
+  container.innerHTML =
+    fields
+      .map((field) => {
+        const name =
+          normalizeString(field.name);
+
+        if (!name) {
+          return "";
+        }
+
+        const label =
+          normalizeString(field.label) ||
+          name;
+
+        const required =
+          field.required !== false;
+
+        return `
+          <label>
+            <span>${escapeHtml(label)}</span>
+            <input
+              id="destination_${escapeHtml(name)}"
+              name="${escapeHtml(name)}"
+              type="${escapeHtml(resolveFieldType(field))}"
+              ${required ? "required" : ""}
+            />
+          </label>
+        `;
+      })
+      .join("");
+}
+
+function lockEntryForm() {
+  [
+    "routeId",
+    "sourceCountry",
+    "amount"
+  ].forEach((id) => {
+    const el =
+      getEl(id);
+
+    if (el) {
+      el.disabled = true;
+    }
+  });
+
+  getEl("destinationFields")
+    ?.querySelectorAll("input, select, textarea")
+    .forEach((el) => {
+      el.disabled = true;
+    });
+}
+
+function collectDestination(route = {}) {
+  const destination =
+    {};
+
+  for (const field of route.required_destination_fields || []) {
+    const name =
+      normalizeString(field.name);
+
+    if (!name) {
+      continue;
+    }
+
+    const value =
+      normalizeString(
+        getEl(`destination_${name}`)?.value
+      );
+
+    if (field.required !== false && !value) {
+      throw new Error(`destination_field_required_${name}`);
+    }
+
+    if (value) {
+      destination[name] =
+        value;
+    }
+  }
+
+  if (
+    route.destination_required !== false &&
+    !Object.keys(destination).length
+  ) {
+    throw new Error("destination_required");
+  }
+
+  return destination;
 }
 
 export function readEntryForm() {
@@ -177,24 +323,9 @@ export function readEntryForm() {
       getEl("sourceCountry")?.value
     );
 
-  const routeChoice =
-    resolveRouteChoice(
-      getEl("routeId")?.value
-    );
-
   const amount =
     normalizeAmount(
       getEl("amount")?.value
-    );
-
-  const email =
-    normalizeString(
-      getEl("email")?.value
-    );
-
-  const phone =
-    normalizeString(
-      getEl("phone")?.value
     );
 
   const rail =
@@ -202,14 +333,14 @@ export function readEntryForm() {
       sourceCountry
     );
 
+  const route =
+    getSelectedRoute();
+
   return {
     amount,
 
-    email:
-      email || null,
-
-    phone:
-      phone || null,
+    route_id:
+      route.route_id,
 
     source_country:
       rail.source_country,
@@ -218,10 +349,10 @@ export function readEntryForm() {
       rail.source_rail,
 
     receiver_country:
-      routeChoice.receiver_country,
+      route.receiver_country,
 
     expected_payout_rail:
-      routeChoice.expected_payout_rail
+      route.payout_rail
   };
 }
 
@@ -249,6 +380,35 @@ function renderQuoteValue(value) {
   }
 
   return String(value);
+}
+
+function pickRoute(quote = {}, form = {}) {
+  const routes =
+    Array.isArray(quote.routes)
+      ? quote.routes
+      : [];
+
+  const matched =
+    routes.find((route) => {
+      const routeId =
+        normalizeString(
+          route.route_id ||
+          route.id
+        );
+
+      return routeId === form.route_id;
+    });
+
+  if (!matched) {
+    throw new Error("quoted_route_not_available");
+  }
+
+  return {
+    route_id:
+      form.route_id,
+    route:
+      matched
+  };
 }
 
 export function renderQuote(container, {
@@ -313,6 +473,10 @@ export function renderQuote(container, {
 }
 
 export async function prepareBankTransferSettlement() {
+  if (!availableRoutes.length) {
+    await loadBankTransferRoutes();
+  }
+
   const form =
     readEntryForm();
 
@@ -342,6 +506,7 @@ export async function prepareBankTransferSettlement() {
     await quoteSession({
       session_id:
         sessionId,
+
       amount:
         form.amount
   });
@@ -352,15 +517,23 @@ export async function prepareBankTransferSettlement() {
       form
     );
 
+  lockEntryForm();
+
   return {
     form,
+
     session_id:
       sessionId,
+
     registered,
+
     resolved,
+
     quote,
+
     selected_route_id:
       selected.route_id,
+
     selected_route:
       selected.route
   };
@@ -375,9 +548,18 @@ export async function createSettlementFromPreparedQuote(prepared) {
     throw new Error("missing_selected_route");
   }
 
+  if (getSelectedRouteId() !== prepared.selected_route_id) {
+    throw new Error("selected_route_changed_after_quote");
+  }
+
+  const route =
+    getPreparedRoute(
+      prepared.selected_route_id
+    );
+
   const destination =
-    buildDestination(
-      prepared.form
+    collectDestination(
+      route
     );
 
   const settlement =
@@ -401,14 +583,18 @@ export async function createSettlementFromPreparedQuote(prepared) {
   return {
     settlement_id:
       settlementId,
+
     settlement,
+
     source_country:
       prepared.form?.source_country,
+
     source_rail:
-      prepared.form?.source_rail,
-    email:
-      prepared.form?.email,
-    phone:
-      prepared.form?.phone
+      prepared.form?.source_rail
   };
 }
+
+getEl("routeId")?.addEventListener(
+  "change",
+  renderDestinationFields
+);
