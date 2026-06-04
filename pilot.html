@@ -1,307 +1,427 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Controlled Route Pilot Pack | UniBridge</title>
+<title>Controlled Route Pilot Pack | UniBridge</title>
 
-  <meta
-    name="description"
-    content="UniBridge controlled pilot overview: payout route lifecycle, access boundaries, security model, and credential handling before production rollout."
-  />
+<meta
+  name="description"
+  content="UniBridge controlled pilot overview: payout route lifecycle, access boundaries, security model, and credential handling before production rollout."
+/>
 
-  <link rel="canonical" href="https://unibrij.io/pilot.html" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="canonical" href="https://unibrij.io/pilot.html" />
+<link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #ffffff 0%, #f3f8fb 45%, #ffffff 100%);
-      color: #082d46;
-      line-height: 1.7;
-    }
+<script type="application/ld+json">
+{
+ "@context":"https://schema.org",
+ "@type":"TechArticle",
+ "headline":"UniBridge Controlled Route Pilot Pack",
+ "publisher":{
+   "@type":"Organization",
+   "name":"UniBridge",
+   "url":"https://unibrij.io"
+ },
+ "description":"Controlled payout route pilot lifecycle, access boundaries and validation process."
+}
+</script>
 
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 26px 6%;
-      background: #ffffff;
-    }
+<style>
 
-    .logo {
-      width: 82px;
-      height: auto;
-    }
+*{
+ margin:0;
+ padding:0;
+ box-sizing:border-box;
+}
 
-    .nav-links {
-      display: flex;
-      gap: 28px;
-      align-items: center;
-      font-size: 14px;
-    }
+body{
+ font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ color:#23282F;
+ background:#f8fafc;
+ line-height:1.6;
+}
 
-    .nav-links a {
-      color: #082d46;
-      text-decoration: none;
-    }
+.container{
+ max-width:1200px;
+ margin:auto;
+ padding:0 20px;
+}
 
-    .cta {
-      background: #06c7ae;
-      color: #062033 !important;
-      padding: 13px 22px;
-      border-radius: 8px;
-      font-weight: 700;
-    }
 
-    .hero {
-      padding: 78px 6% 52px;
-      max-width: 1100px;
-    }
+/* NAV FROM MAIN */
 
-    .eyebrow {
-      color: #06b99f;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 13px;
-    }
+.navbar{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:24px 0;
+}
 
-    h1 {
-      font-size: clamp(38px, 6vw, 64px);
-      line-height: 1.05;
-      margin: 14px 0 22px;
-      color: #06395c;
-      max-width: 850px;
-    }
+.nav-logo{
+ height:200px;
+}
 
-    .hero p {
-      color: #6c7a89;
-      max-width: 760px;
-      font-size: 18px;
-    }
+.nav-links{
+ display:flex;
+ gap:32px;
+ align-items:center;
+}
 
-    .wrap {
-      padding: 10px 6% 90px;
-    }
+.nav-link{
+ color:#23282F;
+ text-decoration:none;
+ font-weight:500;
+}
 
-    .card {
-      max-width: 1050px;
-      margin: 26px auto;
-      padding: 38px;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(8, 45, 70, 0.08);
-      border-radius: 20px;
-      box-shadow: 0 18px 50px rgba(6, 57, 92, 0.08);
-    }
+.nav-link:hover{
+ color:#00D4AA;
+}
 
-    h2 {
-      margin-top: 0;
-      color: #06395c;
-      font-size: 28px;
-    }
+.nav-button{
+ background:#00D4AA;
+ color:#003366;
+ padding:12px 24px;
+ border-radius:6px;
+ font-weight:600;
+ text-decoration:none;
+}
 
-    p, li {
-      color: #61707f;
-    }
 
-    ul {
-      padding-left: 22px;
-    }
+/* HERO */
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 20px;
-    }
+.hero{
+ background:linear-gradient(135deg,#f8fafc,#ffffff);
+ padding:60px 0 90px;
+}
 
-    .mini-card {
-      background: #f7fafc;
-      border: 1px solid rgba(8, 45, 70, 0.07);
-      border-radius: 14px;
-      padding: 24px;
-    }
+.hero h1{
+ max-width:760px;
+ color:#003366;
+ font-size:clamp(2.4rem,6vw,4rem);
+ line-height:1.08;
+ letter-spacing:-0.04em;
+ margin-bottom:24px;
+}
 
-    .flow {
-      background: linear-gradient(135deg, #06395c, #08142f);
-      color: #ffffff;
-      padding: 22px;
-      border-radius: 12px;
-      text-align: center;
-      font-weight: 700;
-      margin-top: 18px;
-    }
+.hero p{
+ max-width:720px;
+ color:#5A6C7D;
+ font-size:1.2rem;
+}
 
-    .highlight {
-      color: #05bfa8;
-      font-weight: 800;
-    }
+.badge{
+ color:#00a98a;
+ font-weight:700;
+ margin-bottom:18px;
+ text-transform:uppercase;
+}
 
-    .footer {
-      background: #08142f;
-      color: #aeb8c4;
-      padding: 58px 6%;
-    }
 
-    .footer-grid {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr;
-      gap: 40px;
-    }
+/* CONTENT */
 
-    .footer-logo {
-      width: 72px;
-      margin-bottom: 24px;
-    }
+.section{
+ padding:40px 20px;
+}
 
-    .footer a {
-      color: #d9e2ec;
-      text-decoration: none;
-      display: block;
-      margin: 8px 0;
-    }
+.card{
+ max-width:1050px;
+ margin:28px auto;
+ padding:42px;
+ background:white;
+ border-radius:22px;
+ box-shadow:
+ 0 24px 70px rgba(0,51,102,.08),
+ 0 8px 24px rgba(0,51,102,.045);
+}
 
-    .footer h4 {
-      color: #06c7ae;
-      margin-top: 0;
-    }
+.card h2{
+ color:#003366;
+ margin-bottom:22px;
+ font-size:1.8rem;
+}
 
-    @media (max-width: 760px) {
-      .nav {
-        padding: 22px 5%;
-      }
+.card p,
+.card li{
+ color:#5A6C7D;
+}
 
-      .nav-links {
-        gap: 14px;
-        font-size: 12px;
-      }
+ul{
+ padding-left:22px;
+}
 
-      .grid,
-      .footer-grid {
-        grid-template-columns: 1fr;
-      }
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:22px;
+}
 
-      .card {
-        padding: 26px;
-      }
-    }
-  </style>
+.mini{
+ background:#f8fafc;
+ padding:24px;
+ border-radius:14px;
+ border:1px solid rgba(0,51,102,.07);
+}
+
+.flow{
+ margin-top:20px;
+ background:linear-gradient(135deg,#003366,#08142f);
+ color:white;
+ padding:22px;
+ border-radius:14px;
+ text-align:center;
+ font-weight:700;
+}
+
+
+/* FOOTER FROM MAIN */
+
+.footer{
+ background:#0C274F;
+ color:white;
+ padding:80px 0 40px;
+}
+
+.footer-logo{
+ height:200px;
+ margin-bottom:32px;
+}
+
+.footer-content{
+ display:grid;
+ grid-template-columns:2fr 1fr 1fr;
+ gap:60px;
+ margin-bottom:50px;
+}
+
+.footer p{
+ color:rgba(255,255,255,.8);
+}
+
+.footer h3{
+ margin-bottom:20px;
+}
+
+.footer a{
+ display:block;
+ margin-bottom:12px;
+ color:rgba(255,255,255,.8);
+ text-decoration:none;
+}
+
+.footer a:hover{
+ color:#00D4AA;
+}
+
+.footer-bottom{
+ border-top:1px solid rgba(255,255,255,.1);
+ padding-top:35px;
+ color:rgba(255,255,255,.8);
+}
+
+
+/* MOBILE */
+
+@media(max-width:768px){
+
+.navbar{
+ flex-direction:column;
+}
+
+.nav-logo,
+.footer-logo{
+ height:130px;
+}
+
+.nav-links{
+ display:none;
+}
+
+.grid,
+.footer-content{
+ grid-template-columns:1fr;
+}
+
+.card{
+ padding:28px;
+}
+
+}
+
+</style>
 </head>
+
 
 <body>
 
-  <nav class="nav">
-    <a href="/">
-      <img src="/unibrij-logo.png" alt="UniBridge Protocol" class="logo" />
-    </a>
 
-    <div class="nav-links">
-      <a href="/">Platform</a>
-      <a href="/docs.html">Operating Model</a>
-      <a href="/pilot.html">Pilot Pack</a>
-      <a href="/#request" class="cta">Request Access</a>
-    </div>
-  </nav>
+<header>
+<div class="container">
+<nav class="navbar">
 
-  <header class="hero">
-    <p class="eyebrow">UniBridge Pilot</p>
-    <h1>Controlled Route Pilot Pack</h1>
-    <p>
-      A public overview of how UniBridge runs controlled payout route review:
-      route creation, lifecycle visibility, access boundaries, credential
-      handling, and production approval boundaries.
-    </p>
-  </header>
+<img
+src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+class="nav-logo"
+alt="UniBridge Logo"
+/>
 
-  <main class="wrap">
+<div class="nav-links">
+<a href="/#solutions" class="nav-link">Platform</a>
+<a href="/#problem" class="nav-link">Model</a>
+<a href="/#trust" class="nav-link">Validation</a>
+<a href="/docs.html" class="nav-link">Operating Model</a>
+<a href="/#contact" class="nav-button">Request Route Review</a>
+</div>
 
-    <section class="card">
-      <h2>What This Pilot Covers</h2>
-      <div class="grid">
-        <div class="mini-card">Create a controlled UniBridge-managed payout route.</div>
-        <div class="mini-card">Receive a route identifier for operational review.</div>
-        <div class="mini-card">Review simplified partner-facing route status.</div>
-        <div class="mini-card">Validate the flow before any production activation.</div>
-      </div>
-    </section>
+</nav>
+</div>
+</header>
 
-    <section class="card">
-      <h2>What This Pilot Does Not Cover</h2>
-      <ul>
-        <li>Production payout volume</li>
-        <li>Direct provider access</li>
-        <li>Provider credentials</li>
-        <li>Bulk payout creation</li>
-        <li>Partner-controlled automated retries</li>
-        <li>Unrestricted production API access</li>
-      </ul>
-    </section>
 
-    <section class="card">
-      <h2>Route Lifecycle</h2>
-      <p>
-        Each route moves through a controlled UniBridge-managed lifecycle.
-        Partner-facing statuses are simplified for pilot review and do not expose
-        internal provider logic or execution secrets.
-      </p>
+<section class="hero">
+<div class="container">
 
-      <div class="flow">
-        route locked → funding pending → funding detected → execution submitted → payout pending → payout completed
-      </div>
-    </section>
+<div class="badge">
+UniBridge Pilot
+</div>
 
-    <section class="card">
-      <h2>Security & Credential Handling</h2>
-      <ul>
-        <li>No credentials are included in public documents.</li>
-        <li>Pilot credentials are shared separately through private channels.</li>
-        <li>Access is limited to the approved partner scope.</li>
-        <li>Internal execution secrets are not exposed.</li>
-        <li>Status access is limited to partner-owned routes.</li>
-      </ul>
-    </section>
+<h1>
+Controlled Route Pilot Pack
+</h1>
 
-    <section class="card">
-      <h2>Production Boundary</h2>
-      <p>
-        The pilot is intended for <span class="highlight">controlled route validation only</span>.
-        Production rollout, production volume, webhook access, or broader API
-        access require separate approval and review.
-      </p>
-    </section>
+<p>
+Public overview of UniBridge controlled payout route validation:
+route lifecycle, access boundaries, credential handling, and production approval process.
+</p>
 
-  </main>
+</div>
+</section>
 
-  <footer class="footer">
-    <div class="footer-grid">
-      <div>
-        <img src="/connect/icons/app/source-icon.png" alt="UniBridge" class="footer-logo" />
-        <p>
-          UniBridge coordinates non-custodial payout routes for
-          stablecoin-settled payout corridors.
-        </p>
-        <p>© 2026 UniBridge Technologies Ltd.</p>
-      </div>
 
-      <div>
-        <h4>Company</h4>
-        <a href="/">Home</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
-      </div>
+<main class="section">
 
-      <div>
-        <h4>Resources</h4>
-        <a href="/docs.html">Operating Model</a>
-        <a href="/pilot.html">Controlled Pilot Pack</a>
-        <a href="/.well-known/security.txt">Security Contact</a>
-      </div>
-    </div>
-  </footer>
+
+<div class="card">
+<h2>What This Pilot Covers</h2>
+
+<div class="grid">
+<div class="mini">Create a controlled UniBridge-managed payout route.</div>
+<div class="mini">Receive a route identifier for operational review.</div>
+<div class="mini">Review partner-facing route status.</div>
+<div class="mini">Validate the flow before production activation.</div>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>What This Pilot Does Not Cover</h2>
+
+<ul>
+<li>Production payout volume</li>
+<li>Direct provider access</li>
+<li>Provider credentials</li>
+<li>Bulk payout creation</li>
+<li>Unrestricted production API access</li>
+</ul>
+
+</div>
+
+
+<div class="card">
+
+<h2>Route Lifecycle</h2>
+
+<p>
+Each route moves through a controlled UniBridge-managed lifecycle.
+</p>
+
+<div class="flow">
+route locked → funding pending → funding detected → execution submitted → payout completed
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Security & Credential Handling</h2>
+
+<ul>
+<li>No credentials are included in public documents.</li>
+<li>Pilot credentials are shared through private channels.</li>
+<li>Access is limited to approved partner scope.</li>
+<li>Internal execution secrets are never exposed.</li>
+</ul>
+
+</div>
+
+
+<div class="card">
+
+<h2>Production Boundary</h2>
+
+<p>
+The pilot is intended for controlled validation only.
+Production access, volume, webhook access, and API expansion require separate approval.
+</p>
+
+</div>
+
+
+</main>
+
+
+<footer class="footer">
+
+<div class="container">
+
+<img
+src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+class="footer-logo"
+alt="UniBridge"
+/>
+
+
+<div class="footer-content">
+
+<div>
+<p>
+UniBridge coordinates non-custodial payout routes using stablecoin settlement and local execution infrastructure.
+</p>
+</div>
+
+
+<div>
+<h3>Company</h3>
+<a href="/">Home</a>
+<a href="/privacy.html">Privacy</a>
+<a href="/.well-known/security.txt">Security Contact</a>
+</div>
+
+
+<div>
+<h3>Resources</h3>
+<a href="/docs.html">Operating Model</a>
+<a href="/pilot.html">Controlled Pilot Pack</a>
+<a href="/connect">UniBridge Connect</a>
+</div>
+
+</div>
+
+
+<div class="footer-bottom">
+© 2026 UniBridge Technologies Ltd.
+</div>
+
+
+</div>
+
+</footer>
+
 
 </body>
 </html>
