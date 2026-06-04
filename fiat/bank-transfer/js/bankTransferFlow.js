@@ -12,9 +12,16 @@ import {
 } from "./config.js";
 
 import {
+  createSettlementFromPreparedQuote,
+  prepareBankTransferSettlement,
+  renderQuote
+} from "./entryForm.js";
+
+import {
   readQueryParams,
   resolveInitialState,
-  writeStoredState
+  writeStoredState,
+  writeBankCustomerRef
 } from "./state.js";
 
 import {
@@ -38,20 +45,32 @@ const state =
     getDefaultSourceRail()
   );
 
+let preparedQuote =
+  state.prepared_quote || null;
+
+const entryBox =
+  document.getElementById("entryBox");
+
+const fundingBox =
+  document.getElementById("fundingBox");
+
+const quoteBox =
+  document.getElementById("quoteBox");
+
+const quoteButton =
+  document.getElementById("quoteAction");
+
+const createSettlementButton =
+  document.getElementById("createSettlementAction");
+
 const primaryButton =
-  document.getElementById(
-    "primaryAction"
-  );
+  document.getElementById("primaryAction");
 
 const refreshButton =
-  document.getElementById(
-    "refreshStatus"
-  );
+  document.getElementById("refreshStatus");
 
 const instructionsBox =
-  document.getElementById(
-    "instructionsBox"
-  );
+  document.getElementById("instructionsBox");
 
 function normalizeString(value) {
   return String(value || "").trim();
@@ -59,9 +78,7 @@ function normalizeString(value) {
 
 function requireSettlementId() {
   if (!state.settlement_id) {
-    throw new Error(
-      "missing_settlement_id"
-    );
+    throw new Error("missing_settlement_id");
   }
 
   return state.settlement_id;
@@ -76,6 +93,12 @@ function persist(values = {}) {
   writeStoredState(
     state
   );
+
+  if (values.bank_customer_ref) {
+    writeBankCustomerRef(
+      values.bank_customer_ref
+    );
+  }
 }
 
 function openExternal(url) {
@@ -90,6 +113,16 @@ function openExternal(url) {
     normalized;
 
   return true;
+}
+
+function showEntryMode() {
+  entryBox?.classList.remove("hidden");
+  fundingBox?.classList.add("hidden");
+}
+
+function showFundingMode() {
+  entryBox?.classList.add("hidden");
+  fundingBox?.classList.remove("hidden");
 }
 
 function hasExistingInstructions() {
@@ -113,6 +146,8 @@ function restoreExistingInstructions() {
     return false;
   }
 
+  showFundingMode();
+
   renderBankInstructions(
     instructionsBox,
     state.latest_funding_response
@@ -135,11 +170,11 @@ async function runKyc({
       settlement_id:
         settlementId,
 
-      email:
-        state.email,
+      bank_customer_ref:
+        state.bank_customer_ref,
 
-      phone:
-        state.phone,
+      bank_verified_identity_ref:
+        state.bank_verified_identity_ref || null,
 
       source_country:
         state.source_country,
@@ -151,9 +186,57 @@ async function runKyc({
   persist({
     kyc_status:
       kyc.status,
+
+    kyc_reused:
+      Boolean(kyc.reused),
+
     kyc_session_id:
-      kyc.session_id
+      kyc.kyc_session_id ||
+      kyc.session_id ||
+      null,
+
+    provider_session_id:
+      kyc.provider_session_id || null,
+
+    bank_customer_ref:
+      kyc.bank_customer_ref ||
+      state.bank_customer_ref,
+
+    bank_verified_identity_ref:
+      kyc.bank_verified_identity_ref ||
+      state.bank_verified_identity_ref ||
+      null
   });
+
+  if (
+    kyc.reused ||
+    kyc.status === "passed"
+  ) {
+    markStepDone("kyc");
+    return kyc;
+  }
+
+  const kycUrl =
+    kyc.url ||
+    kyc.provider_url ||
+    kyc.provider_reference;
+
+  if (kycUrl) {
+    setStatus({
+      kind: "warning",
+      message:
+        "Redirecting to complete identity verification…"
+    });
+
+    openExternal(
+      kycUrl
+    );
+
+    return {
+      ...kyc,
+      redirected: true
+    };
+  }
 
   markStepDone(
     "kyc"
@@ -171,8 +254,7 @@ async function runTos({
     );
 
     return {
-      skipped:
-        true
+      skipped: true
     };
   }
 
@@ -200,8 +282,7 @@ async function runTos({
     });
 
     setStatus({
-      kind:
-        "warning",
+      kind: "warning",
       message:
         "Redirecting to accept Bridge terms…"
     });
@@ -211,8 +292,7 @@ async function runTos({
     );
 
     return {
-      redirected:
-        true
+      redirected: true
     };
   }
 
@@ -228,8 +308,7 @@ async function runTos({
   );
 
   return {
-    ok:
-      true
+    ok: true
   };
 }
 
@@ -308,11 +387,11 @@ async function runBridgeBankTransfer({
 
 async function runBankTransferFlow() {
   try {
+    showFundingMode();
+
     setPrimaryAction({
-      label:
-        "Processing…",
-      disabled:
-        true
+      label: "Processing…",
+      disabled: true
     });
 
     const settlementId =
@@ -325,9 +404,14 @@ async function runBankTransferFlow() {
       return;
     }
 
-    await runKyc({
-      settlementId
-    });
+    const kycResult =
+      await runKyc({
+        settlementId
+      });
+
+    if (kycResult.redirected) {
+      return;
+    }
 
     const tosResult =
       await runTos({
@@ -352,9 +436,7 @@ async function runBankTransferFlow() {
     );
 
     const active =
-      document.querySelector(
-        ".step.active"
-      );
+      document.querySelector(".step.active");
 
     if (active?.dataset?.step) {
       markStepFailed(
@@ -363,19 +445,146 @@ async function runBankTransferFlow() {
     }
 
     setStatus({
-      kind:
-        "failed",
+      kind: "failed",
       message:
         err.message ||
         "Bank transfer setup failed"
     });
 
     setPrimaryAction({
-      label:
-        "Retry",
-      disabled:
-        false
+      label: "Retry",
+      disabled: false
     });
+  }
+}
+
+async function handleQuote() {
+  try {
+    quoteButton.disabled =
+      true;
+
+    quoteButton.textContent =
+      "Getting quote…";
+
+    preparedQuote =
+      await prepareBankTransferSettlement();
+
+    persist({
+      prepared_quote:
+        preparedQuote,
+
+      source_country:
+        preparedQuote.form?.source_country,
+
+      source_rail:
+        preparedQuote.form?.source_rail,
+
+      email:
+        preparedQuote.form?.email,
+
+      phone:
+        preparedQuote.form?.phone
+    });
+
+    renderQuote(
+      quoteBox,
+      {
+        form:
+          preparedQuote.form,
+        quote:
+          preparedQuote.quote,
+        selectedRoute:
+          preparedQuote.selected_route
+      }
+    );
+
+    createSettlementButton.disabled =
+      false;
+
+    quoteButton.textContent =
+      "Refresh quote";
+  } catch (err) {
+    console.error(
+      "BANK_TRANSFER_QUOTE_FAILED",
+      err
+    );
+
+    alert(
+      err.message ||
+      "Could not prepare quote"
+    );
+
+    quoteButton.textContent =
+      "Get quote";
+  } finally {
+    quoteButton.disabled =
+      false;
+  }
+}
+
+async function handleCreateSettlement() {
+  try {
+    if (!preparedQuote) {
+      throw new Error(
+        "missing_prepared_quote"
+      );
+    }
+
+    createSettlementButton.disabled =
+      true;
+
+    createSettlementButton.textContent =
+      "Creating route…";
+
+    const created =
+      await createSettlementFromPreparedQuote(
+        preparedQuote
+      );
+
+    persist({
+      settlement_id:
+        created.settlement_id,
+
+      settlement:
+        created.settlement,
+
+      source_country:
+        created.source_country,
+
+      source_rail:
+        created.source_rail,
+
+      email:
+        created.email,
+
+      phone:
+        created.phone
+    });
+
+    showFundingMode();
+
+    setStatus({
+      message:
+        "Payout route created. Ready to set up bank transfer funding."
+    });
+
+    await runBankTransferFlow();
+  } catch (err) {
+    console.error(
+      "BANK_TRANSFER_CREATE_SETTLEMENT_FAILED",
+      err
+    );
+
+    alert(
+      err.message ||
+      "Could not create payout route"
+    );
+
+    createSettlementButton.disabled =
+      false;
+
+    createSettlementButton.textContent =
+      "Create payout route";
   }
 }
 
@@ -394,38 +603,61 @@ function initResumeState() {
     });
   }
 
+  if (query.bank_verified_identity_ref) {
+    persist({
+      bank_verified_identity_ref:
+        query.bank_verified_identity_ref
+    });
+  }
+
+  if (state.settlement_id) {
+    showFundingMode();
+  } else {
+    showEntryMode();
+  }
+
   if (hasExistingInstructions()) {
     restoreExistingInstructions();
-
     return;
   }
 
   if (state.tos_pending) {
+    showFundingMode();
+
     setStatus({
-      kind:
-        "warning",
+      kind: "warning",
       message:
         "Terms acceptance may be complete. Continue to generate bank transfer instructions."
     });
 
     setPrimaryAction({
-      label:
-        "Continue",
-      disabled:
-        false
+      label: "Continue",
+      disabled: false
     });
 
     return;
   }
 
-  setStatus({
-    message:
-      "Ready to create bank transfer funding."
-  });
+  if (state.settlement_id) {
+    setStatus({
+      message:
+        "Ready to create bank transfer funding."
+    });
+  }
 }
 
 function init() {
   initResumeState();
+
+  quoteButton?.addEventListener(
+    "click",
+    handleQuote
+  );
+
+  createSettlementButton?.addEventListener(
+    "click",
+    handleCreateSettlement
+  );
 
   primaryButton?.addEventListener(
     "click",
