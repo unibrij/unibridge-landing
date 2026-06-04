@@ -2,6 +2,11 @@ import { useState } from "react";
 
 const FAQS = [
   {
+    question: "Is it safe to connect my wallet?",
+    answer:
+      "Yes. UniBridge never asks for your seed phrase or private key. Connecting your wallet does not give UniBridge access to your funds. You approve every transaction yourself before anything moves."
+  },
+  {
     question: "Can I use MetaMask with UniBridge?",
     answer:
       "Yes. You can connect MetaMask to UniBridge Connect and use it to fund supported payout routes."
@@ -14,12 +19,12 @@ const FAQS = [
   {
     question: "Is UniBridge a wallet?",
     answer:
-      "No. UniBridge is not a wallet. You connect the wallet you already use."
+      "No. UniBridge is not a wallet. UniBridge does not create or manage your wallet. You connect the wallet you already use."
   },
   {
     question: "Does UniBridge take custody of my funds?",
     answer:
-      "No. UniBridge does not take custody of customer funds. UniBridge coordinates the payout route."
+      "No. UniBridge does not take custody of customer funds. UniBridge coordinates the payout route, while you keep control of your wallet and approve the required transaction yourself."
   },
   {
     question: "Can I pay Brazil by PIX from USDC?",
@@ -39,7 +44,7 @@ const FAQS = [
 ];
 
 export default function ConnectFaq() {
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIndex, setOpenIndex] = useState(0);
 
   function toggleItem(index) {
     setOpenIndex(current => (current === index ? null : index));
