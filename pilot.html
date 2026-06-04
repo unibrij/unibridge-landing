@@ -210,6 +210,49 @@
       font-size:.98rem;
     }
 
+
+    .error-table-wrap{
+      overflow-x:auto;
+      margin-top:22px;
+      border-radius:14px;
+      border:1px solid rgba(0,51,102,.08);
+    }
+
+    .error-table{
+      width:100%;
+      border-collapse:collapse;
+      background:#ffffff;
+      min-width:760px;
+    }
+
+    .error-table th{
+      background:#003366;
+      color:#ffffff;
+      text-align:left;
+      padding:14px 16px;
+      font-size:.9rem;
+    }
+
+    .error-table td{
+      padding:14px 16px;
+      border-top:1px solid rgba(0,51,102,.08);
+      color:#5A6C7D;
+      vertical-align:top;
+      font-size:.92rem;
+    }
+
+    .error-table td:first-child{
+      color:#00a98a;
+      font-family:monospace;
+      font-weight:700;
+    }
+
+    .error-table td:nth-child(2){
+      color:#003366;
+      font-weight:700;
+      width:80px;
+    }
+
     .footer {
       background: #0b1230;
       color: #ffffff;
@@ -374,190 +417,6 @@
       color: #ffffff;
     }
 
-
-
-    /* ===== PILOT HERO - MATCHES INDEX HERO STYLE ===== */
-    .hero-section {
-      padding: 60px 0 108px;
-      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-container {
-      display: grid;
-      grid-template-columns: 1.08fr 0.92fr;
-      gap: 56px;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .hero-content {
-      padding-right: 0;
-    }
-
-    .hero-title {
-      font-size: 3.35rem;
-      font-weight: 650;
-      color: #003366;
-      line-height: 1.08;
-      margin-bottom: 22px;
-      letter-spacing: -0.04em;
-      max-width: 650px;
-    }
-
-    .hero-subtitle {
-      font-size: 1.25rem;
-      color: #5A6C7D;
-      line-height: 1.6;
-      margin-bottom: 40px;
-      max-width: 540px;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .primary-button {
-      background: #00D4AA;
-      color: #003366;
-      border: none;
-      padding: 16px 32px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 16px;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .primary-button:hover {
-      background: #00b894;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-    }
-
-    .hero-video-container {
-      position: relative;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-      transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-      transition: all 0.5s ease;
-      height: 385px;
-      background: linear-gradient(135deg, #003366 0%, #001a33 100%);
-    }
-
-    .hero-video-container:hover {
-      transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
-    }
-
-    .video-bg {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .video-fallback {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #003366 0%, #001a33 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.25rem;
-      font-weight: 600;
-      border-radius: 20px;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .video-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom right,
-        rgba(0, 51, 102, 0.1) 0%,
-        rgba(0, 51, 102, 0.3) 100%);
-    }
-
-    .fade-in {
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .accent,
-    .hero-accent {
-      color: #00a98a;
-    }
-
-    .error-table-wrap{
-      overflow-x:auto;
-      margin-top:22px;
-      border-radius:14px;
-      border:1px solid rgba(0,51,102,.08);
-    }
-
-    .error-table{
-      width:100%;
-      border-collapse:collapse;
-      background:#ffffff;
-      min-width:760px;
-    }
-
-    .error-table th{
-      background:#003366;
-      color:#ffffff;
-      text-align:left;
-      padding:14px 16px;
-      font-size:.9rem;
-    }
-
-    .error-table td{
-      padding:14px 16px;
-      border-top:1px solid rgba(0,51,102,.08);
-      color:#5A6C7D;
-      vertical-align:top;
-      font-size:.92rem;
-    }
-
-    .error-table td:first-child{
-      color:#00a98a;
-      font-family:monospace;
-      font-weight:700;
-    }
-
-    .error-table td:nth-child(2){
-      color:#003366;
-      font-weight:700;
-      width:80px;
-    }
-
     @media (max-width: 900px) {
       .grid,
       .status-grid{
@@ -656,140 +515,45 @@
         gap: 22px;
       }
     }
-
-
-    @media (max-width: 768px) {
-      .hero-section {
-        padding: 36px 0 58px !important;
-      }
-
-      .hero-container {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 28px !important;
-        text-align: left !important;
-        max-width: 100% !important;
-      }
-
-      .hero-title {
-        font-size: 2.05rem !important;
-        line-height: 1.08 !important;
-        letter-spacing: -0.04em !important;
-        margin: 0 0 18px !important;
-        max-width: 430px !important;
-      }
-
-      .hero-subtitle {
-        font-size: 0.98rem !important;
-        line-height: 1.72 !important;
-        margin: 0 0 28px !important;
-        max-width: 430px !important;
-      }
-
-      .hero-buttons {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-        justify-content: stretch !important;
-        width: 100% !important;
-        max-width: 430px !important;
-      }
-
-      .primary-button {
-        width: 100% !important;
-        max-width: none !important;
-        justify-content: center !important;
-        padding: 14px 18px !important;
-        border-radius: 10px !important;
-        font-size: 15px !important;
-      }
-
-      .hero-video-container {
-        height: 250px !important;
-        transform: none !important;
-        border-radius: 16px !important;
-        margin-top: 8px !important;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .hero-section {
-        padding: 30px 0 52px !important;
-      }
-
-      .hero-title {
-        font-size: 1.86rem !important;
-        line-height: 1.16 !important;
-      }
-
-      .hero-subtitle {
-        font-size: 0.95rem !important;
-        line-height: 1.7 !important;
-        margin-bottom: 24px !important;
-      }
-
-      .hero-video-container {
-        height: 220px !important;
-      }
-    }
-
   </style>
 </head>
 
 <body>
 
-  <header class="container">
-    <nav class="navbar">
-      <a href="/">
-        <img src="public/icons/social/Ub.png" alt="UniBridge Logo" class="nav-logo" />
-      </a>
+  <header>
+    <div class="container">
+      <nav class="navbar">
 
-      <div class="nav-links">
-        <a href="/about/" class="nav-link">About</a>
-        <a href="/docs.html" class="nav-link">Operating Model</a>
-        <a href="/partner-docs/" class="nav-link">API Reference</a>
-        <a href="#contact" class="nav-button">Contact</a>
-      </div>
-    </nav>
+        <a href="/" aria-label="UniBridge Home">
+          <img
+            src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+            alt="UniBridge Logo"
+            class="nav-logo"
+          />
+        </a>
+
+        <div class="nav-links">
+          <a href="/about/" class="nav-link">About</a>
+          <a href="/docs.html" class="nav-link">Operating Model</a>
+          <a href="/partner-docs/" class="nav-link">API Reference</a>
+          <a href="#contact" class="nav-button">Contact</a>
+        </div>
+
+      </nav>
+    </div>
   </header>
 
   <main>
 
-    <!-- HERO SECTION WITH SIDE-BY-SIDE VIDEO -->
-    <section class="hero-section">
+    <section class="hero">
       <div class="container">
-        <div class="hero-container">
-          <div class="hero-content fade-in">
-            <div class="badge">Partner Route Pilot Endpoint Test Pack</div>
-            <h1 class="hero-title">
-              <span class="line">Controlled route review.</span>
-              <br />
-              <span class="line">Before production rollout.</span>
-            </h1>
-            <p class="hero-subtitle">
-              Route creation, status review, access boundaries, credential handling,
-              and pilot-grade error responses for approved partner testing.
-            </p>
-            <div class="hero-buttons">
-              <a href="/partner-docs/" class="primary-button">
-                Review API Reference
-                <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16" height="16">
-                  <path fill="currentColor" d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"></path>
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          <div class="hero-video-container fade-in">
-            <video class="video-bg" autoplay loop muted playsinline poster="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4">
-              <source src="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4" type="video/mp4" />
-              <div class="video-fallback">
-                <div>UniBridge — Controlled Partner Route Pilot</div>
-              </div>
-            </video>
-            <div class="video-overlay"></div>
-          </div>
-        </div>
+        <div class="badge">Partner Route Pilot Endpoint Test Pack</div>
+        <h1>Controlled payout route creation and status review for approved pilot partners.</h1>
+        <p>
+          A controlled UniBridge pilot overview covering route creation, route status review,
+          partner access boundaries, security rules, and credential handling before any
+          production rollout.
+        </p>
       </div>
     </section>
 
@@ -943,6 +707,7 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
           <li>UniBridge may request the route_id and external_reference after the test.</li>
         </ul>
       </div>
+
 
       <div class="card">
         <h2>Error Responses</h2>
