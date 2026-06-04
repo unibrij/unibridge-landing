@@ -62,8 +62,8 @@ async function getJson(path) {
 
 export function createFiatKyc({
   settlement_id,
-  email,
-  phone,
+  bank_customer_ref,
+  bank_verified_identity_ref,
   source_country,
   source_rail
 }) {
@@ -71,8 +71,8 @@ export function createFiatKyc({
     "/v2/fiat/kyc/create",
     {
       settlement_id,
-      email,
-      phone,
+      bank_customer_ref,
+      bank_verified_identity_ref,
       source_country,
       source_rail
     }
