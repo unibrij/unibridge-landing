@@ -228,9 +228,9 @@ async function runKyc({
         "Redirecting to complete identity verification…"
     });
 
-    openExternal(
-      kycUrl
-    );
+    if (!openExternal(kycUrl)) {
+      throw new Error("missing_kyc_redirect_url");
+    }
 
     return {
       ...kyc,
@@ -238,11 +238,11 @@ async function runKyc({
     };
   }
 
-  markStepDone(
-    "kyc"
+  throw new Error(
+    kyc.status
+      ? `kyc_not_ready_${kyc.status}`
+      : "kyc_not_ready"
   );
-
-  return kyc;
 }
 
 async function runTos({
@@ -287,9 +287,9 @@ async function runTos({
         "Redirecting to accept Bridge terms…"
     });
 
-    openExternal(
-      tosUrl
-    );
+    if (!openExternal(tosUrl)) {
+      throw new Error("missing_tos_redirect_url");
+    }
 
     return {
       redirected: true
@@ -477,13 +477,7 @@ async function handleQuote() {
         preparedQuote.form?.source_country,
 
       source_rail:
-        preparedQuote.form?.source_rail,
-
-      email:
-        preparedQuote.form?.email,
-
-      phone:
-        preparedQuote.form?.phone
+        preparedQuote.form?.source_rail
     });
 
     renderQuote(
@@ -552,13 +546,7 @@ async function handleCreateSettlement() {
         created.source_country,
 
       source_rail:
-        created.source_rail,
-
-      email:
-        created.email,
-
-      phone:
-        created.phone
+        created.source_rail
     });
 
     showFundingMode();
