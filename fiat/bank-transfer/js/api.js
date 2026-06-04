@@ -90,10 +90,14 @@ export function createBridgeTos({
   );
 }
 
-export function createBridgeCustomer(payload = {}) {
+export function createBridgeCustomer({
+  settlement_id
+}) {
   return postJson(
     "/v2/fiat/bridge-customer/create",
-    payload
+    {
+      settlement_id
+    }
   );
 }
 
