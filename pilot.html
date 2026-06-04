@@ -84,6 +84,28 @@
       text-decoration:none;
     }
 
+    .hero-cta{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      margin-top:22px;
+      background:#00D4AA;
+      color:#003366;
+      padding:15px 28px;
+      border-radius:8px;
+      font-size:16px;
+      font-weight:700;
+      line-height:1;
+      text-decoration:none;
+      transition:all .25s ease;
+    }
+
+    .hero-cta:hover{
+      background:#00b894;
+      transform:translateY(-2px);
+      box-shadow:0 8px 20px rgba(0,212,170,.28);
+    }
+
     .hero{
       background:linear-gradient(135deg,#f8fafc,#ffffff);
       padding:60px 0 90px;
@@ -209,7 +231,6 @@
       margin-bottom:6px;
       font-size:.98rem;
     }
-
 
     .error-table-wrap{
       overflow-x:auto;
@@ -458,13 +479,17 @@
       }
 
       .nav-links{
-        flex-wrap:wrap;
-        justify-content:center;
-        gap:18px;
+        display:none;
       }
 
       .hero{
         padding:40px 0 64px;
+      }
+
+      .hero-cta{
+        width:100%;
+        max-width:320px;
+        margin-top:20px;
       }
 
       .card{
@@ -521,44 +546,46 @@
 <body>
 
   <header>
-  <div class="container">
-    <nav class="navbar">
+    <div class="container">
+      <nav class="navbar">
 
-      <img src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
-           alt="UniBridge Logo"
-           class="nav-logo">
+        <img
+          src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
+          alt="UniBridge Logo"
+          class="nav-logo"
+        />
 
-      <div class="nav-links">
-        <a href="#solutions" class="nav-link">Platform</a>
-        <a href="#problem" class="nav-link">Model</a>
-        <a href="#trust" class="nav-link">Validation</a>
-        <a href="/docs.html" class="nav-link">Operating Model</a>
-        <a href="#contact" class="nav-button">Request Route Review</a>
-      </div>
+        <div class="nav-links">
+          <a href="/#solutions" class="nav-link">Platform</a>
+          <a href="/#problem" class="nav-link">Model</a>
+          <a href="/#trust" class="nav-link">Validation</a>
+          <a href="/docs.html" class="nav-link">Operating Model</a>
+          <a href="/#contact" class="nav-button">Request Route Review</a>
+        </div>
 
-    </nav>
-  </div>
-</header>
+      </nav>
+    </div>
+  </header>
 
   <main>
 
     <section class="hero">
-  <div class="container">
-    <div class="badge">Partner Pilot</div>
+      <div class="container">
+        <div class="badge">Partner Pilot</div>
 
-    <h1>
-      Lightweight pilot endpoint for approved partners.
-    </h1>
+        <h1>
+          Lightweight pilot endpoint for approved partners.
+        </h1>
 
-    <p>
-      Create a controlled route, review its status, and validate the access model
-      before any production rollout.
-    </p>
+        <p>
+          Create a controlled route, review its status, and validate the access model
+          before any production rollout.
+        </p>
 
-    <a href="#contact" class="nav-button">
-      Request Pilot Credentials
-    </a>
-  </div>
+        <a href="/#contact" class="hero-cta">
+          Request Pilot Credentials
+        </a>
+      </div>
     </section>
 
     <section class="section">
@@ -711,7 +738,6 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
           <li>UniBridge may request the route_id and external_reference after the test.</li>
         </ul>
       </div>
-
 
       <div class="card">
         <h2>Error Responses</h2>
@@ -1128,7 +1154,7 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
         <div class="footer-legal">
           <a href="/privacy.html">Privacy</a>
           <a href="/legal.html">Terms</a>
-          <a href="#contact">Contact</a>
+          <a href="/#contact">Contact</a>
         </div>
 
       </div>
