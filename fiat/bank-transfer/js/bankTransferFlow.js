@@ -13,6 +13,7 @@ import {
 
 import {
   createSettlementFromPreparedQuote,
+  loadBankTransferRoutes,
   prepareBankTransferSettlement,
   renderQuote
 } from "./entryForm.js";
@@ -46,7 +47,9 @@ const state =
   );
 
 let preparedQuote =
-  state.prepared_quote || null;
+  state.settlement_id
+    ? state.prepared_quote || null
+    : null;
 
 const entryBox =
   document.getElementById("entryBox");
@@ -74,6 +77,23 @@ const instructionsBox =
 
 function normalizeString(value) {
   return String(value || "").trim();
+}
+
+function setQuoteButton({
+  label,
+  disabled
+} = {}) {
+  if (!quoteButton) {
+    return;
+  }
+
+  if (label) {
+    quoteButton.textContent =
+      label;
+  }
+
+  quoteButton.disabled =
+    Boolean(disabled);
 }
 
 function requireSettlementId() {
@@ -161,9 +181,7 @@ function restoreExistingInstructions() {
 async function runKyc({
   settlementId
 }) {
-  setActiveStep(
-    "kyc"
-  );
+  setActiveStep("kyc");
 
   const kyc =
     await createFiatKyc({
@@ -249,18 +267,14 @@ async function runTos({
   settlementId
 }) {
   if (shouldSkipTos()) {
-    markStepDone(
-      "tos"
-    );
+    markStepDone("tos");
 
     return {
       skipped: true
     };
   }
 
-  setActiveStep(
-    "tos"
-  );
+  setActiveStep("tos");
 
   const tos =
     await createBridgeTos({
@@ -303,9 +317,7 @@ async function runTos({
       "accepted"
   });
 
-  markStepDone(
-    "tos"
-  );
+  markStepDone("tos");
 
   return {
     ok: true
@@ -315,9 +327,7 @@ async function runTos({
 async function runBridgeCustomer({
   settlementId
 }) {
-  setActiveStep(
-    "customer"
-  );
+  setActiveStep("customer");
 
   const customer =
     await createBridgeCustomer({
@@ -336,9 +346,7 @@ async function runBridgeCustomer({
       customer.tos_status || null
   });
 
-  markStepDone(
-    "customer"
-  );
+  markStepDone("customer");
 
   return customer;
 }
@@ -346,9 +354,7 @@ async function runBridgeCustomer({
 async function runBridgeBankTransfer({
   settlementId
 }) {
-  setActiveStep(
-    "instructions"
-  );
+  setActiveStep("instructions");
 
   const funding =
     await createBridgeBankTransfer({
@@ -376,9 +382,7 @@ async function runBridgeBankTransfer({
     funding
   );
 
-  markStepDone(
-    "instructions"
-  );
+  markStepDone("instructions");
 
   showWaitingForFunding();
 
@@ -460,11 +464,10 @@ async function runBankTransferFlow() {
 
 async function handleQuote() {
   try {
-    quoteButton.disabled =
-      true;
-
-    quoteButton.textContent =
-      "Getting quote…";
+    setQuoteButton({
+      label: "Getting quote…",
+      disabled: true
+    });
 
     preparedQuote =
       await prepareBankTransferSettlement();
@@ -495,9 +498,14 @@ async function handleQuote() {
     createSettlementButton.disabled =
       false;
 
-    quoteButton.textContent =
-      "Refresh quote";
+    setQuoteButton({
+      label: "Quote ready",
+      disabled: true
+    });
   } catch (err) {
+    preparedQuote =
+      null;
+
     console.error(
       "BANK_TRANSFER_QUOTE_FAILED",
       err
@@ -508,11 +516,10 @@ async function handleQuote() {
       "Could not prepare quote"
     );
 
-    quoteButton.textContent =
-      "Get quote";
-  } finally {
-    quoteButton.disabled =
-      false;
+    setQuoteButton({
+      label: "Get quote",
+      disabled: false
+    });
   }
 }
 
@@ -634,8 +641,47 @@ function initResumeState() {
   }
 }
 
+async function initEntryRoutes() {
+  if (state.settlement_id) {
+    return;
+  }
+
+  setQuoteButton({
+    label: "Loading routes…",
+    disabled: true
+  });
+
+  try {
+    await loadBankTransferRoutes();
+
+    setQuoteButton({
+      label: "Get quote",
+      disabled: false
+    });
+  } catch (err) {
+    console.error(
+      "BANK_TRANSFER_ROUTES_LOAD_FAILED",
+      err
+    );
+
+    setQuoteButton({
+      label: "Routes unavailable",
+      disabled: true
+    });
+
+    setStatus({
+      kind: "failed",
+      message:
+        err.message ||
+        "Could not load available bank transfer routes"
+    });
+  }
+}
+
 function init() {
   initResumeState();
+
+  initEntryRoutes();
 
   quoteButton?.addEventListener(
     "click",
