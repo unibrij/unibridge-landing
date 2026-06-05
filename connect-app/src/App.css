@@ -11,13 +11,13 @@ body,
 body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.09), transparent 28%),
-    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
+  background: #07101d;
   color: #ffffff;
 }
 
 .connect-shell {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -26,6 +26,30 @@ body {
   gap: 14px;
   padding: 18px;
   text-align: center;
+  overflow: hidden;
+}
+
+.connect-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(180deg, rgba(7, 16, 29, 0.10) 0%, rgba(7, 16, 29, 0.58) 58%, #07101d 100%),
+    url("/connect/connect-map-bg.png") center 70px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(circle at 50% 34%, rgba(45, 212, 191, 0.10), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
+}
+
+.connect-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 23%, rgba(45, 212, 191, 0.10), transparent 24%),
+    linear-gradient(180deg, rgba(7, 16, 29, 0.04) 0%, rgba(7, 16, 29, 0.32) 44%, rgba(7, 16, 29, 0.80) 100%);
 }
 
 .history-shell {
@@ -522,59 +546,6 @@ p {
   transform: scale(0.98);
 }
 
-@media (max-width: 430px) {
-  .connect-shell {
-    gap: 12px;
-    padding: 14px;
-    justify-content: center;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-  }
-
-  .history-shell {
-  justify-content: flex-start;
-  padding-top: max(72px, env(safe-area-inset-top));
-  padding-bottom: max(40px, env(safe-area-inset-bottom));
-}
-  
-  .logo {
-    width: 78px;
-  }
-
-  h1 {
-    font-size: 29px;
-  }
-
-  p {
-    font-size: 14px;
-  }
-
-  .motion-lines {
-    width: min(100%, 300px);
-    height: 22px;
-  }
-
-  .motion-line {
-    font-size: 14px;
-  }
-
-  .payout-form,
-  .route-actions,
-  .install-pwa-button {
-    width: min(100%, 392px);
-  }
-
-  .payout-form {
-    margin-top: 6px;
-    padding: 13px;
-  }
-
-  .review-card {
-    width: min(100%, 350px);
-    padding: 16px;
-  }
-}
-
 /* --------------------------------------------------
    Connect FAQ
 -------------------------------------------------- */
@@ -686,6 +657,65 @@ p {
 }
 
 @media (max-width: 430px) {
+  .connect-shell {
+    gap: 12px;
+    padding: 14px;
+    justify-content: center;
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .connect-shell::before {
+    background:
+      linear-gradient(180deg, rgba(7, 16, 29, 0.18) 0%, rgba(7, 16, 29, 0.68) 58%, #07101d 100%),
+      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
+      radial-gradient(circle at 50% 32%, rgba(45, 212, 191, 0.10), transparent 34%),
+      linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
+  }
+
+  .history-shell {
+    justify-content: flex-start;
+    padding-top: max(72px, env(safe-area-inset-top));
+    padding-bottom: max(40px, env(safe-area-inset-bottom));
+  }
+
+  .logo {
+    width: 78px;
+  }
+
+  h1 {
+    font-size: 29px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+
+  .motion-lines {
+    width: min(100%, 300px);
+    height: 22px;
+  }
+
+  .motion-line {
+    font-size: 14px;
+  }
+
+  .payout-form,
+  .route-actions,
+  .install-pwa-button {
+    width: min(100%, 392px);
+  }
+
+  .payout-form {
+    margin-top: 6px;
+    padding: 13px;
+  }
+
+  .review-card {
+    width: min(100%, 350px);
+    padding: 16px;
+  }
+
   .connect-faq {
     width: min(100%, 392px);
     margin-top: 14px;
