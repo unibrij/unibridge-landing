@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://unibrij.io/</loc>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/connect</loc>
+    <priority>0.95</priority>
+  </url>
+
+  <url>
+    <loc>https://www.unibrij.io/connect</loc>
+    <priority>0.95</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/docs.html</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/pilot.html</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/partner-docs/</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/about/</loc>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://unibrij.io/llms.txt</loc>
+    <priority>0.6</priority>
+  </url>
+</urlset>
