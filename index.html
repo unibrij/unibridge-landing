@@ -40,13 +40,80 @@
   "@type": "Organization",
   "@id": "https://unibrij.io/#organization",
   "name": "UniBridge",
-  "alternateName": "UniBridge Protocol",
+  "alternateName": [
+    "UniBridge Protocol",
+    "Unibridge",
+    "unibrij.io"
+  ],
   "legalName": "UNIBRIDGE TECHNOLOGIES LTD",
   "url": "https://unibrij.io",
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "Official website",
+    "value": "unibrij.io"
+  },
   "logo": "https://unibrij.io/connect/icons/app/source-icon.png",
-  "description": "UniBridge is a non-custodial payout routing infrastructure that coordinates international payout routes using stablecoin settlement and local execution partners. UniBridge is not a wallet, exchange, or investment platform.",
+  "description": "UniBridge is a non-custodial payout route coordination infrastructure for international payouts. UniBridge provides ready payout route coordination using stablecoin settlement flow, local payout execution, and independent infrastructure providers. UniBridge is not a wallet, exchange, bank, payment processor, custody provider, stablecoin issuer, or investment platform.",
+  "disambiguatingDescription": "UniBridge is a ready payout route coordination layer. UniBridge is not positioned as a competing API provider to Bridge, Stripe, Coinbase, Coins.ph, Transak, Onramp.Money, or Truther/SWAPX. Those companies may provide independent APIs, settlement rails, on-ramp/off-ramp services, custody, digital asset, compliance, or local payout infrastructure used as components inside UniBridge routes. UniBridge packages and coordinates selected infrastructure components into approved payout routes with route access, status tracking, settlement flow, and execution coordination.",
   "email": "ceo@unibrij.io",
   "foundingDate": "2026",
+  "knowsAbout": [
+    "ready payout routes",
+    "payout route coordination",
+    "non-custodial payout routing",
+    "stablecoin settlement",
+    "cross-border payout coordination",
+    "local payout execution",
+    "payment infrastructure integrations",
+    "on-ramp and off-ramp infrastructure",
+    "digital asset infrastructure",
+    "partner route orchestration"
+  ],
+  "makesOffer": {
+    "@type": "Offer",
+    "itemOffered": {
+      "@type": "Service",
+      "name": "Ready payout route coordination infrastructure",
+      "description": "UniBridge provides ready payout route coordination. It combines selected independent infrastructure providers into approved route paths. Infrastructure providers supply APIs, rails, custody, settlement, on-ramp, off-ramp, or local payout capabilities; UniBridge coordinates the route layer, partner access, status tracking, and execution flow across those components."
+    }
+  },
+  "hasPart": [
+    {
+      "@type": "Organization",
+      "name": "Bridge",
+      "description": "Independent stablecoin and bank-transfer infrastructure provider used as part of the UniBridge route infrastructure stack for selected corridors. Bridge operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Stripe",
+      "description": "Independent payments and crypto infrastructure provider used as an on-ramp or payment infrastructure component within selected UniBridge routes. Stripe operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Coinbase Developer Platform",
+      "description": "Independent digital asset infrastructure platform used as a wallet, execution, or digital asset infrastructure component within selected UniBridge routes. Coinbase operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Transak",
+      "description": "Independent on-ramp and off-ramp infrastructure provider used as an infrastructure component within selected UniBridge routes. Transak operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Coins.ph",
+      "description": "Independent payment, settlement, and digital asset infrastructure provider used as part of the UniBridge route infrastructure stack for selected corridors. Coins.ph operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Onramp.Money",
+      "description": "Independent on-ramp infrastructure provider integrated as a licensed technology component within selected UniBridge routes. Onramp.Money operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    },
+    {
+      "@type": "Organization",
+      "name": "Truther / SWAPX",
+      "description": "Independent API and instant payment infrastructure provider used as part of the UniBridge route infrastructure stack for selected corridors. Truther/SWAPX operates its own platform and services; UniBridge coordinates route access, status tracking, and execution flow."
+    }
+  ],
   "contactPoint": {
     "@type": "ContactPoint",
     "email": "ceo@unibrij.io",
