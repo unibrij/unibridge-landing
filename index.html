@@ -2202,113 +2202,64 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 <section class="trust-section" id="trust">
   <style>
     .trust-section {
-      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(0, 204, 177, 0.08), transparent 42%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       padding: 108px 24px 112px;
       color: #ffffff;
     }
 
+    .trust-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("unibridge-landing/images/world-map.png");
+      background-repeat: no-repeat;
+      background-position: center top;
+      background-size: 1050px auto;
+      opacity: 0.20;
+      filter: grayscale(1) brightness(1.25) contrast(0.95);
+      z-index: 0;
+      pointer-events: none;
+    }
+
     .trust-section .container {
+      position: relative;
+      z-index: 2;
       max-width: 1120px;
       margin: 0 auto;
     }
 
     .trust-panel {
-  position: relative;
-  isolation: isolate;
-  overflow: visible;
-
-  border-radius: 28px;
-  padding: 76px 64px 58px;
-
-  background:
-    radial-gradient(
-      circle at 50% 45%,
-      rgba(0, 212, 170, 0.15),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 18% 18%,
-      rgba(0, 212, 170, 0.10),
-      transparent 32%
-    ),
-    linear-gradient(
-      135deg,
-      #003366 0%,
-      #062f57 48%,
-      #0b1230 100%
-    );
-
-  box-shadow:
-    0 40px 110px rgba(0, 31, 63, 0.22),
-    0 14px 40px rgba(0, 0, 0, 0.18);
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 76px 64px 58px;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(0, 212, 170, 0.16), transparent 38%),
+        linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
+      box-shadow:
+        0 40px 110px rgba(0, 31, 63, 0.22),
+        0 14px 40px rgba(0, 0, 0, 0.18);
     }
 
-
-/* WORLD MAP BACKGROUND */
-.trust-panel::before {
-  content: "";
-  position: absolute;
-
-  inset: -130px -180px;
-
-  background-image: url("unibridge-landing/images/world-map.png");
-  background-size: contain;
-  background-position: center center;
-  background-repeat: no-repeat;
-
-  opacity: 0.18;
-
-  filter:
-    grayscale(1)
-    brightness(1.4)
-    contrast(0.95);
-
-  z-index: 1;
-  pointer-events: none;
-}
-
-      .trust-content {
-  position: relative;
-  z-index: 3;
-      }
-
-/* TECH GRID LAYER */
-.trust-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background:
-  linear-gradient(
-    rgba(0, 25, 55, 0.42),
-    rgba(0, 15, 40, 0.50)
-  ),
-  linear-gradient(
-    rgba(255,255,255,0.035) 1px,
-    transparent 1px
-  ),
-  linear-gradient(
-    90deg,
-    rgba(255,255,255,0.035) 1px,
-    transparent 1px
-  );
-
-background-size:
-  auto,
-  42px 42px,
-  42px 42px;
-  mask-image:
-    radial-gradient(
-      circle at center,
-      black 0%,
-      transparent 78%
-    );
-
-  opacity: 0.45;
-
-  z-index: 2;
-  pointer-events: none;
-}
+    .trust-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0, 25, 55, 0.42), rgba(0, 15, 40, 0.50)),
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: auto, 42px 42px, 42px 42px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 78%);
+      opacity: 0.45;
+      z-index: 1;
+      pointer-events: none;
+    }
 
     .trust-content {
       position: relative;
@@ -2337,27 +2288,21 @@ background-size:
       color: rgba(255, 255, 255, 0.78);
       font-size: 1.08rem;
       line-height: 1.85;
-      font-weight: 400;
     }
 
     .trust-statement {
-  margin: 34px auto 0;
-  max-width: 760px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
+      margin: 34px auto 0;
+      max-width: 760px;
+    }
 
     .trust-statement span {
       display: block;
-      color: rgba(255, 255, 255, 0.94);
-      font-size: 1.05rem;
-      line-height: 1.7;
-      font-weight: 600;
-      letter-spacing: -0.01em;
+      color: #00d4aa;
+      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 1rem;
+      line-height: 1.85;
+      font-weight: 500;
+      letter-spacing: -0.02em;
     }
 
     .trust-lifecycle-bg {
@@ -2365,7 +2310,7 @@ background-size:
       width: min(820px, 100%);
       height: 92px;
       margin: 48px auto 0;
-      z-index: 2;
+      z-index: 3;
       opacity: 0.78;
       pointer-events: none;
     }
@@ -2376,25 +2321,8 @@ background-size:
       right: 5%;
       top: 34px;
       height: 2px;
-      background: linear-gradient(
-        90deg,
-        rgba(0, 212, 170, 0.06),
-        rgba(0, 212, 170, 0.58),
-        rgba(0, 212, 170, 0.06)
-      );
+      background: linear-gradient(90deg, rgba(0,212,170,0.06), rgba(0,212,170,0.58), rgba(0,212,170,0.06));
       box-shadow: 0 0 32px rgba(0, 212, 170, 0.18);
-    }
-
-    .trust-lifecycle-line::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      right: -3px;
-      width: 12px;
-      height: 12px;
-      border-top: 2px solid rgba(0, 212, 170, 0.58);
-      border-right: 2px solid rgba(0, 212, 170, 0.58);
-      transform: translateY(-50%) rotate(45deg);
     }
 
     .trust-life-node {
@@ -2412,69 +2340,16 @@ background-size:
       border-radius: 999px;
       background: rgba(215, 255, 248, 0.92);
       border: 2px solid rgba(0, 212, 170, 0.82);
-      box-shadow:
-        0 0 0 8px rgba(0, 212, 170, 0.08),
-        0 0 26px rgba(0, 212, 170, 0.32);
+      box-shadow: 0 0 0 8px rgba(0,212,170,0.08), 0 0 26px rgba(0,212,170,0.32);
     }
 
     .trust-life-node.active .dot {
       width: 42px;
       height: 42px;
-      background:
-        radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.12) 53% 100%);
+      background: radial-gradient(circle, #fff 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
       border: 1px solid rgba(183, 255, 242, 0.95);
-      box-shadow:
-        0 0 0 13px rgba(0, 212, 170, 0.10),
-        0 0 0 26px rgba(0, 212, 170, 0.045),
-        0 0 48px rgba(0, 212, 170, 0.48);
+      box-shadow: 0 0 0 13px rgba(0,212,170,0.10), 0 0 0 26px rgba(0,212,170,0.045), 0 0 48px rgba(0,212,170,0.48);
     }
-
-      .trust-life-node.n2.active .dot {
-  position: relative;
-  overflow: visible;
-  animation: none;
-}
-
-.trust-life-node.n2.active .dot::before,
-.trust-life-node.n2.active .dot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 212, 170, 0.58);
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 0;
-  pointer-events: none;
-  animation: trustRadarRipple 3.2s ease-out infinite;
-}
-
-.trust-life-node.n2.active .dot::after {
-  animation-delay: 1.4s;
-}
-
-@keyframes trustRadarRipple {
-  0% {
-    transform: translate(-50%, -50%) scale(0.92);
-    opacity: 0;
-  }
-
-  12% {
-    opacity: 0.65;
-  }
-
-  72% {
-    transform: translate(-50%, -50%) scale(2.45);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(2.45);
-    opacity: 0;
-  }
-}
 
     .trust-life-node.final .dot {
       width: 26px;
@@ -2491,9 +2366,7 @@ background-size:
       color: rgba(255, 255, 255, 0.46);
       font-size: 0.72rem;
       font-weight: 650;
-      letter-spacing: 0.02em;
       white-space: nowrap;
-      text-transform: lowercase;
     }
 
     .trust-life-node.n1 { left: 8%; }
@@ -2501,25 +2374,34 @@ background-size:
     .trust-life-node.n3 { left: 68%; }
     .trust-life-node.n4 { left: 94%; }
 
-    @media (max-width: 900px) {
-      .trust-section {
-        padding: 88px 22px 96px;
-      }
+    .trust-typewriter::after {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 4px;
+      vertical-align: -0.12em;
+      background: #00d4aa;
+      animation: trustCursorBlink 0.85s steps(1) infinite;
+    }
 
-      .trust-panel {
-        padding: 64px 40px 50px;
-        border-radius: 24px;
-      }
+    .trust-typewriter.is-complete::after {
+      opacity: 0;
+      animation: none;
+    }
 
-      .trust-lifecycle-bg {
-        width: 100%;
-        margin-top: 42px;
-      }
+    @keyframes trustCursorBlink {
+      50% { opacity: 0; }
     }
 
     @media (max-width: 640px) {
       .trust-section {
         padding: 76px 18px 84px;
+      }
+
+      .trust-section::before {
+        background-size: 820px auto;
+        opacity: 0.18;
       }
 
       .trust-panel {
@@ -2529,7 +2411,6 @@ background-size:
 
       .trust-header h2 {
         font-size: 2rem;
-        line-height: 1.22;
       }
 
       .trust-header p {
@@ -2537,30 +2418,13 @@ background-size:
         line-height: 1.75;
       }
 
-      .trust-statement {
-        padding: 20px 20px;
-        margin-top: 30px;
-        border-radius: 16px;
-      }
-
-      .trust-statement span {
-        font-size: 0.97rem;
-        line-height: 1.65;
-      }
-
       .trust-lifecycle-bg {
-        width: 100%;
         height: 70px;
         margin-top: 36px;
         opacity: 0.66;
       }
 
-      .trust-lifecycle-line {
-        left: 7%;
-        right: 7%;
-        top: 28px;
-      }
-
+      .trust-lifecycle-line,
       .trust-life-node {
         top: 28px;
       }
@@ -2573,71 +2437,23 @@ background-size:
         width: 36px;
         height: 36px;
       }
-
-      .trust-life-node.n1 { left: 9%; }
-      .trust-life-node.n2 { left: 38%; }
-      .trust-life-node.n3 { left: 68%; }
-      .trust-life-node.n4 { left: 93%; }
     }
-
-      .trust-statement span {
-  display: block;
-  color: #00d4aa;
-  font-family:
-    "IBM Plex Mono",
-    "SFMono-Regular",
-    Consolas,
-    "Liberation Mono",
-    Menlo,
-    monospace;
-  font-size: 1rem;
-  line-height: 1.85;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-      }
-      
-.trust-typewriter::after {
-  content: "";
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 4px;
-  vertical-align: -0.12em;
-  background: #00d4aa;
-  animation: trustCursorBlink 0.85s steps(1) infinite;
-}
-
-.trust-typewriter.is-complete::after {
-  opacity: 0;
-  animation: none;
-}
-
-@keyframes trustCursorBlink {
-  50% {
-    opacity: 0;
-  }
-}
   </style>
 
   <div class="container">
     <div class="trust-panel">
       <div class="trust-content">
         <div class="trust-header fade-in">
-          <h2>
-            <span class="trust-accent">Proof before scale.</span>
-          </h2>
+          <h2><span class="trust-accent">Proof before scale.</span></h2>
 
           <p>
             Review the route, monitor execution, inspect status, and verify payout evidence before broader rollout.
           </p>
 
           <div class="trust-statement">
-  <span
-    class="trust-typewriter"
-    data-typewriter="Ready path. Proven before scale."
-  ></span>
-</div>
-            
+            <span class="trust-typewriter" data-typewriter="Ready path. Proven before scale."></span>
+          </div>
+
           <div class="trust-lifecycle-bg" aria-hidden="true">
             <div class="trust-lifecycle-line"></div>
 
