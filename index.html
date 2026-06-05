@@ -1483,7 +1483,85 @@
     font-size: 14px !important;
   }
 }
+    
+.logo-marquee {
+  width: 100%;
+  max-width: 760px;
+  margin: 28px auto 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 4;
+}
 
+.logo-marquee::before,
+.logo-marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 70px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.logo-marquee::before {
+  left: 0;
+  background: linear-gradient(90deg, #f8fafc, transparent);
+}
+
+.logo-marquee::after {
+  right: 0;
+  background: linear-gradient(270deg, #f8fafc, transparent);
+}
+
+.logo-track {
+  display: flex;
+  align-items: center;
+  gap: 46px;
+  width: max-content;
+  animation: logoScroll 24s linear infinite;
+}
+
+.logo-track img {
+  flex: 0 0 auto;
+  width: 112px;
+  height: 28px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.66;
+}
+
+.logo-marquee:hover .logo-track {
+  animation-play-state: paused;
+}
+
+@keyframes logoScroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .logo-marquee {
+    max-width: 88vw;
+    margin-top: 22px;
+  }
+
+  .logo-track {
+    gap: 32px;
+    animation-duration: 20s;
+  }
+
+  .logo-track img {
+    width: 86px;
+    height: 22px;
+  }
+}
+    
 </style>
 
 </head>
@@ -1580,17 +1658,17 @@
   </p>
 </div>
     
-    <div class="logo-marquee fade-in">
+   <div class="logo-marquee fade-in">
   <div class="logo-track">
-    <img src="/public/logos/logo.D-_KihkR.svg" alt="Polygon" />
-    <img src="/public/logos/transak-logo.svg" alt="Transak" />
-    <img src="/public/logos/bridge-logo.png.avif" alt="Bridge" />
-    <img src="/public/logos/alchemy-light.svg" alt="Alchemy" />
+    <img src="public/logos/logo.D-_KihkR.svg" alt="Polygon" />
+    <img src="public/logos/transak-logo.svg" alt="Transak" />
+    <img src="public/logos/bridge-logo.png.avif" alt="Bridge" />
+    <img src="public/logos/alchemy-light.svg" alt="Alchemy" />
 
-    <img src="/public/logos/logo.D-_KihkR.svg" alt="Polygon" />
-    <img src="/public/logos/transak-logo.svg" alt="Transak" />
-    <img src="/public/logos/bridge-logo.png.avif" alt="Bridge" />
-    <img src="/public/logos/alchemy-light.svg" alt="Alchemy" />
+    <img src="public/logos/logo.D-_KihkR.svg" alt="Polygon" />
+    <img src="public/logos/transak-logo.svg" alt="Transak" />
+    <img src="public/logos/bridge-logo.png.avif" alt="Bridge" />
+    <img src="public/logos/alchemy-light.svg" alt="Alchemy" />
   </div>
     </div>
 </section>
@@ -1765,8 +1843,6 @@
       Wallet and fiat entry points move through the same controlled settlement and payout path.
     </p>
   </div>
-
-  <div class="problem-grid">
 
     <div class="problem-grid">
       <div class="problem-card fade-in">
