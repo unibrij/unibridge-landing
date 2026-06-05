@@ -2201,247 +2201,434 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 <!-- TRUST SECTION -->
 <section class="trust-section" id="trust">
   <style>
-    .trust-section {
-      position: relative;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 38%, rgba(0, 204, 177, 0.08), transparent 42%),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-      padding: 108px 24px 112px;
-      color: #ffffff;
-    }
+.trust-section {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0, 204, 177, 0.10), transparent 44%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 108px 24px 112px;
+  color: #ffffff;
+}
 
-    .trust-section::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: url("unibridge-landing/images/world-map.png");
-      background-repeat: no-repeat;
-      background-position: center top;
-      background-size: 1050px auto;
-      opacity: 0.20;
-      filter: grayscale(1) brightness(1.25) contrast(0.95);
-      z-index: 0;
-      pointer-events: none;
-    }
+.trust-section::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 1400px;
+  height: 620px;
+  transform: translate(-50%, -50%);
+  background-image: url("unibridge-landing/images/world-map.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: contain;
+  opacity: 0.28;
+  filter: grayscale(1) brightness(1.18) contrast(1.02);
+  z-index: 0;
+  pointer-events: none;
+}
 
-    .trust-section .container {
-      position: relative;
-      z-index: 2;
-      max-width: 1120px;
-      margin: 0 auto;
-    }
+.trust-section .container {
+  position: relative;
+  z-index: 2;
+  max-width: 1120px;
+  margin: 0 auto;
+}
 
-    .trust-panel {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      border-radius: 28px;
-      padding: 76px 64px 58px;
-      background:
-        radial-gradient(circle at 50% 45%, rgba(0, 212, 170, 0.16), transparent 38%),
-        linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
-      box-shadow:
-        0 40px 110px rgba(0, 31, 63, 0.22),
-        0 14px 40px rgba(0, 0, 0, 0.18);
-    }
+.trust-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 76px 64px 58px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(0, 212, 170, 0.16), transparent 38%),
+    linear-gradient(135deg, rgba(0, 51, 102, 0.94) 0%, rgba(6, 47, 87, 0.94) 48%, rgba(11, 18, 48, 0.96) 100%);
+  box-shadow:
+    0 40px 110px rgba(0, 31, 63, 0.22),
+    0 14px 40px rgba(0, 0, 0, 0.18);
+}
 
-    .trust-panel::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(rgba(0, 25, 55, 0.42), rgba(0, 15, 40, 0.50)),
-        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-      background-size: auto, 42px 42px, 42px 42px;
-      mask-image: radial-gradient(circle at center, black 0%, transparent 78%);
-      opacity: 0.45;
-      z-index: 1;
-      pointer-events: none;
-    }
+.trust-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("unibridge-landing/images/world-map.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 110% auto;
+  opacity: 0.16;
+  filter: grayscale(1) brightness(1.6) contrast(1.05);
+  z-index: 1;
+  pointer-events: none;
+}
 
-    .trust-content {
-      position: relative;
-      z-index: 3;
-      max-width: 860px;
-      margin: 0 auto;
-      text-align: center;
-    }
+.trust-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0, 25, 55, 0.32), rgba(0, 15, 40, 0.42)),
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size:
+    auto,
+    42px 42px,
+    42px 42px;
+  opacity: 0.45;
+  z-index: 2;
+  pointer-events: none;
+}
 
-    .trust-header h2 {
-      margin: 0 0 26px;
-      color: #ffffff;
-      font-size: clamp(2rem, 4vw, 3.25rem);
-      line-height: 1.15;
-      font-weight: 700;
-      letter-spacing: -0.045em;
-    }
+.trust-routes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.30;
+}
 
-    .trust-accent {
-      color: #00d4aa;
-    }
+.trust-routes path {
+  fill: none;
+  stroke: rgba(0, 212, 170, 0.58);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.35));
+}
 
-    .trust-header p {
-      margin: 0 auto;
-      max-width: 780px;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 1.08rem;
-      line-height: 1.85;
-    }
+.trust-content {
+  position: relative;
+  z-index: 3;
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
+}
 
-    .trust-statement {
-      margin: 34px auto 0;
-      max-width: 760px;
-    }
+.trust-header h2 {
+  margin: 0 0 26px;
+  color: #ffffff;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
 
-    .trust-statement span {
-      display: block;
-      color: #00d4aa;
-      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-      font-size: 1rem;
-      line-height: 1.85;
-      font-weight: 500;
-      letter-spacing: -0.02em;
-    }
+.trust-accent {
+  color: #00d4aa;
+}
 
-    .trust-lifecycle-bg {
-      position: relative;
-      width: min(820px, 100%);
-      height: 92px;
-      margin: 48px auto 0;
-      z-index: 3;
-      opacity: 0.78;
-      pointer-events: none;
-    }
+.trust-header p {
+  margin: 0 auto;
+  max-width: 780px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.08rem;
+  line-height: 1.85;
+  font-weight: 400;
+}
 
-    .trust-lifecycle-line {
-      position: absolute;
-      left: 5%;
-      right: 5%;
-      top: 34px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(0,212,170,0.06), rgba(0,212,170,0.58), rgba(0,212,170,0.06));
-      box-shadow: 0 0 32px rgba(0, 212, 170, 0.18);
-    }
+.trust-statement {
+  margin: 34px auto 0;
+  max-width: 760px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
 
-    .trust-life-node {
-      position: absolute;
-      top: 34px;
-      transform: translate(-50%, -50%);
-      display: grid;
-      justify-items: center;
-      gap: 16px;
-    }
+.trust-statement span {
+  display: block;
+  color: #00d4aa;
+  font-family:
+    "IBM Plex Mono",
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+  font-size: 1rem;
+  line-height: 1.85;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
 
-    .trust-life-node .dot {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: rgba(215, 255, 248, 0.92);
-      border: 2px solid rgba(0, 212, 170, 0.82);
-      box-shadow: 0 0 0 8px rgba(0,212,170,0.08), 0 0 26px rgba(0,212,170,0.32);
-    }
+.trust-lifecycle-bg {
+  position: relative;
+  width: min(820px, 100%);
+  height: 92px;
+  margin: 48px auto 0;
+  z-index: 3;
+  opacity: 0.78;
+  pointer-events: none;
+}
 
-    .trust-life-node.active .dot {
-      width: 42px;
-      height: 42px;
-      background: radial-gradient(circle, #fff 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
-      border: 1px solid rgba(183, 255, 242, 0.95);
-      box-shadow: 0 0 0 13px rgba(0,212,170,0.10), 0 0 0 26px rgba(0,212,170,0.045), 0 0 48px rgba(0,212,170,0.48);
-    }
+.trust-lifecycle-line {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 34px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 212, 170, 0.06),
+    rgba(0, 212, 170, 0.58),
+    rgba(0, 212, 170, 0.06)
+  );
+  box-shadow: 0 0 32px rgba(0, 212, 170, 0.18);
+}
 
-    .trust-life-node.final .dot {
-      width: 26px;
-      height: 26px;
-      display: grid;
-      place-items: center;
-      background: #00d4aa;
-      color: #06233f;
-      font-size: 14px;
-      font-weight: 900;
-    }
+.trust-lifecycle-line::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border-top: 2px solid rgba(0, 212, 170, 0.58);
+  border-right: 2px solid rgba(0, 212, 170, 0.58);
+  transform: translateY(-50%) rotate(45deg);
+}
 
-    .trust-life-node small {
-      color: rgba(255, 255, 255, 0.46);
-      font-size: 0.72rem;
-      font-weight: 650;
-      white-space: nowrap;
-    }
+.trust-life-node {
+  position: absolute;
+  top: 34px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
 
-    .trust-life-node.n1 { left: 8%; }
-    .trust-life-node.n2 { left: 38%; }
-    .trust-life-node.n3 { left: 68%; }
-    .trust-life-node.n4 { left: 94%; }
+.trust-life-node .dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(215, 255, 248, 0.92);
+  border: 2px solid rgba(0, 212, 170, 0.82);
+  box-shadow:
+    0 0 0 8px rgba(0, 212, 170, 0.08),
+    0 0 26px rgba(0, 212, 170, 0.32);
+}
 
-    .trust-typewriter::after {
-      content: "";
-      display: inline-block;
-      width: 2px;
-      height: 1em;
-      margin-left: 4px;
-      vertical-align: -0.12em;
-      background: #00d4aa;
-      animation: trustCursorBlink 0.85s steps(1) infinite;
-    }
+.trust-life-node.active .dot {
+  width: 42px;
+  height: 42px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.12) 53% 100%);
+  border: 1px solid rgba(183, 255, 242, 0.95);
+  box-shadow:
+    0 0 0 13px rgba(0, 212, 170, 0.10),
+    0 0 0 26px rgba(0, 212, 170, 0.045),
+    0 0 48px rgba(0, 212, 170, 0.48);
+}
 
-    .trust-typewriter.is-complete::after {
-      opacity: 0;
-      animation: none;
-    }
+.trust-life-node.n2.active .dot {
+  position: relative;
+  overflow: visible;
+}
 
-    @keyframes trustCursorBlink {
-      50% { opacity: 0; }
-    }
+.trust-life-node.n2.active .dot::before,
+.trust-life-node.n2.active .dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 212, 170, 0.58);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0;
+  pointer-events: none;
+  animation: trustRadarRipple 3.2s ease-out infinite;
+}
 
-    @media (max-width: 640px) {
-      .trust-section {
-        padding: 76px 18px 84px;
-      }
+.trust-life-node.n2.active .dot::after {
+  animation-delay: 1.4s;
+}
 
-      .trust-section::before {
-        background-size: 820px auto;
-        opacity: 0.18;
-      }
+@keyframes trustRadarRipple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0;
+  }
 
-      .trust-panel {
-        padding: 48px 24px 46px;
-        border-radius: 22px;
-      }
+  12% {
+    opacity: 0.65;
+  }
 
-      .trust-header h2 {
-        font-size: 2rem;
-      }
+  72% {
+    transform: translate(-50%, -50%) scale(2.45);
+    opacity: 0;
+  }
 
-      .trust-header p {
-        font-size: 0.98rem;
-        line-height: 1.75;
-      }
+  100% {
+    transform: translate(-50%, -50%) scale(2.45);
+    opacity: 0;
+  }
+}
 
-      .trust-lifecycle-bg {
-        height: 70px;
-        margin-top: 36px;
-        opacity: 0.66;
-      }
+.trust-life-node.final .dot {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  background: #00d4aa;
+  color: #06233f;
+  font-size: 14px;
+  font-weight: 900;
+}
 
-      .trust-lifecycle-line,
-      .trust-life-node {
-        top: 28px;
-      }
+.trust-life-node small {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-transform: lowercase;
+}
 
-      .trust-life-node small {
-        display: none;
-      }
+.trust-life-node.n1 { left: 8%; }
+.trust-life-node.n2 { left: 38%; }
+.trust-life-node.n3 { left: 68%; }
+.trust-life-node.n4 { left: 94%; }
 
-      .trust-life-node.active .dot {
-        width: 36px;
-        height: 36px;
-      }
-    }
-  </style>
+.trust-typewriter::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 4px;
+  vertical-align: -0.12em;
+  background: #00d4aa;
+  animation: trustCursorBlink 0.85s steps(1) infinite;
+}
+
+.trust-typewriter.is-complete::after {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes trustCursorBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .trust-section {
+    padding: 88px 22px 96px;
+  }
+
+  .trust-section::before {
+    width: 1100px;
+    height: 520px;
+    opacity: 0.24;
+  }
+
+  .trust-panel {
+    padding: 64px 40px 50px;
+    border-radius: 24px;
+  }
+
+  .trust-panel::before {
+    background-size: 140% auto;
+  }
+
+  .trust-lifecycle-bg {
+    width: 100%;
+    margin-top: 42px;
+  }
+}
+
+@media (max-width: 640px) {
+  .trust-section {
+    padding: 76px 18px 84px;
+  }
+
+  .trust-section::before {
+    width: 900px;
+    height: 420px;
+    top: 45%;
+    opacity: 0.22;
+  }
+
+  .trust-panel {
+    padding: 48px 24px 46px;
+    border-radius: 22px;
+  }
+
+  .trust-panel::before {
+    background-size: 170% auto;
+    opacity: 0.13;
+  }
+
+  .trust-routes {
+    opacity: 0.22;
+  }
+
+  .trust-header h2 {
+    font-size: 2rem;
+    line-height: 1.22;
+  }
+
+  .trust-header p {
+    font-size: 0.98rem;
+    line-height: 1.75;
+  }
+
+  .trust-statement {
+    margin-top: 30px;
+  }
+
+  .trust-statement span {
+    font-size: 0.97rem;
+    line-height: 1.65;
+  }
+
+  .trust-lifecycle-bg {
+    width: 100%;
+    height: 70px;
+    margin-top: 36px;
+    opacity: 0.66;
+  }
+
+  .trust-lifecycle-line {
+    left: 7%;
+    right: 7%;
+    top: 28px;
+  }
+
+  .trust-life-node {
+    top: 28px;
+  }
+
+  .trust-life-node small {
+    display: none;
+  }
+
+  .trust-life-node.active .dot {
+    width: 36px;
+    height: 36px;
+  }
+
+  .trust-life-node.n1 { left: 9%; }
+  .trust-life-node.n2 { left: 38%; }
+  .trust-life-node.n3 { left: 68%; }
+  .trust-life-node.n4 { left: 93%; }
+}
+</style>
 
   <div class="container">
     <div class="trust-panel">
+        <svg class="trust-routes" viewBox="0 0 1000 420" aria-hidden="true">
+  <path d="M120 250 C260 120, 430 115, 560 210" />
+  <path d="M250 290 C390 180, 560 170, 820 245" />
+  <path d="M520 205 C650 100, 780 100, 930 210" />
+</svg>
       <div class="trust-content">
         <div class="trust-header fade-in">
           <h2><span class="trust-accent">Proof before scale.</span></h2>
