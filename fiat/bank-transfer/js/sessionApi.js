@@ -79,28 +79,28 @@ export function listBankTransferRoutes() {
 
 export function registerSession(payload = {}) {
   return postJson(
-    "session/register",
+    "fiat/bank-transfer/session/register",
     payload
   );
 }
 
 export function resolveSession(payload = {}) {
   return postJson(
-    "session/resolve",
+    "fiat/bank-transfer/session/resolve",
     payload
   );
 }
 
 export function quoteSession(payload = {}) {
   return postJson(
-    "session/quote",
+    "fiat/bank-transfer/session/quote",
     payload
   );
 }
 
 export function createSettlement(payload = {}) {
   return postJson(
-    "settlement/create",
+    "fiat/bank-transfer/settlement/create",
     payload
   );
 }
