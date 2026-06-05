@@ -2223,7 +2223,7 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   background-repeat: no-repeat;
   background-position: center center;
   background-size: contain;
-  opacity: 0.28;
+  opacity: 0.26;
   filter: grayscale(1) brightness(1.18) contrast(1.02);
   z-index: 0;
   pointer-events: none;
@@ -2250,34 +2250,17 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     0 14px 40px rgba(0, 0, 0, 0.18);
 }
 
-.trust-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("unibridge-landing/images/world-map.png");
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 110% auto;
-  opacity: 0.16;
-  filter: grayscale(1) brightness(1.6) contrast(1.05);
-  z-index: 1;
-  pointer-events: none;
-}
-
 .trust-panel::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(rgba(0, 25, 55, 0.32), rgba(0, 15, 40, 0.42)),
+    linear-gradient(rgba(0, 25, 55, 0.30), rgba(0, 15, 40, 0.40)),
     linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size:
-    auto,
-    42px 42px,
-    42px 42px;
-  opacity: 0.45;
-  z-index: 2;
+  background-size: auto, 42px 42px, 42px 42px;
+  opacity: 0.42;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -2288,7 +2271,7 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   height: 100%;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.30;
+  opacity: 0.45;
 }
 
 .trust-routes path {
@@ -2326,34 +2309,19 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   color: rgba(255, 255, 255, 0.78);
   font-size: 1.08rem;
   line-height: 1.85;
-  font-weight: 400;
 }
 
 .trust-statement {
   margin: 34px auto 0;
-  max-width: 760px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
 }
 
 .trust-statement span {
   display: block;
   color: #00d4aa;
-  font-family:
-    "IBM Plex Mono",
-    "SFMono-Regular",
-    Consolas,
-    "Liberation Mono",
-    Menlo,
-    monospace;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   font-size: 1rem;
   line-height: 1.85;
   font-weight: 500;
-  letter-spacing: -0.02em;
 }
 
 .trust-lifecycle-bg {
@@ -2372,25 +2340,8 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   right: 5%;
   top: 34px;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 212, 170, 0.06),
-    rgba(0, 212, 170, 0.58),
-    rgba(0, 212, 170, 0.06)
-  );
+  background: linear-gradient(90deg, rgba(0, 212, 170, 0.06), rgba(0, 212, 170, 0.58), rgba(0, 212, 170, 0.06));
   box-shadow: 0 0 32px rgba(0, 212, 170, 0.18);
-}
-
-.trust-lifecycle-line::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: -3px;
-  width: 12px;
-  height: 12px;
-  border-top: 2px solid rgba(0, 212, 170, 0.58);
-  border-right: 2px solid rgba(0, 212, 170, 0.58);
-  transform: translateY(-50%) rotate(45deg);
 }
 
 .trust-life-node {
@@ -2408,67 +2359,15 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   border-radius: 999px;
   background: rgba(215, 255, 248, 0.92);
   border: 2px solid rgba(0, 212, 170, 0.82);
-  box-shadow:
-    0 0 0 8px rgba(0, 212, 170, 0.08),
-    0 0 26px rgba(0, 212, 170, 0.32);
+  box-shadow: 0 0 0 8px rgba(0, 212, 170, 0.08), 0 0 26px rgba(0, 212, 170, 0.32);
 }
 
 .trust-life-node.active .dot {
   width: 42px;
   height: 42px;
-  background:
-    radial-gradient(circle, rgba(255, 255, 255, 0.96) 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.12) 53% 100%);
+  background: radial-gradient(circle, rgba(255,255,255,0.96) 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
   border: 1px solid rgba(183, 255, 242, 0.95);
-  box-shadow:
-    0 0 0 13px rgba(0, 212, 170, 0.10),
-    0 0 0 26px rgba(0, 212, 170, 0.045),
-    0 0 48px rgba(0, 212, 170, 0.48);
-}
-
-.trust-life-node.n2.active .dot {
-  position: relative;
-  overflow: visible;
-}
-
-.trust-life-node.n2.active .dot::before,
-.trust-life-node.n2.active .dot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 212, 170, 0.58);
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 0;
-  pointer-events: none;
-  animation: trustRadarRipple 3.2s ease-out infinite;
-}
-
-.trust-life-node.n2.active .dot::after {
-  animation-delay: 1.4s;
-}
-
-@keyframes trustRadarRipple {
-  0% {
-    transform: translate(-50%, -50%) scale(0.92);
-    opacity: 0;
-  }
-
-  12% {
-    opacity: 0.65;
-  }
-
-  72% {
-    transform: translate(-50%, -50%) scale(2.45);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(2.45);
-    opacity: 0;
-  }
+  box-shadow: 0 0 0 13px rgba(0, 212, 170, 0.10), 0 0 0 26px rgba(0, 212, 170, 0.045), 0 0 48px rgba(0, 212, 170, 0.48);
 }
 
 .trust-life-node.final .dot {
@@ -2486,9 +2385,7 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   color: rgba(255, 255, 255, 0.46);
   font-size: 0.72rem;
   font-weight: 650;
-  letter-spacing: 0.02em;
   white-space: nowrap;
-  text-transform: lowercase;
 }
 
 .trust-life-node.n1 { left: 8%; }
@@ -2513,35 +2410,7 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 }
 
 @keyframes trustCursorBlink {
-  50% {
-    opacity: 0;
-  }
-}
-
-@media (max-width: 900px) {
-  .trust-section {
-    padding: 88px 22px 96px;
-  }
-
-  .trust-section::before {
-    width: 1100px;
-    height: 520px;
-    opacity: 0.24;
-  }
-
-  .trust-panel {
-    padding: 64px 40px 50px;
-    border-radius: 24px;
-  }
-
-  .trust-panel::before {
-    background-size: 140% auto;
-  }
-
-  .trust-lifecycle-bg {
-    width: 100%;
-    margin-top: 42px;
-  }
+  50% { opacity: 0; }
 }
 
 @media (max-width: 640px) {
@@ -2561,18 +2430,8 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     border-radius: 22px;
   }
 
-  .trust-panel::before {
-    background-size: 170% auto;
-    opacity: 0.13;
-  }
-
-  .trust-routes {
-    opacity: 0.22;
-  }
-
   .trust-header h2 {
     font-size: 2rem;
-    line-height: 1.22;
   }
 
   .trust-header p {
@@ -2580,30 +2439,14 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     line-height: 1.75;
   }
 
-  .trust-statement {
-    margin-top: 30px;
-  }
-
-  .trust-statement span {
-    font-size: 0.97rem;
-    line-height: 1.65;
+  .trust-routes {
+    opacity: 0.30;
   }
 
   .trust-lifecycle-bg {
-    width: 100%;
     height: 70px;
     margin-top: 36px;
     opacity: 0.66;
-  }
-
-  .trust-lifecycle-line {
-    left: 7%;
-    right: 7%;
-    top: 28px;
-  }
-
-  .trust-life-node {
-    top: 28px;
   }
 
   .trust-life-node small {
