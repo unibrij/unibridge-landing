@@ -2,10 +2,10 @@ import { useState } from "react";
 
 const FAQS = [
   {
-    question: "Is it safe to connect my wallet?",
-    answer:
-      "Yes. UniBridge never asks for your seed phrase or private key. Connecting your wallet does not give UniBridge access to your funds. You approve every transaction yourself before anything moves."
-  },
+  question: "Does connecting my wallet give UniBridge access to my funds?",
+  answer:
+    "No. Connecting your wallet does not give UniBridge access to your funds. It only lets UniBridge read the wallet address and prepare supported route actions. UniBridge never asks for your seed phrase or private key, and you approve every transaction yourself."
+}
   {
     question: "Can I use MetaMask with UniBridge?",
     answer:
