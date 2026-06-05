@@ -37,13 +37,17 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.04) 0%,
-      rgba(0, 14, 45, 0.28) 58%,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
       #000E2D 100%
     ),
-    url("/connect/connect-map-bg.png") center 70px / min(1180px, 118vw) auto no-repeat,
-    radial-gradient(circle at 50% 34%, rgba(45, 212, 191, 0.10), transparent 30%),
-    #000E2D;
+    url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
 }
 
 .connect-shell::after {
@@ -676,17 +680,21 @@ p {
   }
 
   .connect-shell::before {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(0, 14, 45, 0.06) 0%,
-        rgba(0, 14, 45, 0.32) 58%,
-        #000E2D 100%
-      ),
-      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
-      radial-gradient(circle at 50% 32%, rgba(45, 212, 191, 0.10), transparent 34%),
-      #000E2D;
-  }
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000E2D 100%
+    ),
+    url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
+}
 
   .history-shell {
     justify-content: flex-start;
