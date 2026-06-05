@@ -2422,15 +2422,61 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 
       @media (max-width: 640px) {
   .trust-section {
-    background-size: calc(100vw + 60px) auto, auto;
-    background-position: center center;
-    padding: 10px 0 24px;
-    margin-top: -24px;
-    min-height: auto;
+    background:
+      url("unibridge-landing/images/trust-bg.png") center top / 760px auto no-repeat,
+      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 0 0 10px;
+    margin-top: -8px;
+    margin-bottom: -35px;
+    min-height: 360px;
   }
 
   .trust-panel {
-    padding: 54px 14px 48px;
+    padding: 58px 22px 42px;
+  }
+
+  .trust-header h2 {
+    font-size: 1.9rem;
+    line-height: 1.15;
+    margin-bottom: 18px;
+  }
+
+  .trust-header p {
+    font-size: 0.9rem;
+    line-height: 1.65;
+    max-width: 320px;
+  }
+
+  .trust-statement {
+    margin-top: 24px;
+  }
+
+  .trust-statement span {
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+
+  .trust-lifecycle-bg {
+    width: 92%;
+    height: 58px;
+    margin-top: 28px;
+  }
+
+  .trust-lifecycle-line {
+    top: 24px;
+  }
+
+  .trust-life-node {
+    top: 24px;
+  }
+
+  .trust-life-node small {
+    display: none;
+  }
+
+  .trust-life-node.active .dot {
+    width: 34px;
+    height: 34px;
   }
 }
 </style>
