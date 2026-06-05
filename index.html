@@ -2182,45 +2182,88 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     }
 
     .trust-panel {
-      position: relative;
-      overflow: hidden;
-      border-radius: 28px;
-      padding: 76px 64px 58px;
-      background:
-        radial-gradient(circle at 50% 48%, rgba(0, 212, 170, 0.13), transparent 34%),
-        radial-gradient(circle at 18% 18%, rgba(0, 212, 170, 0.11), transparent 32%),
-        linear-gradient(135deg, #003366 0%, #062f57 48%, #0b1230 100%);
-      box-shadow:
-        0 30px 90px rgba(0, 51, 102, 0.18),
-        0 12px 34px rgba(0, 0, 0, 0.12);
-    }
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  padding: 76px 64px 58px;
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(0, 212, 170, 0.15),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 18% 18%,
+      rgba(0, 212, 170, 0.10),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      #003366 0%,
+      #062f57 48%,
+      #0b1230 100%
+    );
 
-    .trust-panel::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.035),
-          transparent
-        );
-      pointer-events: none;
-    }
+  box-shadow:
+    0 30px 90px rgba(0, 51, 102, 0.18),
+    0 12px 34px rgba(0, 0, 0, 0.12);
+}
 
-    .trust-panel::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: radial-gradient(circle at center, black 0%, transparent 76%);
-      opacity: 0.48;
-      pointer-events: none;
-    }
+
+/* WORLD MAP BACKGROUND */
+.trust-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image: url("unibridge-landing/images/world-map.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  opacity: 0.18;
+
+  filter:
+    grayscale(1)
+    brightness(1.7)
+    contrast(1.15);
+
+  z-index: 1;
+  pointer-events: none;
+}
+
+
+/* TECH GRID LAYER */
+.trust-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+
+  mask-image:
+    radial-gradient(
+      circle at center,
+      black 0%,
+      transparent 78%
+    );
+
+  opacity: 0.45;
+
+  z-index: 2;
+  pointer-events: none;
+}
 
     .trust-content {
       position: relative;
