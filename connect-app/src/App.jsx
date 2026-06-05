@@ -426,19 +426,19 @@ export default function App() {
         alt="UniBridge"
       />
 
-      <h1>Connect your wallet</h1>
+      <h1>Pay with your wallet</h1>
 
-      <div className="motion-lines" aria-label="Pay. Save.">
-        <div className="motion-line">
-          <strong>Pay</strong>
-          <span>back home</span>
-        </div>
+<div className="motion-lines" aria-label="Pay back home. Save for next time.">
+  <div className="motion-line">
+    <strong>Pay</strong>
+    <span>back home</span>
+  </div>
 
-        <div className="motion-line">
-          <strong>Save</strong>
-          <span>for next time</span>
-        </div>
-      </div>
+  <div className="motion-line">
+    <strong>Save</strong>
+    <span>for next time</span>
+  </div>
+</div>
 
       {!isReturnedFlow && (
         <div
