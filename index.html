@@ -2215,16 +2215,16 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   content: "";
   position: absolute;
   left: 50%;
-  top: 46%;
-  width: 1400px;
-  height: 620px;
+  top: 43%;
+  width: 1450px;
+  height: 650px;
   transform: translate(-50%, -50%);
   background-image: url("unibridge-landing/images/world-map.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: contain;
-  opacity: 0.26;
-  filter: grayscale(1) brightness(1.18) contrast(1.02);
+  opacity: 0.34;
+  filter: grayscale(1) brightness(1.28) contrast(1.02);
   z-index: 0;
   pointer-events: none;
 }
@@ -2250,6 +2250,10 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     0 14px 40px rgba(0, 0, 0, 0.18);
 }
 
+.trust-panel::before {
+  display: none !important;
+}
+
 .trust-panel::after {
   content: "";
   position: absolute;
@@ -2265,21 +2269,7 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 }
 
 .trust-routes {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.45;
-}
-
-.trust-routes path {
-  fill: none;
-  stroke: rgba(0, 212, 170, 0.58);
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.35));
+  display: none !important;
 }
 
 .trust-content {
@@ -2419,10 +2409,10 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   }
 
   .trust-section::before {
-    width: 900px;
-    height: 420px;
-    top: 45%;
-    opacity: 0.22;
+    width: 920px;
+    height: 430px;
+    top: 42%;
+    opacity: 0.28;
   }
 
   .trust-panel {
@@ -2437,10 +2427,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   .trust-header p {
     font-size: 0.98rem;
     line-height: 1.75;
-  }
-
-  .trust-routes {
-    opacity: 0.30;
   }
 
   .trust-lifecycle-bg {
@@ -2467,11 +2453,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 
   <div class="container">
     <div class="trust-panel">
-        <svg class="trust-routes" viewBox="0 0 1000 420" aria-hidden="true">
-  <path d="M120 250 C260 120, 430 115, 560 210" />
-  <path d="M250 290 C390 180, 560 170, 820 245" />
-  <path d="M520 205 C650 100, 780 100, 930 210" />
-</svg>
       <div class="trust-content">
         <div class="trust-header fade-in">
           <h2><span class="trust-accent">Proof before scale.</span></h2>
