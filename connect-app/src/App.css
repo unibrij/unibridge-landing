@@ -11,7 +11,7 @@ body,
 body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
-  background: ##000E2D;
+  background: #000E2D;
   color: #ffffff;
 }
 
@@ -35,28 +35,31 @@ body {
   inset: 0;
   z-index: -2;
   background:
-    linear-gradient(180deg, rgba(2, 17, 46, 0.05) 0%, rgba(2, 17, 46, 0.38) 58%, #02112e 100%),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.04) 0%,
+      rgba(0, 14, 45, 0.28) 58%,
+      #000E2D 100%
+    ),
     url("/connect/connect-map-bg.png") center 70px / min(1180px, 118vw) auto no-repeat,
     radial-gradient(circle at 50% 34%, rgba(45, 212, 191, 0.10), transparent 30%),
-    #02112e;
+    #000E2D;
 }
 
-.connect-shell::before {
+.connect-shell::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -1;
+  pointer-events: none;
   background:
+    radial-gradient(circle at 50% 23%, rgba(45, 212, 191, 0.10), transparent 24%),
     linear-gradient(
       180deg,
-      rgba(9, 32, 62, 0.22) 0%,
-      rgba(7, 24, 46, 0.22) 18%,
-      rgba(7, 16, 29, 0.52) 62%,
-      #07101d 100%
-    ),
-    url("/connect/connect-map-bg-navy.png") center 70px / min(1180px, 118vw) auto no-repeat,
-    radial-gradient(circle at 50% 34%, rgba(45, 212, 191, 0.10), transparent 32%),
-    linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
+      rgba(0, 14, 45, 0.02) 0%,
+      rgba(0, 14, 45, 0.22) 44%,
+      rgba(0, 14, 45, 0.72) 100%
+    );
 }
 
 .history-shell {
@@ -174,7 +177,7 @@ p {
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  background: rgba(9, 28, 55, 0.58);
+  background: rgba(0, 14, 45, 0.58);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.30),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
@@ -431,7 +434,7 @@ p {
   border-radius: 22px;
   padding: 18px;
   border: 1px solid rgba(45, 212, 191, 0.22);
-  background: rgba(9, 28, 55, 0.94);
+  background: rgba(0, 14, 45, 0.94);
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.42),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
@@ -564,7 +567,7 @@ p {
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 20px;
-  background: rgba(9, 28, 55, 0.60);
+  background: rgba(0, 14, 45, 0.60);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
@@ -673,12 +676,17 @@ p {
   }
 
   .connect-shell::before {
-  background:
-    linear-gradient(180deg, rgba(2, 17, 46, 0.08) 0%, rgba(2, 17, 46, 0.42) 58%, #02112e 100%),
-    url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
-    radial-gradient(circle at 50% 32%, rgba(45, 212, 191, 0.10), transparent 34%),
-    #02112e;
-}
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0, 14, 45, 0.06) 0%,
+        rgba(0, 14, 45, 0.32) 58%,
+        #000E2D 100%
+      ),
+      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
+      radial-gradient(circle at 50% 32%, rgba(45, 212, 191, 0.10), transparent 34%),
+      #000E2D;
+  }
 
   .history-shell {
     justify-content: flex-start;
@@ -716,7 +724,7 @@ p {
   .payout-form {
     margin-top: 6px;
     padding: 13px;
-    background: rgba(9, 28, 55, 0.56);
+    background: rgba(0, 14, 45, 0.56);
     backdrop-filter: blur(10px);
   }
 
@@ -729,7 +737,7 @@ p {
     width: min(100%, 392px);
     margin-top: 14px;
     padding: 13px;
-    background: rgba(9, 28, 55, 0.58);
+    background: rgba(0, 14, 45, 0.58);
     backdrop-filter: blur(10px);
   }
 
