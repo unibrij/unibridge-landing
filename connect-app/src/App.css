@@ -165,13 +165,13 @@ p {
   box-sizing: border-box;
   margin-top: 8px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  background: rgba(8, 17, 31, 0.72);
+  background: rgba(8, 17, 31, 0.58);
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(14px);
+    0 20px 60px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(11px);
   text-align: left;
 }
 
@@ -198,7 +198,7 @@ p {
   padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.075);
   color: #ffffff;
   font-size: 14px;
   outline: none;
@@ -262,8 +262,8 @@ p {
 .route-info-card,
 .wallet-tx-card {
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 13px;
   padding: 8px 10px;
   display: flex;
@@ -555,13 +555,13 @@ p {
   box-sizing: border-box;
   margin-top: 18px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 20px;
-  background: rgba(8, 17, 31, 0.72);
+  background: rgba(8, 17, 31, 0.60);
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(14px);
+    0 20px 60px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(11px);
   text-align: left;
 }
 
@@ -590,15 +590,15 @@ p {
 }
 
 .connect-faq-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
 .connect-faq-item.is-open {
   border-color: rgba(45, 212, 191, 0.32);
-  background: rgba(20, 184, 166, 0.07);
+  background: rgba(20, 184, 166, 0.075);
 }
 
 .connect-faq-question {
@@ -709,6 +709,8 @@ p {
   .payout-form {
     margin-top: 6px;
     padding: 13px;
+    background: rgba(8, 17, 31, 0.56);
+    backdrop-filter: blur(10px);
   }
 
   .review-card {
@@ -720,6 +722,8 @@ p {
     width: min(100%, 392px);
     margin-top: 14px;
     padding: 13px;
+    background: rgba(8, 17, 31, 0.58);
+    backdrop-filter: blur(10px);
   }
 
   .connect-faq h2 {
