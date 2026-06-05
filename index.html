@@ -2200,58 +2200,31 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.72), rgba(248,250,252,0.82)),
-    url("unibridge-landing/images/trust-bg.png") center 44% / 1450px auto no-repeat,
+    url("unibridge-landing/images/trust-bg.png") center center / min(1120px, calc(100% - 48px)) auto no-repeat,
     linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   padding: 108px 24px 112px;
   color: #ffffff;
 }
 
-.trust-section .container {
-  position: relative;
-  z-index: 2;
-  max-width: 1120px;
-  margin: 0 auto;
-}
-
 .trust-panel {
   position: relative;
-  isolation: isolate;
-  overflow: hidden;
+  z-index: 2;
+  overflow: visible;
   border-radius: 28px;
   padding: 76px 64px 58px;
-
-  background-image: url("public/images/trust-bg.png");
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-
-  box-shadow:
-    0 40px 110px rgba(0, 31, 63, 0.22),
-    0 14px 40px rgba(0, 0, 0, 0.18);
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-.trust-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 28, 62, 0.18);
-  z-index: 1;
-  pointer-events: none;
+.trust-panel::before,
+.trust-panel::after,
+.trust-section-map,
+.trust-routes {
+  display: none !important;
 }
 
 .trust-panel::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(0, 25, 55, 0.10), rgba(0, 15, 40, 0.20)),
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: auto, 42px 42px, 42px 42px;
-  opacity: 0.32;
-  z-index: 2;
-  pointer-events: none;
+  display: none !important;
 }
 
 .trust-routes,
