@@ -430,14 +430,16 @@ export default function App() {
 
 <div className="motion-lines" aria-label="Pay back home. Save for next time.">
   <div className="motion-line">
-    <strong>Pay</strong>
-    <span>back home</span>
-  </div>
+  <span>
+    <strong>Pay back home</strong>
+  </span>
+</div>
 
-  <div className="motion-line">
-    <strong>Save</strong>
-    <span>for next time</span>
-  </div>
+<div className="motion-line">
+  <span>
+    <strong>Save for next time</strong>
+  </span>
+</div>
 </div>
 
       {!isReturnedFlow && (
