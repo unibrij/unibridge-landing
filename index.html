@@ -2200,31 +2200,34 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     
 <!-- TRUST SECTION -->
 <section class="trust-section" id="trust">
+    <img
+  class="trust-section-map"
+  src="unibridge-landing/images/world-map.png"
+  alt=""
+  aria-hidden="true"
+/>
+    
   <style>
 .trust-section {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 42%, rgba(0, 204, 177, 0.10), transparent 44%),
+    radial-gradient(circle at 50% 42%, rgba(0, 204, 177, 0.08), transparent 44%),
     linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   padding: 108px 24px 112px;
   color: #ffffff;
 }
 
-.trust-section::before {
-  content: "";
+.trust-section-map {
   position: absolute;
   left: 50%;
   top: 43%;
   width: 1450px;
-  height: 650px;
+  max-width: none;
+  height: auto;
   transform: translate(-50%, -50%);
-  background-image: url("unibridge-landing/images/world-map.png");
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: contain;
-  opacity: 0.34;
-  filter: grayscale(1) brightness(1.28) contrast(1.02);
+  opacity: 0.16;
+  filter: grayscale(1) brightness(1.55) contrast(0.92);
   z-index: 0;
   pointer-events: none;
 }
@@ -2349,15 +2352,21 @@ Wallet and fiat entry points move through the same controlled settlement and pay
   border-radius: 999px;
   background: rgba(215, 255, 248, 0.92);
   border: 2px solid rgba(0, 212, 170, 0.82);
-  box-shadow: 0 0 0 8px rgba(0, 212, 170, 0.08), 0 0 26px rgba(0, 212, 170, 0.32);
+  box-shadow:
+    0 0 0 8px rgba(0, 212, 170, 0.08),
+    0 0 26px rgba(0, 212, 170, 0.32);
 }
 
 .trust-life-node.active .dot {
   width: 42px;
   height: 42px;
-  background: radial-gradient(circle, rgba(255,255,255,0.96) 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.96) 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
   border: 1px solid rgba(183, 255, 242, 0.95);
-  box-shadow: 0 0 0 13px rgba(0, 212, 170, 0.10), 0 0 0 26px rgba(0, 212, 170, 0.045), 0 0 48px rgba(0, 212, 170, 0.48);
+  box-shadow:
+    0 0 0 13px rgba(0, 212, 170, 0.10),
+    0 0 0 26px rgba(0, 212, 170, 0.045),
+    0 0 48px rgba(0, 212, 170, 0.48);
 }
 
 .trust-life-node.final .dot {
@@ -2408,11 +2417,10 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     padding: 76px 18px 84px;
   }
 
-  .trust-section::before {
+  .trust-section-map {
     width: 920px;
-    height: 430px;
     top: 42%;
-    opacity: 0.28;
+    opacity: 0.14;
   }
 
   .trust-panel {
