@@ -667,7 +667,7 @@ p {
 
   .connect-shell::before {
     background:
-      linear-gradient(180deg, rgba(7, 16, 29, 0.18) 0%, rgba(7, 16, 29, 0.68) 58%, #07101d 100%),
+      linear-gradient(180deg, rgba(7, 16, 29, 0.18) 0%, rgba(7, 16, 29, 0.55) 58%, #07101d 100%),
       url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
       radial-gradient(circle at 50% 32%, rgba(45, 212, 191, 0.10), transparent 34%),
       linear-gradient(180deg, #08111f 0%, #0b1020 52%, #07101d 100%);
