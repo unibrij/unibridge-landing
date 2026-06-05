@@ -1524,11 +1524,40 @@
 
 .logo-track img {
   flex: 0 0 auto;
+
   width: 112px;
   height: 28px;
   object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.66;
+
+  filter:
+    grayscale(1)
+    brightness(0)
+    saturate(100%)
+    invert(20%)
+    sepia(30%)
+    saturate(900%)
+    hue-rotate(165deg)
+    brightness(85%);
+
+  opacity: 0.45;
+
+  transition:
+    opacity 0.25s ease,
+    filter 0.25s ease;
+}
+
+.logo-track img:hover {
+  opacity: 0.85;
+
+  filter:
+    grayscale(1)
+    brightness(0)
+    saturate(100%)
+    invert(50%)
+    sepia(80%)
+    saturate(500%)
+    hue-rotate(130deg)
+    brightness(95%);
 }
 
 .logo-marquee:hover .logo-track {
