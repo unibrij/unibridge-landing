@@ -2214,9 +2214,12 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 
     .trust-panel {
   position: relative;
-  overflow: hidden;
+  isolation: isolate;
+  overflow: visible;
+
   border-radius: 28px;
   padding: 76px 64px 58px;
+
   background:
     radial-gradient(
       circle at 50% 45%,
@@ -2236,32 +2239,38 @@ Wallet and fiat entry points move through the same controlled settlement and pay
     );
 
   box-shadow:
-  0 40px 110px rgba(0, 31, 63, 0.22),
-  0 14px 40px rgba(0, 0, 0, 0.18);
-}
+    0 40px 110px rgba(0, 31, 63, 0.22),
+    0 14px 40px rgba(0, 0, 0, 0.18);
+    }
 
 
 /* WORLD MAP BACKGROUND */
 .trust-panel::before {
   content: "";
   position: absolute;
-  inset: 0;
+
+  inset: -130px -180px;
 
   background-image: url("unibridge-landing/images/world-map.png");
-  background-size: cover;
+  background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
 
-  opacity: 0.12;
+  opacity: 0.18;
 
   filter:
     grayscale(1)
-    brightness(1.65)
-    contrast(1.05);
+    brightness(1.4)
+    contrast(0.95);
 
   z-index: 1;
   pointer-events: none;
 }
+
+      .trust-content {
+  position: relative;
+  z-index: 3;
+      }
 
 /* TECH GRID LAYER */
 .trust-panel::after {
