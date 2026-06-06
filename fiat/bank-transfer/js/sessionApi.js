@@ -56,51 +56,37 @@ async function postJson(endpoint, payload = {}) {
   return parseJsonResponse(response);
 }
 
-async function getJson(endpoint) {
-  const response =
-    await fetch(
-      buildProxyUrl(endpoint),
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    );
-
-  return parseJsonResponse(response);
-}
-
-export function listBankTransferRoutes() {
-  return getJson(
-    "fiat/bank-transfer/routes"
-  );
-}
-
 export function registerSession(payload = {}) {
   return postJson(
-    "fiat/bank-transfer/session/register",
+    "session/register",
     payload
   );
 }
 
 export function resolveSession(payload = {}) {
   return postJson(
-    "fiat/bank-transfer/session/resolve",
+    "session/resolve",
     payload
   );
 }
 
 export function quoteSession(payload = {}) {
   return postJson(
-    "fiat/bank-transfer/session/quote",
+    "session/quote",
     payload
   );
 }
 
 export function createSettlement(payload = {}) {
   return postJson(
-    "fiat/bank-transfer/settlement/create",
+    "settlement/create",
+    payload
+  );
+}
+
+export function createBridgeBankTransfer(payload = {}) {
+  return postJson(
+    "fiat/bridge-bank-transfer/create",
     payload
   );
 }
