@@ -1,5 +1,9 @@
 // fiat/bank-transfer/js/api.js
 
+import {
+  buildClerkAuthorizationHeader
+} from "./clerkAuth.js";
+
 async function parseJsonResponse(response) {
   const body =
     await response.json().catch(() => ({}));
@@ -38,7 +42,13 @@ function buildProxyUrl(endpoint) {
   );
 }
 
-async function postJson(endpoint, payload = {}) {
+async function postJson(
+  endpoint,
+  payload = {},
+  {
+    headers = {}
+  } = {}
+) {
   const response =
     await fetch(
       buildProxyUrl(endpoint),
@@ -46,7 +56,8 @@ async function postJson(endpoint, payload = {}) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json"
+          Accept: "application/json",
+          ...headers
         },
         body:
           JSON.stringify(payload)
@@ -56,14 +67,20 @@ async function postJson(endpoint, payload = {}) {
   return parseJsonResponse(response);
 }
 
-async function getJson(endpoint) {
+async function getJson(
+  endpoint,
+  {
+    headers = {}
+  } = {}
+) {
   const response =
     await fetch(
       buildProxyUrl(endpoint),
       {
         method: "GET",
         headers: {
-          Accept: "application/json"
+          Accept: "application/json",
+          ...headers
         }
       }
     );
@@ -71,13 +88,16 @@ async function getJson(endpoint) {
   return parseJsonResponse(response);
 }
 
-export function createFiatKyc({
+export async function createFiatKyc({
   settlement_id,
   bank_customer_ref,
   bank_verified_identity_ref,
   source_country,
   source_rail
 }) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
   return postJson(
     "fiat/kyc/create",
     {
@@ -86,6 +106,10 @@ export function createFiatKyc({
       bank_verified_identity_ref,
       source_country,
       source_rail
+    },
+    {
+      headers:
+        authHeaders
     }
   );
 }
@@ -102,12 +126,17 @@ export function createBridgeTos({
 }
 
 export function createBridgeCustomer({
-  settlement_id
-}) {
+  settlement_id,
+  customer
+} = {}) {
   return postJson(
     "fiat/bridge-customer/create",
     {
-      settlement_id
+      settlement_id,
+
+      ...(customer
+        ? { customer }
+        : {})
     }
   );
 }
