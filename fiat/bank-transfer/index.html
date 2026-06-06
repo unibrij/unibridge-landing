@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-title" content="UniBridge" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=7" />
+  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=8" />
 </head>
 
 <body>
@@ -48,6 +48,19 @@
           </p>
         </div>
 
+        <section
+          id="fiatAuthBox"
+          class="status-box hidden"
+          aria-live="polite"
+        >
+          Preparing secure email sign-in…
+        </section>
+
+        <section
+          id="clerkMount"
+          class="hidden"
+        ></section>
+
         <section id="contextSummary" class="summary-box">
           Loading payout request…
         </section>
@@ -66,6 +79,89 @@
           id="destinationFields"
           class="form-grid"
         ></div>
+
+        <section
+          id="customerProfileBox"
+          class="profile-box hidden"
+        >
+          <div class="entry-header compact">
+            <h2>Complete funding profile</h2>
+            <p>
+              These details are used only to create your bank-transfer funding profile.
+            </p>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Phone number</span>
+
+              <input
+                id="customerPhone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="+5541996608113"
+              />
+            </label>
+
+            <label class="field">
+              <span>Street address</span>
+
+              <input
+                id="customerStreetLine1"
+                type="text"
+                autocomplete="address-line1"
+                placeholder="Rua Teste 123"
+              />
+            </label>
+
+            <label class="field">
+              <span>City</span>
+
+              <input
+                id="customerCity"
+                type="text"
+                autocomplete="address-level2"
+                placeholder="Curitiba"
+              />
+            </label>
+
+            <label class="field">
+              <span>State / Province</span>
+
+              <input
+                id="customerState"
+                type="text"
+                autocomplete="address-level1"
+                placeholder="PR"
+              />
+            </label>
+
+            <label class="field">
+              <span>Postal code</span>
+
+              <input
+                id="customerPostalCode"
+                type="text"
+                autocomplete="postal-code"
+                inputmode="numeric"
+                placeholder="80000000"
+              />
+            </label>
+
+            <label class="field">
+              <span>Country</span>
+
+              <input
+                id="customerCountry"
+                type="text"
+                autocomplete="country"
+                placeholder="BRA"
+                value="BRA"
+              />
+            </label>
+          </div>
+        </section>
 
         <div
           id="quoteBox"
@@ -96,19 +192,6 @@
         id="fundingBox"
         class="hidden"
       >
-        <section
-          id="fiatAuthBox"
-          class="status-box hidden"
-          aria-live="polite"
-        >
-          Preparing secure email sign-in…
-        </section>
-
-        <section
-          id="clerkMount"
-          class="hidden"
-        ></section>
-
         <section
           class="steps"
           aria-label="Funding steps"
