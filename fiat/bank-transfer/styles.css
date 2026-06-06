@@ -1,540 +1,163 @@
-/* fiat/bank-transfer/styles.css */
-
-:root {
-  --bg-0: #031322;
-  --bg-1: #06243a;
-  --card: rgba(7, 28, 46, 0.88);
-  --panel: rgba(255, 255, 255, 0.06);
-  --panel-2: rgba(255, 255, 255, 0.04);
-  --border: rgba(120, 220, 255, 0.18);
-  --text: #f3fbff;
-  --muted: #9fb8c7;
-  --accent: #20c997;
-  --accent-2: #00bde7;
-  --success-bg: rgba(32, 201, 151, 0.13);
-  --success-text: #66f0c5;
-  --warning-bg: rgba(251, 191, 36, 0.13);
-  --warning-text: #fbbf24;
-  --danger-bg: rgba(248, 113, 113, 0.13);
-  --danger-text: #ff8f8f;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.36);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  color: var(--text);
-  background:
-    radial-gradient(circle at 50% 0%, rgba(0, 189, 231, 0.22), transparent 34%),
-    radial-gradient(circle at 80% 22%, rgba(32, 201, 151, 0.16), transparent 28%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0));
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: url("/connect/connect-map-bg.png") center top / cover no-repeat;
-  opacity: 0.18;
-  pointer-events: none;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.page {
-  position: relative;
-  z-index: 1;
-  width: min(820px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 56px 0;
-}
-
-.hero {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.brand-logo {
-  width: 68px;
-  height: 68px;
-  object-fit: contain;
-  margin-bottom: 18px;
-}
-
-.eyebrow {
-  margin: 0 0 10px;
-  color: var(--accent-2);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(34px, 6vw, 56px);
-  line-height: 1.02;
-  letter-spacing: -0.05em;
-}
-
-.subtitle {
-  max-width: 540px;
-  margin: 18px auto 0;
-  color: var(--muted);
-  font-size: 17px;
-  line-height: 1.6;
-}
-
-.card {
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  background: var(--card);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-}
-
-.entry-box {
-  display: grid;
-  gap: 16px;
-}
-
-.entry-header {
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: var(--panel);
-}
-
-.entry-header h2 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: -0.03em;
-}
-
-.entry-header p {
-  margin: 7px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.summary-box {
-  display: grid;
-  gap: 10px;
-  padding: 18px;
-  border: 1px solid rgba(32, 201, 151, 0.24);
-  border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(32, 201, 151, 0.11), rgba(0, 189, 231, 0.05));
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.summary-item {
-  display: grid;
-  gap: 5px;
-  padding: 12px;
-  border: 1px solid rgba(120, 220, 255, 0.13);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.summary-item span {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.summary-item strong {
-  color: var(--text);
-  font-size: 14px;
-  word-break: break-word;
-}
-
-.summary-empty {
-  display: grid;
-  gap: 8px;
-}
-
-.summary-empty strong {
-  font-size: 15px;
-}
-
-.summary-empty span {
-  color: var(--muted);
-}
-
-.summary-link {
-  width: fit-content;
-  margin-top: 4px;
-  color: #031322;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 10px 14px;
-  border-radius: 14px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.route-grid {
-  grid-template-columns: 1fr;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-.field span {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.field input,
-.field select {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 10px 14px;
-  background: var(--panel);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-  outline: none;
-}
-
-.field input:focus,
-.field select:focus {
-  border-color: rgba(32, 201, 151, 0.72);
-}
-
-.field input:disabled,
-.field select:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-option {
-  color: #031322;
-}
-
-.quote-box {
-  border: 1px solid rgba(0, 189, 231, 0.2);
-  border-radius: 20px;
-  background: var(--panel-2);
-  overflow: hidden;
-}
-
-.quote-header {
-  display: grid;
-  gap: 4px;
-  padding: 15px 16px;
-  border-bottom: 1px solid rgba(120, 220, 255, 0.13);
-}
-
-.quote-header strong {
-  font-size: 14px;
-}
-
-.quote-header span {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.quote-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.quote-grid > div {
-  display: grid;
-  gap: 5px;
-  padding: 14px 16px;
-  border-top: 1px solid rgba(120, 220, 255, 0.1);
-}
-
-.quote-grid > div:nth-child(-n + 2) {
-  border-top: 0;
-}
-
-.quote-grid > div:nth-child(even) {
-  border-left: 1px solid rgba(120, 220, 255, 0.1);
-}
-
-.quote-grid span {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.quote-grid strong {
-  color: var(--text);
-  font-size: 14px;
-  word-break: break-word;
-}
-
-.steps {
-  display: grid;
-  gap: 12px;
-}
-
-.step {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--panel);
-}
-
-.step-dot {
-  width: 12px;
-  height: 12px;
-  margin-top: 5px;
-  border-radius: 999px;
-  background: rgba(159, 184, 199, 0.55);
-  flex: 0 0 auto;
-}
-
-.step strong {
-  display: block;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.step p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.step.active {
-  border-color: rgba(0, 189, 231, 0.38);
-  background: rgba(0, 189, 231, 0.08);
-}
-
-.step.active .step-dot {
-  background: var(--accent-2);
-}
-
-.step.done {
-  border-color: rgba(32, 201, 151, 0.28);
-  background: var(--success-bg);
-}
-
-.step.done .step-dot {
-  background: var(--success-text);
-}
-
-.step.failed {
-  border-color: rgba(248, 113, 113, 0.28);
-  background: var(--danger-bg);
-}
-
-.step.failed .step-dot {
-  background: var(--danger-text);
-}
-
-.status-box {
-  margin-top: 20px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: var(--panel);
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
-  word-break: break-word;
-}
-
-.status-box.success {
-  background: var(--success-bg);
-  color: var(--success-text);
-}
-
-.status-box.warning {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.status-box.failed {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.instructions {
-  margin-top: 20px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--panel-2);
-}
-
-.instructions-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
-}
-
-.instructions-header h2 {
-  margin: 0;
-  font-size: 18px;
-  letter-spacing: -0.02em;
-}
-
-.instructions-header p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.instruction-grid {
-  display: grid;
-}
-
-.instruction-row {
-  display: grid;
-  grid-template-columns: minmax(130px, 0.42fr) 1fr;
-  gap: 14px;
-  padding: 13px 16px;
-  border-top: 1px solid var(--border);
-}
-
-.instruction-row:first-child {
-  border-top: 0;
-}
-
-.instruction-label {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.instruction-value {
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 650;
-  word-break: break-word;
-}
-
-.instruction-value.reference {
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(251, 191, 36, 0.13);
-  color: var(--warning-text);
-  font-family:
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    "Liberation Mono",
-    monospace;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.button {
-  appearance: none;
-  border: 0;
-  border-radius: 18px;
-  min-height: 52px;
-  padding: 13px 18px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.button.primary {
-  color: #031322;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-}
-
-.button.secondary {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(120, 220, 255, 0.18);
-}
-
-@media (max-width: 680px) {
-  .page {
-    width: min(100% - 24px, 820px);
-    padding: 36px 0;
-  }
-
-  .card {
-    border-radius: 24px;
-  }
-
-  .summary-grid,
-  .form-grid,
-  .quote-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quote-grid > div,
-  .quote-grid > div:nth-child(-n + 2) {
-    border-top: 1px solid rgba(120, 220, 255, 0.1);
-  }
-
-  .quote-grid > div:first-child {
-    border-top: 0;
-  }
-
-  .quote-grid > div:nth-child(even) {
-    border-left: 0;
-  }
-
-  .instruction-row {
-    grid-template-columns: 1fr;
-    gap: 5px;
-  }
-
-  .actions {
-    display: grid;
-  }
-
-  .button {
-    width: 100%;
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
+
+  <title>UniBridge — Bank Transfer Funding</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <img
+        class="brand-logo"
+        src="/connect/icons/app/source-icon.png"
+        alt="UniBridge"
+      />
+
+      <p class="eyebrow">Bank transfer funding</p>
+
+      <h1>Pay by bank transfer</h1>
+
+      <p class="subtitle">
+        Fund your payout route from your bank account.
+      </p>
+    </section>
+
+    <section class="card">
+      <section id="entryBox" class="entry-box">
+        <div class="entry-header">
+          <h2>Create bank-transfer route</h2>
+          <p>
+            Review your payout request, get available routes, then enter payout details.
+          </p>
+        </div>
+
+        <section id="contextSummary" class="summary-box">
+          Loading payout request…
+        </section>
+
+        <div class="form-grid route-grid">
+          <label class="field">
+            <span>Destination route</span>
+            <select id="routeId" disabled>
+              <option value="">Get quote first</option>
+            </select>
+          </label>
+        </div>
+
+        <div
+          id="destinationFields"
+          class="form-grid"
+        ></div>
+
+        <div id="quoteBox" class="quote-box hidden"></div>
+
+        <div class="actions">
+          <button
+            id="quoteAction"
+            class="button secondary"
+            type="button"
+          >
+            Get quote
+          </button>
+
+          <button
+            id="createSettlementAction"
+            class="button primary"
+            type="button"
+            disabled
+          >
+            Create payout route
+          </button>
+        </div>
+      </section>
+
+      <section id="fundingBox" class="hidden">
+        <section class="steps" aria-label="Funding steps">
+          <div class="step" data-step="kyc">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Verify identity</strong>
+              <p>Complete identity verification if required.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="tos">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Accept terms</strong>
+              <p>Accept Bridge terms for bank-transfer funding.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="customer">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Create funding profile</strong>
+              <p>Prepare the verified Bridge customer profile.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="instructions">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Get bank instructions</strong>
+              <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
+            </div>
+          </div>
+
+          <div class="step" data-step="waiting">
+            <span class="step-dot"></span>
+            <div>
+              <strong>Wait for funding</strong>
+              <p>UniBridge continues once funding is confirmed.</p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="statusBox"
+          class="status-box"
+          aria-live="polite"
+        >
+          Preparing bank-transfer flow…
+        </section>
+
+        <section
+          id="instructionsBox"
+          class="instructions hidden"
+        ></section>
+
+        <footer class="actions">
+          <button
+            id="primaryAction"
+            class="button primary"
+            type="button"
+          >
+            Start bank transfer setup
+          </button>
+
+          <button
+            id="refreshStatus"
+            class="button secondary"
+            type="button"
+          >
+            Refresh status
+          </button>
+        </footer>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="./js/bankTransferFlow.js"></script>
+</body>
+</html>
