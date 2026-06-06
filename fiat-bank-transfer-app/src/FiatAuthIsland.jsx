@@ -20,6 +20,9 @@ const AUTH_BRIDGE_KEY =
 const AUTH_EVENT =
   "fiat-clerk-auth-updated";
 
+const AUTH_REQUIRED_CLASS =
+  "fiat-auth-required";
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
@@ -83,6 +86,13 @@ function resolveReturnUrl() {
   );
 }
 
+function setAuthRequiredClass(required) {
+  document.body.classList.toggle(
+    AUTH_REQUIRED_CLASS,
+    Boolean(required)
+  );
+}
+
 export function FiatAuthIsland() {
   const {
     isLoaded,
@@ -135,6 +145,24 @@ export function FiatAuthIsland() {
   ]);
 
   useEffect(() => {
+    setAuthRequiredClass(
+      !isLoaded ||
+      !isSignedIn ||
+      !email
+    );
+
+    return () => {
+      setAuthRequiredClass(
+        false
+      );
+    };
+  }, [
+    isLoaded,
+    isSignedIn,
+    email
+  ]);
+
+  useEffect(() => {
     if (
       !isLoaded ||
       !isSignedIn ||
@@ -154,8 +182,26 @@ export function FiatAuthIsland() {
 
   if (!isLoaded) {
     return (
-      <section className="fiat-auth-card">
-        Loading secure sign-in…
+      <section className="fiat-auth-gate">
+        <div className="fiat-auth-shell">
+          <img
+            className="fiat-auth-logo"
+            src="/connect/icons/social/Ub.png"
+            alt="UniBridge"
+          />
+
+          <p className="fiat-auth-eyebrow">
+            Bank transfer funding
+          </p>
+
+          <h1>
+            Secure sign-in
+          </h1>
+
+          <p className="fiat-auth-subtitle">
+            Loading secure bank-transfer access…
+          </p>
+        </div>
       </section>
     );
   }
@@ -163,12 +209,26 @@ export function FiatAuthIsland() {
   if (isSignedIn) {
     if (!email) {
       return (
-        <section className="fiat-auth-card fiat-auth-ok">
-          <strong>Signed in securely</strong>
+        <section className="fiat-auth-gate">
+          <div className="fiat-auth-shell">
+            <img
+              className="fiat-auth-logo"
+              src="/connect/icons/social/Ub.png"
+              alt="UniBridge"
+            />
 
-          <p className="fiat-auth-warning">
-            Signed in, but no email was returned by Clerk.
-          </p>
+            <p className="fiat-auth-eyebrow">
+              Bank transfer funding
+            </p>
+
+            <h1>
+              Signed in securely
+            </h1>
+
+            <p className="fiat-auth-warning">
+              Signed in, but no email was returned by Clerk.
+            </p>
+          </div>
         </section>
       );
     }
@@ -177,20 +237,36 @@ export function FiatAuthIsland() {
   }
 
   return (
-    <section className="fiat-auth-card">
-      <h2>Secure sign-in</h2>
-
-      <p>
-        Sign in to continue bank-transfer funding.
-      </p>
-
-      <SignedOut>
-        <SignIn
-          routing="hash"
-          forceRedirectUrl={returnUrl}
-          signUpForceRedirectUrl={returnUrl}
+    <section className="fiat-auth-gate">
+      <div className="fiat-auth-shell">
+        <img
+          className="fiat-auth-logo"
+          src="/connect/icons/social/Ub.png"
+          alt="UniBridge"
         />
-      </SignedOut>
+
+        <p className="fiat-auth-eyebrow">
+          Bank transfer funding
+        </p>
+
+        <h1>
+          Secure sign-in
+        </h1>
+
+        <p className="fiat-auth-subtitle">
+          Sign in to continue bank-transfer funding.
+        </p>
+
+        <div className="fiat-auth-clerk-panel">
+          <SignedOut>
+            <SignIn
+              routing="hash"
+              forceRedirectUrl={returnUrl}
+              signUpForceRedirectUrl={returnUrl}
+            />
+          </SignedOut>
+        </div>
+      </div>
     </section>
   );
 }
