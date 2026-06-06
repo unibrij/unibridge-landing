@@ -152,23 +152,6 @@ export function FiatAuthIsland() {
     email
   ]);
 
-  async function testToken() {
-    try {
-      const token =
-        await getToken();
-
-      console.log(
-        "FIAT_CLERK_TOKEN_READY",
-        Boolean(token)
-      );
-    } catch (err) {
-      console.error(
-        "FIAT_CLERK_TOKEN_FAILED",
-        err
-      );
-    }
-  }
-
   if (!isLoaded) {
     return (
       <section className="fiat-auth-card">
@@ -178,28 +161,19 @@ export function FiatAuthIsland() {
   }
 
   if (isSignedIn) {
-    return (
-      <section className="fiat-auth-card fiat-auth-ok">
-        <strong>Signed in securely</strong>
+    if (!email) {
+      return (
+        <section className="fiat-auth-card fiat-auth-ok">
+          <strong>Signed in securely</strong>
 
-        {email ? (
-          <p>
-            {email}
-          </p>
-        ) : (
           <p className="fiat-auth-warning">
             Signed in, but no email was returned by Clerk.
           </p>
-        )}
+        </section>
+      );
+    }
 
-        <button
-          type="button"
-          onClick={testToken}
-        >
-          Test Clerk token
-        </button>
-      </section>
-    );
+    return null;
   }
 
   return (
