@@ -3,7 +3,13 @@
 import crypto from "crypto";
 
 const API_BASE = process.env.UNIBRIDGE_API_BASE;
-const SECRET = process.env.SURFACE_HMAC_SECRET;
+
+const SURFACE_SECRET =
+  process.env.SURFACE_HMAC_SECRET;
+
+const FIAT_BANK_TRANSFER_SECRET =
+  process.env.FIAT_BANK_TRANSFER_HMAC_SECRET ||
+  process.env.SURFACE_HMAC_SECRET;
 
 const ALLOWED = new Set([
   "session/register",
@@ -13,6 +19,14 @@ const ALLOWED = new Set([
   "settlement/confirm",
   "funding/session",
   "settlement/status",
+
+  /*
+  --------------------------------------------------
+  Fiat bank-transfer / Bridge
+  --------------------------------------------------
+  */
+
+  "fiat/bridge-bank-transfer/create",
 
   /*
   --------------------------------------------------
@@ -44,6 +58,7 @@ function buildUpstreamUrl(endpoint, query = {}) {
   Object.entries(query || {}).forEach(([key, value]) => {
     if (
       key === "endpoint" ||
+      key === "partner" ||
       value === undefined ||
       value === null ||
       value === ""
@@ -57,9 +72,9 @@ function buildUpstreamUrl(endpoint, query = {}) {
   return url.toString();
 }
 
-function buildSignature(payload) {
+function buildSignature(payload, secret) {
   return crypto
-    .createHmac("sha256", SECRET)
+    .createHmac("sha256", secret)
     .update(payload)
     .digest("hex");
 }
@@ -98,15 +113,27 @@ function normalizeForwardedFor(value) {
   return value || "";
 }
 
+function resolvePartnerConfig(req = {}) {
+  const partner =
+    normalizeEndpoint(req.query?.partner);
+
+  if (partner === "fiat_bank_transfer") {
+    return {
+      partner_id: "fiat_bank_transfer",
+      secret: FIAT_BANK_TRANSFER_SECRET
+    };
+  }
+
+  return {
+    partner_id: "surface",
+    secret: SURFACE_SECRET
+  };
+}
+
 export default async function handler(req, res) {
   try {
-    if (!API_BASE || !SECRET) {
-      return res.status(500).json({
-        error: "server_misconfigured"
-      });
-    }
-
-    const endpoint = normalizeEndpoint(req.query.endpoint);
+    const endpoint =
+      normalizeEndpoint(req.query.endpoint);
 
     if (!endpoint) {
       return res.status(400).json({
@@ -120,8 +147,20 @@ export default async function handler(req, res) {
       });
     }
 
-    const expectedMethod = getAllowedMethod(endpoint);
-    const incomingMethod = String(req.method || "").toUpperCase();
+    const partnerConfig =
+      resolvePartnerConfig(req);
+
+    if (!API_BASE || !partnerConfig.secret) {
+      return res.status(500).json({
+        error: "server_misconfigured"
+      });
+    }
+
+    const expectedMethod =
+      getAllowedMethod(endpoint);
+
+    const incomingMethod =
+      String(req.method || "").toUpperCase();
 
     if (incomingMethod !== expectedMethod) {
       return res.status(405).json({
@@ -129,34 +168,43 @@ export default async function handler(req, res) {
       });
     }
 
-    const controller = new AbortController();
+    const controller =
+      new AbortController();
 
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 15000);
+    const timeout =
+      setTimeout(() => {
+        controller.abort();
+      }, 15000);
 
     let upstream;
 
     try {
       const headers = {
-        "x-ub-partner-id": "surface",
-        "x-forwarded-host": req.headers.host || "",
-        "x-forwarded-for": normalizeForwardedFor(
-          req.headers["x-forwarded-for"]
-        )
+        "x-ub-partner-id":
+          partnerConfig.partner_id,
+
+        "x-forwarded-host":
+          req.headers.host || "",
+
+        "x-forwarded-for":
+          normalizeForwardedFor(
+            req.headers["x-forwarded-for"]
+          )
       };
 
       if (incomingMethod === "GET") {
-        upstream = await fetch(
-          buildUpstreamUrl(endpoint, req.query),
-          {
-            method: "GET",
-            headers,
-            signal: controller.signal
-          }
-        );
+        upstream =
+          await fetch(
+            buildUpstreamUrl(endpoint, req.query),
+            {
+              method: "GET",
+              headers,
+              signal: controller.signal
+            }
+          );
       } else {
-        const payload = JSON.stringify(req.body || {});
+        const payload =
+          JSON.stringify(req.body || {});
 
         if (payload.length > 10000) {
           return res.status(413).json({
@@ -164,27 +212,39 @@ export default async function handler(req, res) {
           });
         }
 
-        headers["content-type"] = "application/json";
-        headers["x-ub-signature"] = buildSignature(payload);
+        headers["content-type"] =
+          "application/json";
 
-        upstream = await fetch(
-          buildUpstreamUrl(endpoint),
-          {
-            method: incomingMethod,
-            headers,
-            body: payload,
-            signal: controller.signal
-          }
-        );
+        headers["x-ub-signature"] =
+          buildSignature(
+            payload,
+            partnerConfig.secret
+          );
+
+        upstream =
+          await fetch(
+            buildUpstreamUrl(endpoint),
+            {
+              method: incomingMethod,
+              headers,
+              body: payload,
+              signal: controller.signal
+            }
+          );
       }
     } finally {
       clearTimeout(timeout);
     }
 
-    const text = await upstream.text();
-    const data = parseUpstreamText(text);
+    const text =
+      await upstream.text();
 
-    return res.status(upstream.status).json(data);
+    const data =
+      parseUpstreamText(text);
+
+    return res
+      .status(upstream.status)
+      .json(data);
   } catch (err) {
     console.error("PROXY_ERROR", err);
 
