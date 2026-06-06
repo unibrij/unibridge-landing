@@ -127,16 +127,14 @@ export function createBridgeTos({
 
 export function createBridgeCustomer({
   settlement_id,
-  customer
+  customer = {}
 } = {}) {
   return postJson(
     "fiat/bridge-customer/create",
     {
       settlement_id,
 
-      ...(customer
-        ? { customer }
-        : {})
+      ...customer
     }
   );
 }
