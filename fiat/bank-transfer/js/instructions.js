@@ -27,11 +27,18 @@ function escapeHtml(value) {
 }
 
 function normalizeInstructions(value = {}) {
-  return (
-    value.next_action?.instructions ||
+  const source =
     value.source_deposit_instructions ||
+    value.next_action?.source_deposit_instructions ||
+    value.next_action?.instructions ||
     value.instructions ||
-    {}
+    {};
+
+  return (
+    source.deposit_instructions ||
+    source.bank_transfer_instructions ||
+    source.instructions ||
+    source
   );
 }
 
@@ -52,6 +59,7 @@ function buildInstructionRows(instructions = {}) {
         pickFirstString(
           instructions.beneficiary_name,
           instructions.account_holder_name,
+          instructions.account_holder,
           instructions.account_name
         )
     },
@@ -70,7 +78,16 @@ function buildInstructionRows(instructions = {}) {
       value:
         pickFirstString(
           instructions.routing_number,
-          instructions.ach_routing_number
+          instructions.ach_routing_number,
+          instructions.bank_routing_number
+        )
+    },
+
+    {
+      label: "Sort code",
+      value:
+        pickFirstString(
+          instructions.sort_code
         )
     },
 
@@ -83,15 +100,6 @@ function buildInstructionRows(instructions = {}) {
     },
 
     {
-      label: "SWIFT / BIC",
-      value:
-        pickFirstString(
-          instructions.swift_code,
-          instructions.bic
-        )
-    },
-
-    {
       label: "Reference",
       className:
         "reference",
@@ -99,7 +107,8 @@ function buildInstructionRows(instructions = {}) {
         pickFirstString(
           instructions.deposit_message,
           instructions.reference,
-          instructions.memo
+          instructions.memo,
+          instructions.payment_reference
         )
     },
 
