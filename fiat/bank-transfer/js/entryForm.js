@@ -1,7 +1,7 @@
 // fiat/bank-transfer/js/entryForm.js
 
 import {
-  getDefaultSourceRail
+  resolveSourceRail
 } from "./config.js";
 
 import {
@@ -45,37 +45,11 @@ function getEl(id) {
   return document.getElementById(id);
 }
 
-function resolveSourceRail(sourceCountry) {
-  const country =
-    normalizeString(sourceCountry).toUpperCase();
-
-  if (country === "US" || country === "USA") {
-    return {
-      source_country: "US",
-      source_rail: "ach_push"
-    };
-  }
-
-  if (country === "EU") {
-    return {
-      source_country: "EU",
-      source_rail: "sepa"
-    };
-  }
-
-  if (country === "GB" || country === "UK") {
-    return {
-      source_country: "GB",
-      source_rail: "faster_payments"
-    };
-  }
-
-  return getDefaultSourceRail();
-}
-
 function readFiatContext() {
   const raw =
-    localStorage.getItem(FIAT_CONTEXT_KEY);
+    window.localStorage.getItem(
+      FIAT_CONTEXT_KEY
+    );
 
   if (!raw) {
     throw new Error("missing_fiat_context");
@@ -84,25 +58,33 @@ function readFiatContext() {
   const parsed =
     JSON.parse(raw);
 
-  const source_country =
-    normalizeString(parsed.source_country).toUpperCase();
+  const sourceCountry =
+    normalizeString(
+      parsed.source_country
+    ).toUpperCase();
 
-  const receiver_country =
-    normalizeString(parsed.receiver_country).toUpperCase();
+  const receiverCountry =
+    normalizeString(
+      parsed.receiver_country
+    ).toUpperCase();
 
   const amount =
-    normalizeAmount(parsed.amount);
+    normalizeAmount(
+      parsed.amount
+    );
 
-  if (!source_country) {
+  if (!sourceCountry) {
     throw new Error("missing_source_country");
   }
 
-  if (!receiver_country) {
+  if (!receiverCountry) {
     throw new Error("missing_receiver_country");
   }
 
   const rail =
-    resolveSourceRail(source_country);
+    resolveSourceRail(
+      sourceCountry
+    );
 
   return {
     source_country:
@@ -111,7 +93,8 @@ function readFiatContext() {
     source_rail:
       rail.source_rail,
 
-    receiver_country,
+    receiver_country:
+      receiverCountry,
 
     amount
   };
@@ -247,7 +230,9 @@ function normalizeRoute(route = {}) {
       routeId,
 
     receiver_country:
-      normalizeString(route.receiver_country).toUpperCase(),
+      normalizeString(
+        route.receiver_country
+      ).toUpperCase(),
 
     payout_rail:
       normalizeString(
@@ -681,8 +666,10 @@ getEl("routeId")?.addEventListener(
         {
           form:
             latestContext,
+
           quote:
             latestQuote,
+
           selectedRoute:
             getSelectedRoute()
         }
