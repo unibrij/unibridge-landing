@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Pay with UniBridge</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <img
+        class="brand-logo"
+        src="/unibrij-logo.png"
+        alt="UniBridge"
+      />
+
+      <p class="eyebrow">Pay with UniBridge</p>
+
+      <h1>Choose how you want to fund your payout</h1>
+
+      <p class="subtitle">
+        Start with a wallet or continue with fiat funding.
+      </p>
+    </section>
+
+    <section class="card">
+      <button
+        id="walletOption"
+        class="choice-card"
+        type="button"
+      >
+        <span class="choice-icon">◆</span>
+
+        <span>
+          <strong>Pay with wallet</strong>
+          <small>
+            Connect your wallet and fund the payout route directly.
+          </small>
+        </span>
+      </button>
+
+      <button
+        id="fiatOption"
+        class="choice-card"
+        type="button"
+      >
+        <span class="choice-icon">●</span>
+
+        <span>
+          <strong>Pay with fiat</strong>
+          <small>
+            Use bank transfer or supported local payment methods.
+          </small>
+        </span>
+      </button>
+    </section>
+  </main>
+
+  <script type="module" src="./js/pay.js"></script>
+</body>
+</html>
