@@ -106,7 +106,7 @@ function waitForAuthBridge({
     const startedAt =
       Date.now();
 
-    let timeout = null;
+    let interval = null;
 
     function cleanup() {
       window.removeEventListener(
@@ -114,9 +114,9 @@ function waitForAuthBridge({
         check
       );
 
-      if (timeout) {
-        window.clearTimeout(
-          timeout
+      if (interval) {
+        window.clearInterval(
+          interval
         );
       }
     }
@@ -139,7 +139,11 @@ function waitForAuthBridge({
 
       if (matches(bridge)) {
         cleanup();
-        resolve(bridge);
+
+        resolve(
+          bridge
+        );
+
         return;
       }
 
@@ -164,7 +168,7 @@ function waitForAuthBridge({
       check
     );
 
-    timeout =
+    interval =
       window.setInterval(
         check,
         250
