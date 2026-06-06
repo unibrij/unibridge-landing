@@ -33,6 +33,13 @@ import {
 } from "./clerkAuth.js";
 
 import {
+  prepareCustomerProfileForm,
+  ensureCustomerProfileFromForm,
+  requireCustomerProfile,
+  focusCustomerProfileField
+} from "./customerProfile.js";
+
+import {
   runKyc,
   clearDiditAutoContinue
 } from "./kycFlow.js";
@@ -260,6 +267,30 @@ function restoreExistingInstructions() {
   return true;
 }
 
+function handleCustomerProfileError(err) {
+  if (!err?.field) {
+    return false;
+  }
+
+  showEntryMode();
+
+  prepareCustomerProfileForm();
+
+  focusCustomerProfileField(
+    err.field
+  );
+
+  setStatus({
+    kind:
+      "failed",
+
+    message:
+      resolveErrorMessage(err)
+  });
+
+  return true;
+}
+
 function scheduleAutoResumeAfterTosReturn() {
   if (autoResumeStarted) {
     return;
@@ -386,10 +417,16 @@ async function runBridgeCustomer({
     "customer"
   );
 
+  const customerProfile =
+    requireCustomerProfile();
+
   const customer =
     await createBridgeCustomer({
       settlement_id:
-        settlementId
+        settlementId,
+
+      customer:
+        customerProfile
     });
 
   persist({
@@ -532,6 +569,18 @@ async function runBankTransferFlow() {
       );
     }
 
+    if (handleCustomerProfileError(err)) {
+      setPrimaryAction({
+        label:
+          "Retry",
+
+        disabled:
+          false
+      });
+
+      return;
+    }
+
     setStatus({
       kind:
         "failed",
@@ -573,6 +622,10 @@ async function handleQuote() {
       disabled:
         true
     });
+
+    await ensureFiatClerkAuth();
+
+    prepareCustomerProfileForm();
 
     preparedQuote =
       await prepareBankTransferSettlement();
@@ -667,6 +720,10 @@ async function handleCreateSettlement() {
         true
     });
 
+    await ensureFiatClerkAuth();
+
+    ensureCustomerProfileFromForm();
+
     const created =
       await createSettlementFromPreparedQuote(
         preparedQuote
@@ -701,6 +758,18 @@ async function handleCreateSettlement() {
       "BANK_TRANSFER_CREATE_SETTLEMENT_FAILED",
       err
     );
+
+    if (handleCustomerProfileError(err)) {
+      setCreateSettlementButton({
+        label:
+          "Create payout route",
+
+        disabled:
+          false
+      });
+
+      return;
+    }
 
     alert(
       resolveErrorMessage(err) ||
@@ -807,6 +876,12 @@ async function initEntryRoutes() {
 
   try {
     await loadBankTransferRoutes();
+
+    if (hasFiatContext()) {
+      await ensureFiatClerkAuth();
+
+      prepareCustomerProfileForm();
+    }
 
     setQuoteButton({
       label:
