@@ -1,9 +1,5 @@
 // fiat/bank-transfer/js/api.js
 
-import {
-  getBackendUrl
-} from "./config.js";
-
 async function parseJsonResponse(response) {
   const body =
     await response.json().catch(() => ({}));
@@ -27,10 +23,25 @@ async function parseJsonResponse(response) {
   return body;
 }
 
-async function postJson(path, payload = {}) {
+function normalizeEndpoint(endpoint) {
+  return String(endpoint || "")
+    .replace(/^\/+/, "")
+    .replace(/^v2\//, "");
+}
+
+function buildProxyUrl(endpoint) {
+  return (
+    "/api/proxy?partner=fiat_bank_transfer&endpoint=" +
+    encodeURIComponent(
+      normalizeEndpoint(endpoint)
+    )
+  );
+}
+
+async function postJson(endpoint, payload = {}) {
   const response =
     await fetch(
-      getBackendUrl(path),
+      buildProxyUrl(endpoint),
       {
         method: "POST",
         headers: {
@@ -45,10 +56,10 @@ async function postJson(path, payload = {}) {
   return parseJsonResponse(response);
 }
 
-async function getJson(path) {
+async function getJson(endpoint) {
   const response =
     await fetch(
-      getBackendUrl(path),
+      buildProxyUrl(endpoint),
       {
         method: "GET",
         headers: {
@@ -68,7 +79,7 @@ export function createFiatKyc({
   source_rail
 }) {
   return postJson(
-    "/v2/fiat/kyc/create",
+    "fiat/kyc/create",
     {
       settlement_id,
       bank_customer_ref,
@@ -83,7 +94,7 @@ export function createBridgeTos({
   settlement_id
 }) {
   return postJson(
-    "/v2/fiat/bridge-tos/create",
+    "fiat/bridge-tos/create",
     {
       settlement_id
     }
@@ -94,7 +105,7 @@ export function createBridgeCustomer({
   settlement_id
 }) {
   return postJson(
-    "/v2/fiat/bridge-customer/create",
+    "fiat/bridge-customer/create",
     {
       settlement_id
     }
@@ -107,7 +118,7 @@ export function createBridgeBankTransfer({
   source_rail
 }) {
   return postJson(
-    "/v2/fiat/bridge-bank-transfer/create",
+    "fiat/bridge-bank-transfer/create",
     {
       settlement_id,
       source_country,
@@ -118,6 +129,6 @@ export function createBridgeBankTransfer({
 
 export function getBridgeTosPing() {
   return getJson(
-    "/v2/fiat/bridge-tos/ping"
+    "fiat/bridge-tos/ping"
   );
 }
