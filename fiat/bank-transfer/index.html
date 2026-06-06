@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-title" content="UniBridge" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=6" />
+  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=7" />
 </head>
 
 <body>
@@ -97,6 +97,19 @@
         class="hidden"
       >
         <section
+          id="fiatAuthBox"
+          class="status-box hidden"
+          aria-live="polite"
+        >
+          Preparing secure email sign-in…
+        </section>
+
+        <section
+          id="clerkMount"
+          class="hidden"
+        ></section>
+
+        <section
           class="steps"
           aria-label="Funding steps"
         >
@@ -104,7 +117,7 @@
             <span class="step-dot"></span>
             <div>
               <strong>Verify identity</strong>
-              <p>Complete identity verification if required.</p>
+              <p>Sign in securely and complete identity verification if required.</p>
             </div>
           </div>
 
