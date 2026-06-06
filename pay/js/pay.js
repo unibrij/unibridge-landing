@@ -83,6 +83,10 @@ function buildFiatContext() {
     receiver_country,
     amount,
     payment_method,
+
+    flow_started_at:
+      Date.now(),
+
     created_at:
       new Date().toISOString()
   };
@@ -98,7 +102,9 @@ function saveFiatContext(context) {
 function restoreFiatContext() {
   try {
     const raw =
-      localStorage.getItem(STORAGE_KEY);
+      localStorage.getItem(
+        STORAGE_KEY
+      );
 
     if (!raw) {
       return;
@@ -107,17 +113,26 @@ function restoreFiatContext() {
     const context =
       JSON.parse(raw);
 
-    if (context?.source_country && getEl("sourceCountry")) {
+    if (
+      context?.source_country &&
+      getEl("sourceCountry")
+    ) {
       getEl("sourceCountry").value =
         context.source_country;
     }
 
-    if (context?.receiver_country && getEl("receiverCountry")) {
+    if (
+      context?.receiver_country &&
+      getEl("receiverCountry")
+    ) {
       getEl("receiverCountry").value =
         context.receiver_country;
     }
 
-    if (context?.amount && getEl("amount")) {
+    if (
+      context?.amount &&
+      getEl("amount")
+    ) {
       getEl("amount").value =
         context.amount;
     }
@@ -129,7 +144,8 @@ function restoreFiatContext() {
         );
 
       if (input) {
-        input.checked = true;
+        input.checked =
+          true;
       }
     }
   } catch {
@@ -174,9 +190,13 @@ function init() {
         const context =
           buildFiatContext();
 
-        saveFiatContext(context);
+        saveFiatContext(
+          context
+        );
 
-        redirectByPaymentMethod(context);
+        redirectByPaymentMethod(
+          context
+        );
       } catch (err) {
         alert(
           err.message ||
