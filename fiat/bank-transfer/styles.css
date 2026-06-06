@@ -33,50 +33,8 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   font-family: Inter, Arial, sans-serif;
-  background: var(--bg-deep);
+  background: var(--bg);
   color: var(--text);
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat;
-  opacity: 0.92;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.18) 45%,
-      #000E2D 100%
-    ),
-    radial-gradient(
-      circle at 50% 32%,
-      rgba(45, 212, 191, 0.16),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 50% 23%,
-      rgba(45, 212, 191, 0.10),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 8, 31, 0.18) 0%,
-      rgba(0, 14, 45, 0.30) 44%,
-      rgba(0, 14, 45, 0.78) 100%
-    );
 }
 
 .hidden {
@@ -85,7 +43,6 @@ body::after {
 
 .page {
   position: relative;
-  z-index: 2;
   isolation: isolate;
   width: min(100%, 440px);
   min-height: 100vh;
@@ -100,6 +57,54 @@ body::after {
   gap: 14px;
   text-align: center;
   overflow: visible;
+}
+
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000E2D 100%
+    ),
+    url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
+}
+
+.page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 23%,
+      rgba(45, 212, 191, 0.08),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.14) 44%,
+      rgba(0, 14, 45, 0.56) 100%
+    );
+}
+
+.hero,
+.card {
+  position: relative;
+  z-index: 2;
 }
 
 .hero {
@@ -602,10 +607,21 @@ option {
     justify-content: center;
   }
 
-  body::before {
+  .page::before {
     background:
-      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat;
-    opacity: 0.92;
+      linear-gradient(
+        180deg,
+        rgba(0, 14, 45, 0.00) 0%,
+        rgba(0, 14, 45, 0.18) 45%,
+        #000E2D 100%
+      ),
+      url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
+      radial-gradient(
+        circle at 50% 32%,
+        rgba(45, 212, 191, 0.16),
+        transparent 34%
+      ),
+      #00081f;
   }
 
   .brand-logo {
