@@ -1,0 +1,47 @@
+name: Build Fiat Auth Island
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "fiat-bank-transfer-app/**"
+      - ".github/workflows/build-fiat-auth.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-fiat-auth:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: fiat-bank-transfer-app
+        run: npm install
+
+      - name: Build fiat auth island
+        working-directory: fiat-bank-transfer-app
+        run: npm run build
+
+      - name: Commit built fiat auth assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add fiat/bank-transfer/app
+
+          if git diff --cached --quiet; then
+            echo "No built asset changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Build fiat auth island assets"
+          git push
