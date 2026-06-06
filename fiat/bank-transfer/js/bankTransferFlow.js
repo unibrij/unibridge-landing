@@ -84,7 +84,9 @@ function normalizeString(value) {
 
 function hasFiatContext() {
   return Boolean(
-    localStorage.getItem(FIAT_CONTEXT_KEY)
+    window.localStorage.getItem(
+      FIAT_CONTEXT_KEY
+    )
   );
 }
 
@@ -107,6 +109,23 @@ function setQuoteButton({
   }
 
   quoteButton.disabled =
+    Boolean(disabled);
+}
+
+function setCreateSettlementButton({
+  label,
+  disabled
+} = {}) {
+  if (!createSettlementButton) {
+    return;
+  }
+
+  if (label) {
+    createSettlementButton.textContent =
+      label;
+  }
+
+  createSettlementButton.disabled =
     Boolean(disabled);
 }
 
@@ -305,6 +324,7 @@ async function runTos({
     persist({
       tos_pending:
         true,
+
       tos_url:
         tosUrl
     });
@@ -327,6 +347,7 @@ async function runTos({
   persist({
     tos_accepted:
       true,
+
     bridge_tos_status:
       "accepted"
   });
@@ -493,6 +514,11 @@ async function handleQuote() {
       disabled: true
     });
 
+    setCreateSettlementButton({
+      label: "Create payout route",
+      disabled: true
+    });
+
     preparedQuote =
       await prepareBankTransferSettlement();
 
@@ -521,8 +547,10 @@ async function handleQuote() {
       }
     );
 
-    createSettlementButton.disabled =
-      false;
+    setCreateSettlementButton({
+      label: "Create payout route",
+      disabled: false
+    });
 
     setQuoteButton({
       label: "Quote ready",
@@ -543,8 +571,15 @@ async function handleQuote() {
     );
 
     setQuoteButton({
-      label: "Get quote",
+      label: hasFiatContext()
+        ? "Get quote"
+        : "Start from Pay with UniBridge",
       disabled: false
+    });
+
+    setCreateSettlementButton({
+      label: "Create payout route",
+      disabled: true
     });
   }
 }
@@ -557,11 +592,10 @@ async function handleCreateSettlement() {
       );
     }
 
-    createSettlementButton.disabled =
-      true;
-
-    createSettlementButton.textContent =
-      "Creating route…";
+    setCreateSettlementButton({
+      label: "Creating route…",
+      disabled: true
+    });
 
     const created =
       await createSettlementFromPreparedQuote(
@@ -601,11 +635,10 @@ async function handleCreateSettlement() {
       "Could not create payout route"
     );
 
-    createSettlementButton.disabled =
-      false;
-
-    createSettlementButton.textContent =
-      "Create payout route";
+    setCreateSettlementButton({
+      label: "Create payout route",
+      disabled: false
+    });
   }
 }
 
@@ -676,6 +709,11 @@ async function initEntryRoutes() {
 
   setQuoteButton({
     label: "Preparing…",
+    disabled: true
+  });
+
+  setCreateSettlementButton({
+    label: "Create payout route",
     disabled: true
   });
 
