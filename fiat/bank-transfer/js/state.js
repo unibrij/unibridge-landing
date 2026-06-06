@@ -155,6 +155,7 @@ export function writeStoredState(nextState = {}) {
   const merged = {
     ...current,
     ...nextState,
+
     updated_at:
       new Date().toISOString()
   };
@@ -167,9 +168,38 @@ export function writeStoredState(nextState = {}) {
   return merged;
 }
 
+export function replaceStoredState(nextState = {}) {
+  const normalized =
+    nextState && typeof nextState === "object"
+      ? nextState
+      : {};
+
+  const payload = {
+    ...normalized,
+
+    updated_at:
+      new Date().toISOString()
+  };
+
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(payload)
+  );
+
+  return payload;
+}
+
 export function clearStoredState() {
   window.localStorage.removeItem(
     STORAGE_KEY
+  );
+}
+
+function pickQueryValues(query = {}) {
+  return Object.fromEntries(
+    Object.entries(query).filter(([, value]) => {
+      return Boolean(value);
+    })
   );
 }
 
@@ -185,9 +215,18 @@ export function resolveInitialState(defaults = {}) {
       query.bank_customer_ref
     );
 
+  const storedBankCustomerRef =
+    normalizeString(
+      stored.bank_customer_ref
+    );
+
+  const localBankCustomerRef =
+    readBankCustomerRef();
+
   const bankCustomerRef =
+    storedBankCustomerRef ||
+    localBankCustomerRef ||
     queryBankCustomerRef ||
-    normalizeString(stored.bank_customer_ref) ||
     readOrCreateBankCustomerRef();
 
   writeBankCustomerRef(
@@ -197,11 +236,8 @@ export function resolveInitialState(defaults = {}) {
   return {
     ...defaults,
     ...stored,
-    ...Object.fromEntries(
-      Object.entries(query).filter(([, value]) => {
-        return Boolean(value);
-      })
-    ),
+    ...pickQueryValues(query),
+
     bank_customer_ref:
       bankCustomerRef
   };
