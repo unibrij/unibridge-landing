@@ -1,12 +1,6 @@
 // fiat/bank-transfer/js/bankTransferFlow.js
 
 import {
-  createBridgeTos,
-  createBridgeCustomer,
-  createBridgeBankTransfer
-} from "./api.js";
-
-import {
   getDefaultSourceRail
 } from "./config.js";
 
@@ -35,7 +29,6 @@ import {
 import {
   prepareCustomerProfileForm,
   ensureCustomerProfileFromForm,
-  requireCustomerProfile,
   focusCustomerProfileField
 } from "./customerProfile.js";
 
@@ -44,14 +37,15 @@ import {
 } from "./settlementResume.js";
 
 import {
-  runKyc,
+  runBankFundingSteps
+} from "./bankFundingSteps.js";
+
+import {
   clearDiditAutoContinue
 } from "./kycFlow.js";
 
 import {
   setStatus,
-  setActiveStep,
-  markStepDone,
   markStepFailed,
   setPrimaryAction,
   showWaitingForFunding
@@ -136,11 +130,43 @@ function resolveErrorMessage(error) {
   }
 }
 
+function readFiatContext() {
+  return window.localStorage.getItem(
+    FIAT_CONTEXT_KEY
+  );
+}
+
+function readFiatContextObject() {
+  const raw =
+    readFiatContext();
+
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(raw) || {};
+  } catch {
+    return {};
+  }
+}
+
+function readFiatContextStartedAt() {
+  const context =
+    readFiatContextObject();
+
+  return (
+    context.flow_started_at ||
+    context.started_at ||
+    context.created_at ||
+    context.updated_at ||
+    null
+  );
+}
+
 function hasFiatContext() {
   return Boolean(
-    window.localStorage.getItem(
-      FIAT_CONTEXT_KEY
-    )
+    readFiatContext()
   );
 }
 
@@ -215,20 +241,6 @@ function persist(values = {}) {
   }
 }
 
-function openExternal(url) {
-  const normalized =
-    normalizeString(url);
-
-  if (!normalized) {
-    return false;
-  }
-
-  window.location.href =
-    normalized;
-
-  return true;
-}
-
 function showEntryMode() {
   entryBox?.classList.remove("hidden");
   fundingBox?.classList.add("hidden");
@@ -243,14 +255,6 @@ function hasExistingInstructions() {
   return Boolean(
     state.bridge_transfer_id &&
     state.bridge_transfer_state
-  );
-}
-
-function shouldSkipTos() {
-  return Boolean(
-    state.tos_accepted ||
-    state.bridge_tos_status === "accepted" ||
-    isReturnedFromBridgeTos()
   );
 }
 
@@ -301,8 +305,8 @@ function resetStaleSettlementAttempt() {
       state,
       query,
 
-      hasFiatContext:
-        hasFiatContext(),
+      fiatContext:
+        readFiatContext(),
 
       defaultSourceRail:
         getDefaultSourceRail()
@@ -355,177 +359,6 @@ function scheduleAutoResumeAfterTosReturn() {
   );
 }
 
-async function runTos({
-  settlementId
-}) {
-  if (shouldSkipTos()) {
-    persist({
-      tos_pending:
-        false,
-
-      tos_accepted:
-        true,
-
-      bridge_tos_status:
-        "accepted"
-    });
-
-    markStepDone(
-      "tos"
-    );
-
-    return {
-      skipped:
-        true
-    };
-  }
-
-  setActiveStep(
-    "tos"
-  );
-
-  const tos =
-    await createBridgeTos({
-      settlement_id:
-        settlementId
-    });
-
-  const tosUrl =
-    tos.url ||
-    tos.tos_url ||
-    tos.link;
-
-  if (tosUrl) {
-    persist({
-      tos_pending:
-        true,
-
-      tos_url:
-        tosUrl
-    });
-
-    setStatus({
-      kind:
-        "warning",
-
-      message:
-        "Redirecting to accept Bridge terms…"
-    });
-
-    if (!openExternal(tosUrl)) {
-      throw new Error(
-        "missing_tos_redirect_url"
-      );
-    }
-
-    return {
-      redirected:
-        true
-    };
-  }
-
-  persist({
-    tos_accepted:
-      true,
-
-    bridge_tos_status:
-      "accepted"
-  });
-
-  markStepDone(
-    "tos"
-  );
-
-  return {
-    ok:
-      true
-  };
-}
-
-async function runBridgeCustomer({
-  settlementId
-}) {
-  setActiveStep(
-    "customer"
-  );
-
-  const customerProfile =
-    requireCustomerProfile();
-
-  const customer =
-    await createBridgeCustomer({
-      settlement_id:
-        settlementId,
-
-      customer:
-        customerProfile
-    });
-
-  persist({
-    bridge_customer_id:
-      customer.bridge_customer_id,
-
-    bridge_customer_status:
-      customer.status || null,
-
-    bridge_customer_kyc_status:
-      customer.kyc_status || null,
-
-    bridge_customer_tos_status:
-      customer.tos_status || null
-  });
-
-  markStepDone(
-    "customer"
-  );
-
-  return customer;
-}
-
-async function runBridgeBankTransfer({
-  settlementId
-}) {
-  setActiveStep(
-    "instructions"
-  );
-
-  const funding =
-    await createBridgeBankTransfer({
-      settlement_id:
-        settlementId,
-
-      source_country:
-        state.source_country,
-
-      source_rail:
-        state.source_rail
-    });
-
-  persist({
-    bridge_transfer_id:
-      funding.bridge_transfer_id,
-
-    bridge_transfer_state:
-      funding.bridge_transfer_state,
-
-    latest_funding_response:
-      funding
-  });
-
-  renderBankInstructions(
-    instructionsBox,
-    funding
-  );
-
-  markStepDone(
-    "instructions"
-  );
-
-  showWaitingForFunding();
-
-  return funding;
-}
-
 async function runBankTransferFlow() {
   try {
     showFundingMode();
@@ -548,42 +381,23 @@ async function runBankTransferFlow() {
       return;
     }
 
-    setActiveStep(
-      "kyc"
-    );
-
     await ensureFiatClerkAuth();
 
-    const kycResult =
-      await runKyc({
+    const stepsResult =
+      await runBankFundingSteps({
         settlementId,
         state,
+        query,
         persist,
+        instructionsBox,
 
         onConfirm:
           runBankTransferFlow
       });
 
-    if (kycResult.redirected) {
+    if (stepsResult?.redirected) {
       return;
     }
-
-    const tosResult =
-      await runTos({
-        settlementId
-      });
-
-    if (tosResult.redirected) {
-      return;
-    }
-
-    await runBridgeCustomer({
-      settlementId
-    });
-
-    await runBridgeBankTransfer({
-      settlementId
-    });
   } catch (err) {
     clearDiditAutoContinue();
 
@@ -772,7 +586,10 @@ async function handleCreateSettlement() {
         created.source_country,
 
       source_rail:
-        created.source_rail
+        created.source_rail,
+
+      fiat_context_started_at:
+        readFiatContextStartedAt()
     });
 
     showFundingMode();
