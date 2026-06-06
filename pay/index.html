@@ -11,7 +11,15 @@
   <title>Pay with UniBridge</title>
 
   <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="stylesheet" href="/pay/styles.css" />
+  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
+
+  <meta name="theme-color" content="#000E2D" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="UniBridge" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
+  <link rel="stylesheet" href="/pay/styles.css?v=7" />
 </head>
 
 <body>
@@ -19,7 +27,7 @@
     <section class="hero">
       <img
         class="brand-logo"
-        src="/connect/icons/app/source-icon.png"
+        src="/connect/icons/social/Ub.png"
         alt="UniBridge"
       />
 
@@ -69,6 +77,7 @@
         <div class="form-grid">
           <label class="field">
             <span>Source country</span>
+
             <select id="sourceCountry" required>
               <option value="US">United States</option>
               <option value="EU">Europe / SEPA</option>
@@ -78,6 +87,7 @@
 
           <label class="field">
             <span>Destination country</span>
+
             <select id="receiverCountry" required>
               <option value="BR">Brazil</option>
               <option value="PH">Philippines</option>
@@ -86,6 +96,7 @@
 
           <label class="field">
             <span>Amount</span>
+
             <input
               id="amount"
               type="number"
@@ -150,6 +161,9 @@
     </section>
   </main>
 
-  <script type="module" src="/pay/js/pay.js"></script>
+  <script
+    type="module"
+    src="/pay/js/pay.js"
+  ></script>
 </body>
 </html>
