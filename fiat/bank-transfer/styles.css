@@ -33,7 +33,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   font-family: Inter, Arial, sans-serif;
-  background: var(--bg);
+  background: var(--bg-deep);
   color: var(--text);
 }
 
@@ -41,7 +41,19 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat;
+  opacity: 0.92;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background:
     linear-gradient(
       180deg,
@@ -49,22 +61,11 @@ body::before {
       rgba(0, 14, 45, 0.18) 45%,
       #000E2D 100%
     ),
-    url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
     radial-gradient(
       circle at 50% 32%,
       rgba(45, 212, 191, 0.16),
       transparent 34%
     ),
-    #00081f;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
     radial-gradient(
       circle at 50% 23%,
       rgba(45, 212, 191, 0.10),
@@ -72,9 +73,9 @@ body::after {
     ),
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.02) 0%,
-      rgba(0, 14, 45, 0.22) 44%,
-      rgba(0, 14, 45, 0.72) 100%
+      rgba(0, 8, 31, 0.18) 0%,
+      rgba(0, 14, 45, 0.30) 44%,
+      rgba(0, 14, 45, 0.78) 100%
     );
 }
 
@@ -84,6 +85,7 @@ body::after {
 
 .page {
   position: relative;
+  z-index: 2;
   isolation: isolate;
   width: min(100%, 440px);
   min-height: 100vh;
@@ -602,19 +604,8 @@ option {
 
   body::before {
     background:
-      linear-gradient(
-        180deg,
-        rgba(0, 14, 45, 0.00) 0%,
-        rgba(0, 14, 45, 0.18) 45%,
-        #000E2D 100%
-      ),
-      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
-      radial-gradient(
-        circle at 50% 32%,
-        rgba(45, 212, 191, 0.16),
-        transparent 34%
-      ),
-      #00081f;
+      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat;
+    opacity: 0.92;
   }
 
   .brand-logo {
