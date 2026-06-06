@@ -6,14 +6,17 @@ import {
 
 import {
   createSettlement,
-  listBankTransferRoutes,
   quoteSession,
   registerSession,
   resolveSession
 } from "./sessionApi.js";
 
-let availableRoutes =
-  [];
+const FIAT_CONTEXT_KEY =
+  "unibridge_fiat_context";
+
+let availableRoutes = [];
+let latestContext = null;
+let latestQuote = null;
 
 function normalizeString(value) {
   return String(value || "").trim();
@@ -70,6 +73,157 @@ function resolveSourceRail(sourceCountry) {
   return getDefaultSourceRail();
 }
 
+function readFiatContext() {
+  const raw =
+    localStorage.getItem(FIAT_CONTEXT_KEY);
+
+  if (!raw) {
+    throw new Error("missing_fiat_context");
+  }
+
+  const parsed =
+    JSON.parse(raw);
+
+  const source_country =
+    normalizeString(parsed.source_country).toUpperCase();
+
+  const receiver_country =
+    normalizeString(parsed.receiver_country).toUpperCase();
+
+  const amount =
+    normalizeAmount(parsed.amount);
+
+  if (!source_country) {
+    throw new Error("missing_source_country");
+  }
+
+  if (!receiver_country) {
+    throw new Error("missing_receiver_country");
+  }
+
+  const rail =
+    resolveSourceRail(source_country);
+
+  return {
+    source_country:
+      rail.source_country,
+
+    source_rail:
+      rail.source_rail,
+
+    receiver_country,
+
+    amount
+  };
+}
+
+export function renderContextSummary() {
+  const box =
+    getEl("contextSummary");
+
+  if (!box) {
+    return;
+  }
+
+  try {
+    const context =
+      readFiatContext();
+
+    latestContext =
+      context;
+
+    box.innerHTML = `
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span>Source</span>
+          <strong>${escapeHtml(context.source_country)} / ${escapeHtml(context.source_rail)}</strong>
+        </div>
+
+        <div class="summary-item">
+          <span>Destination</span>
+          <strong>${escapeHtml(context.receiver_country)}</strong>
+        </div>
+
+        <div class="summary-item">
+          <span>Amount</span>
+          <strong>${escapeHtml(context.amount)}</strong>
+        </div>
+      </div>
+    `;
+  } catch {
+    box.innerHTML = `
+      <div class="summary-empty">
+        <strong>Start from Pay with UniBridge</strong>
+        <span>
+          Choose fiat funding, enter the source country, destination country,
+          and amount, then continue to bank transfer.
+        </span>
+        <a class="summary-link" href="/pay">
+          Start from Pay with UniBridge
+        </a>
+      </div>
+    `;
+  }
+}
+
+function normalizeField(field = {}) {
+  const name =
+    normalizeString(
+      field.name ||
+      field.key ||
+      field.id
+    );
+
+  if (!name) {
+    return null;
+  }
+
+  return {
+    name,
+
+    label:
+      normalizeString(field.label) ||
+      name,
+
+    type:
+      normalizeString(field.type) ||
+      "text",
+
+    required:
+      field.required !== false
+  };
+}
+
+function resolveRouteFields(route = {}) {
+  const candidates = [
+    route.required_destination_fields,
+    route.destination_fields,
+    route.destination_schema,
+    route.instruction_schema,
+    route.schema
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate
+        .map(normalizeField)
+        .filter(Boolean);
+    }
+
+    if (
+      candidate &&
+      typeof candidate === "object" &&
+      Array.isArray(candidate.fields)
+    ) {
+      return candidate.fields
+        .map(normalizeField)
+        .filter(Boolean);
+    }
+  }
+
+  return [];
+}
+
 function normalizeRoute(route = {}) {
   const routeId =
     normalizeString(
@@ -102,9 +256,7 @@ function normalizeRoute(route = {}) {
       ),
 
     required_destination_fields:
-      Array.isArray(route.required_destination_fields)
-        ? route.required_destination_fields
-        : []
+      resolveRouteFields(route)
   };
 }
 
@@ -118,26 +270,23 @@ function resolveRoutesPayload(payload = {}) {
 
   return rawRoutes
     .map(normalizeRoute)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((route) => route.enabled !== false);
 }
 
 export async function loadBankTransferRoutes() {
-  const payload =
-    await listBankTransferRoutes();
+  renderContextSummary();
 
-  availableRoutes =
-    resolveRoutesPayload(payload)
-      .filter((route) => route.enabled !== false);
+  const select =
+    getEl("routeId");
 
-  if (!availableRoutes.length) {
-    throw new Error("no_enabled_bank_transfer_routes");
+  if (select) {
+    select.disabled = true;
+    select.innerHTML =
+      `<option value="">Get quote first</option>`;
   }
 
-  renderRouteOptions();
-
-  renderDestinationFields();
-
-  return availableRoutes;
+  return [];
 }
 
 function getSelectedRouteId() {
@@ -162,22 +311,6 @@ function getSelectedRoute() {
   return route;
 }
 
-function getPreparedRoute(routeId) {
-  const normalizedRouteId =
-    normalizeString(routeId);
-
-  const route =
-    availableRoutes.find((item) => {
-      return item.route_id === normalizedRouteId;
-    });
-
-  if (!route) {
-    throw new Error("prepared_route_not_available");
-  }
-
-  return route;
-}
-
 function renderRouteOptions() {
   const select =
     getEl("routeId");
@@ -185,6 +318,15 @@ function renderRouteOptions() {
   if (!select) {
     return;
   }
+
+  if (!availableRoutes.length) {
+    select.disabled = true;
+    select.innerHTML =
+      `<option value="">No routes available</option>`;
+    return;
+  }
+
+  select.disabled = false;
 
   select.innerHTML =
     availableRoutes
@@ -221,6 +363,11 @@ function renderDestinationFields() {
     return;
   }
 
+  if (!availableRoutes.length || !getSelectedRouteId()) {
+    container.innerHTML = "";
+    return;
+  }
+
   const route =
     getSelectedRoute();
 
@@ -237,21 +384,14 @@ function renderDestinationFields() {
           return "";
         }
 
-        const label =
-          normalizeString(field.label) ||
-          name;
-
-        const required =
-          field.required !== false;
-
         return `
-          <label>
-            <span>${escapeHtml(label)}</span>
+          <label class="field">
+            <span>${escapeHtml(field.label || name)}</span>
             <input
               id="destination_${escapeHtml(name)}"
               name="${escapeHtml(name)}"
               type="${escapeHtml(resolveFieldType(field))}"
-              ${required ? "required" : ""}
+              ${field.required !== false ? "required" : ""}
             />
           </label>
         `;
@@ -260,18 +400,12 @@ function renderDestinationFields() {
 }
 
 function lockEntryForm() {
-  [
-    "routeId",
-    "sourceCountry",
-    "amount"
-  ].forEach((id) => {
-    const el =
-      getEl(id);
+  const routeSelect =
+    getEl("routeId");
 
-    if (el) {
-      el.disabled = true;
-    }
-  });
+  if (routeSelect) {
+    routeSelect.disabled = true;
+  }
 
   getEl("destinationFields")
     ?.querySelectorAll("input, select, textarea")
@@ -281,8 +415,7 @@ function lockEntryForm() {
 }
 
 function collectDestination(route = {}) {
-  const destination =
-    {};
+  const destination = {};
 
   for (const field of route.required_destination_fields || []) {
     const name =
@@ -302,58 +435,19 @@ function collectDestination(route = {}) {
     }
 
     if (value) {
-      destination[name] =
-        value;
+      destination[name] = value;
     }
   }
 
   if (
     route.destination_required !== false &&
+    route.required_destination_fields?.length &&
     !Object.keys(destination).length
   ) {
     throw new Error("destination_required");
   }
 
   return destination;
-}
-
-export function readEntryForm() {
-  const sourceCountry =
-    normalizeString(
-      getEl("sourceCountry")?.value
-    );
-
-  const amount =
-    normalizeAmount(
-      getEl("amount")?.value
-    );
-
-  const rail =
-    resolveSourceRail(
-      sourceCountry
-    );
-
-  const route =
-    getSelectedRoute();
-
-  return {
-    amount,
-
-    route_id:
-      route.route_id,
-
-    source_country:
-      rail.source_country,
-
-    source_rail:
-      rail.source_rail,
-
-    receiver_country:
-      route.receiver_country,
-
-    expected_payout_rail:
-      route.payout_rail
-  };
 }
 
 function resolveSessionId(response = {}) {
@@ -382,35 +476,6 @@ function renderQuoteValue(value) {
   return String(value);
 }
 
-function pickRoute(quote = {}, form = {}) {
-  const routes =
-    Array.isArray(quote.routes)
-      ? quote.routes
-      : [];
-
-  const matched =
-    routes.find((route) => {
-      const routeId =
-        normalizeString(
-          route.route_id ||
-          route.id
-        );
-
-      return routeId === form.route_id;
-    });
-
-  if (!matched) {
-    throw new Error("quoted_route_not_available");
-  }
-
-  return {
-    route_id:
-      form.route_id,
-    route:
-      matched
-  };
-}
-
 export function renderQuote(container, {
   form,
   quote,
@@ -424,7 +489,9 @@ export function renderQuote(container, {
     `${form.source_country} / ${form.source_rail}`;
 
   const destination =
-    `${form.receiver_country} / ${form.expected_payout_rail}`;
+    selectedRoute
+      ? `${selectedRoute.receiver_country} / ${selectedRoute.payout_rail}`
+      : form.receiver_country;
 
   const fundingAmount =
     renderQuoteValue(
@@ -443,7 +510,7 @@ export function renderQuote(container, {
   container.innerHTML = `
     <div class="quote-header">
       <strong>Quote ready</strong>
-      <span>Review before creating the payout route.</span>
+      <span>Select a payout route and enter destination details.</span>
     </div>
 
     <div class="quote-grid">
@@ -473,12 +540,11 @@ export function renderQuote(container, {
 }
 
 export async function prepareBankTransferSettlement() {
-  if (!availableRoutes.length) {
-    await loadBankTransferRoutes();
-  }
-
   const form =
-    readEntryForm();
+    readFiatContext();
+
+  latestContext =
+    form;
 
   const registered =
     await registerSession({
@@ -500,7 +566,7 @@ export async function prepareBankTransferSettlement() {
     await resolveSession({
       session_id:
         sessionId
-  });
+    });
 
   const quote =
     await quoteSession({
@@ -509,15 +575,23 @@ export async function prepareBankTransferSettlement() {
 
       amount:
         form.amount
-  });
+    });
 
-  const selected =
-    pickRoute(
-      quote,
-      form
-    );
+  latestQuote =
+    quote;
 
-  lockEntryForm();
+  availableRoutes =
+    resolveRoutesPayload(quote);
+
+  if (!availableRoutes.length) {
+    throw new Error("no_enabled_bank_transfer_routes");
+  }
+
+  renderRouteOptions();
+  renderDestinationFields();
+
+  const selectedRoute =
+    getSelectedRoute();
 
   return {
     form,
@@ -532,10 +606,10 @@ export async function prepareBankTransferSettlement() {
     quote,
 
     selected_route_id:
-      selected.route_id,
+      selectedRoute.route_id,
 
     selected_route:
-      selected.route
+      selectedRoute
   };
 }
 
@@ -544,23 +618,17 @@ export async function createSettlementFromPreparedQuote(prepared) {
     throw new Error("missing_prepared_session");
   }
 
-  if (!prepared?.selected_route_id) {
-    throw new Error("missing_selected_route");
-  }
-
-  if (getSelectedRouteId() !== prepared.selected_route_id) {
-    throw new Error("selected_route_changed_after_quote");
+  if (!latestContext || !latestQuote) {
+    throw new Error("missing_prepared_quote");
   }
 
   const route =
-    getPreparedRoute(
-      prepared.selected_route_id
-    );
+    getSelectedRoute();
 
   const destination =
-    collectDestination(
-      route
-    );
+    collectDestination(route);
+
+  lockEntryForm();
 
   const settlement =
     await createSettlement({
@@ -568,7 +636,7 @@ export async function createSettlementFromPreparedQuote(prepared) {
         prepared.session_id,
 
       route_id:
-        prepared.selected_route_id,
+        route.route_id,
 
       destination
     });
@@ -587,14 +655,38 @@ export async function createSettlementFromPreparedQuote(prepared) {
     settlement,
 
     source_country:
-      prepared.form?.source_country,
+      latestContext.source_country,
 
     source_rail:
-      prepared.form?.source_rail
+      latestContext.source_rail
   };
 }
 
 getEl("routeId")?.addEventListener(
   "change",
-  renderDestinationFields
+  () => {
+    renderDestinationFields();
+
+    const quoteBox =
+      getEl("quoteBox");
+
+    if (
+      quoteBox &&
+      latestQuote &&
+      latestContext &&
+      availableRoutes.length
+    ) {
+      renderQuote(
+        quoteBox,
+        {
+          form:
+            latestContext,
+          quote:
+            latestQuote,
+          selectedRoute:
+            getSelectedRoute()
+        }
+      );
+    }
+  }
 );
