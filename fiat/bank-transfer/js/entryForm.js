@@ -207,6 +207,66 @@ function resolveRouteFields(route = {}) {
   return [];
 }
 
+function resolveRouteCountry(route = {}) {
+  return normalizeString(
+    route.receiver_country ||
+    route.destination_country ||
+    route.destination?.country ||
+    route.country
+  ).toUpperCase();
+}
+
+function resolveRouteRail(route = {}) {
+  return normalizeString(
+    route.payout_rail ||
+    route.expected_payout_rail ||
+    route.destination_rail ||
+    route.destination?.rail ||
+    route.rail
+  ).toLowerCase();
+}
+
+function formatRouteLabel(route = {}) {
+  const receiverCountry =
+    resolveRouteCountry(route);
+
+  const payoutRail =
+    resolveRouteRail(route);
+
+  if (
+    receiverCountry === "BR" &&
+    payoutRail === "pix"
+  ) {
+    return "Brazil · PIX";
+  }
+
+  if (receiverCountry === "BR") {
+    return payoutRail
+      ? `Brazil · ${payoutRail.toUpperCase()}`
+      : "Brazil";
+  }
+
+  if (receiverCountry === "PH") {
+    return payoutRail
+      ? `Philippines · ${payoutRail.toUpperCase()}`
+      : "Philippines";
+  }
+
+  if (receiverCountry && payoutRail) {
+    return `${receiverCountry} · ${payoutRail.toUpperCase()}`;
+  }
+
+  if (receiverCountry) {
+    return receiverCountry;
+  }
+
+  if (payoutRail) {
+    return payoutRail.toUpperCase();
+  }
+
+  return "Payout route";
+}
+
 function normalizeRoute(route = {}) {
   const routeId =
     normalizeString(
@@ -218,6 +278,12 @@ function normalizeRoute(route = {}) {
     return null;
   }
 
+  const receiverCountry =
+    resolveRouteCountry(route);
+
+  const payoutRail =
+    resolveRouteRail(route);
+
   return {
     ...route,
 
@@ -227,18 +293,14 @@ function normalizeRoute(route = {}) {
     label:
       normalizeString(route.label) ||
       normalizeString(route.name) ||
-      routeId,
+      normalizeString(route.display_name) ||
+      formatRouteLabel(route),
 
     receiver_country:
-      normalizeString(
-        route.receiver_country
-      ).toUpperCase(),
+      receiverCountry,
 
     payout_rail:
-      normalizeString(
-        route.payout_rail ||
-        route.expected_payout_rail
-      ),
+      payoutRail,
 
     required_destination_fields:
       resolveRouteFields(route)
@@ -475,7 +537,7 @@ export function renderQuote(container, {
 
   const destination =
     selectedRoute
-      ? `${selectedRoute.receiver_country} / ${selectedRoute.payout_rail}`
+      ? `${selectedRoute.receiver_country} / ${selectedRoute.payout_rail.toUpperCase()}`
       : form.receiver_country;
 
   const fundingAmount =
