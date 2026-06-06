@@ -1,163 +1,641 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
+/* fiat/bank-transfer/styles.css */
 
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
-  />
+:root {
+  --bg: #000E2D;
+  --bg-deep: #00081f;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --muted-2: rgba(255, 255, 255, 0.52);
+  --accent: #14b8a6;
+  --accent-soft: #5eead4;
+  --panel: rgba(9, 34, 72, 0.54);
+  --panel-2: rgba(0, 14, 45, 0.42);
+  --border: rgba(94, 234, 212, 0.18);
+  --border-soft: rgba(255, 255, 255, 0.10);
+  --success-bg: rgba(20, 184, 166, 0.08);
+  --success-text: #99f6e4;
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --warning-text: #fbbf24;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  --danger-text: #ff8f8f;
+}
 
-  <title>UniBridge — Bank Transfer Funding</title>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="stylesheet" href="./styles.css" />
-</head>
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 
-<body>
-  <main class="page">
-    <section class="hero">
-      <img
-        class="brand-logo"
-        src="/connect/icons/app/source-icon.png"
-        alt="UniBridge"
-      />
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000E2D 100%
+    ),
+    url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
+}
 
-      <p class="eyebrow">Bank transfer funding</p>
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 23%,
+      rgba(45, 212, 191, 0.10),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.02) 0%,
+      rgba(0, 14, 45, 0.22) 44%,
+      rgba(0, 14, 45, 0.72) 100%
+    );
+}
 
-      <h1>Pay by bank transfer</h1>
+.hidden {
+  display: none !important;
+}
 
-      <p class="subtitle">
-        Fund your payout route from your bank account.
-      </p>
-    </section>
+.page {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 520px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 44px 14px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
 
-    <section class="card">
-      <section id="entryBox" class="entry-box">
-        <div class="entry-header">
-          <h2>Create bank-transfer route</h2>
-          <p>
-            Review your payout request, get available routes, then enter payout details.
-          </p>
-        </div>
+.hero {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
 
-        <section id="contextSummary" class="summary-box">
-          Loading payout request…
-        </section>
+.brand-logo {
+  width: 78px;
+  height: auto;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 10px rgba(45, 212, 191, 0.22))
+    drop-shadow(0 10px 26px rgba(0, 0, 0, 0.24));
+}
 
-        <div class="form-grid route-grid">
-          <label class="field">
-            <span>Destination route</span>
-            <select id="routeId" disabled>
-              <option value="">Get quote first</option>
-            </select>
-          </label>
-        </div>
+.eyebrow {
+  margin: 2px 0 0;
+  max-width: none;
+  color: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 
-        <div
-          id="destinationFields"
-          class="form-grid"
-        ></div>
+h1 {
+  margin: 0;
+  font-size: 31px;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
 
-        <div id="quoteBox" class="quote-box hidden"></div>
+.subtitle {
+  margin: 0;
+  max-width: 420px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 15px;
+  line-height: 1.5;
+}
 
-        <div class="actions">
-          <button
-            id="quoteAction"
-            class="button secondary"
-            type="button"
-          >
-            Get quote
-          </button>
+.card {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.54) 0%,
+      rgba(0, 14, 45, 0.42) 100%
+    );
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 0 28px rgba(94, 234, 212, 0.035);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  text-align: left;
+}
 
-          <button
-            id="createSettlementAction"
-            class="button primary"
-            type="button"
-            disabled
-          >
-            Create payout route
-          </button>
-        </div>
-      </section>
+.entry-box {
+  display: grid;
+  gap: 12px;
+}
 
-      <section id="fundingBox" class="hidden">
-        <section class="steps" aria-label="Funding steps">
-          <div class="step" data-step="kyc">
-            <span class="step-dot"></span>
-            <div>
-              <strong>Verify identity</strong>
-              <p>Complete identity verification if required.</p>
-            </div>
-          </div>
+.entry-header {
+  padding: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
 
-          <div class="step" data-step="tos">
-            <span class="step-dot"></span>
-            <div>
-              <strong>Accept terms</strong>
-              <p>Accept Bridge terms for bank-transfer funding.</p>
-            </div>
-          </div>
+.entry-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
 
-          <div class="step" data-step="customer">
-            <span class="step-dot"></span>
-            <div>
-              <strong>Create funding profile</strong>
-              <p>Prepare the verified Bridge customer profile.</p>
-            </div>
-          </div>
+.entry-header p {
+  margin: 6px 0 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
 
-          <div class="step" data-step="instructions">
-            <span class="step-dot"></span>
-            <div>
-              <strong>Get bank instructions</strong>
-              <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
-            </div>
-          </div>
+.summary-box {
+  padding: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 16px;
+  background: rgba(20, 184, 166, 0.08);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
 
-          <div class="step" data-step="waiting">
-            <span class="step-dot"></span>
-            <div>
-              <strong>Wait for funding</strong>
-              <p>UniBridge continues once funding is confirmed.</p>
-            </div>
-          </div>
-        </section>
+.summary-grid {
+  display: grid;
+  gap: 7px;
+}
 
-        <section
-          id="statusBox"
-          class="status-box"
-          aria-live="polite"
-        >
-          Preparing bank-transfer flow…
-        </section>
+.summary-item {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 13px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
 
-        <section
-          id="instructionsBox"
-          class="instructions hidden"
-        ></section>
+.summary-item span {
+  color: var(--muted-2);
+  font-size: 10px;
+  white-space: nowrap;
+}
 
-        <footer class="actions">
-          <button
-            id="primaryAction"
-            class="button primary"
-            type="button"
-          >
-            Start bank transfer setup
-          </button>
+.summary-item strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
 
-          <button
-            id="refreshStatus"
-            class="button secondary"
-            type="button"
-          >
-            Refresh status
-          </button>
-        </footer>
-      </section>
-    </section>
-  </main>
+.summary-empty {
+  display: grid;
+  gap: 8px;
+}
 
-  <script type="module" src="./js/bankTransferFlow.js"></script>
-</body>
-</html>
+.summary-empty strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.summary-empty span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.summary-link {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #04111f;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.field input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.field input:disabled,
+.field select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+option {
+  color: #04111f;
+}
+
+.quote-box {
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 16px;
+  background: rgba(20, 184, 166, 0.08);
+  overflow: hidden;
+}
+
+.quote-header {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quote-header strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.quote-header span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.quote-grid {
+  display: grid;
+  gap: 0;
+}
+
+.quote-grid > div {
+  min-width: 0;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.quote-grid > div:first-child {
+  border-top: 0;
+}
+
+.quote-grid span {
+  color: var(--muted-2);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.quote-grid strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.steps {
+  display: grid;
+  gap: 8px;
+}
+
+.step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 13px;
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  flex: 0 0 auto;
+}
+
+.step strong {
+  display: block;
+  color: #ffffff;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.step p {
+  margin: 3px 0 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.step.active {
+  border-color: rgba(45, 212, 191, 0.32);
+  background: rgba(20, 184, 166, 0.075);
+}
+
+.step.active .step-dot {
+  background: var(--accent-soft);
+}
+
+.step.done {
+  border-color: rgba(45, 212, 191, 0.24);
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.step.done .step-dot {
+  background: var(--success-text);
+}
+
+.step.failed {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: var(--danger-bg);
+}
+
+.step.failed .step-dot {
+  background: var(--danger-text);
+}
+
+.status-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: rgba(20, 184, 166, 0.08);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.status-box.success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.status-box.warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.status-box.failed {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.instructions {
+  margin-top: 10px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.instructions-header {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 184, 166, 0.06);
+}
+
+.instructions-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.instructions-header p {
+  margin: 6px 0 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.instruction-grid {
+  display: grid;
+}
+
+.instruction-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.44fr) 1fr;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.instruction-row:first-child {
+  border-top: 0;
+}
+
+.instruction-label {
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.instruction-value {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
+}
+
+.instruction-value.reference {
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--warning-text);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.button {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button.primary {
+  background: var(--accent);
+  color: #04111f;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+.button.secondary {
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  background: rgba(20, 184, 166, 0.07);
+  color: var(--accent-soft);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+@media (max-width: 430px) {
+  .page {
+    gap: 12px;
+    padding: 32px 14px 28px;
+    justify-content: flex-start;
+    padding-top: max(32px, env(safe-area-inset-top));
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+
+  body::before {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0, 14, 45, 0.00) 0%,
+        rgba(0, 14, 45, 0.18) 45%,
+        #000E2D 100%
+      ),
+      url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
+      radial-gradient(
+        circle at 50% 32%,
+        rgba(45, 212, 191, 0.16),
+        transparent 34%
+      ),
+      #00081f;
+  }
+
+  .brand-logo {
+    width: 78px;
+  }
+
+  h1 {
+    font-size: 29px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .card {
+    width: min(100%, 392px);
+    padding: 13px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(9, 34, 72, 0.58) 0%,
+        rgba(0, 14, 45, 0.46) 100%
+      );
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .instruction-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .instruction-value {
+    text-align: left;
+  }
+}
