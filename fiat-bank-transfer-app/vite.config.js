@@ -14,6 +14,25 @@ export default defineConfig({
       "../fiat/bank-transfer/app",
 
     emptyOutDir:
-      true
+      true,
+
+    rollupOptions: {
+      output: {
+        entryFileNames:
+          "assets/fiat-auth.js",
+
+        chunkFileNames:
+          "assets/[name].js",
+
+        assetFileNames:
+          (assetInfo) => {
+            if (assetInfo.name?.endsWith(".css")) {
+              return "assets/fiat-auth.css";
+            }
+
+            return "assets/[name][extname]";
+          }
+      }
+    }
   }
 });
