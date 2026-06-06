@@ -26,7 +26,11 @@ const ALLOWED = new Set([
   --------------------------------------------------
   */
 
+  "fiat/kyc/create",
+  "fiat/bridge-tos/create",
+  "fiat/bridge-customer/create",
   "fiat/bridge-bank-transfer/create",
+  "fiat/bridge-tos/ping",
 
   /*
   --------------------------------------------------
@@ -93,7 +97,8 @@ function getAllowedMethod(endpoint) {
     endpoint === "ramp/user" ||
     endpoint === "ramp/kyc/requirement" ||
     endpoint === "ramp/order/status" ||
-    endpoint === "surface/options/coinsph/ph-payout-channels"
+    endpoint === "surface/options/coinsph/ph-payout-channels" ||
+    endpoint === "fiat/bridge-tos/ping"
   ) {
     return "GET";
   }
