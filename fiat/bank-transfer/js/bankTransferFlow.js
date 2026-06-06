@@ -15,6 +15,7 @@ import {
   readQueryParams,
   resolveInitialState,
   writeStoredState,
+  replaceStoredState,
   writeBankCustomerRef
 } from "./state.js";
 
@@ -322,7 +323,7 @@ function resetStaleSettlementAttempt() {
   autoResumeStarted =
     false;
 
-  writeStoredState(
+  replaceStoredState(
     state
   );
 }
