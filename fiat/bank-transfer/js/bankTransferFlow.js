@@ -58,6 +58,9 @@ let preparedQuote =
     ? state.prepared_quote || null
     : null;
 
+let autoResumeStarted =
+  false;
+
 const entryBox =
   document.getElementById("entryBox");
 
@@ -123,6 +126,13 @@ function hasFiatContext() {
     window.localStorage.getItem(
       FIAT_CONTEXT_KEY
     )
+  );
+}
+
+function isReturnedFromBridgeTos() {
+  return (
+    query.tos_accepted === "1" ||
+    query.tos_accepted === "true"
   );
 }
 
@@ -225,8 +235,7 @@ function shouldSkipTos() {
   return Boolean(
     state.tos_accepted ||
     state.bridge_tos_status === "accepted" ||
-    query.tos_accepted === "1" ||
-    query.tos_accepted === "true"
+    isReturnedFromBridgeTos()
   );
 }
 
@@ -247,11 +256,56 @@ function restoreExistingInstructions() {
   return true;
 }
 
+function scheduleAutoResumeAfterTosReturn() {
+  if (autoResumeStarted) {
+    return;
+  }
+
+  autoResumeStarted =
+    true;
+
+  setStatus({
+    kind:
+      "warning",
+
+    message:
+      "Terms accepted. Continuing bank transfer setup…"
+  });
+
+  setPrimaryAction({
+    label:
+      "Processing…",
+
+    disabled:
+      true
+  });
+
+  window.setTimeout(
+    () => {
+      runBankTransferFlow();
+    },
+    500
+  );
+}
+
 async function runTos({
   settlementId
 }) {
   if (shouldSkipTos()) {
-    markStepDone("tos");
+    persist({
+      tos_pending:
+        false,
+
+      tos_accepted:
+        true,
+
+      bridge_tos_status:
+        "accepted"
+    });
+
+    markStepDone(
+      "tos"
+    );
 
     return {
       skipped:
@@ -658,10 +712,7 @@ async function handleCreateSettlement() {
 }
 
 function initResumeState() {
-  if (
-    query.tos_accepted === "1" ||
-    query.tos_accepted === "true"
-  ) {
+  if (isReturnedFromBridgeTos()) {
     persist({
       tos_pending:
         false,
@@ -715,6 +766,11 @@ function initResumeState() {
   }
 
   if (state.settlement_id) {
+    if (isReturnedFromBridgeTos()) {
+      scheduleAutoResumeAfterTosReturn();
+      return;
+    }
+
     setStatus({
       message:
         "Ready to create bank transfer funding."
