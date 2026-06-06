@@ -19,6 +19,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=8" />
+  <link rel="stylesheet" href="/fiat/bank-transfer/app/assets/fiat-auth.css" />
 </head>
 
 <body>
@@ -48,18 +49,7 @@
           </p>
         </div>
 
-        <section
-          id="fiatAuthBox"
-          class="status-box hidden"
-          aria-live="polite"
-        >
-          Preparing secure email sign-in…
-        </section>
-
-        <section
-          id="clerkMount"
-          class="hidden"
-        ></section>
+        <section id="fiatReactRoot"></section>
 
         <section id="contextSummary" class="summary-box">
           Loading payout request…
@@ -270,6 +260,11 @@
       </section>
     </section>
   </main>
+
+  <script
+    type="module"
+    src="/fiat/bank-transfer/app/assets/fiat-auth.js"
+  ></script>
 
   <script
     type="module"
