@@ -31,7 +31,7 @@ function normalizeEndpoint(endpoint) {
 
 function buildProxyUrl(endpoint) {
   return (
-    "/api/proxy?endpoint=" +
+    "/api/proxy?partner=fiat_bank_transfer&endpoint=" +
     encodeURIComponent(
       normalizeEndpoint(endpoint)
     )
