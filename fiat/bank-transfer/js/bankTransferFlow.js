@@ -1,7 +1,6 @@
 // fiat/bank-transfer/js/bankTransferFlow.js
 
 import {
-  createFiatKyc,
   createBridgeTos,
   createBridgeCustomer,
   createBridgeBankTransfer
@@ -28,6 +27,11 @@ import {
 import {
   renderBankInstructions
 } from "./instructions.js";
+
+import {
+  runKyc,
+  clearDiditAutoContinue
+} from "./kycFlow.js";
 
 import {
   setStatus,
@@ -80,6 +84,38 @@ const instructionsBox =
 
 function normalizeString(value) {
   return String(value || "").trim();
+}
+
+function resolveErrorMessage(error) {
+  if (!error) {
+    return "Unexpected error";
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error.message) {
+    return error.message;
+  }
+
+  if (error.error?.message) {
+    return error.error.message;
+  }
+
+  if (error.error) {
+    return normalizeString(error.error);
+  }
+
+  if (error.code) {
+    return error.code;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Unexpected error";
+  }
 }
 
 function hasFiatContext() {
@@ -211,91 +247,6 @@ function restoreExistingInstructions() {
   return true;
 }
 
-async function runKyc({
-  settlementId
-}) {
-  setActiveStep("kyc");
-
-  const kyc =
-    await createFiatKyc({
-      settlement_id:
-        settlementId,
-
-      bank_customer_ref:
-        state.bank_customer_ref,
-
-      bank_verified_identity_ref:
-        state.bank_verified_identity_ref || null,
-
-      source_country:
-        state.source_country,
-
-      source_rail:
-        state.source_rail
-    });
-
-  persist({
-    kyc_status:
-      kyc.status,
-
-    kyc_reused:
-      Boolean(kyc.reused),
-
-    kyc_session_id:
-      kyc.kyc_session_id ||
-      kyc.session_id ||
-      null,
-
-    provider_session_id:
-      kyc.provider_session_id || null,
-
-    bank_customer_ref:
-      kyc.bank_customer_ref ||
-      state.bank_customer_ref,
-
-    bank_verified_identity_ref:
-      kyc.bank_verified_identity_ref ||
-      state.bank_verified_identity_ref ||
-      null
-  });
-
-  if (
-    kyc.reused ||
-    kyc.status === "passed"
-  ) {
-    markStepDone("kyc");
-    return kyc;
-  }
-
-  const kycUrl =
-    kyc.url ||
-    kyc.provider_url ||
-    kyc.provider_reference;
-
-  if (kycUrl) {
-    setStatus({
-      kind: "warning",
-      message:
-        "Redirecting to complete identity verification…"
-    });
-
-    if (!openExternal(kycUrl)) {
-      throw new Error("missing_kyc_redirect_url");
-    }
-
-    return {
-      ...kyc,
-      redirected: true
-    };
-  }
-
-  throw new Error(
-    kyc.status
-      ? `kyc_not_ready_${kyc.status}`
-      : "kyc_not_ready"
-  );
-}
-
 async function runTos({
   settlementId
 }) {
@@ -303,11 +254,14 @@ async function runTos({
     markStepDone("tos");
 
     return {
-      skipped: true
+      skipped:
+        true
     };
   }
 
-  setActiveStep("tos");
+  setActiveStep(
+    "tos"
+  );
 
   const tos =
     await createBridgeTos({
@@ -330,17 +284,22 @@ async function runTos({
     });
 
     setStatus({
-      kind: "warning",
+      kind:
+        "warning",
+
       message:
         "Redirecting to accept Bridge terms…"
     });
 
     if (!openExternal(tosUrl)) {
-      throw new Error("missing_tos_redirect_url");
+      throw new Error(
+        "missing_tos_redirect_url"
+      );
     }
 
     return {
-      redirected: true
+      redirected:
+        true
     };
   }
 
@@ -352,17 +311,22 @@ async function runTos({
       "accepted"
   });
 
-  markStepDone("tos");
+  markStepDone(
+    "tos"
+  );
 
   return {
-    ok: true
+    ok:
+      true
   };
 }
 
 async function runBridgeCustomer({
   settlementId
 }) {
-  setActiveStep("customer");
+  setActiveStep(
+    "customer"
+  );
 
   const customer =
     await createBridgeCustomer({
@@ -384,7 +348,9 @@ async function runBridgeCustomer({
       customer.tos_status || null
   });
 
-  markStepDone("customer");
+  markStepDone(
+    "customer"
+  );
 
   return customer;
 }
@@ -392,7 +358,9 @@ async function runBridgeCustomer({
 async function runBridgeBankTransfer({
   settlementId
 }) {
-  setActiveStep("instructions");
+  setActiveStep(
+    "instructions"
+  );
 
   const funding =
     await createBridgeBankTransfer({
@@ -422,7 +390,9 @@ async function runBridgeBankTransfer({
     funding
   );
 
-  markStepDone("instructions");
+  markStepDone(
+    "instructions"
+  );
 
   showWaitingForFunding();
 
@@ -434,8 +404,11 @@ async function runBankTransferFlow() {
     showFundingMode();
 
     setPrimaryAction({
-      label: "Processing…",
-      disabled: true
+      label:
+        "Processing…",
+
+      disabled:
+        true
     });
 
     const settlementId =
@@ -448,9 +421,18 @@ async function runBankTransferFlow() {
       return;
     }
 
+    setActiveStep(
+      "kyc"
+    );
+
     const kycResult =
       await runKyc({
-        settlementId
+        settlementId,
+        state,
+        persist,
+
+        onConfirm:
+          runBankTransferFlow
       });
 
     if (kycResult.redirected) {
@@ -474,6 +456,8 @@ async function runBankTransferFlow() {
       settlementId
     });
   } catch (err) {
+    clearDiditAutoContinue();
+
     console.error(
       "BANK_TRANSFER_FLOW_FAILED",
       err
@@ -489,15 +473,20 @@ async function runBankTransferFlow() {
     }
 
     setStatus({
-      kind: "failed",
+      kind:
+        "failed",
+
       message:
-        err.message ||
+        resolveErrorMessage(err) ||
         "Bank transfer setup failed"
     });
 
     setPrimaryAction({
-      label: "Retry",
-      disabled: false
+      label:
+        "Retry",
+
+      disabled:
+        false
     });
   }
 }
@@ -510,13 +499,19 @@ async function handleQuote() {
 
   try {
     setQuoteButton({
-      label: "Getting quote…",
-      disabled: true
+      label:
+        "Getting quote…",
+
+      disabled:
+        true
     });
 
     setCreateSettlementButton({
-      label: "Create payout route",
-      disabled: true
+      label:
+        "Create payout route",
+
+      disabled:
+        true
     });
 
     preparedQuote =
@@ -548,13 +543,19 @@ async function handleQuote() {
     );
 
     setCreateSettlementButton({
-      label: "Create payout route",
-      disabled: false
+      label:
+        "Create payout route",
+
+      disabled:
+        false
     });
 
     setQuoteButton({
-      label: "Quote ready",
-      disabled: true
+      label:
+        "Quote ready",
+
+      disabled:
+        true
     });
   } catch (err) {
     preparedQuote =
@@ -566,20 +567,26 @@ async function handleQuote() {
     );
 
     alert(
-      err.message ||
+      resolveErrorMessage(err) ||
       "Could not prepare quote"
     );
 
     setQuoteButton({
-      label: hasFiatContext()
-        ? "Get quote"
-        : "Start from Pay with UniBridge",
-      disabled: false
+      label:
+        hasFiatContext()
+          ? "Get quote"
+          : "Start from Pay with UniBridge",
+
+      disabled:
+        false
     });
 
     setCreateSettlementButton({
-      label: "Create payout route",
-      disabled: true
+      label:
+        "Create payout route",
+
+      disabled:
+        true
     });
   }
 }
@@ -593,8 +600,11 @@ async function handleCreateSettlement() {
     }
 
     setCreateSettlementButton({
-      label: "Creating route…",
-      disabled: true
+      label:
+        "Creating route…",
+
+      disabled:
+        true
     });
 
     const created =
@@ -625,19 +635,24 @@ async function handleCreateSettlement() {
 
     await runBankTransferFlow();
   } catch (err) {
+    clearDiditAutoContinue();
+
     console.error(
       "BANK_TRANSFER_CREATE_SETTLEMENT_FAILED",
       err
     );
 
     alert(
-      err.message ||
+      resolveErrorMessage(err) ||
       "Could not create payout route"
     );
 
     setCreateSettlementButton({
-      label: "Create payout route",
-      disabled: false
+      label:
+        "Create payout route",
+
+      disabled:
+        false
     });
   }
 }
@@ -681,14 +696,19 @@ function initResumeState() {
     showFundingMode();
 
     setStatus({
-      kind: "warning",
+      kind:
+        "warning",
+
       message:
         "Terms acceptance may be complete. Continue to generate bank transfer instructions."
     });
 
     setPrimaryAction({
-      label: "Continue",
-      disabled: false
+      label:
+        "Continue",
+
+      disabled:
+        false
     });
 
     return;
@@ -708,23 +728,32 @@ async function initEntryRoutes() {
   }
 
   setQuoteButton({
-    label: "Preparing…",
-    disabled: true
+    label:
+      "Preparing…",
+
+    disabled:
+      true
   });
 
   setCreateSettlementButton({
-    label: "Create payout route",
-    disabled: true
+    label:
+      "Create payout route",
+
+    disabled:
+      true
   });
 
   try {
     await loadBankTransferRoutes();
 
     setQuoteButton({
-      label: hasFiatContext()
-        ? "Get quote"
-        : "Start from Pay with UniBridge",
-      disabled: false
+      label:
+        hasFiatContext()
+          ? "Get quote"
+          : "Start from Pay with UniBridge",
+
+      disabled:
+        false
     });
   } catch (err) {
     console.error(
@@ -733,8 +762,11 @@ async function initEntryRoutes() {
     );
 
     setQuoteButton({
-      label: "Start from Pay with UniBridge",
-      disabled: false
+      label:
+        "Start from Pay with UniBridge",
+
+      disabled:
+        false
     });
   }
 }
