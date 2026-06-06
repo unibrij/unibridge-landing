@@ -1,62 +1,192 @@
-.fiat-auth-card {
-  margin: 0;
-  padding: 12px;
-  border: 1px solid var(--border-soft, rgba(255, 255, 255, 0.10));
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text, #ffffff);
-  text-align: left;
+body.fiat-auth-required #entryBox,
+body.fiat-auth-required #fundingBox {
+  display: none !important;
 }
 
-.fiat-auth-card h2 {
-  margin: 0;
-  color: var(--text, #ffffff);
-  font-size: 15px;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+.fiat-auth-gate {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.fiat-auth-card p {
-  margin: 6px 0 0;
-  max-width: none;
-  color: var(--muted, rgba(255, 255, 255, 0.72));
+.fiat-auth-shell {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 0 4px;
+  color: var(--text, #ffffff);
+  text-align: center;
+}
+
+.fiat-auth-logo {
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 14px;
+  opacity: 0.96;
+}
+
+.fiat-auth-eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent-soft, #5eead4);
   font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.fiat-auth-shell h1 {
+  margin: 0;
+  color: var(--text, #ffffff);
+  font-size: 30px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.fiat-auth-subtitle {
+  margin: 12px auto 18px;
+  max-width: 320px;
+  color: var(--muted, rgba(255, 255, 255, 0.72));
+  font-size: 15px;
   line-height: 1.45;
 }
 
-.fiat-auth-ok {
-  border-color: var(--border, rgba(94, 234, 212, 0.18));
-  background: var(--success-bg, rgba(20, 184, 166, 0.08));
-}
-
-.fiat-auth-ok strong {
-  display: block;
-  color: var(--success-text, #99f6e4);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
 .fiat-auth-warning {
-  color: var(--warning-text, #fbbf24) !important;
+  margin: 14px auto 0;
+  max-width: 320px;
+  color: var(--warning-text, #fbbf24);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.fiat-auth-card button {
+.fiat-auth-clerk-panel {
   width: 100%;
-  min-height: 44px;
   box-sizing: border-box;
-  margin-top: 12px;
-  border: 0;
-  border-radius: 14px;
-  padding: 11px 14px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  color: #04111f;
-  background: var(--accent, #14b8a6);
-  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+  margin-top: 16px;
 }
 
-.fiat-auth-card button:active {
-  transform: scale(0.98);
+/* Clerk container */
+.fiat-auth-clerk-panel :where(.cl-rootBox) {
+  width: 100%;
+}
+
+.fiat-auth-clerk-panel :where(.cl-card) {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  border-radius: 22px;
+  border: 1px solid var(--border, rgba(94, 234, 212, 0.18));
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 32, 72, 0.98),
+      rgba(5, 18, 46, 0.98)
+    ) !important;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--text, #ffffff);
+}
+
+/* Clerk texts */
+.fiat-auth-clerk-panel :where(.cl-headerTitle),
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButtonText),
+.fiat-auth-clerk-panel :where(.cl-formFieldLabel),
+.fiat-auth-clerk-panel :where(.cl-footerActionText),
+.fiat-auth-clerk-panel :where(.cl-footerActionLink),
+.fiat-auth-clerk-panel :where(.cl-identityPreviewText),
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary) {
+  font-family: inherit;
+}
+
+.fiat-auth-clerk-panel :where(.cl-headerTitle) {
+  color: var(--text, #ffffff);
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.fiat-auth-clerk-panel :where(.cl-headerSubtitle),
+.fiat-auth-clerk-panel :where(.cl-dividerText),
+.fiat-auth-clerk-panel :where(.cl-formFieldLabel),
+.fiat-auth-clerk-panel :where(.cl-footerActionText) {
+  color: var(--muted, rgba(255, 255, 255, 0.72));
+}
+
+/* Inputs */
+.fiat-auth-clerk-panel :where(.cl-formFieldInput) {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text, #ffffff);
+  box-shadow: none;
+}
+
+.fiat-auth-clerk-panel :where(.cl-formFieldInput::placeholder) {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.fiat-auth-clerk-panel :where(.cl-formFieldInput:focus) {
+  border-color: var(--accent, #14b8a6);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
+}
+
+/* Buttons */
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary) {
+  min-height: 48px;
+  border-radius: 14px;
+  background: var(--accent, #14b8a6);
+  color: #04111f;
+  font-weight: 900;
+  box-shadow: 0 16px 36px rgba(20, 184, 166, 0.22);
+}
+
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButton) {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text, #ffffff);
+  box-shadow: none;
+}
+
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButtonText) {
+  color: var(--text, #ffffff);
+  font-weight: 800;
+}
+
+/* Footer */
+.fiat-auth-clerk-panel :where(.cl-footer) {
+  border-radius: 0 0 22px 22px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.fiat-auth-clerk-panel :where(.cl-footerActionLink) {
+  color: var(--accent-soft, #5eead4);
+  font-weight: 800;
+}
+
+.fiat-auth-clerk-panel :where(.cl-internal-b3fm6y),
+.fiat-auth-clerk-panel :where(.cl-internal-uyu30o) {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Mobile fit */
+@media (max-width: 420px) {
+  .fiat-auth-shell {
+    padding-top: 8px;
+  }
+
+  .fiat-auth-logo {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+  }
+
+  .fiat-auth-shell h1 {
+    font-size: 28px;
+  }
+
+  .fiat-auth-clerk-panel :where(.cl-card) {
+    border-radius: 20px;
+  }
 }
