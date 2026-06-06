@@ -13,11 +13,7 @@
 <body>
   <main class="page">
     <section class="hero">
-      <img
-        class="brand-logo"
-        src="/unibrij-logo.png"
-        alt="UniBridge"
-      />
+      <img class="brand-logo" src="/unibrij-logo.png" alt="UniBridge" />
 
       <p class="eyebrow">Bank transfer funding</p>
 
@@ -33,34 +29,20 @@
         <div class="entry-header">
           <h2>Create bank-transfer route</h2>
           <p>
-            Choose your source rail, destination route, amount, and payout details.
+            Review your payout request, get available routes, then enter payout details.
           </p>
         </div>
 
-        <div class="form-grid">
-          <label class="field">
-            <span>Source country</span>
-            <select id="sourceCountry">
-              <option value="US">United States</option>
-              <option value="EU">Europe / SEPA</option>
-              <option value="GB">United Kingdom</option>
-            </select>
-          </label>
+        <section id="contextSummary" class="summary-box">
+          Loading payout request…
+        </section>
 
+        <div class="form-grid route-grid">
           <label class="field">
             <span>Destination route</span>
-            <select id="routeId"></select>
-          </label>
-
-          <label class="field">
-            <span>Amount</span>
-            <input
-              id="amount"
-              type="number"
-              min="1"
-              step="0.01"
-              value="5"
-            />
+            <select id="routeId" disabled>
+              <option value="">Get quote first</option>
+            </select>
           </label>
         </div>
 
@@ -76,9 +58,8 @@
             id="quoteAction"
             class="button secondary"
             type="button"
-            disabled
           >
-            Loading routes…
+            Get quote
           </button>
 
           <button
