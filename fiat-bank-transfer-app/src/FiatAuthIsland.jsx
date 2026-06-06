@@ -14,6 +14,12 @@ import {
 const PROFILE_KEY =
   "unibridge_fiat_customer_profile";
 
+const AUTH_BRIDGE_KEY =
+  "__fiatClerkAuth";
+
+const AUTH_EVENT =
+  "fiat-clerk-auth-updated";
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
@@ -69,6 +75,14 @@ function resolvePrimaryEmail(user) {
   );
 }
 
+function resolveReturnUrl() {
+  return (
+    window.location.origin +
+    window.location.pathname +
+    window.location.search
+  );
+}
+
 export function FiatAuthIsland() {
   const {
     isLoaded,
@@ -84,6 +98,41 @@ export function FiatAuthIsland() {
     resolvePrimaryEmail(
       user
     );
+
+  const returnUrl =
+    resolveReturnUrl();
+
+  useEffect(() => {
+    window[AUTH_BRIDGE_KEY] = {
+      isLoaded,
+      isSignedIn,
+
+      email:
+        email || null,
+
+      getToken
+    };
+
+    window.dispatchEvent(
+      new CustomEvent(
+        AUTH_EVENT,
+        {
+          detail: {
+            isLoaded,
+            isSignedIn,
+
+            email:
+              email || null
+          }
+        }
+      )
+    );
+  }, [
+    isLoaded,
+    isSignedIn,
+    email,
+    getToken
+  ]);
 
   useEffect(() => {
     if (
@@ -164,8 +213,8 @@ export function FiatAuthIsland() {
       <SignedOut>
         <SignIn
           routing="hash"
-          forceRedirectUrl={window.location.href}
-          signUpForceRedirectUrl={window.location.href}
+          forceRedirectUrl={returnUrl}
+          signUpForceRedirectUrl={returnUrl}
         />
       </SignedOut>
     </section>
