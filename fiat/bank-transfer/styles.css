@@ -173,6 +173,31 @@ h1 {
   word-break: break-word;
 }
 
+.summary-empty {
+  display: grid;
+  gap: 8px;
+}
+
+.summary-empty strong {
+  font-size: 15px;
+}
+
+.summary-empty span {
+  color: var(--muted);
+}
+
+.summary-link {
+  width: fit-content;
+  margin-top: 4px;
+  color: #031322;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-radius: 14px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
