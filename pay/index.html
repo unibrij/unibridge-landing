@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
 
   <title>Pay with UniBridge</title>
 
@@ -13,26 +17,49 @@
 <body>
   <main class="page">
     <section class="hero">
-      <img class="brand-logo" src="/unibrij-logo.png" alt="UniBridge" />
+      <img
+        class="brand-logo"
+        src="/connect/icons/app/source-icon.png"
+        alt="UniBridge"
+      />
+
       <p class="eyebrow">Pay with UniBridge</p>
+
       <h1>Choose how you want to fund your payout</h1>
-      <p class="subtitle">Start with a wallet or continue with fiat funding.</p>
+
+      <p class="subtitle">
+        Start with a wallet or continue with fiat funding.
+      </p>
     </section>
 
     <section id="choiceCard" class="card">
-      <button id="walletOption" class="choice-card" type="button">
+      <button
+        id="walletOption"
+        class="choice-card"
+        type="button"
+      >
         <span class="choice-icon">◆</span>
+
         <span>
           <strong>Pay with wallet</strong>
-          <small>Connect your wallet and fund the payout route directly.</small>
+          <small>
+            Connect your wallet and fund the payout route directly.
+          </small>
         </span>
       </button>
 
-      <button id="fiatOption" class="choice-card" type="button">
+      <button
+        id="fiatOption"
+        class="choice-card"
+        type="button"
+      >
         <span class="choice-icon">●</span>
+
         <span>
           <strong>Pay with fiat</strong>
-          <small>Use bank transfer or supported local payment methods.</small>
+          <small>
+            Use bank transfer or supported local payment methods.
+          </small>
         </span>
       </button>
     </section>
@@ -59,31 +86,65 @@
 
           <label class="field">
             <span>Amount</span>
-            <input id="amount" type="number" min="1" step="0.01" value="5" required />
+            <input
+              id="amount"
+              type="number"
+              min="1"
+              step="0.01"
+              value="5"
+              required
+            />
           </label>
         </div>
 
         <section class="method-grid">
           <label class="method-card">
-            <input type="radio" name="paymentMethod" value="bank_transfer" checked />
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="bank_transfer"
+              checked
+            />
+
             <span>
               <strong>Bank transfer</strong>
-              <small>ACH, SEPA, or Faster Payments funding.</small>
+              <small>
+                ACH, SEPA, or Faster Payments funding.
+              </small>
             </span>
           </label>
 
           <label class="method-card">
-            <input type="radio" name="paymentMethod" value="ramp" />
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="ramp"
+            />
+
             <span>
               <strong>Card / local payment</strong>
-              <small>Use a supported ramp or local payment flow.</small>
+              <small>
+                Use a supported ramp or local payment flow.
+              </small>
             </span>
           </label>
         </section>
 
         <div class="actions">
-          <button id="backAction" class="button secondary" type="button">Back</button>
-          <button class="button primary" type="submit">Continue</button>
+          <button
+            id="backAction"
+            class="button secondary"
+            type="button"
+          >
+            Back
+          </button>
+
+          <button
+            class="button primary"
+            type="submit"
+          >
+            Continue
+          </button>
         </div>
       </form>
     </section>
