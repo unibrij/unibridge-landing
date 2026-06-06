@@ -11,6 +11,13 @@
   <title>UniBridge — Bank Transfer Funding</title>
 
   <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
+
+  <meta name="theme-color" content="#000E2D" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="UniBridge" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
   <link rel="stylesheet" href="/fiat/bank-transfer/styles.css" />
 </head>
 
@@ -18,8 +25,8 @@
   <main class="page">
     <section class="hero">
       <img
-        class="brand-logo"
-        src="/connect/icons/app/source-icon.png"
+        class="brand-logo logo"
+        src="/connect/icons/app/ub-app-icon-512.png"
         alt="UniBridge"
       />
 
@@ -48,6 +55,7 @@
         <div class="form-grid route-grid">
           <label class="field">
             <span>Destination route</span>
+
             <select id="routeId" disabled>
               <option value="">Get quote first</option>
             </select>
@@ -59,7 +67,10 @@
           class="form-grid"
         ></div>
 
-        <div id="quoteBox" class="quote-box hidden"></div>
+        <div
+          id="quoteBox"
+          class="quote-box hidden"
+        ></div>
 
         <div class="actions">
           <button
@@ -81,42 +92,68 @@
         </div>
       </section>
 
-      <section id="fundingBox" class="hidden">
-        <section class="steps" aria-label="Funding steps">
-          <div class="step" data-step="kyc">
+      <section
+        id="fundingBox"
+        class="hidden"
+      >
+        <section
+          class="steps"
+          aria-label="Funding steps"
+        >
+          <div
+            class="step"
+            data-step="kyc"
+          >
             <span class="step-dot"></span>
+
             <div>
               <strong>Verify identity</strong>
               <p>Complete identity verification if required.</p>
             </div>
           </div>
 
-          <div class="step" data-step="tos">
+          <div
+            class="step"
+            data-step="tos"
+          >
             <span class="step-dot"></span>
+
             <div>
               <strong>Accept terms</strong>
               <p>Accept Bridge terms for bank-transfer funding.</p>
             </div>
           </div>
 
-          <div class="step" data-step="customer">
+          <div
+            class="step"
+            data-step="customer"
+          >
             <span class="step-dot"></span>
+
             <div>
               <strong>Create funding profile</strong>
               <p>Prepare the verified Bridge customer profile.</p>
             </div>
           </div>
 
-          <div class="step" data-step="instructions">
+          <div
+            class="step"
+            data-step="instructions"
+          >
             <span class="step-dot"></span>
+
             <div>
               <strong>Get bank instructions</strong>
               <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
             </div>
           </div>
 
-          <div class="step" data-step="waiting">
+          <div
+            class="step"
+            data-step="waiting"
+          >
             <span class="step-dot"></span>
+
             <div>
               <strong>Wait for funding</strong>
               <p>UniBridge continues once funding is confirmed.</p>
@@ -158,6 +195,9 @@
     </section>
   </main>
 
-  <script type="module" src="/fiat/bank-transfer/js/bankTransferFlow.js"></script>
+  <script
+    type="module"
+    src="/fiat/bank-transfer/js/bankTransferFlow.js"
+  ></script>
 </body>
 </html>
