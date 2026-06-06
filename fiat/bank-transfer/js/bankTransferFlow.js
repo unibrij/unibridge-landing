@@ -40,6 +40,10 @@ import {
 } from "./customerProfile.js";
 
 import {
+  resetStaleSettlementAttemptIfNeeded
+} from "./settlementResume.js";
+
+import {
   runKyc,
   clearDiditAutoContinue
 } from "./kycFlow.js";
@@ -289,6 +293,34 @@ function handleCustomerProfileError(err) {
   });
 
   return true;
+}
+
+function resetStaleSettlementAttempt() {
+  const result =
+    resetStaleSettlementAttemptIfNeeded({
+      state,
+      query,
+
+      hasFiatContext:
+        hasFiatContext(),
+
+      defaultSourceRail:
+        getDefaultSourceRail()
+    });
+
+  if (!result.reset) {
+    return;
+  }
+
+  preparedQuote =
+    null;
+
+  autoResumeStarted =
+    false;
+
+  writeStoredState(
+    state
+  );
 }
 
 function scheduleAutoResumeAfterTosReturn() {
@@ -909,6 +941,8 @@ async function initEntryRoutes() {
 }
 
 function init() {
+  resetStaleSettlementAttempt();
+
   initResumeState();
 
   initEntryRoutes();
