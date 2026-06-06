@@ -38,6 +38,9 @@ import {
   showWaitingForFunding
 } from "./status.js";
 
+const FIAT_CONTEXT_KEY =
+  "unibridge_fiat_context";
+
 const query =
   readQueryParams();
 
@@ -77,6 +80,17 @@ const instructionsBox =
 
 function normalizeString(value) {
   return String(value || "").trim();
+}
+
+function hasFiatContext() {
+  return Boolean(
+    localStorage.getItem(FIAT_CONTEXT_KEY)
+  );
+}
+
+function goToPayEntry() {
+  window.location.href =
+    "/pay";
 }
 
 function setQuoteButton({
@@ -338,10 +352,13 @@ async function runBridgeCustomer({
   persist({
     bridge_customer_id:
       customer.bridge_customer_id,
+
     bridge_customer_status:
       customer.status || null,
+
     bridge_customer_kyc_status:
       customer.kyc_status || null,
+
     bridge_customer_tos_status:
       customer.tos_status || null
   });
@@ -371,8 +388,10 @@ async function runBridgeBankTransfer({
   persist({
     bridge_transfer_id:
       funding.bridge_transfer_id,
+
     bridge_transfer_state:
       funding.bridge_transfer_state,
+
     latest_funding_response:
       funding
   });
@@ -463,6 +482,11 @@ async function runBankTransferFlow() {
 }
 
 async function handleQuote() {
+  if (!hasFiatContext()) {
+    goToPayEntry();
+    return;
+  }
+
   try {
     setQuoteButton({
       label: "Getting quote…",
@@ -488,8 +512,10 @@ async function handleQuote() {
       {
         form:
           preparedQuote.form,
+
         quote:
           preparedQuote.quote,
+
         selectedRoute:
           preparedQuote.selected_route
       }
@@ -591,8 +617,10 @@ function initResumeState() {
     persist({
       tos_pending:
         false,
+
       tos_accepted:
         true,
+
       bridge_tos_status:
         "accepted"
     });
@@ -647,7 +675,7 @@ async function initEntryRoutes() {
   }
 
   setQuoteButton({
-    label: "Loading routes…",
+    label: "Preparing…",
     disabled: true
   });
 
@@ -655,25 +683,20 @@ async function initEntryRoutes() {
     await loadBankTransferRoutes();
 
     setQuoteButton({
-      label: "Get quote",
+      label: hasFiatContext()
+        ? "Get quote"
+        : "Start from Pay with UniBridge",
       disabled: false
     });
   } catch (err) {
     console.error(
-      "BANK_TRANSFER_ROUTES_LOAD_FAILED",
+      "BANK_TRANSFER_CONTEXT_LOAD_FAILED",
       err
     );
 
     setQuoteButton({
-      label: "Routes unavailable",
-      disabled: true
-    });
-
-    setStatus({
-      kind: "failed",
-      message:
-        err.message ||
-        "Could not load available bank transfer routes"
+      label: "Start from Pay with UniBridge",
+      disabled: false
     });
   }
 }
