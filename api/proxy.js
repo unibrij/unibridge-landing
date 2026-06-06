@@ -50,10 +50,22 @@ const ALLOWED = new Set([
   "ramp/order/status"
 ]);
 
+const CLERK_AUTH_ENDPOINTS = new Set([
+  "fiat/kyc/create"
+]);
+
 function normalizeEndpoint(value) {
   return String(value || "")
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
+}
+
+function normalizeHeader(value) {
+  if (Array.isArray(value)) {
+    return value[0] || "";
+  }
+
+  return value || "";
 }
 
 function buildUpstreamUrl(endpoint, query = {}) {
@@ -70,7 +82,10 @@ function buildUpstreamUrl(endpoint, query = {}) {
       return;
     }
 
-    url.searchParams.set(key, String(value));
+    url.searchParams.set(
+      key,
+      String(value)
+    );
   });
 
   return url.toString();
@@ -87,7 +102,10 @@ function parseUpstreamText(text) {
   try {
     return JSON.parse(text);
   } catch {
-    return { raw: text };
+    return {
+      raw:
+        text
+    };
   }
 }
 
@@ -118,37 +136,78 @@ function normalizeForwardedFor(value) {
   return value || "";
 }
 
+function resolveAuthorizationHeader(req = {}) {
+  return normalizeHeader(
+    req.headers?.authorization ||
+      req.headers?.Authorization
+  );
+}
+
+function attachRequiredClerkAuthorization({
+  req,
+  endpoint,
+  headers
+}) {
+  if (!CLERK_AUTH_ENDPOINTS.has(endpoint)) {
+    return null;
+  }
+
+  const authorization =
+    resolveAuthorizationHeader(req);
+
+  if (!authorization) {
+    return "missing_clerk_bearer_token";
+  }
+
+  headers.authorization =
+    authorization;
+
+  return null;
+}
+
 function resolvePartnerConfig(req = {}) {
   const partner =
-    normalizeEndpoint(req.query?.partner);
+    normalizeEndpoint(
+      req.query?.partner
+    );
 
   if (partner === "fiat_bank_transfer") {
     return {
-      partner_id: "fiat_bank_transfer",
-      secret: FIAT_BANK_TRANSFER_SECRET
+      partner_id:
+        "fiat_bank_transfer",
+
+      secret:
+        FIAT_BANK_TRANSFER_SECRET
     };
   }
 
   return {
-    partner_id: "surface",
-    secret: SURFACE_SECRET
+    partner_id:
+      "surface",
+
+    secret:
+      SURFACE_SECRET
   };
 }
 
 export default async function handler(req, res) {
   try {
     const endpoint =
-      normalizeEndpoint(req.query.endpoint);
+      normalizeEndpoint(
+        req.query.endpoint
+      );
 
     if (!endpoint) {
       return res.status(400).json({
-        error: "missing_endpoint"
+        error:
+          "missing_endpoint"
       });
     }
 
     if (!ALLOWED.has(endpoint)) {
       return res.status(403).json({
-        error: "endpoint_not_allowed"
+        error:
+          "endpoint_not_allowed"
       });
     }
 
@@ -157,7 +216,8 @@ export default async function handler(req, res) {
 
     if (!API_BASE || !partnerConfig.secret) {
       return res.status(500).json({
-        error: "server_misconfigured"
+        error:
+          "server_misconfigured"
       });
     }
 
@@ -169,7 +229,8 @@ export default async function handler(req, res) {
 
     if (incomingMethod !== expectedMethod) {
       return res.status(405).json({
-        error: "method_not_allowed"
+        error:
+          "method_not_allowed"
       });
     }
 
@@ -197,14 +258,35 @@ export default async function handler(req, res) {
           )
       };
 
+      const clerkAuthError =
+        attachRequiredClerkAuthorization({
+          req,
+          endpoint,
+          headers
+        });
+
+      if (clerkAuthError) {
+        return res.status(401).json({
+          error:
+            clerkAuthError
+        });
+      }
+
       if (incomingMethod === "GET") {
         upstream =
           await fetch(
-            buildUpstreamUrl(endpoint, req.query),
+            buildUpstreamUrl(
+              endpoint,
+              req.query
+            ),
             {
-              method: "GET",
+              method:
+                "GET",
+
               headers,
-              signal: controller.signal
+
+              signal:
+                controller.signal
             }
           );
       } else {
@@ -213,7 +295,8 @@ export default async function handler(req, res) {
 
         if (payload.length > 10000) {
           return res.status(413).json({
-            error: "payload_too_large"
+            error:
+              "payload_too_large"
           });
         }
 
@@ -230,10 +313,16 @@ export default async function handler(req, res) {
           await fetch(
             buildUpstreamUrl(endpoint),
             {
-              method: incomingMethod,
+              method:
+                incomingMethod,
+
               headers,
-              body: payload,
-              signal: controller.signal
+
+              body:
+                payload,
+
+              signal:
+                controller.signal
             }
           );
       }
@@ -251,16 +340,21 @@ export default async function handler(req, res) {
       .status(upstream.status)
       .json(data);
   } catch (err) {
-    console.error("PROXY_ERROR", err);
+    console.error(
+      "PROXY_ERROR",
+      err
+    );
 
     if (err?.name === "AbortError") {
       return res.status(504).json({
-        error: "upstream_timeout"
+        error:
+          "upstream_timeout"
       });
     }
 
     return res.status(500).json({
-      error: "surface_proxy_error"
+      error:
+        "surface_proxy_error"
     });
   }
 }
