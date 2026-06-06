@@ -149,12 +149,13 @@ export function renderContextSummary() {
   }
 }
 
-function normalizeField(field = {}) {
+function normalizeField(field = {}, fallbackName = "") {
   const name =
     normalizeString(
       field.name ||
       field.key ||
-      field.id
+      field.id ||
+      fallbackName
     );
 
   if (!name) {
@@ -166,6 +167,7 @@ function normalizeField(field = {}) {
 
     label:
       normalizeString(field.label) ||
+      normalizeString(field.title) ||
       name,
 
     type:
@@ -175,6 +177,71 @@ function normalizeField(field = {}) {
     required:
       field.required !== false
   };
+}
+
+function normalizeFieldsFromCandidate(candidate) {
+  if (!candidate) {
+    return [];
+  }
+
+  if (Array.isArray(candidate)) {
+    return candidate
+      .map((field) => {
+        return normalizeField(field);
+      })
+      .filter(Boolean);
+  }
+
+  if (
+    typeof candidate === "object" &&
+    Array.isArray(candidate.fields)
+  ) {
+    return candidate.fields
+      .map((field) => {
+        return normalizeField(field);
+      })
+      .filter(Boolean);
+  }
+
+  if (
+    typeof candidate === "object" &&
+    candidate.properties &&
+    typeof candidate.properties === "object"
+  ) {
+    return Object.entries(candidate.properties)
+      .map(([name, field]) => {
+        const required =
+          Array.isArray(candidate.required)
+            ? candidate.required.includes(name)
+            : field?.required;
+
+        return normalizeField(
+          {
+            ...field,
+            required
+          },
+          name
+        );
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof candidate === "object") {
+    return Object.entries(candidate)
+      .filter(([, value]) => {
+        return (
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value)
+        );
+      })
+      .map(([name, field]) => {
+        return normalizeField(field, name);
+      })
+      .filter(Boolean);
+  }
+
+  return [];
 }
 
 function resolveRouteFields(route = {}) {
@@ -187,32 +254,24 @@ function resolveRouteFields(route = {}) {
   ];
 
   for (const candidate of candidates) {
-    if (Array.isArray(candidate)) {
-      return candidate
-        .map(normalizeField)
-        .filter(Boolean);
-    }
+    const fields =
+      normalizeFieldsFromCandidate(candidate);
 
-    if (
-      candidate &&
-      typeof candidate === "object" &&
-      Array.isArray(candidate.fields)
-    ) {
-      return candidate.fields
-        .map(normalizeField)
-        .filter(Boolean);
+    if (fields.length) {
+      return fields;
     }
   }
 
   return [];
 }
 
-function resolveRouteCountry(route = {}) {
+function resolveRouteCountry(route = {}, context = {}) {
   return normalizeString(
     route.receiver_country ||
     route.destination_country ||
     route.destination?.country ||
-    route.country
+    route.country ||
+    context.receiver_country
   ).toUpperCase();
 }
 
@@ -224,6 +283,125 @@ function resolveRouteRail(route = {}) {
     route.destination?.rail ||
     route.rail
   ).toLowerCase();
+}
+
+function resolveExecutionOptions(resolved = {}, route = {}) {
+  const execution =
+    resolved?.delivery_options?.execution ||
+    resolved?.execution ||
+    {};
+
+  const payoutRail =
+    resolveRouteRail(route);
+
+  if (Array.isArray(execution)) {
+    return execution;
+  }
+
+  if (execution && typeof execution === "object") {
+    const direct =
+      execution[payoutRail];
+
+    if (Array.isArray(direct)) {
+      return direct;
+    }
+
+    if (direct && typeof direct === "object") {
+      return [direct];
+    }
+
+    const matchingKey =
+      Object.keys(execution).find((key) => {
+        return key.toLowerCase() === payoutRail;
+      });
+
+    if (matchingKey) {
+      const value =
+        execution[matchingKey];
+
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      if (value && typeof value === "object") {
+        return [value];
+      }
+    }
+  }
+
+  return Object.values(execution)
+    .flatMap((value) => {
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      if (
+        value &&
+        typeof value === "object"
+      ) {
+        return [value];
+      }
+
+      return [];
+    });
+}
+
+function resolveInstructionSchemaFromResolved(route = {}, resolved = {}) {
+  const options =
+    resolveExecutionOptions(
+      resolved,
+      route
+    );
+
+  const routeId =
+    normalizeString(
+      route.route_id ||
+      route.id
+    );
+
+  const executor =
+    normalizeString(
+      route.executor ||
+      route.execution_provider ||
+      route.provider
+    ).toLowerCase();
+
+  const matched =
+    options.find((option) => {
+      return (
+        routeId &&
+        normalizeString(
+          option.route_id ||
+          option.id
+        ) === routeId
+      );
+    }) ||
+    options.find((option) => {
+      if (!executor) {
+        return false;
+      }
+
+      return [
+        option.executor,
+        option.execution_provider,
+        option.provider,
+        option.sender
+      ]
+        .map((value) => {
+          return normalizeString(value).toLowerCase();
+        })
+        .includes(executor);
+    }) ||
+    options[0];
+
+  return (
+    matched?.instruction_schema ||
+    matched?.destination_schema ||
+    matched?.required_destination_fields ||
+    matched?.destination_fields ||
+    matched?.schema ||
+    null
+  );
 }
 
 function formatRouteLabel(route = {}) {
@@ -267,7 +445,7 @@ function formatRouteLabel(route = {}) {
   return "Payout route";
 }
 
-function normalizeRoute(route = {}) {
+function normalizeRoute(route = {}, resolved = {}, context = {}) {
   const routeId =
     normalizeString(
       route.route_id ||
@@ -278,36 +456,59 @@ function normalizeRoute(route = {}) {
     return null;
   }
 
+  const instructionSchema =
+    resolveInstructionSchemaFromResolved(
+      route,
+      resolved
+    );
+
+  const enrichedRoute = {
+    ...route,
+
+    instruction_schema:
+      route.instruction_schema ||
+      instructionSchema
+  };
+
   const receiverCountry =
-    resolveRouteCountry(route);
+    resolveRouteCountry(
+      enrichedRoute,
+      context
+    );
 
   const payoutRail =
-    resolveRouteRail(route);
+    resolveRouteRail(
+      enrichedRoute
+    );
 
-  return {
-    ...route,
+  const normalizedRoute = {
+    ...enrichedRoute,
 
     route_id:
       routeId,
-
-    label:
-      normalizeString(route.label) ||
-      normalizeString(route.name) ||
-      normalizeString(route.display_name) ||
-      formatRouteLabel(route),
 
     receiver_country:
       receiverCountry,
 
     payout_rail:
-      payoutRail,
+      payoutRail
+  };
+
+  return {
+    ...normalizedRoute,
+
+    label:
+      normalizeString(route.label) ||
+      normalizeString(route.name) ||
+      normalizeString(route.display_name) ||
+      formatRouteLabel(normalizedRoute),
 
     required_destination_fields:
-      resolveRouteFields(route)
+      resolveRouteFields(normalizedRoute)
   };
 }
 
-function resolveRoutesPayload(payload = {}) {
+function resolveRoutesPayload(payload = {}, resolved = {}, context = {}) {
   const rawRoutes =
     Array.isArray(payload.routes)
       ? payload.routes
@@ -316,7 +517,13 @@ function resolveRoutesPayload(payload = {}) {
         : [];
 
   return rawRoutes
-    .map(normalizeRoute)
+    .map((route) => {
+      return normalizeRoute(
+        route,
+        resolved,
+        context
+      );
+    })
     .filter(Boolean)
     .filter((route) => route.enabled !== false);
 }
@@ -537,7 +744,7 @@ export function renderQuote(container, {
 
   const destination =
     selectedRoute
-      ? `${selectedRoute.receiver_country} / ${selectedRoute.payout_rail.toUpperCase()}`
+      ? selectedRoute.label
       : form.receiver_country;
 
   const fundingAmount =
@@ -628,7 +835,11 @@ export async function prepareBankTransferSettlement() {
     quote;
 
   availableRoutes =
-    resolveRoutesPayload(quote);
+    resolveRoutesPayload(
+      quote,
+      resolved,
+      form
+    );
 
   if (!availableRoutes.length) {
     throw new Error("no_enabled_bank_transfer_routes");
@@ -639,6 +850,10 @@ export async function prepareBankTransferSettlement() {
 
   const selectedRoute =
     getSelectedRoute();
+
+  if (!selectedRoute.required_destination_fields?.length) {
+    throw new Error("route_destination_fields_missing");
+  }
 
   return {
     form,
