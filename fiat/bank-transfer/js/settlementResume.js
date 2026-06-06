@@ -4,6 +4,78 @@ function normalizeString(value) {
   return String(value || "").trim();
 }
 
+function normalizeNumber(value) {
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function parseJsonObject(value) {
+  if (!value) {
+    return {};
+  }
+
+  if (typeof value === "object") {
+    return value || {};
+  }
+
+  try {
+    const parsed =
+      JSON.parse(String(value));
+
+    return parsed && typeof parsed === "object"
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function resolveTimestamp(value) {
+  const directNumber =
+    normalizeNumber(value);
+
+  if (directNumber) {
+    return directNumber;
+  }
+
+  const dateValue =
+    Date.parse(
+      normalizeString(value)
+    );
+
+  return Number.isFinite(dateValue)
+    ? dateValue
+    : null;
+}
+
+function resolveFiatContextStartedAt(fiatContext) {
+  const context =
+    parseJsonObject(
+      fiatContext
+    );
+
+  return (
+    resolveTimestamp(context.flow_started_at) ||
+    resolveTimestamp(context.started_at) ||
+    resolveTimestamp(context.created_at) ||
+    resolveTimestamp(context.updated_at) ||
+    null
+  );
+}
+
+function resolveStateFiatContextStartedAt(state = {}) {
+  return (
+    resolveTimestamp(state.fiat_context_started_at) ||
+    resolveTimestamp(state.fiat_context_created_at) ||
+    resolveTimestamp(state.fiat_context_updated_at) ||
+    null
+  );
+}
+
 function isReturnedFromBridgeTos(query = {}) {
   return (
     query.tos_accepted === "1" ||
@@ -27,6 +99,31 @@ function hasQueryBankVerifiedIdentityRef(query = {}) {
   );
 }
 
+function hasFreshFiatContext({
+  state = {},
+  fiatContext
+} = {}) {
+  const contextStartedAt =
+    resolveFiatContextStartedAt(
+      fiatContext
+    );
+
+  if (!contextStartedAt) {
+    return false;
+  }
+
+  const stateContextStartedAt =
+    resolveStateFiatContextStartedAt(
+      state
+    );
+
+  if (!stateContextStartedAt) {
+    return true;
+  }
+
+  return contextStartedAt > stateContextStartedAt;
+}
+
 export function shouldResumeSettlementAttempt({
   state = {},
   query = {}
@@ -45,27 +142,24 @@ export function shouldResumeSettlementAttempt({
 export function resetStaleSettlementAttemptIfNeeded({
   state,
   query,
-  hasFiatContext,
+  fiatContext,
   defaultSourceRail
 } = {}) {
   if (!state) {
     return {
       reset:
-        false
-    };
-  }
-
-  if (!hasFiatContext) {
-    return {
-      reset:
-        false
+        false,
+      reason:
+        "missing_state"
     };
   }
 
   if (!state.settlement_id) {
     return {
       reset:
-        false
+        false,
+      reason:
+        "no_existing_settlement"
     };
   }
 
@@ -77,7 +171,28 @@ export function resetStaleSettlementAttemptIfNeeded({
   ) {
     return {
       reset:
-        false
+        false,
+      reason:
+        "resume_signal_present"
+    };
+  }
+
+  const contextStartedAt =
+    resolveFiatContextStartedAt(
+      fiatContext
+    );
+
+  if (
+    !hasFreshFiatContext({
+      state,
+      fiatContext
+    })
+  ) {
+    return {
+      reset:
+        false,
+      reason:
+        "no_fresh_fiat_context"
     };
   }
 
@@ -113,7 +228,10 @@ export function resetStaleSettlementAttemptIfNeeded({
       normalizeString(
         state.fiat_kyc_status
       ) ||
-      null
+      null,
+
+    fiat_context_started_at:
+      contextStartedAt
   };
 
   Object.keys(state).forEach((key) => {
@@ -172,6 +290,9 @@ export function resetStaleSettlementAttemptIfNeeded({
   return {
     reset:
       true,
+
+    reason:
+      "fresh_fiat_context_started",
 
     preserved
   };
