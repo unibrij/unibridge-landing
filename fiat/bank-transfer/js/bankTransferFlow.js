@@ -29,6 +29,10 @@ import {
 } from "./instructions.js";
 
 import {
+  ensureFiatClerkAuth
+} from "./clerkAuth.js";
+
+import {
   runKyc,
   clearDiditAutoContinue
 } from "./kycFlow.js";
@@ -478,6 +482,8 @@ async function runBankTransferFlow() {
     setActiveStep(
       "kyc"
     );
+
+    await ensureFiatClerkAuth();
 
     const kycResult =
       await runKyc({
