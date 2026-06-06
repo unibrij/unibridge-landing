@@ -8,87 +8,405 @@
   <link rel="icon" type="image/png" href="/favicon.png" />
 
   <style>
+    :root {
+      --bg: #000E2D;
+      --bg-deep: #00081f;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.72);
+      --muted-2: rgba(255, 255, 255, 0.52);
+      --accent: #14b8a6;
+      --accent-soft: #5eead4;
+      --border: rgba(94, 234, 212, 0.18);
+      --border-soft: rgba(255, 255, 255, 0.10);
+      --success-bg: rgba(20, 184, 166, 0.08);
+      --success-text: #99f6e4;
+      --danger-bg: rgba(248, 113, 113, 0.12);
+      --danger-text: #ff8f8f;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #f7f9fb;
-      color: #18212f;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .card {
-      width: calc(100% - 40px);
-      max-width: 520px;
-      background: #ffffff;
-      border: 1px solid #e6edf3;
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 18px 60px rgba(24, 33, 47, 0.08);
+    .page {
+      position: relative;
+      isolation: isolate;
+      width: min(100%, 440px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px;
+      padding-top: max(18px, env(safe-area-inset-top));
+      padding-bottom: max(40px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
       text-align: center;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(0, 14, 45, 0.00) 0%,
+          rgba(0, 14, 45, 0.18) 45%,
+          #000E2D 100%
+        ),
+        url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+        radial-gradient(
+          circle at 50% 32%,
+          rgba(45, 212, 191, 0.16),
+          transparent 34%
+        ),
+        #00081f;
+    }
+
+    .page::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(
+          circle at 50% 23%,
+          rgba(45, 212, 191, 0.10),
+          transparent 24%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(0, 14, 45, 0.02) 0%,
+          rgba(0, 14, 45, 0.22) 44%,
+          rgba(0, 14, 45, 0.72) 100%
+        );
+    }
+
+    .hero {
+      width: min(100%, 420px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
 
     .logo {
-      width: 68px;
-      height: 68px;
+      width: 82px;
+      height: auto;
       object-fit: contain;
-      margin-bottom: 20px;
+      filter:
+        drop-shadow(0 0 10px rgba(45, 212, 191, 0.22))
+        drop-shadow(0 10px 26px rgba(0, 0, 0, 0.24));
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--accent-soft);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
     h1 {
-      margin: 0 0 12px;
-      font-size: 26px;
-      line-height: 1.25;
-    }
-
-    p {
       margin: 0;
-      color: #5d6b7c;
-      font-size: 15px;
-      line-height: 1.6;
+      color: #ffffff;
+      font-size: 31px;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
     }
 
-    .status {
-      margin-top: 20px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      background: #f1f5f9;
-      font-size: 13px;
-      color: #334155;
+    .subtitle {
+      margin: 0;
+      max-width: 420px;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .card {
+      width: min(100%, 440px);
+      box-sizing: border-box;
+      margin-top: 8px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(9, 34, 72, 0.54) 0%,
+          rgba(0, 14, 45, 0.42) 100%
+        );
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.34),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10),
+        inset 0 0 28px rgba(94, 234, 212, 0.035);
+      backdrop-filter: blur(18px) saturate(135%);
+      -webkit-backdrop-filter: blur(18px) saturate(135%);
+      display: grid;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .status-header {
+      padding: 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .status-header h2 {
+      margin: 0;
+      color: #ffffff;
+      font-size: 15px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    .status-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .status-box {
+      padding: 12px;
+      border: 1px solid rgba(45, 212, 191, 0.22);
+      border-radius: 16px;
+      background: rgba(20, 184, 166, 0.08);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
       word-break: break-word;
     }
 
-    .success {
-      background: #ecfdf5;
-      color: #047857;
+    .status-box.success {
+      background: var(--success-bg);
+      color: var(--success-text);
     }
 
-    .failed {
-      background: #fef2f2;
-      color: #b91c1c;
+    .status-box.failed {
+      border-color: rgba(248, 113, 113, 0.28);
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+
+    .loader {
+      width: 34px;
+      height: 34px;
+      margin: 4px auto 2px;
+      border-radius: 999px;
+      border: 3px solid rgba(255, 255, 255, 0.16);
+      border-top-color: var(--accent-soft);
+      animation: spin 900ms linear infinite;
+    }
+
+    .success-mark,
+    .failed-mark {
+      width: 36px;
+      height: 36px;
+      margin: 4px auto 2px;
+      border-radius: 999px;
+      display: none;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .success-mark {
+      color: #04111f;
+      background: var(--accent-soft);
+    }
+
+    .failed-mark {
+      color: #04111f;
+      background: var(--danger-text);
+    }
+
+    .card.success .loader,
+    .card.failed .loader {
+      display: none;
+    }
+
+    .card.success .success-mark {
+      display: grid;
+    }
+
+    .card.failed .failed-mark {
+      display: grid;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .button {
+      width: 100%;
+      min-height: 44px;
+      box-sizing: border-box;
+      border: 0;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      color: #04111f;
+      box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+    }
+
+    .button.secondary {
+      border: 1px solid rgba(45, 212, 191, 0.32);
+      background: rgba(20, 184, 166, 0.07);
+      color: var(--accent-soft);
+    }
+
+    .button:active {
+      transform: scale(0.98);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 430px) {
+      .page {
+        width: min(100%, 392px);
+        gap: 12px;
+        padding: 14px;
+        padding-top: max(14px, env(safe-area-inset-top));
+        padding-bottom: max(40px, env(safe-area-inset-bottom));
+      }
+
+      .page::before {
+        background:
+          linear-gradient(
+            180deg,
+            rgba(0, 14, 45, 0.00) 0%,
+            rgba(0, 14, 45, 0.18) 45%,
+            #000E2D 100%
+          ),
+          url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
+          radial-gradient(
+            circle at 50% 32%,
+            rgba(45, 212, 191, 0.16),
+            transparent 34%
+          ),
+          #00081f;
+      }
+
+      .logo {
+        width: 78px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .card {
+        width: min(100%, 392px);
+        padding: 13px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(9, 34, 72, 0.58) 0%,
+            rgba(0, 14, 45, 0.46) 100%
+          );
+        backdrop-filter: blur(16px) saturate(130%);
+        -webkit-backdrop-filter: blur(16px) saturate(130%);
+      }
     }
   </style>
 </head>
 
 <body>
-  <main class="card">
-    <img class="logo" src="/unibrij-logo.png" alt="UniBridge" />
+  <main class="page">
+    <section class="hero">
+      <img class="logo" src="/unibrij-logo.png" alt="UniBridge" />
 
-    <h1 id="title">Confirming terms acceptance…</h1>
+      <p class="eyebrow">
+        Bank transfer funding
+      </p>
 
-    <p id="message">
-      Please keep this page open while UniBridge records your Bridge terms acceptance.
-    </p>
+      <h1 id="title">
+        Confirming terms
+      </h1>
 
-    <div id="status" class="status">
-      Processing…
-    </div>
+      <p id="message" class="subtitle">
+        Please keep this page open while UniBridge records your Bridge terms acceptance.
+      </p>
+    </section>
+
+    <section id="card" class="card">
+      <div class="loader"></div>
+      <div class="success-mark">✓</div>
+      <div class="failed-mark">!</div>
+
+      <div class="status-header">
+        <h2 id="cardTitle">
+          Confirming Bridge terms
+        </h2>
+
+        <p id="cardMessage">
+          This usually takes only a few seconds. You will be returned automatically.
+        </p>
+      </div>
+
+      <div id="status" class="status-box">
+        Processing…
+      </div>
+
+      <div class="actions">
+        <a id="manualContinue" class="button secondary" href="/fiat/bank-transfer">
+          Return to bank transfer
+        </a>
+      </div>
+    </section>
   </main>
 
   <script>
     const BACKEND_BASE =
       "https://unibridge-v2-1066944028362.us-central1.run.app";
+
+    const cardEl =
+      document.getElementById("card");
 
     const titleEl =
       document.getElementById("title");
@@ -96,34 +414,74 @@
     const messageEl =
       document.getElementById("message");
 
+    const cardTitleEl =
+      document.getElementById("cardTitle");
+
+    const cardMessageEl =
+      document.getElementById("cardMessage");
+
     const statusEl =
       document.getElementById("status");
+
+    const manualContinueEl =
+      document.getElementById("manualContinue");
 
     function setStatus({
       title,
       message,
+      cardTitle,
+      cardMessage,
       status,
       kind
     }) {
-      titleEl.textContent = title;
-      messageEl.textContent = message;
-      statusEl.textContent = status;
+      titleEl.textContent =
+        title;
+
+      messageEl.textContent =
+        message;
+
+      cardTitleEl.textContent =
+        cardTitle || title;
+
+      cardMessageEl.textContent =
+        cardMessage || message;
+
+      statusEl.textContent =
+        status;
 
       statusEl.className =
-        "status" + (kind ? " " + kind : "");
+        "status-box" + (kind ? " " + kind : "");
+
+      cardEl.className =
+        "card" + (kind ? " " + kind : "");
     }
 
     function buildNextUrl(settlementId) {
-      return (
-        "/fiat/bank-transfer?settlement_id=" +
-        encodeURIComponent(settlementId) +
-        "&tos_accepted=1"
+      const url =
+        new URL(
+          "/fiat/bank-transfer",
+          window.location.origin
+        );
+
+      url.searchParams.set(
+        "settlement_id",
+        settlementId
       );
+
+      url.searchParams.set(
+        "tos_accepted",
+        "1"
+      );
+
+      return url.toString();
     }
 
     function redirectToBankTransferFlow(settlementId) {
       const nextUrl =
         buildNextUrl(settlementId);
+
+      manualContinueEl.href =
+        nextUrl;
 
       window.setTimeout(() => {
         window.location.href =
@@ -134,7 +492,9 @@
     async function confirmBridgeTosReturn() {
       try {
         const params =
-          new URLSearchParams(window.location.search);
+          new URLSearchParams(
+            window.location.search
+          );
 
         const settlementId =
           params.get("settlement_id");
@@ -144,11 +504,18 @@
           params.get("signedAgreementId");
 
         if (!settlementId) {
-          throw new Error("missing_settlement_id");
+          throw new Error(
+            "missing_settlement_id"
+          );
         }
 
+        manualContinueEl.href =
+          buildNextUrl(settlementId);
+
         if (!signedAgreementId) {
-          throw new Error("missing_signed_agreement_id");
+          throw new Error(
+            "missing_signed_agreement_id"
+          );
         }
 
         const url =
@@ -161,27 +528,43 @@
 
         const response =
           await fetch(url, {
-            method: "GET",
+            method:
+              "GET",
+
             headers: {
-              Accept: "application/json"
+              Accept:
+                "application/json"
             }
           });
 
         const body =
-          await response.json().catch(() => ({}));
+          await response
+            .json()
+            .catch(() => ({}));
 
         if (!response.ok || !body.ok) {
           throw new Error(
-            body.error || "bridge_tos_return_failed"
+            body.error ||
+            "bridge_tos_return_failed"
           );
         }
 
         setStatus({
-          title: "Terms accepted",
+          title:
+            "Terms accepted",
+
           message:
             "Your Bridge terms acceptance was recorded. Continuing bank transfer setup…",
+
+          cardTitle:
+            "Bridge terms recorded",
+
+          cardMessage:
+            "Returning to UniBridge to continue creating your bank transfer instructions.",
+
           status:
             "Settlement: " + settlementId,
+
           kind:
             "success"
         });
@@ -191,11 +574,22 @@
         );
       } catch (err) {
         setStatus({
-          title: "Could not confirm terms",
+          title:
+            "Could not confirm terms",
+
           message:
             "UniBridge could not record the Bridge terms acceptance.",
+
+          cardTitle:
+            "Confirmation failed",
+
+          cardMessage:
+            "You can return to UniBridge and try again.",
+
           status:
-            err.message || "bridge_tos_return_failed",
+            err.message ||
+            "bridge_tos_return_failed",
+
           kind:
             "failed"
         });
