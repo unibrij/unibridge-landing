@@ -224,9 +224,9 @@ export function resolveInitialState(defaults = {}) {
     readBankCustomerRef();
 
   const bankCustomerRef =
+    queryBankCustomerRef ||
     storedBankCustomerRef ||
     localBankCustomerRef ||
-    queryBankCustomerRef ||
     readOrCreateBankCustomerRef();
 
   writeBankCustomerRef(
