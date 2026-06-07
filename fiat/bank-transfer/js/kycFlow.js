@@ -9,6 +9,10 @@ import {
 } from "./diditSdk.js";
 
 import {
+  writeBankCustomerRef
+} from "./state.js";
+
+import {
   setStatus,
   markStepDone,
   markStepFailed,
@@ -503,6 +507,29 @@ export async function runKyc({
         state?.source_rail
     });
 
+  /*
+  --------------------------------------------------
+  Backend is the source of truth for bank_customer_ref.
+  If Clerk resolved an existing customer, or if a new
+  KYC created/linked a customer, persist the backend
+  returned ref into the dedicated localStorage key too.
+  This prevents the frontend from falling back to an
+  old/random local ref on the next attempt.
+  --------------------------------------------------
+  */
+
+  const resolvedBankCustomerRef =
+    normalizeString(
+      kyc.bank_customer_ref ||
+      state?.bank_customer_ref
+    );
+
+  if (resolvedBankCustomerRef) {
+    writeBankCustomerRef(
+      resolvedBankCustomerRef
+    );
+  }
+
   if (typeof persist === "function") {
     persist({
       kyc_status:
@@ -520,7 +547,7 @@ export async function runKyc({
         kyc.provider_session_id || null,
 
       bank_customer_ref:
-        kyc.bank_customer_ref ||
+        resolvedBankCustomerRef ||
         state?.bank_customer_ref,
 
       bank_verified_identity_ref:
@@ -550,7 +577,13 @@ export async function runKyc({
 
   return openKycVerification({
     kyc,
-    state,
+    state: {
+      ...state,
+
+      bank_customer_ref:
+        resolvedBankCustomerRef ||
+        state?.bank_customer_ref
+    },
     persist,
     onConfirm
   });
