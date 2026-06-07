@@ -310,6 +310,17 @@ function resolveErrorMessage(err = {}) {
   );
 }
 
+function resolveReadableErrorMessage(err = {}) {
+  return (
+    normalizeString(err.message) ||
+    normalizeString(err.error?.message) ||
+    normalizeString(err.response?.data?.message) ||
+    normalizeString(err.data?.message) ||
+    normalizeString(err.error) ||
+    "bridge_bank_transfer_create_failed"
+  );
+}
+
 function isBridgeCustomerRejectedError(err = {}) {
   const message =
     resolveErrorMessage(err);
@@ -370,6 +381,29 @@ function resolveUserFacingBridgeCustomerMessage(customer = {}) {
   );
 }
 
+function resolveUserFacingBankTransferMessage(err = {}) {
+  const raw =
+    resolveReadableErrorMessage(err);
+
+  const status =
+    resolveErrorStatus(err);
+
+  const code =
+    resolveErrorCode(err);
+
+  if (
+    raw === "bridge_bank_transfer_create_failed" ||
+    status === "409" ||
+    status === "conflict" ||
+    code === "409" ||
+    code === "conflict"
+  ) {
+    return "Your funding profile is not ready for bank-transfer instructions yet. Please refresh status or contact support.";
+  }
+
+  return raw;
+}
+
 function clearInstructionsBox(instructionsBox) {
   if (!instructionsBox) {
     return;
@@ -417,6 +451,34 @@ function buildBridgeCustomerRejectedResult(customer = {}) {
   };
 }
 
+function buildBankTransferCreateFailedResult(err = {}) {
+  return {
+    ok:
+      false,
+
+    retryable:
+      true,
+
+    blocked:
+      true,
+
+    step:
+      "instructions",
+
+    error:
+      "bridge_bank_transfer_create_failed",
+
+    status:
+      resolveErrorStatus(err) || null,
+
+    code:
+      resolveErrorCode(err) || null,
+
+    reason:
+      resolveUserFacingBankTransferMessage(err)
+  };
+}
+
 function showBridgeCustomerRejectedStatus(customer = {}) {
   setActiveStep(
     "customer"
@@ -432,6 +494,24 @@ function showBridgeCustomerRejectedStatus(customer = {}) {
 
     message:
       resolveUserFacingBridgeCustomerMessage(customer)
+  });
+}
+
+function showBankTransferCreateFailedStatus(err = {}) {
+  setActiveStep(
+    "instructions"
+  );
+
+  markStepFailed(
+    "instructions"
+  );
+
+  setStatus({
+    kind:
+      "error",
+
+    message:
+      resolveUserFacingBankTransferMessage(err)
   });
 }
 
@@ -827,10 +907,8 @@ async function runBridgeCustomer({
           ),
 
         bridge_customer_error:
-          normalizeString(
-            err.message ||
-            err.error ||
-            "bridge_customer_rejected"
+          resolveReadableErrorMessage(
+            err
           )
       });
 
@@ -857,41 +935,80 @@ async function runBridgeBankTransfer({
     "instructions"
   );
 
-  const funding =
-    await createBridgeBankTransfer({
-      settlement_id:
-        settlementId,
+  try {
+    const funding =
+      await createBridgeBankTransfer({
+        settlement_id:
+          settlementId,
 
-      source_country:
-        state.source_country,
+        source_country:
+          state.source_country,
 
-      source_rail:
-        state.source_rail
+        source_rail:
+          state.source_rail
+      });
+
+    persist({
+      bridge_transfer_id:
+        funding.bridge_transfer_id,
+
+      bridge_transfer_state:
+        funding.bridge_transfer_state,
+
+      latest_funding_response:
+        funding,
+
+      bridge_bank_transfer_error:
+        null
     });
 
-  persist({
-    bridge_transfer_id:
-      funding.bridge_transfer_id,
-
-    bridge_transfer_state:
-      funding.bridge_transfer_state,
-
-    latest_funding_response:
+    renderBankInstructions(
+      instructionsBox,
       funding
-  });
+    );
 
-  renderBankInstructions(
-    instructionsBox,
-    funding
-  );
+    markStepDone(
+      "instructions"
+    );
 
-  markStepDone(
-    "instructions"
-  );
+    showWaitingForFunding();
 
-  showWaitingForFunding();
+    return {
+      ok:
+        true,
 
-  return funding;
+      funding
+    };
+  } catch (err) {
+    clearInstructionsBox(
+      instructionsBox
+    );
+
+    persist({
+      bridge_bank_transfer_error:
+        resolveReadableErrorMessage(
+          err
+        ),
+
+      bridge_bank_transfer_error_status:
+        resolveErrorStatus(
+          err
+        ) || null,
+
+      bridge_bank_transfer_error_code:
+        resolveErrorCode(
+          err
+        ) || null
+    });
+
+    showBankTransferCreateFailedStatus(
+      err
+    );
+
+    return buildBankTransferCreateFailedResult(
+      err
+    );
+  }
 }
 
 export async function runBankFundingSteps({
@@ -967,7 +1084,7 @@ export async function runBankFundingSteps({
     return customerResult;
   }
 
-  const funding =
+  const fundingResult =
     await runBridgeBankTransfer({
       settlementId,
       state,
@@ -975,10 +1092,23 @@ export async function runBankFundingSteps({
       instructionsBox
     });
 
+  if (
+    fundingResult?.blocked ||
+    fundingResult?.retryable ||
+    fundingResult?.ok === false
+  ) {
+    clearInstructionsBox(
+      instructionsBox
+    );
+
+    return fundingResult;
+  }
+
   return {
     ok:
       true,
 
-    funding
+    funding:
+      fundingResult.funding
   };
 }
