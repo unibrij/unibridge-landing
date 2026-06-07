@@ -8,6 +8,7 @@ import {
   SignIn,
   SignedOut,
   useAuth,
+  useClerk,
   useUser
 } from "@clerk/clerk-react";
 
@@ -66,6 +67,12 @@ function writeEmailToProfile(email) {
   );
 }
 
+function clearStoredProfile() {
+  window.sessionStorage.removeItem(
+    PROFILE_KEY
+  );
+}
+
 function resolvePrimaryEmail(user) {
   return (
     normalizeString(
@@ -101,6 +108,10 @@ export function FiatAuthIsland() {
   } = useAuth();
 
   const {
+    signOut
+  } = useClerk();
+
+  const {
     user
   } = useUser();
 
@@ -111,6 +122,13 @@ export function FiatAuthIsland() {
 
   const returnUrl =
     resolveReturnUrl();
+
+  const isReady =
+    Boolean(
+      isLoaded &&
+      isSignedIn &&
+      email
+    );
 
   useEffect(() => {
     window[AUTH_BRIDGE_KEY] = {
@@ -146,9 +164,7 @@ export function FiatAuthIsland() {
 
   useEffect(() => {
     setAuthRequiredClass(
-      !isLoaded ||
-      !isSignedIn ||
-      !email
+      !isReady
     );
 
     return () => {
@@ -157,9 +173,7 @@ export function FiatAuthIsland() {
       );
     };
   }, [
-    isLoaded,
-    isSignedIn,
-    email
+    isReady
   ]);
 
   useEffect(() => {
@@ -180,8 +194,36 @@ export function FiatAuthIsland() {
     email
   ]);
 
-  if (isLoaded && isSignedIn && email) {
-    return null;
+  async function useAnotherAccount() {
+    clearStoredProfile();
+
+    await signOut({
+      redirectUrl:
+        returnUrl
+    });
+  }
+
+  if (isReady) {
+    return (
+      <section className="fiat-auth-session-bar">
+        <div>
+          <span>
+            Signed in as
+          </span>
+
+          <strong>
+            {email}
+          </strong>
+        </div>
+
+        <button
+          type="button"
+          onClick={useAnotherAccount}
+        >
+          Use another account
+        </button>
+      </section>
+    );
   }
 
   if (isLoaded && isSignedIn && !email) {
