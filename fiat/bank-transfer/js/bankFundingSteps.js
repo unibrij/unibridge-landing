@@ -50,15 +50,155 @@ function openExternal(url) {
   return true;
 }
 
+function resolveTosUrl(tos = {}) {
+  return (
+    normalizeString(tos.url) ||
+    normalizeString(tos.tos_url) ||
+    normalizeString(tos.link) ||
+    normalizeString(tos.redirect_url) ||
+    normalizeString(tos.acceptance_url) ||
+    normalizeString(tos.bridge_tos_url) ||
+    null
+  );
+}
+
+function resolveTosStatus(tos = {}) {
+  return normalizeString(
+    tos.status ||
+    tos.tos_status ||
+    tos.bridge_tos_status ||
+    tos.customer_tos_status
+  ).toLowerCase();
+}
+
+function isAcceptedTosStatus(status) {
+  const normalized =
+    normalizeString(status).toLowerCase();
+
+  return [
+    "accepted",
+    "approved",
+    "complete",
+    "completed"
+  ].includes(
+    normalized
+  );
+}
+
 function shouldSkipTos({
-  state = {},
-  query = {}
+  state = {}
 } = {}) {
   return Boolean(
-    state.tos_accepted ||
-    state.bridge_tos_status === "accepted" ||
-    isReturnedFromBridgeTos(query)
+    state.tos_accepted === true &&
+    state.bridge_tos_status === "accepted"
   );
+}
+
+function isBridgeTosNotAcceptedError(err = {}) {
+  const message =
+    normalizeString(
+      err.message ||
+      err.error?.message ||
+      err.error
+    );
+
+  const code =
+    normalizeString(
+      err.code ||
+      err.error?.code
+    );
+
+  return (
+    message === "bridge_tos_not_accepted" ||
+    code === "bridge_tos_not_accepted"
+  );
+}
+
+function markTosAccepted({
+  persist
+} = {}) {
+  persist({
+    tos_pending:
+      false,
+
+    tos_returned:
+      false,
+
+    tos_accepted:
+      true,
+
+    bridge_tos_status:
+      "accepted"
+  });
+
+  markStepDone(
+    "tos"
+  );
+}
+
+function markTosRequired({
+  persist,
+  tosStatus
+} = {}) {
+  persist({
+    tos_pending:
+      false,
+
+    tos_accepted:
+      false,
+
+    bridge_tos_status:
+      normalizeString(tosStatus) ||
+      "required"
+  });
+}
+
+function markTosReturnedForCheck({
+  persist
+} = {}) {
+  persist({
+    tos_pending:
+      false,
+
+    tos_returned:
+      true,
+
+    tos_accepted:
+      false,
+
+    bridge_tos_status:
+      "checking"
+  });
+}
+
+function buildTosRetryResult() {
+  return {
+    ok:
+      false,
+
+    retryable:
+      true,
+
+    step:
+      "tos",
+
+    error:
+      "bridge_tos_not_accepted"
+  };
+}
+
+function showTosRequiredStatus() {
+  setActiveStep(
+    "tos"
+  );
+
+  setStatus({
+    kind:
+      "warning",
+
+    message:
+      "Bridge terms must be accepted before creating the funding profile. Please retry to continue terms acceptance."
+  });
 }
 
 async function runTos({
@@ -69,24 +209,12 @@ async function runTos({
 }) {
   if (
     shouldSkipTos({
-      state,
-      query
+      state
     })
   ) {
-    persist({
-      tos_pending:
-        false,
-
-      tos_accepted:
-        true,
-
-      bridge_tos_status:
-        "accepted"
+    markTosAccepted({
+      persist
     });
-
-    markStepDone(
-      "tos"
-    );
 
     return {
       skipped:
@@ -98,21 +226,65 @@ async function runTos({
     "tos"
   );
 
+  /*
+    Important:
+    tos_accepted=1 in the URL only means the user returned
+    from the Bridge ToS page. It is not proof that Bridge
+    accepted the terms for this settlement/customer context.
+  */
+  if (isReturnedFromBridgeTos(query)) {
+    markTosReturnedForCheck({
+      persist
+    });
+  }
+
   const tos =
     await createBridgeTos({
       settlement_id:
         settlementId
     });
 
+  const tosStatus =
+    resolveTosStatus(
+      tos
+    );
+
+  if (
+    isAcceptedTosStatus(
+      tosStatus
+    )
+  ) {
+    markTosAccepted({
+      persist
+    });
+
+    return {
+      ok:
+        true,
+
+      accepted:
+        true
+    };
+  }
+
   const tosUrl =
-    tos.url ||
-    tos.tos_url ||
-    tos.link;
+    resolveTosUrl(
+      tos
+    );
 
   if (tosUrl) {
     persist({
       tos_pending:
         true,
+
+      tos_returned:
+        false,
+
+      tos_accepted:
+        false,
+
+      bridge_tos_status:
+        tosStatus || "pending",
 
       tos_url:
         tosUrl
@@ -134,26 +306,19 @@ async function runTos({
 
     return {
       redirected:
-        true
+        true,
+
+      step:
+        "tos"
     };
   }
 
-  persist({
-    tos_accepted:
-      true,
-
-    bridge_tos_status:
-      "accepted"
+  markTosRequired({
+    persist,
+    tosStatus
   });
 
-  markStepDone(
-    "tos"
-  );
-
-  return {
-    ok:
-      true
-  };
+  return buildTosRetryResult();
 }
 
 async function runBridgeCustomer({
@@ -167,34 +332,50 @@ async function runBridgeCustomer({
   const customerProfile =
     requireCustomerProfile();
 
-  const customer =
-    await createBridgeCustomer({
-      settlement_id:
-        settlementId,
+  try {
+    const customer =
+      await createBridgeCustomer({
+        settlement_id:
+          settlementId,
 
-      customer:
-        customerProfile
+        customer:
+          customerProfile
+      });
+
+    persist({
+      bridge_customer_id:
+        customer.bridge_customer_id,
+
+      bridge_customer_status:
+        customer.status || null,
+
+      bridge_customer_kyc_status:
+        customer.kyc_status || null,
+
+      bridge_customer_tos_status:
+        customer.tos_status || null
     });
 
-  persist({
-    bridge_customer_id:
-      customer.bridge_customer_id,
+    markStepDone(
+      "customer"
+    );
 
-    bridge_customer_status:
-      customer.status || null,
+    return customer;
+  } catch (err) {
+    if (
+      isBridgeTosNotAcceptedError(
+        err
+      )
+    ) {
+      markTosRequired({
+        persist,
+        tosStatus:
+          "required"
+      });
+    }
 
-    bridge_customer_kyc_status:
-      customer.kyc_status || null,
-
-    bridge_customer_tos_status:
-      customer.tos_status || null
-  });
-
-  markStepDone(
-    "customer"
-  );
-
-  return customer;
+    throw err;
+  }
 }
 
 async function runBridgeBankTransfer({
@@ -292,10 +473,30 @@ export async function runBankFundingSteps({
     };
   }
 
-  await runBridgeCustomer({
-    settlementId,
-    persist
-  });
+  if (tosResult.retryable) {
+    showTosRequiredStatus();
+
+    return tosResult;
+  }
+
+  try {
+    await runBridgeCustomer({
+      settlementId,
+      persist
+    });
+  } catch (err) {
+    if (
+      isBridgeTosNotAcceptedError(
+        err
+      )
+    ) {
+      showTosRequiredStatus();
+
+      return buildTosRetryResult();
+    }
+
+    throw err;
+  }
 
   const funding =
     await runBridgeBankTransfer({
