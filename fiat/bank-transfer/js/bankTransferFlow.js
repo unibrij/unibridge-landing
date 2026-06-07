@@ -30,7 +30,8 @@ import {
 import {
   prepareCustomerProfileForm,
   ensureCustomerProfileFromForm,
-  focusCustomerProfileField
+  focusCustomerProfileField,
+  hideCustomerProfileForm
 } from "./customerProfile.js";
 
 import {
@@ -441,7 +442,7 @@ async function runBankTransferFlow() {
       label:
         "Retry",
 
-      disabled:
+        disabled:
         false
     });
   }
@@ -520,6 +521,8 @@ async function handleQuote() {
   } catch (err) {
     preparedQuote =
       null;
+
+    hideCustomerProfileForm();
 
     console.error(
       "BANK_TRANSFER_QUOTE_FAILED",
@@ -720,6 +723,8 @@ async function initEntryRoutes() {
     return;
   }
 
+  hideCustomerProfileForm();
+
   setQuoteButton({
     label:
       "Preparing…",
@@ -753,6 +758,8 @@ async function initEntryRoutes() {
         false
     });
   } catch (err) {
+    hideCustomerProfileForm();
+
     console.error(
       "BANK_TRANSFER_CONTEXT_LOAD_FAILED",
       err
