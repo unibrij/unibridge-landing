@@ -184,19 +184,9 @@ export function FiatAuthIsland() {
     return (
       <section className="fiat-auth-gate">
         <div className="fiat-auth-shell">
-          <img
-            className="fiat-auth-logo"
-            src="/connect/icons/social/Ub.png"
-            alt="UniBridge"
-          />
-
-          <p className="fiat-auth-eyebrow">
-            Bank transfer funding
-          </p>
-
-          <h1>
+          <h2>
             Secure sign-in
-          </h1>
+          </h2>
 
           <p className="fiat-auth-subtitle">
             Loading secure bank-transfer access…
@@ -211,19 +201,9 @@ export function FiatAuthIsland() {
       return (
         <section className="fiat-auth-gate">
           <div className="fiat-auth-shell">
-            <img
-              className="fiat-auth-logo"
-              src="/connect/icons/social/Ub.png"
-              alt="UniBridge"
-            />
-
-            <p className="fiat-auth-eyebrow">
-              Bank transfer funding
-            </p>
-
-            <h1>
+            <h2>
               Signed in securely
-            </h1>
+            </h2>
 
             <p className="fiat-auth-warning">
               Signed in, but no email was returned by Clerk.
@@ -239,19 +219,9 @@ export function FiatAuthIsland() {
   return (
     <section className="fiat-auth-gate">
       <div className="fiat-auth-shell">
-        <img
-          className="fiat-auth-logo"
-          src="/connect/icons/social/Ub.png"
-          alt="UniBridge"
-        />
-
-        <p className="fiat-auth-eyebrow">
-          Bank transfer funding
-        </p>
-
-        <h1>
+        <h2>
           Secure sign-in
-        </h1>
+        </h2>
 
         <p className="fiat-auth-subtitle">
           Sign in to continue bank-transfer funding.
