@@ -2,10 +2,6 @@ name: Build Fiat Auth Island
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "fiat-bank-transfer-app/**"
-      - ".github/workflows/build-fiat-auth.yml"
 
 permissions:
   contents: write
