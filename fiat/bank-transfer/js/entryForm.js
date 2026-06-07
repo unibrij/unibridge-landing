@@ -50,17 +50,55 @@ function getEl(id) {
   return document.getElementById(id);
 }
 
+function getRouteFieldContainer() {
+  const routeSelect =
+    getEl("routeId");
+
+  return (
+    routeSelect?.closest(".route-grid") ||
+    routeSelect?.closest(".field") ||
+    routeSelect?.parentElement ||
+    null
+  );
+}
+
+function hideQuoteStageFields() {
+  getRouteFieldContainer()
+    ?.classList.add("hidden");
+
+  getEl("destinationFields")
+    ?.classList.add("hidden");
+
+  getEl("quoteBox")
+    ?.classList.add("hidden");
+}
+
+function showQuoteStageFields() {
+  getRouteFieldContainer()
+    ?.classList.remove("hidden");
+
+  getEl("destinationFields")
+    ?.classList.remove("hidden");
+
+  getEl("quoteBox")
+    ?.classList.remove("hidden");
+}
+
 export async function loadBankTransferRoutes() {
   latestContext =
     renderContextSummary();
+
+  availableRoutes = [];
+  latestQuote = null;
+
+  hideQuoteStageFields();
 
   const select =
     getEl("routeId");
 
   if (select) {
     select.disabled = true;
-    select.innerHTML =
-      `<option value="">Get quote first</option>`;
+    select.innerHTML = "";
   }
 
   return [];
@@ -243,6 +281,7 @@ export async function prepareBankTransferSettlement() {
 
   renderRouteOptions();
   renderSelectedDestinationFields();
+  showQuoteStageFields();
 
   const selectedRoute =
     getSelectedRoute();
