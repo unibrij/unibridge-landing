@@ -20,6 +20,16 @@ function safeRandomId(prefix) {
     .slice(2)}`;
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function normalizeStateObject(value = {}) {
+  return value && typeof value === "object"
+    ? value
+    : {};
+}
+
 export function readOrCreateBankCustomerRef() {
   const existing =
     normalizeString(
@@ -32,6 +42,18 @@ export function readOrCreateBankCustomerRef() {
     return existing;
   }
 
+  const next =
+    safeRandomId("fbc");
+
+  window.localStorage.setItem(
+    CUSTOMER_REF_KEY,
+    next
+  );
+
+  return next;
+}
+
+export function createNewBankCustomerRef() {
   const next =
     safeRandomId("fbc");
 
@@ -154,10 +176,10 @@ export function writeStoredState(nextState = {}) {
 
   const merged = {
     ...current,
-    ...nextState,
+    ...normalizeStateObject(nextState),
 
     updated_at:
-      new Date().toISOString()
+      nowIso()
   };
 
   window.localStorage.setItem(
@@ -170,15 +192,15 @@ export function writeStoredState(nextState = {}) {
 
 export function replaceStoredState(nextState = {}) {
   const normalized =
-    nextState && typeof nextState === "object"
-      ? nextState
-      : {};
+    normalizeStateObject(
+      nextState
+    );
 
   const payload = {
     ...normalized,
 
     updated_at:
-      new Date().toISOString()
+      nowIso()
   };
 
   window.localStorage.setItem(
@@ -200,6 +222,252 @@ function pickQueryValues(query = {}) {
     Object.entries(query).filter(([, value]) => {
       return Boolean(value);
     })
+  );
+}
+
+export function resolveStoredAuthSubjectId(state = {}) {
+  return (
+    normalizeString(
+      state.auth_subject_id
+    ) ||
+    normalizeString(
+      state.user_id
+    ) ||
+    null
+  );
+}
+
+export function resolveAuthSubjectId(auth = {}) {
+  return (
+    normalizeString(
+      auth.auth_subject_id
+    ) ||
+    normalizeString(
+      auth.user_id
+    ) ||
+    null
+  );
+}
+
+export function writeAuthOwnerToState({
+  auth_subject_id,
+  user_id,
+  email,
+  auth_provider = "clerk"
+} = {}) {
+  const subjectId =
+    normalizeString(
+      auth_subject_id ||
+      user_id
+    );
+
+  const normalizedEmail =
+    normalizeString(email);
+
+  if (!subjectId) {
+    return readStoredState();
+  }
+
+  return writeStoredState({
+    auth_provider,
+
+    auth_subject_id:
+      subjectId,
+
+    user_id:
+      subjectId,
+
+    ...(normalizedEmail
+      ? {
+          auth_email:
+            normalizedEmail,
+
+          email:
+            normalizedEmail
+        }
+      : {})
+  });
+}
+
+export function isDifferentAuthSubject({
+  state,
+  auth
+} = {}) {
+  const storedSubjectId =
+    resolveStoredAuthSubjectId(
+      state
+    );
+
+  const currentSubjectId =
+    resolveAuthSubjectId(
+      auth
+    );
+
+  return Boolean(
+    storedSubjectId &&
+    currentSubjectId &&
+    storedSubjectId !== currentSubjectId
+  );
+}
+
+/*
+--------------------------------------------------
+Light reset:
+Same Clerk user wants to change amount / route
+or start a new payout attempt.
+
+Keep:
+- auth owner
+- bank_customer_ref
+- KYC/customer reusable identity
+
+Clear:
+- quote
+- settlement
+- transfer/funding attempt
+- ToS attempt state
+--------------------------------------------------
+*/
+export function resetSettlementAttemptForSameUser({
+  state = {},
+  defaults = {}
+} = {}) {
+  const current =
+    normalizeStateObject(
+      state
+    );
+
+  const bankCustomerRef =
+    normalizeString(
+      current.bank_customer_ref
+    ) ||
+    readBankCustomerRef() ||
+    readOrCreateBankCustomerRef();
+
+  writeBankCustomerRef(
+    bankCustomerRef
+  );
+
+  const next = {
+    ...defaults,
+
+    auth_provider:
+      current.auth_provider || "clerk",
+
+    auth_subject_id:
+      normalizeString(
+        current.auth_subject_id
+      ) || null,
+
+    user_id:
+      normalizeString(
+        current.user_id ||
+        current.auth_subject_id
+      ) || null,
+
+    auth_email:
+      normalizeString(
+        current.auth_email ||
+        current.email
+      ) || null,
+
+    email:
+      normalizeString(
+        current.email ||
+        current.auth_email
+      ) || null,
+
+    bank_customer_ref:
+      bankCustomerRef,
+
+    source_country:
+      current.source_country || defaults.source_country,
+
+    source_rail:
+      current.source_rail || defaults.source_rail,
+
+    reset_reason:
+      "same_user_new_settlement_attempt",
+
+    reset_at:
+      nowIso()
+  };
+
+  return replaceStoredState(
+    next
+  );
+}
+
+/*
+--------------------------------------------------
+Full reset:
+Clerk user changed.
+
+Do NOT keep:
+- old bank_customer_ref
+- old verified identity
+- old settlement
+- old transfer
+- old customer refs bound to prior user
+
+Create:
+- new bank_customer_ref for new Clerk subject
+--------------------------------------------------
+*/
+export function resetFlowForDifferentUser({
+  auth = {},
+  defaults = {}
+} = {}) {
+  clearStoredState();
+
+  clearBankCustomerRef();
+
+  const bankCustomerRef =
+    createNewBankCustomerRef();
+
+  const subjectId =
+    resolveAuthSubjectId(
+      auth
+    );
+
+  const email =
+    normalizeString(
+      auth.email
+    );
+
+  const next = {
+    ...defaults,
+
+    auth_provider:
+      "clerk",
+
+    auth_subject_id:
+      subjectId,
+
+    user_id:
+      subjectId,
+
+    ...(email
+      ? {
+          auth_email:
+            email,
+
+          email
+        }
+      : {}),
+
+    bank_customer_ref:
+      bankCustomerRef,
+
+    reset_reason:
+      "different_clerk_user",
+
+    reset_at:
+      nowIso()
+  };
+
+  return replaceStoredState(
+    next
   );
 }
 
