@@ -276,6 +276,7 @@ h1 {
 }
 
 .field {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -290,7 +291,8 @@ h1 {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   min-height: 42px;
   box-sizing: border-box;
@@ -304,20 +306,52 @@ h1 {
   outline: none;
 }
 
-.field input::placeholder {
+.field textarea {
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
   color: rgba(255, 255, 255, 0.38);
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field textarea:focus {
   border-color: rgba(45, 212, 191, 0.55);
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
 .field input:disabled,
-.field select:disabled {
+.field select:disabled,
+.field textarea:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.field input.field-invalid,
+.field select.field-invalid,
+.field textarea.field-invalid {
+  border-color: rgba(248, 113, 113, 0.85) !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.16) !important;
+}
+
+.field-error-message {
+  display: block;
+  margin-top: 2px;
+  color: #ff8f8f;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+#destinationFields {
+  display: grid;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+#destinationFields:empty {
+  display: none;
 }
 
 option {
