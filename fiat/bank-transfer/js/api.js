@@ -8,18 +8,65 @@ async function parseJsonResponse(response) {
   const body =
     await response.json().catch(() => ({}));
 
-  if (!response.ok || body?.ok === false) {
+  /*
+    Important:
+    Some backend routes intentionally return non-2xx HTTP status
+    with ok:true to describe a controlled business state, for example:
+    - bridge_customer_kyc_pending
+    - bridge_customer_rejected
+    - bridge_customer_tos_pending
+
+    These must reach the flow layer instead of being converted into
+    generic request_failed_409 errors.
+  */
+  if (
+    !response.ok &&
+    body?.ok === true
+  ) {
+    return {
+      ...body,
+
+      http_status:
+        response.status
+    };
+  }
+
+  if (
+    !response.ok ||
+    body?.ok === false
+  ) {
+    const errorCode =
+      body?.error ||
+      body?.reason ||
+      body?.state ||
+      `request_failed_${response.status}`;
+
     const error =
       new Error(
-        body?.error ||
-        `request_failed_${response.status}`
+        body?.message ||
+        errorCode
       );
+
+    error.code =
+      errorCode;
 
     error.status =
       response.status;
 
     error.body =
       body;
+
+    error.reason =
+      body?.reason || null;
+
+    error.state =
+      body?.state || null;
+
+    error.retryable =
+      body?.retryable ?? null;
+
+    error.pending =
+      body?.pending ?? null;
 
     throw error;
   }
@@ -53,18 +100,27 @@ async function postJson(
     await fetch(
       buildProxyUrl(endpoint),
       {
-        method: "POST",
+        method:
+          "POST",
+
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+          "Content-Type":
+            "application/json",
+
+          Accept:
+            "application/json",
+
           ...headers
         },
+
         body:
           JSON.stringify(payload)
       }
     );
 
-  return parseJsonResponse(response);
+  return parseJsonResponse(
+    response
+  );
 }
 
 async function getJson(
@@ -77,15 +133,21 @@ async function getJson(
     await fetch(
       buildProxyUrl(endpoint),
       {
-        method: "GET",
+        method:
+          "GET",
+
         headers: {
-          Accept: "application/json",
+          Accept:
+            "application/json",
+
           ...headers
         }
       }
     );
 
-  return parseJsonResponse(response);
+  return parseJsonResponse(
+    response
+  );
 }
 
 export async function createFiatKyc({
