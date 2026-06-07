@@ -260,6 +260,26 @@ function hasExistingInstructions() {
   );
 }
 
+function hasPreparedQuote() {
+  return Boolean(
+    preparedQuote?.session_id &&
+    preparedQuote?.quote &&
+    preparedQuote?.selected_route
+  );
+}
+
+function showCustomerProfileAfterQuote() {
+  if (!hasPreparedQuote()) {
+    hideCustomerProfileForm();
+
+    return false;
+  }
+
+  prepareCustomerProfileForm();
+
+  return true;
+}
+
 function restoreExistingInstructions() {
   if (!state.latest_funding_response) {
     return false;
@@ -282,9 +302,15 @@ function handleCustomerProfileError(err) {
     return false;
   }
 
+  if (!hasPreparedQuote()) {
+    hideCustomerProfileForm();
+
+    return false;
+  }
+
   showEntryMode();
 
-  prepareCustomerProfileForm();
+  showCustomerProfileAfterQuote();
 
   focusCustomerProfileField(
     err.field
@@ -327,6 +353,8 @@ function resetStaleSettlementAttempt() {
   replaceStoredState(
     state
   );
+
+  hideCustomerProfileForm();
 }
 
 function scheduleAutoResumeAfterTosReturn() {
@@ -442,7 +470,7 @@ async function runBankTransferFlow() {
       label:
         "Retry",
 
-        disabled:
+      disabled:
         false
     });
   }
@@ -455,6 +483,8 @@ async function handleQuote() {
   }
 
   try {
+    hideCustomerProfileForm();
+
     setQuoteButton({
       label:
         "Getting quote…",
@@ -501,22 +531,24 @@ async function handleQuote() {
       }
     );
 
-    prepareCustomerProfileForm();
+    showCustomerProfileAfterQuote();
 
     setCreateSettlementButton({
       label:
         "Create payout route",
 
       disabled:
-        false
+        !hasPreparedQuote()
     });
 
     setQuoteButton({
       label:
-        "Quote ready",
+        hasPreparedQuote()
+          ? "Quote ready"
+          : "Get quote",
 
       disabled:
-        true
+        hasPreparedQuote()
     });
   } catch (err) {
     preparedQuote =
@@ -556,9 +588,27 @@ async function handleQuote() {
 
 async function handleCreateSettlement() {
   try {
-    if (!preparedQuote) {
+    if (!hasPreparedQuote()) {
+      hideCustomerProfileForm();
+
+      setQuoteButton({
+        label:
+          "Get quote",
+
+        disabled:
+          false
+      });
+
+      setCreateSettlementButton({
+        label:
+          "Create payout route",
+
+        disabled:
+          true
+      });
+
       throw new Error(
-        "missing_prepared_quote"
+        "get_quote_first"
       );
     }
 
@@ -646,7 +696,7 @@ async function handleCreateSettlement() {
         "Create payout route",
 
       disabled:
-        false
+        !hasPreparedQuote()
     });
   }
 }
@@ -679,11 +729,15 @@ function initResumeState() {
   }
 
   if (hasExistingInstructions()) {
+    hideCustomerProfileForm();
+
     restoreExistingInstructions();
     return;
   }
 
   if (state.tos_pending) {
+    hideCustomerProfileForm();
+
     showFundingMode();
 
     setStatus({
@@ -706,6 +760,8 @@ function initResumeState() {
   }
 
   if (state.settlement_id) {
+    hideCustomerProfileForm();
+
     if (isReturnedFromBridgeTos()) {
       scheduleAutoResumeAfterTosReturn();
       return;
@@ -720,6 +776,8 @@ function initResumeState() {
 
 async function initEntryRoutes() {
   if (state.settlement_id) {
+    hideCustomerProfileForm();
+
     return;
   }
 
@@ -757,6 +815,16 @@ async function initEntryRoutes() {
       disabled:
         false
     });
+
+    setCreateSettlementButton({
+      label:
+        "Create payout route",
+
+      disabled:
+        true
+    });
+
+    hideCustomerProfileForm();
   } catch (err) {
     hideCustomerProfileForm();
 
@@ -772,11 +840,21 @@ async function initEntryRoutes() {
       disabled:
         false
     });
+
+    setCreateSettlementButton({
+      label:
+        "Create payout route",
+
+      disabled:
+        true
+    });
   }
 }
 
 function init() {
   resetStaleSettlementAttempt();
+
+  hideCustomerProfileForm();
 
   initResumeState();
 
