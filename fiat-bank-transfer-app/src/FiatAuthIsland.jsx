@@ -45,11 +45,20 @@ function readStoredProfile() {
   }
 }
 
-function writeEmailToProfile(email) {
+function writeAuthToProfile({
+  email,
+  userId
+} = {}) {
   const normalizedEmail =
     normalizeString(email);
 
-  if (!normalizedEmail) {
+  const normalizedUserId =
+    normalizeString(userId);
+
+  if (
+    !normalizedEmail &&
+    !normalizedUserId
+  ) {
     return;
   }
 
@@ -61,8 +70,25 @@ function writeEmailToProfile(email) {
     JSON.stringify({
       ...existing,
 
-      email:
-        normalizedEmail
+      ...(normalizedEmail
+        ? {
+            email:
+              normalizedEmail
+          }
+        : {}),
+
+      ...(normalizedUserId
+        ? {
+            auth_provider:
+              "clerk",
+
+            auth_subject_id:
+              normalizedUserId,
+
+            user_id:
+              normalizedUserId
+          }
+        : {})
     })
   );
 }
@@ -104,6 +130,7 @@ export function FiatAuthIsland() {
   const {
     isLoaded,
     isSignedIn,
+    userId,
     getToken
   } = useAuth();
 
@@ -120,6 +147,11 @@ export function FiatAuthIsland() {
       user
     );
 
+  const authSubjectId =
+    normalizeString(
+      userId
+    ) || null;
+
   const returnUrl =
     resolveReturnUrl();
 
@@ -127,13 +159,20 @@ export function FiatAuthIsland() {
     Boolean(
       isLoaded &&
       isSignedIn &&
-      email
+      email &&
+      authSubjectId
     );
 
   useEffect(() => {
     window[AUTH_BRIDGE_KEY] = {
       isLoaded,
       isSignedIn,
+
+      userId:
+        authSubjectId,
+
+      auth_subject_id:
+        authSubjectId,
 
       email:
         email || null,
@@ -149,6 +188,12 @@ export function FiatAuthIsland() {
             isLoaded,
             isSignedIn,
 
+            userId:
+              authSubjectId,
+
+            auth_subject_id:
+              authSubjectId,
+
             email:
               email || null
           }
@@ -158,6 +203,7 @@ export function FiatAuthIsland() {
   }, [
     isLoaded,
     isSignedIn,
+    authSubjectId,
     email,
     getToken
   ]);
@@ -180,18 +226,22 @@ export function FiatAuthIsland() {
     if (
       !isLoaded ||
       !isSignedIn ||
-      !email
+      !email ||
+      !authSubjectId
     ) {
       return;
     }
 
-    writeEmailToProfile(
-      email
-    );
+    writeAuthToProfile({
+      email,
+      userId:
+        authSubjectId
+    });
   }, [
     isLoaded,
     isSignedIn,
-    email
+    email,
+    authSubjectId
   ]);
 
   async function useAnotherAccount() {
@@ -226,11 +276,29 @@ export function FiatAuthIsland() {
     );
   }
 
-  if (isLoaded && isSignedIn && !email) {
+  if (
+    isLoaded &&
+    isSignedIn &&
+    !email
+  ) {
     return (
       <section className="fiat-auth-gate">
         <p className="fiat-auth-warning">
           Signed in, but no email was returned by Clerk.
+        </p>
+      </section>
+    );
+  }
+
+  if (
+    isLoaded &&
+    isSignedIn &&
+    !authSubjectId
+  ) {
+    return (
+      <section className="fiat-auth-gate">
+        <p className="fiat-auth-warning">
+          Signed in, but no user ID was returned by Clerk.
         </p>
       </section>
     );
