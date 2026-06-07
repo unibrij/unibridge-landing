@@ -281,15 +281,19 @@ export async function prepareBankTransferSettlement() {
 
   renderRouteOptions();
   renderSelectedDestinationFields();
-  showQuoteStageFields();
 
   const selectedRoute =
     getSelectedRoute();
 
   if (!selectedRoute.required_destination_fields?.length) {
-    throw new Error("route_destination_fields_missing");
+    hideQuoteStageFields();
+
+    throw new Error(
+      "route_destination_fields_missing"
+    );
   }
 
+  showQuoteStageFields();
   renderSelectedQuote();
 
   return {
