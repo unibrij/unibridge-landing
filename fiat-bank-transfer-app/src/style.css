@@ -3,47 +3,43 @@ body.fiat-auth-required #fundingBox {
   display: none !important;
 }
 
+/* In auth mode, remove the old bank-transfer card completely.
+   The only visible card should be Clerk's glass card. */
+body.fiat-auth-required .card {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .fiat-auth-gate {
-  width: 100%;
+  width: min(100%, 440px);
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
-.fiat-auth-shell {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 4px 0 0;
-  color: #ffffff;
-  text-align: center;
-}
-
-.fiat-auth-shell h2 {
-  margin: 0;
-  color: #ffffff;
-  font-size: 30px;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-}
-
-.fiat-auth-subtitle {
-  margin: 12px auto 18px;
+.fiat-auth-loading,
+.fiat-auth-warning {
+  margin: 0 auto;
   max-width: 320px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 15px;
-  line-height: 1.45;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.fiat-auth-loading {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .fiat-auth-warning {
-  margin: 14px auto 0;
-  max-width: 320px;
   color: #fbbf24;
-  font-size: 14px;
-  line-height: 1.5;
 }
 
 .fiat-auth-clerk-panel {
   width: 100%;
   box-sizing: border-box;
-  margin-top: 18px;
 }
 
 /* Clerk root */
@@ -51,7 +47,7 @@ body.fiat-auth-required #fundingBox {
   width: 100%;
 }
 
-/* Kill Clerk outer white/solid shell */
+/* Remove Clerk outer solid shell */
 .fiat-auth-clerk-panel :where(.cl-cardBox) {
   width: 100%;
   box-shadow: none !important;
@@ -64,27 +60,27 @@ body.fiat-auth-required #fundingBox {
   max-width: none;
   box-sizing: border-box;
   border-radius: 20px;
-  border: 1px solid rgba(94, 234, 212, 0.18);
+  border: 1px solid rgba(94, 234, 212, 0.16);
   background:
     linear-gradient(
       180deg,
-      rgba(9, 34, 72, 0.46) 0%,
-      rgba(0, 14, 45, 0.34) 100%
+      rgba(9, 34, 72, 0.30) 0%,
+      rgba(0, 14, 45, 0.18) 100%
     ) !important;
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.22),
+    0 20px 55px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    inset 0 0 28px rgba(94, 234, 212, 0.035) !important;
+    inset 0 0 24px rgba(94, 234, 212, 0.035) !important;
   color: #ffffff;
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(10px) saturate(132%);
+  -webkit-backdrop-filter: blur(10px) saturate(132%);
 }
 
 /* Header */
 .fiat-auth-clerk-panel :where(.cl-headerTitle) {
   color: #ffffff;
   font-family: inherit;
-  font-size: 26px;
+  font-size: 27px;
   line-height: 1.08;
   letter-spacing: -0.04em;
 }
@@ -97,18 +93,22 @@ body.fiat-auth-required #fundingBox {
   font-family: inherit;
 }
 
+.fiat-auth-clerk-panel :where(.cl-dividerLine) {
+  background: rgba(255, 255, 255, 0.10);
+}
+
 /* Inputs */
 .fiat-auth-clerk-panel :where(.cl-formFieldInput) {
   min-height: 48px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
   color: #ffffff;
   box-shadow: none;
 }
 
 .fiat-auth-clerk-panel :where(.cl-formFieldInput::placeholder) {
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.34);
 }
 
 .fiat-auth-clerk-panel :where(.cl-formFieldInput:focus) {
@@ -127,14 +127,26 @@ body.fiat-auth-required #fundingBox {
   box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
 }
 
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary:hover) {
+  background: #20c997;
+}
+
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary:active) {
+  transform: scale(0.98);
+}
+
 /* Google button */
 .fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButton) {
   min-height: 48px;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.055);
   color: #ffffff;
   box-shadow: none;
+}
+
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButton:hover) {
+  background: rgba(255, 255, 255, 0.085);
 }
 
 .fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButtonText) {
@@ -143,10 +155,10 @@ body.fiat-auth-required #fundingBox {
   font-weight: 800;
 }
 
-/* Footer glass */
+/* Footer */
 .fiat-auth-clerk-panel :where(.cl-footer) {
   border-radius: 0 0 20px 20px;
-  background: rgba(0, 14, 45, 0.22) !important;
+  background: rgba(0, 14, 45, 0.12) !important;
 }
 
 .fiat-auth-clerk-panel :where(.cl-footerActionLink) {
@@ -155,27 +167,20 @@ body.fiat-auth-required #fundingBox {
   font-weight: 800;
 }
 
-/* Clerk badge area */
-.fiat-auth-clerk-panel :where(.cl-internal-b3fm6y),
-.fiat-auth-clerk-panel :where(.cl-internal-uyu30o) {
-  color: rgba(255, 255, 255, 0.42);
+.fiat-auth-clerk-panel :where(.cl-footerActionLink:hover) {
+  color: #99f6e4;
 }
 
+/* Clerk badge / development mode area */
+.fiat-auth-clerk-panel :where(.cl-internal-b3fm6y),
+.fiat-auth-clerk-panel :where(.cl-internal-uyu30o) {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+/* Mobile fit */
 @media (max-width: 430px) {
-  .fiat-auth-shell {
-    padding-top: 0;
-  }
-
-  .fiat-auth-shell h2 {
-    font-size: 29px;
-  }
-
-  .fiat-auth-clerk-panel {
-    margin-top: 16px;
-  }
-
-  .fiat-auth-clerk-panel :where(.cl-headerTitle) {
-    font-size: 24px;
+  .fiat-auth-gate {
+    width: min(100%, 392px);
   }
 
   .fiat-auth-clerk-panel :where(.cl-card) {
@@ -183,8 +188,14 @@ body.fiat-auth-required #fundingBox {
     background:
       linear-gradient(
         180deg,
-        rgba(9, 34, 72, 0.42) 0%,
-        rgba(0, 14, 45, 0.30) 100%
+        rgba(9, 34, 72, 0.26) 0%,
+        rgba(0, 14, 45, 0.16) 100%
       ) !important;
+    backdrop-filter: blur(8px) saturate(130%);
+    -webkit-backdrop-filter: blur(8px) saturate(130%);
+  }
+
+  .fiat-auth-clerk-panel :where(.cl-headerTitle) {
+    font-size: 25px;
   }
 }
