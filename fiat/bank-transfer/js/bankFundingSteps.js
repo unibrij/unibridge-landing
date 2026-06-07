@@ -22,11 +22,16 @@ import {
   setStatus,
   setActiveStep,
   markStepDone,
+  markStepFailed,
   showWaitingForFunding
 } from "./status.js";
 
 function normalizeString(value) {
   return String(value || "").trim();
+}
+
+function normalizeLower(value) {
+  return normalizeString(value).toLowerCase();
 }
 
 function isReturnedFromBridgeTos(query = {}) {
@@ -112,6 +117,322 @@ function isBridgeTosNotAcceptedError(err = {}) {
     message === "bridge_tos_not_accepted" ||
     code === "bridge_tos_not_accepted"
   );
+}
+
+function readNested(value, path = []) {
+  let current =
+    value;
+
+  for (const key of path) {
+    if (
+      !current ||
+      typeof current !== "object"
+    ) {
+      return null;
+    }
+
+    current =
+      current[key];
+  }
+
+  return current;
+}
+
+function normalizeArray(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  return [];
+}
+
+function resolveBridgeCustomerStatus(customer = {}) {
+  return normalizeLower(
+    customer.status ||
+    customer.bridge_customer_status ||
+    readNested(customer, ["customer", "status"]) ||
+    readNested(customer, ["bridge_customer", "status"]) ||
+    readNested(customer, ["readiness", "status"])
+  );
+}
+
+function resolveBridgeCustomerId(customer = {}) {
+  return (
+    normalizeString(customer.bridge_customer_id) ||
+    normalizeString(readNested(customer, ["customer", "id"])) ||
+    normalizeString(readNested(customer, ["bridge_customer", "id"])) ||
+    normalizeString(readNested(customer, ["id"])) ||
+    null
+  );
+}
+
+function resolveBridgeCustomerKycStatus(customer = {}) {
+  return (
+    normalizeString(customer.kyc_status) ||
+    normalizeString(customer.bridge_customer_kyc_status) ||
+    normalizeString(readNested(customer, ["customer", "kyc_status"])) ||
+    null
+  );
+}
+
+function resolveBridgeCustomerTosStatus(customer = {}) {
+  return (
+    normalizeString(customer.tos_status) ||
+    normalizeString(customer.bridge_customer_tos_status) ||
+    normalizeString(readNested(customer, ["customer", "tos_status"])) ||
+    null
+  );
+}
+
+function resolveRejectionReasons(customer = {}) {
+  return [
+    ...normalizeArray(customer.rejection_reasons),
+    ...normalizeArray(customer.reasons),
+    ...normalizeArray(
+      readNested(customer, [
+        "customer",
+        "rejection_reasons"
+      ])
+    ),
+    ...normalizeArray(
+      readNested(customer, [
+        "bridge_customer",
+        "rejection_reasons"
+      ])
+    ),
+    ...normalizeArray(
+      readNested(customer, [
+        "readiness",
+        "rejection_reasons"
+      ])
+    )
+  ];
+}
+
+function resolveIssues(customer = {}) {
+  return [
+    ...normalizeArray(customer.issues),
+    ...normalizeArray(
+      readNested(customer, [
+        "requirements",
+        "issues"
+      ])
+    ),
+    ...normalizeArray(
+      readNested(customer, [
+        "readiness",
+        "issues"
+      ])
+    )
+  ];
+}
+
+function stringifySafe(value) {
+  try {
+    return JSON.stringify(value || null);
+  } catch {
+    return null;
+  }
+}
+
+function hasDuplicateCustomerIssue(customer = {}) {
+  const issues =
+    resolveIssues(customer);
+
+  const rejectionReasons =
+    resolveRejectionReasons(customer);
+
+  const joined =
+    [
+      ...issues,
+      ...rejectionReasons
+    ]
+      .map(item => {
+        if (typeof item === "string") {
+          return item;
+        }
+
+        return stringifySafe(item) || "";
+      })
+      .join(" ")
+      .toLowerCase();
+
+  return joined.includes(
+    "duplicate_customer_detected"
+  );
+}
+
+function isRejectedBridgeCustomer(customer = {}) {
+  const status =
+    resolveBridgeCustomerStatus(customer);
+
+  const rejectionReasons =
+    resolveRejectionReasons(customer);
+
+  return (
+    status === "rejected" ||
+    status === "failed" ||
+    hasDuplicateCustomerIssue(customer) ||
+    rejectionReasons.length > 0
+  );
+}
+
+function resolveErrorStatus(err = {}) {
+  return normalizeLower(
+    err.status ||
+    err.statusCode ||
+    err.codeStatus ||
+    err.error?.status ||
+    err.error?.statusCode ||
+    err.response?.status ||
+    err.response?.statusCode ||
+    err.response?.data?.status ||
+    err.data?.status
+  );
+}
+
+function resolveErrorCode(err = {}) {
+  return normalizeLower(
+    err.code ||
+    err.error?.code ||
+    err.response?.data?.code ||
+    err.data?.code
+  );
+}
+
+function resolveErrorMessage(err = {}) {
+  return normalizeLower(
+    err.message ||
+    err.error?.message ||
+    err.response?.data?.message ||
+    err.data?.message ||
+    err.error
+  );
+}
+
+function isBridgeCustomerRejectedError(err = {}) {
+  const message =
+    resolveErrorMessage(err);
+
+  const code =
+    resolveErrorCode(err);
+
+  const status =
+    resolveErrorStatus(err);
+
+  return (
+    status === "409" ||
+    status === "conflict" ||
+    status === "rejected" ||
+    code === "409" ||
+    code === "conflict" ||
+    code === "bridge_customer_rejected" ||
+    code === "duplicate_customer_detected" ||
+    message.includes("bridge_customer_rejected") ||
+    message.includes("duplicate_customer_detected") ||
+    message.includes("your information could not be verified")
+  );
+}
+
+function resolveCustomerFromError(err = {}) {
+  return (
+    err.response?.data ||
+    err.data ||
+    err.response ||
+    err.error ||
+    err
+  );
+}
+
+function resolveUserFacingBridgeCustomerMessage(customer = {}) {
+  if (hasDuplicateCustomerIssue(customer)) {
+    return "We could not verify this bank-transfer profile. Please try another verified account or contact support.";
+  }
+
+  const reason =
+    resolveRejectionReasons(customer)
+      .map(item => {
+        if (typeof item === "string") {
+          return item;
+        }
+
+        return (
+          normalizeString(item.reason) ||
+          normalizeString(item.message) ||
+          normalizeString(item.developer_reason)
+        );
+      })
+      .find(Boolean);
+
+  return (
+    reason ||
+    "We could not verify this bank-transfer profile. Please try another verified account or contact support."
+  );
+}
+
+function clearInstructionsBox(instructionsBox) {
+  if (!instructionsBox) {
+    return;
+  }
+
+  instructionsBox.innerHTML =
+    "";
+
+  instructionsBox.classList.add(
+    "hidden"
+  );
+}
+
+function buildBridgeCustomerRejectedResult(customer = {}) {
+  return {
+    ok:
+      false,
+
+    retryable:
+      true,
+
+    blocked:
+      true,
+
+    step:
+      "customer",
+
+    error:
+      "bridge_customer_rejected",
+
+    bridge_customer_id:
+      resolveBridgeCustomerId(customer),
+
+    bridge_customer_status:
+      resolveBridgeCustomerStatus(customer) || "rejected",
+
+    reason:
+      resolveUserFacingBridgeCustomerMessage(customer),
+
+    issues:
+      resolveIssues(customer),
+
+    rejection_reasons:
+      resolveRejectionReasons(customer)
+  };
+}
+
+function showBridgeCustomerRejectedStatus(customer = {}) {
+  setActiveStep(
+    "customer"
+  );
+
+  markStepFailed(
+    "customer"
+  );
+
+  setStatus({
+    kind:
+      "error",
+
+    message:
+      resolveUserFacingBridgeCustomerMessage(customer)
+  });
 }
 
 function markTosAccepted({
@@ -323,7 +644,8 @@ async function runTos({
 
 async function runBridgeCustomer({
   settlementId,
-  persist
+  persist,
+  instructionsBox
 }) {
   setActiveStep(
     "customer"
@@ -342,25 +664,94 @@ async function runBridgeCustomer({
           customerProfile
       });
 
+    const bridgeCustomerId =
+      resolveBridgeCustomerId(
+        customer
+      );
+
+    const bridgeCustomerStatus =
+      resolveBridgeCustomerStatus(
+        customer
+      );
+
+    const bridgeCustomerKycStatus =
+      resolveBridgeCustomerKycStatus(
+        customer
+      );
+
+    const bridgeCustomerTosStatus =
+      resolveBridgeCustomerTosStatus(
+        customer
+      );
+
+    const rejectionReasons =
+      resolveRejectionReasons(
+        customer
+      );
+
+    const issues =
+      resolveIssues(
+        customer
+      );
+
     persist({
       bridge_customer_id:
-        customer.bridge_customer_id,
+        bridgeCustomerId,
 
       bridge_customer_status:
-        customer.status || null,
+        bridgeCustomerStatus || null,
 
       bridge_customer_kyc_status:
-        customer.kyc_status || null,
+        bridgeCustomerKycStatus || null,
 
       bridge_customer_tos_status:
-        customer.tos_status || null
+        bridgeCustomerTosStatus || null,
+
+      bridge_customer_rejection_reasons:
+        rejectionReasons,
+
+      bridge_customer_issues:
+        issues,
+
+      bridge_customer_rejection_reasons_json:
+        stringifySafe(
+          rejectionReasons
+        ),
+
+      bridge_customer_issues_json:
+        stringifySafe(
+          issues
+        )
     });
+
+    if (
+      isRejectedBridgeCustomer(
+        customer
+      )
+    ) {
+      clearInstructionsBox(
+        instructionsBox
+      );
+
+      showBridgeCustomerRejectedStatus(
+        customer
+      );
+
+      return buildBridgeCustomerRejectedResult(
+        customer
+      );
+    }
 
     markStepDone(
       "customer"
     );
 
-    return customer;
+    return {
+      ok:
+        true,
+
+      customer
+    };
   } catch (err) {
     if (
       isBridgeTosNotAcceptedError(
@@ -372,6 +763,84 @@ async function runBridgeCustomer({
         tosStatus:
           "required"
       });
+    }
+
+    if (
+      isBridgeCustomerRejectedError(
+        err
+      )
+    ) {
+      const customer =
+        resolveCustomerFromError(
+          err
+        );
+
+      const rejectionReasons =
+        resolveRejectionReasons(
+          customer
+        );
+
+      const issues =
+        resolveIssues(
+          customer
+        );
+
+      clearInstructionsBox(
+        instructionsBox
+      );
+
+      persist({
+        bridge_customer_id:
+          resolveBridgeCustomerId(
+            customer
+          ),
+
+        bridge_customer_status:
+          resolveBridgeCustomerStatus(
+            customer
+          ) || "rejected",
+
+        bridge_customer_kyc_status:
+          resolveBridgeCustomerKycStatus(
+            customer
+          ) || null,
+
+        bridge_customer_tos_status:
+          resolveBridgeCustomerTosStatus(
+            customer
+          ) || null,
+
+        bridge_customer_rejection_reasons:
+          rejectionReasons,
+
+        bridge_customer_issues:
+          issues,
+
+        bridge_customer_rejection_reasons_json:
+          stringifySafe(
+            rejectionReasons
+          ),
+
+        bridge_customer_issues_json:
+          stringifySafe(
+            issues
+          ),
+
+        bridge_customer_error:
+          normalizeString(
+            err.message ||
+            err.error ||
+            "bridge_customer_rejected"
+          )
+      });
+
+      showBridgeCustomerRejectedStatus(
+        customer
+      );
+
+      return buildBridgeCustomerRejectedResult(
+        customer
+      );
     }
 
     throw err;
@@ -479,23 +948,23 @@ export async function runBankFundingSteps({
     return tosResult;
   }
 
-  try {
+  const customerResult =
     await runBridgeCustomer({
       settlementId,
-      persist
+      persist,
+      instructionsBox
     });
-  } catch (err) {
-    if (
-      isBridgeTosNotAcceptedError(
-        err
-      )
-    ) {
-      showTosRequiredStatus();
 
-      return buildTosRetryResult();
-    }
+  if (
+    customerResult?.blocked ||
+    customerResult?.retryable ||
+    customerResult?.ok === false
+  ) {
+    clearInstructionsBox(
+      instructionsBox
+    );
 
-    throw err;
+    return customerResult;
   }
 
   const funding =
