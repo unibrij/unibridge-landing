@@ -621,6 +621,18 @@ async function handleCreateSettlement() {
       return;
     }
 
+    if (err?.handled === true) {
+      setCreateSettlementButton({
+        label:
+          "Create payout route",
+
+        disabled:
+          false
+      });
+
+      return;
+    }
+
     alert(
       resolveErrorMessage(err) ||
       "Could not create payout route"
