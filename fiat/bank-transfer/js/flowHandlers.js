@@ -83,6 +83,16 @@ function applyAuthResetUi({
   });
 }
 
+function resetPrimaryActionForRetry() {
+  setPrimaryAction({
+    label:
+      "Retry",
+
+    disabled:
+      false
+  });
+}
+
 export function createBankTransferHandlers({
   state,
   query,
@@ -156,6 +166,15 @@ export function createBankTransferHandlers({
       if (stepsResult?.redirected) {
         return;
       }
+
+      if (
+        stepsResult?.retryable ||
+        stepsResult?.ok === false
+      ) {
+        resetPrimaryActionForRetry();
+
+        return;
+      }
     } catch (err) {
       clearDiditAutoContinue();
 
@@ -182,13 +201,7 @@ export function createBankTransferHandlers({
           setStatus
         })
       ) {
-        setPrimaryAction({
-          label:
-            "Retry",
-
-          disabled:
-            false
-        });
+        resetPrimaryActionForRetry();
 
         return;
       }
@@ -202,13 +215,7 @@ export function createBankTransferHandlers({
           "Bank transfer setup failed"
       });
 
-      setPrimaryAction({
-        label:
-          "Retry",
-
-        disabled:
-          false
-      });
+      resetPrimaryActionForRetry();
     }
   }
 
