@@ -180,62 +180,40 @@ export function FiatAuthIsland() {
     email
   ]);
 
-  if (!isLoaded) {
+  if (isLoaded && isSignedIn && email) {
+    return null;
+  }
+
+  if (isLoaded && isSignedIn && !email) {
     return (
       <section className="fiat-auth-gate">
-        <div className="fiat-auth-shell">
-          <h2>
-            Secure sign-in
-          </h2>
-
-          <p className="fiat-auth-subtitle">
-            Loading secure bank-transfer access…
-          </p>
-        </div>
+        <p className="fiat-auth-warning">
+          Signed in, but no email was returned by Clerk.
+        </p>
       </section>
     );
   }
 
-  if (isSignedIn) {
-    if (!email) {
-      return (
-        <section className="fiat-auth-gate">
-          <div className="fiat-auth-shell">
-            <h2>
-              Signed in securely
-            </h2>
-
-            <p className="fiat-auth-warning">
-              Signed in, but no email was returned by Clerk.
-            </p>
-          </div>
-        </section>
-      );
-    }
-
-    return null;
+  if (!isLoaded) {
+    return (
+      <section className="fiat-auth-gate">
+        <p className="fiat-auth-loading">
+          Loading secure access…
+        </p>
+      </section>
+    );
   }
 
   return (
     <section className="fiat-auth-gate">
-      <div className="fiat-auth-shell">
-        <h2>
-          Secure sign-in
-        </h2>
-
-        <p className="fiat-auth-subtitle">
-          Sign in to continue bank-transfer funding.
-        </p>
-
-        <div className="fiat-auth-clerk-panel">
-          <SignedOut>
-            <SignIn
-              routing="hash"
-              forceRedirectUrl={returnUrl}
-              signUpForceRedirectUrl={returnUrl}
-            />
-          </SignedOut>
-        </div>
+      <div className="fiat-auth-clerk-panel">
+        <SignedOut>
+          <SignIn
+            routing="hash"
+            forceRedirectUrl={returnUrl}
+            signUpForceRedirectUrl={returnUrl}
+          />
+        </SignedOut>
       </div>
     </section>
   );
