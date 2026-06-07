@@ -48,9 +48,26 @@ function writeTransientCustomerProfile(values = {}) {
   const email =
     normalizeString(values.email);
 
+  const authSubjectId =
+    normalizeString(
+      values.auth_subject_id ||
+      values.user_id
+    );
+
   if (email) {
     next.email =
       email;
+  }
+
+  if (authSubjectId) {
+    next.auth_provider =
+      "clerk";
+
+    next.auth_subject_id =
+      authSubjectId;
+
+    next.user_id =
+      authSubjectId;
   }
 
   window.sessionStorage.setItem(
@@ -96,6 +113,35 @@ function resolveBridgeEmail(bridge) {
     ) ||
     null
   );
+}
+
+function resolveBridgeUserId(bridge) {
+  return (
+    normalizeString(
+      bridge?.userId
+    ) ||
+    normalizeString(
+      bridge?.auth_subject_id
+    ) ||
+    normalizeString(
+      readTransientCustomerProfile().auth_subject_id
+    ) ||
+    normalizeString(
+      readTransientCustomerProfile().user_id
+    ) ||
+    null
+  );
+}
+
+async function getFreshBridgeToken(bridge) {
+  try {
+    return await bridge.getToken({
+      skipCache:
+        true
+    });
+  } catch {
+    return bridge.getToken();
+  }
 }
 
 function waitForAuthBridge({
@@ -193,11 +239,24 @@ export async function ensureFiatClerkAuth() {
     });
 
   const token =
-    await bridge.getToken();
+    await getFreshBridgeToken(
+      bridge
+    );
 
   if (!token) {
     throw new Error(
       "clerk_session_token_missing"
+    );
+  }
+
+  const userId =
+    resolveBridgeUserId(
+      bridge
+    );
+
+  if (!userId) {
+    throw new Error(
+      "clerk_user_id_missing"
     );
   }
 
@@ -213,7 +272,13 @@ export async function ensureFiatClerkAuth() {
   }
 
   writeTransientCustomerProfile({
-    email
+    email,
+
+    auth_subject_id:
+      userId,
+
+    user_id:
+      userId
   });
 
   return {
@@ -226,7 +291,10 @@ export async function ensureFiatClerkAuth() {
     token,
 
     user_id:
-      null,
+      userId,
+
+    auth_subject_id:
+      userId,
 
     email,
 
