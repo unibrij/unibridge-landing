@@ -15,6 +15,15 @@ import {
 const PROFILE_KEY =
   "unibridge_fiat_customer_profile";
 
+const BANK_TRANSFER_FLOW_KEY =
+  "unibridge_bank_transfer_flow";
+
+const BANK_CUSTOMER_REF_KEY =
+  "unibridge_fiat_bank_customer_ref";
+
+const FIAT_CONTEXT_KEY =
+  "unibridge_fiat_context";
+
 const AUTH_BRIDGE_KEY =
   "__fiatClerkAuth";
 
@@ -93,9 +102,21 @@ function writeAuthToProfile({
   );
 }
 
-function clearStoredProfile() {
+function clearFiatBankTransferSession() {
   window.sessionStorage.removeItem(
     PROFILE_KEY
+  );
+
+  window.localStorage.removeItem(
+    BANK_TRANSFER_FLOW_KEY
+  );
+
+  window.localStorage.removeItem(
+    BANK_CUSTOMER_REF_KEY
+  );
+
+  window.localStorage.removeItem(
+    FIAT_CONTEXT_KEY
   );
 }
 
@@ -106,6 +127,21 @@ function resolvePrimaryEmail(user) {
     ) ||
     normalizeString(
       user?.emailAddresses?.[0]?.emailAddress
+    ) ||
+    null
+  );
+}
+
+function resolveAuthSubjectId({
+  userId,
+  user
+} = {}) {
+  return (
+    normalizeString(
+      userId
+    ) ||
+    normalizeString(
+      user?.id
     ) ||
     null
   );
@@ -148,9 +184,10 @@ export function FiatAuthIsland() {
     );
 
   const authSubjectId =
-    normalizeString(
-      userId
-    ) || null;
+    resolveAuthSubjectId({
+      userId,
+      user
+    });
 
   const returnUrl =
     resolveReturnUrl();
@@ -245,11 +282,11 @@ export function FiatAuthIsland() {
   ]);
 
   async function useAnotherAccount() {
-    clearStoredProfile();
+    clearFiatBankTransferSession();
 
     await signOut({
       redirectUrl:
-        returnUrl
+        "/pay"
     });
   }
 
