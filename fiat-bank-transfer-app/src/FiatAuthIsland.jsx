@@ -155,6 +155,10 @@ function resolveReturnUrl() {
   );
 }
 
+function resolvePayUrl() {
+  return `${window.location.origin}/pay`;
+}
+
 function setAuthRequiredClass(required) {
   document.body.classList.toggle(
     AUTH_REQUIRED_CLASS,
@@ -284,10 +288,19 @@ export function FiatAuthIsland() {
   async function useAnotherAccount() {
     clearFiatBankTransferSession();
 
-    await signOut({
-      redirectUrl:
-        "/pay"
-    });
+    const payUrl =
+      resolvePayUrl();
+
+    try {
+      await signOut({
+        redirectUrl:
+          payUrl
+      });
+    } finally {
+      window.location.replace(
+        payUrl
+      );
+    }
   }
 
   if (isReady) {
