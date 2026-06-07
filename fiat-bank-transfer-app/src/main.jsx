@@ -8,7 +8,7 @@ import "./style.css";
 import { FiatAuthIsland } from "./FiatAuthIsland.jsx";
 
 const CLERK_PUBLISHABLE_KEY =
-  "pk_test_bW92aW5nLWtpZC04Ny5jbGVyay5hY2NvdW50cy5kZXYk";
+  "pk_live_Y2xlcmsudW5pYnJpai5pbyQ";
 
 const root =
   document.getElementById("fiatReactRoot");
@@ -19,7 +19,33 @@ if (!root) {
 
 createRoot(root).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        variables: {
+          colorPrimary:
+            "#14b8a6",
+
+          colorBackground:
+            "transparent",
+
+          colorInputBackground:
+            "rgba(255, 255, 255, 0.055)",
+
+          colorInputText:
+            "#ffffff",
+
+          colorText:
+            "#ffffff",
+
+          colorTextSecondary:
+            "rgba(255, 255, 255, 0.72)",
+
+          borderRadius:
+            "14px"
+        }
+      }}
+    >
       <FiatAuthIsland />
     </ClerkProvider>
   </React.StrictMode>
