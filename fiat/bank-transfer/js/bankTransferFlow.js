@@ -472,8 +472,6 @@ async function handleQuote() {
 
     await ensureFiatClerkAuth();
 
-    prepareCustomerProfileForm();
-
     preparedQuote =
       await prepareBankTransferSettlement();
 
@@ -501,6 +499,8 @@ async function handleQuote() {
           preparedQuote.selected_route
       }
     );
+
+    prepareCustomerProfileForm();
 
     setCreateSettlementButton({
       label:
@@ -741,8 +741,6 @@ async function initEntryRoutes() {
 
     if (hasFiatContext()) {
       await ensureFiatClerkAuth();
-
-      prepareCustomerProfileForm();
     }
 
     setQuoteButton({
