@@ -363,13 +363,48 @@ export function normalizeRoute(route = {}, resolved = {}, context = {}) {
   };
 }
 
+function resolveRawRoutes(payload = {}, resolved = {}) {
+  if (Array.isArray(payload.routes)) {
+    return payload.routes;
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (Array.isArray(payload.available_routes)) {
+    return payload.available_routes;
+  }
+
+  if (Array.isArray(payload.delivery_options?.routes)) {
+    return payload.delivery_options.routes;
+  }
+
+  if (Array.isArray(resolved.routes)) {
+    return resolved.routes;
+  }
+
+  if (Array.isArray(resolved.data)) {
+    return resolved.data;
+  }
+
+  if (Array.isArray(resolved.available_routes)) {
+    return resolved.available_routes;
+  }
+
+  if (Array.isArray(resolved.delivery_options?.routes)) {
+    return resolved.delivery_options.routes;
+  }
+
+  return [];
+}
+
 export function resolveRoutesPayload(payload = {}, resolved = {}, context = {}) {
   const rawRoutes =
-    Array.isArray(payload.routes)
-      ? payload.routes
-      : Array.isArray(payload.data)
-        ? payload.data
-        : [];
+    resolveRawRoutes(
+      payload,
+      resolved
+    );
 
   return rawRoutes
     .map((route) => {
