@@ -512,68 +512,129 @@ option {
   color: #ff8f8f;
 }
 
-.instructions {
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  border-radius: 16px;
+.bank-instructions-card {
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  border-radius: 18px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.045);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 31, 66, 0.96),
+      rgba(7, 18, 43, 0.96)
+    );
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.instructions-header {
-  padding: 12px;
+.bank-instructions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(20, 184, 166, 0.06);
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(45, 212, 191, 0.18),
+      transparent 45%
+    ),
+    rgba(20, 184, 166, 0.06);
 }
 
-.instructions-header h2 {
+.bank-instructions-kicker {
+  margin-bottom: 5px;
+  color: #5eead4;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.bank-instructions-title {
   margin: 0;
   color: #ffffff;
-  font-size: 15px;
-  line-height: 1.25;
+  font-size: 17px;
+  line-height: 1.18;
 }
 
-.instructions-header p {
-  margin: 6px 0 0;
-  max-width: none;
-  color: rgba(255, 255, 255, 0.72);
+.bank-instructions-subtext {
+  margin: 7px 0 0;
+  color: rgba(255, 255, 255, 0.68);
   font-size: 12px;
   line-height: 1.45;
 }
 
-.instruction-grid {
-  display: grid;
+.bank-copy-all-button,
+.bank-copy-button {
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.08);
+  color: #99f6e4;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    color 160ms ease;
 }
 
-.instruction-row {
-  display: grid;
-  grid-template-columns: minmax(120px, 0.44fr) 1fr;
-  gap: 10px;
-  padding: 10px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.bank-copy-all-button {
+  flex: 0 0 auto;
+  padding: 8px 10px;
 }
 
-.instruction-row:first-child {
-  border-top: 0;
+.bank-copy-button {
+  padding: 6px 9px;
 }
 
-.instruction-label {
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 11px;
+.bank-copy-all-button:hover,
+.bank-copy-button:hover {
+  border-color: rgba(94, 234, 212, 0.5);
+  background: rgba(20, 184, 166, 0.16);
 }
 
-.instruction-value {
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: right;
-  word-break: break-word;
+.bank-copy-all-button:active,
+.bank-copy-button:active {
+  transform: translateY(1px);
 }
 
-.instruction-value.reference {
-  padding: 7px 8px;
-  border-radius: 10px;
+.bank-copy-button.copied,
+.bank-copy-all-button.copied {
+  border-color: rgba(45, 212, 191, 0.65);
+  background: rgba(45, 212, 191, 0.18);
+  color: #ffffff;
+}
+
+.bank-copy-button.failed,
+.bank-copy-all-button.failed {
+  border-color: rgba(251, 191, 36, 0.5);
   background: rgba(251, 191, 36, 0.12);
   color: #fbbf24;
+}
+
+.bank-transfer-id {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.bank-transfer-id span {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bank-transfer-id strong {
+  color: rgba(255, 255, 255, 0.72);
   font-family:
     ui-monospace,
     SFMono-Regular,
@@ -582,6 +643,98 @@ option {
     Consolas,
     "Liberation Mono",
     monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: break-all;
+}
+
+.bank-instructions-list {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.bank-instruction-item {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.03)
+    );
+}
+
+.bank-instruction-item.important {
+  border-color: rgba(45, 212, 191, 0.36);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 184, 166, 0.13),
+      rgba(20, 184, 166, 0.055)
+    );
+}
+
+.bank-instruction-item.reference {
+  border-color: rgba(251, 191, 36, 0.42);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 191, 36, 0.15),
+      rgba(251, 191, 36, 0.055)
+    );
+}
+
+.bank-instruction-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bank-instruction-label {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bank-instruction-value {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.38;
+  word-break: break-word;
+}
+
+.bank-instruction-value.mono {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+}
+
+.bank-instructions-note {
+  margin: 0 12px 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 14px;
+  background: rgba(251, 191, 36, 0.09);
+  color: #fde68a;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .actions {
@@ -623,6 +776,16 @@ option {
 .button:active:not(:disabled),
 .summary-link:active {
   transform: scale(0.98);
+}
+
+@media (min-width: 640px) {
+  .bank-instructions-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bank-instruction-item.wide {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 430px) {
@@ -682,12 +845,27 @@ option {
     grid-template-columns: 1fr;
   }
 
-  .instruction-row {
-    grid-template-columns: 1fr;
-    gap: 5px;
+  .bank-instructions-header {
+    padding: 13px;
   }
 
-  .instruction-value {
-    text-align: left;
+  .bank-instructions-title {
+    font-size: 16px;
+  }
+
+  .bank-instructions-list {
+    padding: 10px;
+  }
+
+  .bank-instruction-item {
+    padding: 10px;
+  }
+
+  .bank-instruction-value {
+    font-size: 12px;
+  }
+
+  .bank-instruction-value.mono {
+    font-size: 11px;
   }
 }
