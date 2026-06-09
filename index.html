@@ -1653,7 +1653,8 @@
                     <h1 class="hero-title">
   <span class="line">Instant local payouts</span>
   <br />
-  <span class="line">from anywhere.</span>
+  <span class="line trust-typewriter" data-typewriter="from anywhere."></span>
+</h1>
 </h1>  
    <p class="hero-subtitle">
   Use Pay with UniBridge directly, or add it to your product as a hosted flow, embedded flow, or API.
@@ -3249,40 +3250,42 @@ window.addEventListener('load', updateContactText);
 <div id="toast" class="toast"></div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const el = document.querySelector("[data-typewriter]");
+    const elements = document.querySelectorAll("[data-typewriter]");
 
-    if (!el) return;
+    if (!elements.length) return;
 
-    const fullText = el.getAttribute("data-typewriter");
-    let started = false;
+    elements.forEach((el) => {
+      const fullText = el.getAttribute("data-typewriter");
+      let started = false;
 
-    function typeText() {
-      let index = 0;
-      const speed = 55;
+      function typeText() {
+        let index = 0;
+        const speed = 55;
 
-      const timer = window.setInterval(() => {
-        el.textContent = fullText.slice(0, index + 1);
-        index += 1;
+        const timer = window.setInterval(() => {
+          el.textContent = fullText.slice(0, index + 1);
+          index += 1;
 
-        if (index >= fullText.length) {
-          window.clearInterval(timer);
-          el.classList.add("is-complete");
-        }
-      }, speed);
-    }
+          if (index >= fullText.length) {
+            window.clearInterval(timer);
+            el.classList.add("is-complete");
+          }
+        }, speed);
+      }
 
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && !started) {
-          started = true;
-          typeText();
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.45 }
-    );
+      const observer = new IntersectionObserver(
+        entries => {
+          if (entries[0].isIntersecting && !started) {
+            started = true;
+            typeText();
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.45 }
+      );
 
-    observer.observe(el);
+      observer.observe(el);
+    });
   });
 </script>
 </body>
