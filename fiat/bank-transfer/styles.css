@@ -543,6 +543,10 @@ option {
     rgba(20, 184, 166, 0.06);
 }
 
+.bank-instructions-header > div {
+  min-width: 0;
+}
+
 .bank-instructions-kicker {
   margin-bottom: 5px;
   color: #5eead4;
@@ -586,6 +590,7 @@ option {
 .bank-copy-all-button {
   flex: 0 0 auto;
   padding: 8px 10px;
+  white-space: nowrap;
 }
 
 .bank-copy-button {
@@ -710,6 +715,8 @@ option {
   font-weight: 800;
   line-height: 1.38;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  user-select: text;
 }
 
 .bank-instruction-value.mono {
