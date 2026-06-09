@@ -55,7 +55,9 @@ async function copyText(value) {
     !navigator.clipboard ||
     !navigator.clipboard.writeText
   ) {
-    throw new Error("clipboard_unavailable");
+    throw new Error(
+      "clipboard_unavailable"
+    );
   }
 
   await navigator.clipboard.writeText(
@@ -81,7 +83,11 @@ function resolveBankInstructions(funding = {}) {
   );
 }
 
-function resolveValue(instructions = {}, funding = {}, keys = []) {
+function resolveValue(
+  instructions = {},
+  funding = {},
+  keys = []
+) {
   for (const key of keys) {
     if (
       hasValue(
@@ -123,7 +129,10 @@ function buildInstructionRows(funding = {}) {
             "source_rail",
             "rail"
           ]
-        )
+        ),
+
+      formatter:
+        "label"
     },
     {
       label:
@@ -137,7 +146,10 @@ function buildInstructionRows(funding = {}) {
             "currency",
             "source_currency"
           ]
-        )
+        ),
+
+      formatter:
+        "uppercase"
     },
     {
       label:
@@ -310,7 +322,10 @@ function buildInstructionRows(funding = {}) {
         ),
 
       mono:
-        true
+        true,
+
+      formatter:
+        "uppercase"
     },
     {
       label:
@@ -399,9 +414,39 @@ function resolveTransferId(funding = {}) {
   );
 }
 
+function formatDisplayValue(row = {}) {
+  const value =
+    normalizeString(
+      row.value
+    );
+
+  if (
+    row.formatter === "uppercase"
+  ) {
+    return value.toUpperCase();
+  }
+
+  if (
+    row.formatter === "label"
+  ) {
+    return formatLabel(
+      value
+    );
+  }
+
+  return value;
+}
+
 function buildCopyPayload(rows = []) {
   return rows
-    .map(row => `${row.label}: ${normalizeString(row.value)}`)
+    .map(row => {
+      const value =
+        normalizeString(
+          row.value
+        );
+
+      return `${row.label}: ${value}`;
+    })
     .join("\n");
 }
 
@@ -422,9 +467,14 @@ function renderInstructionRow(row) {
     .filter(Boolean)
     .join(" ");
 
-  const value =
+  const rawValue =
     normalizeString(
       row.value
+    );
+
+  const displayValue =
+    formatDisplayValue(
+      row
     );
 
   return `
@@ -437,7 +487,7 @@ function renderInstructionRow(row) {
         <button
           type="button"
           class="bank-copy-button"
-          data-copy-value="${escapeAttribute(encodeCopyValue(value))}"
+          data-copy-value="${escapeAttribute(encodeCopyValue(rawValue))}"
           aria-label="Copy ${escapeAttribute(row.label)}"
         >
           Copy
@@ -445,7 +495,7 @@ function renderInstructionRow(row) {
       </div>
 
       <div class="${valueClasses}">
-        ${escapeHtml(value)}
+        ${escapeHtml(displayValue)}
       </div>
     </div>
   `;
