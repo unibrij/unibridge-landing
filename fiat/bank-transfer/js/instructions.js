@@ -4,174 +4,400 @@ function normalizeString(value) {
   return String(value || "").trim();
 }
 
-function pickFirstString(...values) {
-  for (const value of values) {
-    const normalized =
-      normalizeString(value);
+function hasValue(value) {
+  return normalizeString(value).length > 0;
+}
 
-    if (normalized) {
-      return normalized;
+function formatLabel(value) {
+  return normalizeString(value)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function escapeHtml(value) {
+  return normalizeString(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function resolveBankInstructions(funding = {}) {
+  return (
+    funding.source_deposit_instructions ||
+    funding.next_action?.instructions ||
+    funding.deposit_instructions ||
+    funding.bank_instructions ||
+    funding.instructions ||
+    funding.virtual_account?.source_deposit_instructions ||
+    funding.bridge_virtual_account?.source_deposit_instructions ||
+    funding.data?.source_deposit_instructions ||
+    funding.data?.next_action?.instructions ||
+    funding.data?.deposit_instructions ||
+    null
+  );
+}
+
+function resolveValue(instructions = {}, funding = {}, keys = []) {
+  for (const key of keys) {
+    if (hasValue(instructions[key])) {
+      return instructions[key];
+    }
+
+    if (hasValue(funding[key])) {
+      return funding[key];
     }
   }
 
   return null;
 }
 
-function escapeHtml(value) {
-  return normalizeString(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+function buildInstructionRows(funding = {}) {
+  const instructions =
+    resolveBankInstructions(
+      funding
+    ) || {};
 
-function normalizeInstructions(value = {}) {
-  const source =
-    value.source_deposit_instructions ||
-    value.next_action?.source_deposit_instructions ||
-    value.next_action?.instructions ||
-    value.instructions ||
-    {};
+  const rows = [
+    {
+      label:
+        "Payment rail",
 
-  return (
-    source.deposit_instructions ||
-    source.bank_transfer_instructions ||
-    source.instructions ||
-    source
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "payment_rail",
+            "source_rail",
+            "rail"
+          ]
+        )
+    },
+    {
+      label:
+        "Currency",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "currency",
+            "source_currency"
+          ]
+        )
+    },
+    {
+      label:
+        "Amount",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "amount",
+            "source_amount"
+          ]
+        )
+    },
+    {
+      label:
+        "Bank name",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_name"
+          ]
+        )
+    },
+    {
+      label:
+        "Routing number",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_routing_number",
+            "routing_number"
+          ]
+        )
+    },
+    {
+      label:
+        "Account number",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_account_number",
+            "account_number"
+          ]
+        )
+    },
+    {
+      label:
+        "Beneficiary name",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_beneficiary_name",
+            "account_holder_name",
+            "beneficiary_name"
+          ]
+        )
+    },
+    {
+      label:
+        "Beneficiary address",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_beneficiary_address",
+            "beneficiary_address"
+          ]
+        )
+    },
+    {
+      label:
+        "Bank address",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bank_address"
+          ]
+        )
+    },
+    {
+      label:
+        "Deposit message",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "deposit_message",
+            "memo",
+            "reference",
+            "payment_reference"
+          ]
+        )
+    },
+    {
+      label:
+        "IBAN",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "iban"
+          ]
+        )
+    },
+    {
+      label:
+        "BIC / SWIFT",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "bic",
+            "swift"
+          ]
+        )
+    },
+    {
+      label:
+        "PIX code",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "br_code",
+            "pix_code"
+          ]
+        )
+    },
+    {
+      label:
+        "CLABE",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "clabe"
+          ]
+        )
+    },
+    {
+      label:
+        "Sort code",
+
+      value:
+        resolveValue(
+          instructions,
+          funding,
+          [
+            "sort_code"
+          ]
+        )
+    }
+  ];
+
+  return rows.filter(
+    row => hasValue(row.value)
   );
 }
 
-function buildInstructionRows(instructions = {}) {
-  return [
-    {
-      label: "Bank name",
-      value:
-        pickFirstString(
-          instructions.bank_name,
-          instructions.bank?.name
-        )
-    },
+function resolveInstructionTitle(funding = {}) {
+  return (
+    funding.next_action?.label ||
+    funding.label ||
+    "Send the bank transfer using the instructions below."
+  );
+}
 
-    {
-      label: "Account holder",
-      value:
-        pickFirstString(
-          instructions.beneficiary_name,
-          instructions.account_holder_name,
-          instructions.account_holder,
-          instructions.account_name
-        )
-    },
+function resolveInstructionSubtext(funding = {}) {
+  const state =
+    normalizeString(
+      funding.bridge_transfer_state ||
+      funding.state
+    );
 
-    {
-      label: "Account number",
-      value:
-        pickFirstString(
-          instructions.account_number,
-          instructions.bank_account_number
-        )
-    },
+  const transferId =
+    normalizeString(
+      funding.bridge_transfer_id ||
+      funding.transfer_id
+    );
 
-    {
-      label: "Routing number",
-      value:
-        pickFirstString(
-          instructions.routing_number,
-          instructions.ach_routing_number,
-          instructions.bank_routing_number
-        )
-    },
+  if (
+    state &&
+    transferId
+  ) {
+    return `Transfer ${transferId} is ${formatLabel(state)}.`;
+  }
 
-    {
-      label: "Sort code",
-      value:
-        pickFirstString(
-          instructions.sort_code
-        )
-    },
+  if (state) {
+    return `Transfer status: ${formatLabel(state)}.`;
+  }
 
-    {
-      label: "IBAN",
-      value:
-        pickFirstString(
-          instructions.iban
-        )
-    },
+  if (transferId) {
+    return `Transfer ID: ${transferId}.`;
+  }
 
-    {
-      label: "Reference",
-      className:
-        "reference",
-      value:
-        pickFirstString(
-          instructions.deposit_message,
-          instructions.reference,
-          instructions.memo,
-          instructions.payment_reference
-        )
-    },
+  return "";
+}
 
-    {
-      label: "Address",
-      value:
-        pickFirstString(
-          instructions.bank_address,
-          instructions.beneficiary_address
-        )
-    }
-  ].filter((row) => row.value);
+function renderInstructionRow(row) {
+  return `
+    <div class="bank-instruction-row">
+      <div class="bank-instruction-label">
+        ${escapeHtml(row.label)}
+      </div>
+      <div class="bank-instruction-value">
+        ${escapeHtml(row.value)}
+      </div>
+    </div>
+  `;
 }
 
 export function renderBankInstructions(
-  container,
-  bridgeFunding
+  instructionsBox,
+  funding = {}
 ) {
-  if (!container) {
-    return;
+  if (!instructionsBox) {
+    return false;
   }
-
-  const instructions =
-    normalizeInstructions(
-      bridgeFunding
-    );
 
   const rows =
     buildInstructionRows(
-      instructions
+      funding
     );
 
   if (!rows.length) {
-    container.classList.add("hidden");
-    container.innerHTML = "";
-    return;
+    instructionsBox.innerHTML =
+      "";
+
+    instructionsBox.classList.add(
+      "hidden"
+    );
+
+    return false;
   }
 
-  container.innerHTML = `
-    <div class="instructions-header">
-      <h2>Bank transfer instructions</h2>
-      <p>
-        Send the transfer exactly as shown.
-        Include the reference if provided.
-      </p>
-    </div>
+  const title =
+    resolveInstructionTitle(
+      funding
+    );
 
-    <div class="instruction-grid">
-      ${rows.map((row) => `
-        <div class="instruction-row">
-          <div class="instruction-label">
-            ${escapeHtml(row.label)}
+  const subtext =
+    resolveInstructionSubtext(
+      funding
+    );
+
+  instructionsBox.innerHTML =
+    `
+      <div class="bank-instructions-card">
+        <div class="bank-instructions-header">
+          <div class="bank-instructions-kicker">
+            Bank transfer instructions
           </div>
 
-          <div class="instruction-value ${escapeHtml(row.className || "")}">
-            ${escapeHtml(row.value)}
-          </div>
+          <h3 class="bank-instructions-title">
+            ${escapeHtml(title)}
+          </h3>
+
+          ${
+            subtext
+              ? `
+                <p class="bank-instructions-subtext">
+                  ${escapeHtml(subtext)}
+                </p>
+              `
+              : ""
+          }
         </div>
-      `).join("")}
-    </div>
-  `;
 
-  container.classList.remove(
+        <div class="bank-instructions-list">
+          ${rows.map(renderInstructionRow).join("")}
+        </div>
+
+        <div class="bank-instructions-note">
+          Use the deposit message/reference exactly as shown when sending the transfer.
+        </div>
+      </div>
+    `;
+
+  instructionsBox.classList.remove(
     "hidden"
   );
+
+  return true;
 }
