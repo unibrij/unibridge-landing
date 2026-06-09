@@ -26,6 +26,13 @@ import {
   showWaitingForFunding
 } from "./status.js";
 
+import {
+  isPendingBankTransferResponse,
+  hasRenderableBankInstructions,
+  buildBankTransferPendingResult,
+  buildBankTransferInstructionsMissingResult
+} from "./funding/bankTransferGuards.js";
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
@@ -287,7 +294,8 @@ function resolveErrorStatus(err = {}) {
     err.response?.status ||
     err.response?.statusCode ||
     err.response?.data?.status ||
-    err.data?.status
+    err.data?.status ||
+    err.body?.status
   );
 }
 
@@ -296,7 +304,11 @@ function resolveErrorCode(err = {}) {
     err.code ||
     err.error?.code ||
     err.response?.data?.code ||
-    err.data?.code
+    err.data?.code ||
+    err.body?.code ||
+    err.body?.error ||
+    err.body?.reason ||
+    err.body?.state
   );
 }
 
@@ -306,6 +318,9 @@ function resolveErrorMessage(err = {}) {
     err.error?.message ||
     err.response?.data?.message ||
     err.data?.message ||
+    err.body?.message ||
+    err.body?.reason ||
+    err.body?.state ||
     err.error
   );
 }
@@ -316,6 +331,9 @@ function resolveReadableErrorMessage(err = {}) {
     normalizeString(err.error?.message) ||
     normalizeString(err.response?.data?.message) ||
     normalizeString(err.data?.message) ||
+    normalizeString(err.body?.message) ||
+    normalizeString(err.body?.reason) ||
+    normalizeString(err.body?.state) ||
     normalizeString(err.error) ||
     "bridge_bank_transfer_create_failed"
   );
@@ -349,6 +367,7 @@ function resolveCustomerFromError(err = {}) {
   return (
     err.response?.data ||
     err.data ||
+    err.body ||
     err.response ||
     err.error ||
     err
@@ -396,7 +415,9 @@ function resolveUserFacingBankTransferMessage(err = {}) {
     status === "409" ||
     status === "conflict" ||
     code === "409" ||
-    code === "conflict"
+    code === "conflict" ||
+    raw.startsWith("bridge_customer_") ||
+    code.startsWith("bridge_customer_")
   ) {
     return "Your funding profile is not ready for bank-transfer instructions yet. Please refresh status or contact support.";
   }
@@ -512,6 +533,47 @@ function showBankTransferCreateFailedStatus(err = {}) {
 
     message:
       resolveUserFacingBankTransferMessage(err)
+  });
+}
+
+function showBankTransferPendingStatus(funding = {}) {
+  setActiveStep(
+    "instructions"
+  );
+
+  markStepFailed(
+    "instructions"
+  );
+
+  setStatus({
+    kind:
+      "warning",
+
+    message:
+      funding.message ||
+      funding.reason ||
+      funding.state ||
+      funding.error ||
+      "Your funding profile is not ready for bank-transfer instructions yet. Please refresh status."
+  });
+}
+
+function showBankTransferInstructionsMissingStatus(result = {}) {
+  setActiveStep(
+    "instructions"
+  );
+
+  markStepFailed(
+    "instructions"
+  );
+
+  setStatus({
+    kind:
+      "error",
+
+    message:
+      result.reason ||
+      "Bank-transfer instructions were not returned. Please refresh status or contact support."
   });
 }
 
@@ -948,24 +1010,149 @@ async function runBridgeBankTransfer({
           state.source_rail
       });
 
+    if (
+      isPendingBankTransferResponse(
+        funding
+      )
+    ) {
+      clearInstructionsBox(
+        instructionsBox
+      );
+
+      persist({
+        latest_funding_response:
+          funding,
+
+        bridge_bank_transfer_error:
+          funding.message ||
+          funding.reason ||
+          funding.state ||
+          funding.error ||
+          "bridge_bank_transfer_not_ready",
+
+        bridge_bank_transfer_error_status:
+          funding.status || null,
+
+        bridge_bank_transfer_error_code:
+          funding.code ||
+          funding.reason ||
+          funding.state ||
+          funding.error ||
+          null
+      });
+
+      showBankTransferPendingStatus(
+        funding
+      );
+
+      return buildBankTransferPendingResult(
+        funding
+      );
+    }
+
+    if (
+      !hasRenderableBankInstructions(
+        funding
+      )
+    ) {
+      clearInstructionsBox(
+        instructionsBox
+      );
+
+      const result =
+        buildBankTransferInstructionsMissingResult(
+          funding
+        );
+
+      persist({
+        latest_funding_response:
+          funding,
+
+        bridge_transfer_id:
+          funding.bridge_transfer_id || null,
+
+        bridge_transfer_state:
+          funding.bridge_transfer_state || null,
+
+        bridge_bank_transfer_error:
+          result.error,
+
+        bridge_bank_transfer_error_status:
+          null,
+
+        bridge_bank_transfer_error_code:
+          result.error
+      });
+
+      showBankTransferInstructionsMissingStatus(
+        result
+      );
+
+      return result;
+    }
+
+    const rendered =
+      renderBankInstructions(
+        instructionsBox,
+        funding
+      );
+
+    if (!rendered) {
+      clearInstructionsBox(
+        instructionsBox
+      );
+
+      const result =
+        buildBankTransferInstructionsMissingResult(
+          funding
+        );
+
+      persist({
+        latest_funding_response:
+          funding,
+
+        bridge_transfer_id:
+          funding.bridge_transfer_id || null,
+
+        bridge_transfer_state:
+          funding.bridge_transfer_state || null,
+
+        bridge_bank_transfer_error:
+          result.error,
+
+        bridge_bank_transfer_error_status:
+          null,
+
+        bridge_bank_transfer_error_code:
+          result.error
+      });
+
+      showBankTransferInstructionsMissingStatus(
+        result
+      );
+
+      return result;
+    }
+
     persist({
       bridge_transfer_id:
-        funding.bridge_transfer_id,
+        funding.bridge_transfer_id || null,
 
       bridge_transfer_state:
-        funding.bridge_transfer_state,
+        funding.bridge_transfer_state || null,
 
       latest_funding_response:
         funding,
 
       bridge_bank_transfer_error:
+        null,
+
+      bridge_bank_transfer_error_status:
+        null,
+
+      bridge_bank_transfer_error_code:
         null
     });
-
-    renderBankInstructions(
-      instructionsBox,
-      funding
-    );
 
     markStepDone(
       "instructions"
@@ -1097,10 +1284,13 @@ export async function runBankFundingSteps({
     fundingResult?.retryable ||
     fundingResult?.ok === false
   ) {
-    clearInstructionsBox(
-      instructionsBox
-    );
+    /*
+      Do not clear instructions here.
+      runBridgeBankTransfer already clears only when needed.
 
+      This prevents accidentally hiding valid instructions if
+      a future non-blocking warning is returned together with data.
+    */
     return fundingResult;
   }
 
