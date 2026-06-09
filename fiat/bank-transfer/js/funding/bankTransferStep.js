@@ -17,7 +17,7 @@ import {
   hasRenderableBankInstructions,
   buildBankTransferPendingResult,
   buildBankTransferInstructionsMissingResult
-} from "./bankTransferGuards.js";
+} from "../bankTransferGuards.js";
 
 import {
   resolveErrorStatus,
