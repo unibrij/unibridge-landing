@@ -26,14 +26,53 @@ const BRIDGE_PROFILE_DEFAULTS = {
     "salary",
 
   identification_type:
-    "national_id",
-
-  issuing_country:
-    "BRA"
+    "national_id"
 };
 
 function normalizeString(value) {
   return String(value || "").trim();
+}
+
+/*
+--------------------------------------------------
+Bridge customer/KYC country normalizer
+--------------------------------------------------
+Important:
+- This is only for customer profile fields:
+  residential_address.country / issuing_country.
+- Do NOT use this to normalize funding source market
+  or source_country/source_rail from the registered route.
+--------------------------------------------------
+*/
+
+function normalizeBridgeCountry(value) {
+  const normalized =
+    normalizeString(value).toUpperCase();
+
+  const map = {
+    BR:
+      "BRA",
+
+    BRA:
+      "BRA",
+
+    US:
+      "USA",
+
+    USA:
+      "USA",
+
+    GB:
+      "GBR",
+
+    UK:
+      "GBR",
+
+    GBR:
+      "GBR"
+  };
+
+  return map[normalized] || normalized;
 }
 
 function getEl(id) {
@@ -64,6 +103,21 @@ function writeInput(id, value) {
 
   el.value =
     normalizeString(value);
+}
+
+function readClerkEmail() {
+  const clerk =
+    window.Clerk;
+
+  const user =
+    clerk?.user;
+
+  return normalizeString(
+    user?.primaryEmailAddress?.emailAddress ||
+      user?.emailAddresses?.[0]?.emailAddress ||
+      user?.email ||
+      ""
+  );
 }
 
 function readStoredProfile() {
@@ -115,9 +169,94 @@ function normalizeResidentialAddress(address = {}) {
       ),
 
     country:
-      normalizeString(
+      normalizeBridgeCountry(
         address.country
-      ).toUpperCase()
+      )
+  };
+}
+
+function normalizeBridgeProfile(profile = {}) {
+  const address =
+    normalizeResidentialAddress(
+      profile.residential_address || {}
+    );
+
+  const email =
+    normalizeString(
+      profile.email
+    ) || readClerkEmail();
+
+  const issuingCountry =
+    normalizeBridgeCountry(
+      profile.issuing_country ||
+        address.country
+    );
+
+  return {
+    ...BRIDGE_PROFILE_DEFAULTS,
+
+    ...profile,
+
+    email,
+
+    phone:
+      normalizeString(
+        profile.phone
+      ),
+
+    customer_region:
+      normalizeString(
+        profile.customer_region ||
+          BRIDGE_PROFILE_DEFAULTS.customer_region
+      ),
+
+    employment_status:
+      normalizeString(
+        profile.employment_status ||
+          BRIDGE_PROFILE_DEFAULTS.employment_status
+      ),
+
+    expected_monthly_payments:
+      normalizeString(
+        profile.expected_monthly_payments ||
+          BRIDGE_PROFILE_DEFAULTS.expected_monthly_payments
+      ),
+
+    acting_as_intermediary:
+      normalizeString(
+        profile.acting_as_intermediary ||
+          BRIDGE_PROFILE_DEFAULTS.acting_as_intermediary
+      ),
+
+    most_recent_occupation:
+      normalizeString(
+        profile.most_recent_occupation ||
+          BRIDGE_PROFILE_DEFAULTS.most_recent_occupation
+      ),
+
+    account_purpose:
+      normalizeString(
+        profile.account_purpose ||
+          BRIDGE_PROFILE_DEFAULTS.account_purpose
+      ),
+
+    source_of_funds:
+      normalizeString(
+        profile.source_of_funds ||
+          BRIDGE_PROFILE_DEFAULTS.source_of_funds
+      ),
+
+    identification_type:
+      normalizeString(
+        profile.identification_type ||
+          BRIDGE_PROFILE_DEFAULTS.identification_type
+      ),
+
+    issuing_country:
+      issuingCountry,
+
+    residential_address:
+      address
   };
 }
 
@@ -179,6 +318,12 @@ function validateCustomerProfile(profile = {}) {
     );
   }
 
+  if (!normalizeString(profile.issuing_country)) {
+    throw buildValidationError(
+      "issuing_country"
+    );
+  }
+
   return true;
 }
 
@@ -201,7 +346,9 @@ export function prepareCustomerProfileForm() {
 }
 
 export function readCustomerProfile() {
-  return readStoredProfile();
+  return normalizeBridgeProfile(
+    readStoredProfile()
+  );
 }
 
 export function clearCustomerProfile() {
@@ -212,14 +359,18 @@ export function clearCustomerProfile() {
 
 export function upsertCustomerProfile(values = {}) {
   const existing =
-    readStoredProfile();
+    normalizeBridgeProfile(
+      readStoredProfile()
+    );
 
   const next = {
     ...existing
   };
 
   const email =
-    normalizeString(values.email);
+    normalizeString(
+      values.email
+    ) || existing.email || readClerkEmail();
 
   if (email) {
     next.email =
@@ -228,7 +379,9 @@ export function upsertCustomerProfile(values = {}) {
 
   if (values.phone !== undefined) {
     next.phone =
-      normalizeString(values.phone);
+      normalizeString(
+        values.phone
+      );
   }
 
   if (values.residential_address !== undefined) {
@@ -250,17 +403,34 @@ export function upsertCustomerProfile(values = {}) {
           : defaultValue;
 
     next[key] =
-      normalizeString(value);
+      normalizeString(
+        value
+      );
   });
 
+  if (values.issuing_country !== undefined) {
+    next.issuing_country =
+      normalizeBridgeCountry(
+        values.issuing_country
+      );
+  }
+
   return writeStoredProfile(
-    next
+    normalizeBridgeProfile(
+      next
+    )
   );
 }
 
 export function syncCustomerProfileFormFromStorage() {
   const profile =
-    readStoredProfile();
+    normalizeBridgeProfile(
+      readStoredProfile()
+    );
+
+  writeStoredProfile(
+    profile
+  );
 
   writeInput(
     "customerPhone",
@@ -292,41 +462,55 @@ export function syncCustomerProfileFormFromStorage() {
 
   writeInput(
     "customerCountry",
-    address.country || "BRA"
+    address.country
   );
 }
 
 export function saveCustomerProfileFromForm() {
   const existing =
-    readStoredProfile();
+    normalizeBridgeProfile(
+      readStoredProfile()
+    );
 
-  const profile = {
-    email:
-      normalizeString(existing.email),
+  const residentialAddress =
+    normalizeResidentialAddress({
+      street_line_1:
+        readInput("customerStreetLine1"),
 
-    phone:
-      readInput("customerPhone"),
+      city:
+        readInput("customerCity"),
 
-    residential_address:
-      normalizeResidentialAddress({
-        street_line_1:
-          readInput("customerStreetLine1"),
+      state:
+        readInput("customerState"),
 
-        city:
-          readInput("customerCity"),
+      postal_code:
+        readInput("customerPostalCode"),
 
-        state:
-          readInput("customerState"),
+      country:
+        readInput("customerCountry")
+    });
 
-        postal_code:
-          readInput("customerPostalCode"),
+  const profile =
+    normalizeBridgeProfile({
+      ...BRIDGE_PROFILE_DEFAULTS,
 
-        country:
-          readInput("customerCountry") || "BRA"
-      }),
+      ...existing,
 
-    ...BRIDGE_PROFILE_DEFAULTS
-  };
+      email:
+        normalizeString(
+          existing.email
+        ) || readClerkEmail(),
+
+      phone:
+        readInput("customerPhone"),
+
+      residential_address:
+        residentialAddress,
+
+      issuing_country:
+        existing.issuing_country ||
+          residentialAddress.country
+    });
 
   validateCustomerProfile(
     profile
@@ -345,9 +529,15 @@ export function ensureCustomerProfileFromForm() {
 
 export function requireCustomerProfile() {
   const profile =
-    readStoredProfile();
+    normalizeBridgeProfile(
+      readStoredProfile()
+    );
 
   validateCustomerProfile(
+    profile
+  );
+
+  writeStoredProfile(
     profile
   );
 
@@ -373,6 +563,9 @@ export function focusCustomerProfileField(field) {
 
     country:
       "customerCountry",
+
+    issuing_country:
+      null,
 
     email:
       null
