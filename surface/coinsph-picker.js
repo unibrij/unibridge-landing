@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/coinsph-picker.js
+// unibrij/unibridge-landing/surface/coinsph-picker.js
 
 /*
 --------------------------------------------------
