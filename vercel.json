@@ -1,4 +1,42 @@
 {
+  "headers": [
+    {
+      "source": "/surface",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/surface/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/pay",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/pay/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/_next/:path*",
@@ -26,11 +64,11 @@
     },
     {
       "source": "/surface",
-      "destination": "/surface/public/index.html"
+      "destination": "/surface/index.html"
     },
     {
-      "source": "/surface/:path*",
-      "destination": "/surface/public/:path*"
+      "source": "/pay",
+      "destination": "/pay/index.html"
     }
   ]
 }
