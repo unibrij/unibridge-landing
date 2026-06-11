@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/js/api.js
+// unibrij/unibridge-landing/surface/js/api.js
 
 window.UnibridgeApi = (() => {
   function parseResponse(r) {
