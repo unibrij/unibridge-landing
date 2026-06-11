@@ -151,14 +151,14 @@
 
         <section id="coinsPhBox" class="hidden">
           <div class="entry-header compact">
-            <h2>Philippines payout details</h2>
+            <h2>GCash payout details</h2>
             <p>
-              Select the receiving institution and enter recipient details.
+              Enter the recipient name and GCash mobile number.
             </p>
           </div>
 
           <label class="field">
-            <span>Bank / payout institution</span>
+            <span>Payout method</span>
 
             <div class="coinsph-picker">
               <div class="coinsph-search-row">
@@ -166,7 +166,8 @@
                   id="coinsPhBankSearch"
                   type="text"
                   autocomplete="off"
-                  placeholder="Search bank or payout institution"
+                  placeholder="GCash / InstaPay"
+                  disabled
                 />
 
                 <input id="coinsPhBank" type="hidden" value="" />
@@ -178,7 +179,7 @@
                 id="coinsPhSearchCount"
                 class="coinsph-search-count"
               >
-                Loading payout institutions...
+                GCash / InstaPay payout route.
               </div>
 
               <div
@@ -218,17 +219,18 @@
               <input
                 id="coinsPhRecipientName"
                 type="text"
-                placeholder="Name as registered with the receiving bank"
+                placeholder="Recipient name"
               />
             </label>
 
             <label class="field">
-              <span>Bank account number</span>
+              <span>GCash mobile number</span>
               <input
                 id="coinsPhRecipientAccount"
                 type="text"
                 inputmode="numeric"
-                placeholder="Enter bank account number"
+                autocomplete="tel"
+                placeholder="Enter GCash mobile number"
               />
             </label>
 
@@ -261,7 +263,7 @@
           </button>
 
           <div class="muted" id="coinsPhHint">
-            Search for the receiving bank, select the payout channel, then enter the recipient details.
+            Enter the recipient name and GCash mobile number.
           </div>
         </section>
 
