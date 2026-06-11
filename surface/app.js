@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/app.js
+// unibrij/unibridge-landing/surface/app.js
 
 import {
   applyAmountLimitUi
