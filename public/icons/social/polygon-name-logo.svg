@@ -1,8 +1,0 @@
-<svg width="420" height="96" viewBox="0 0 420 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Polygon">
-  <title>Polygon</title>
-  <rect width="420" height="96" rx="18" fill="transparent"/>
-  <g opacity="0.72" fill="#5B687A">
-    <path d="M54.6 20.9c-3.2-1.8-7.1-1.8-10.3 0L28.4 30c-3.2 1.8-5.1 5.2-5.1 8.9v18.2c0 3.7 2 7.1 5.1 8.9l15.9 9.1c3.2 1.8 7.1 1.8 10.3 0l15.9-9.1c3.2-1.8 5.1-5.2 5.1-8.9v-5.4l13.5-7.8v5.4c0 3.7 2 7.1 5.1 8.9l15.9 9.1c3.2 1.8 7.1 1.8 10.3 0l15.9-9.1c3.2-1.8 5.1-5.2 5.1-8.9V31.1c0-3.7-2-7.1-5.1-8.9l-15.9-9.1c-3.2-1.8-7.1-1.8-10.3 0L94.2 22.2c-3.2 1.8-5.1 5.2-5.1 8.9v5.4l-13.5 7.8v-5.4c0-3.7-2-7.1-5.1-8.9L54.6 20.9Zm-5.1 9.1 13.5 7.8v15.6l-13.5 7.8L36 53.4V37.8L49.5 30Zm65.8-7.8 13.5 7.8v15.6l-13.5 7.8-13.5-7.8V30l13.5-7.8Z"/>
-    <text x="164" y="57" fill="#5B687A" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="0.02em">Polygon</text>
-  </g>
-</svg>
