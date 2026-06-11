@@ -1,4 +1,4 @@
-// surface/public/js/settlementViewState.js
+// surface/js/settlementViewState.js
 
 window.UnibridgeSettlementViewState = (() => {
   /*
