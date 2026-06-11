@@ -1,4 +1,4 @@
-// unibridge-landing/surface/public/funding-context.js
+// unibridge-landing/surface/funding-context.js
 
 /*
 --------------------------------------------------
