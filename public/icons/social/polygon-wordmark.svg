@@ -1,0 +1,17 @@
+<svg width="820" height="210" viewBox="0 0 820 210" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="polygon">
+  <title>polygon</title>
+  <rect width="820" height="210" fill="transparent"/>
+
+  <!-- Polygon-style linked chain mark -->
+  <g fill="#050713">
+    <path d="M127.6 42.4c-6.9-4-15.5-4-22.4 0L58.9 69.1c-6.9 4-11.2 11.4-11.2 19.4v53.4c0 8 4.3 15.4 11.2 19.4l46.3 26.7c6.9 4 15.5 4 22.4 0l46.3-26.7c6.9-4 11.2-11.4 11.2-19.4v-15.1l40.9-23.6v15.1c0 8 4.3 15.4 11.2 19.4l46.3 26.7c6.9 4 15.5 4 22.4 0l46.3-26.7c6.9-4 11.2-11.4 11.2-19.4V64.9c0-8-4.3-15.4-11.2-19.4L306 18.8c-6.9-4-15.5-4-22.4 0l-46.3 26.7c-6.9 4-11.2 11.4-11.2 19.4V80l-40.9 23.6V88.5c0-8-4.3-15.4-11.2-19.4l-46.4-26.7Zm-11.2 40.9 33.9 19.6v39.2l-33.9 19.6-33.9-19.6v-39.2l33.9-19.6Zm178.4-23.6 33.9 19.6v39.2l-33.9 19.6-33.9-19.6V79.3l33.9-19.6Z"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="405" y="139"
+        fill="#050713"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="94"
+        font-weight="800"
+        letter-spacing="-0.055em">polygon</text>
+</svg>
