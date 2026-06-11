@@ -59,6 +59,15 @@ export async function initializeSurfacePage({
 
   call(initCoinsPhPicker);
 
+  /*
+  --------------------------------------------------
+  Keep this here even if CoinsPH bootstrap also calls
+  updateDestinationFields. Page init must still update
+  destination UI when the CoinsPH picker factory is not
+  available or PH is not selected.
+  --------------------------------------------------
+  */
+
   call(updateDestinationFields);
 
   call(refreshAmountLimitUi);
