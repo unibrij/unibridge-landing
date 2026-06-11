@@ -151,64 +151,42 @@
 
         <section id="coinsPhBox" class="hidden">
           <div class="entry-header compact">
-            <h2>GCash payout details</h2>
+            <h2>Recipient details</h2>
             <p>
               Enter the recipient name and GCash mobile number.
             </p>
           </div>
 
-          <label class="field">
-            <span>Payout method</span>
+          <input id="coinsPhBank" type="hidden" value="" />
+          <input id="coinsPhChannelName" type="hidden" value="" />
+          <input id="coinsPhChannelSubject" type="hidden" value="" />
 
-            <div class="coinsph-picker">
-              <div class="coinsph-search-row">
-                <input
-                  id="coinsPhBankSearch"
-                  type="text"
-                  autocomplete="off"
-                  placeholder="GCash / InstaPay"
-                  disabled
-                />
+          <input
+            id="coinsPhBankSearch"
+            type="hidden"
+            value=""
+          />
 
-                <input id="coinsPhBank" type="hidden" value="" />
-                <input id="coinsPhChannelName" type="hidden" value="" />
-                <input id="coinsPhChannelSubject" type="hidden" value="" />
-              </div>
+          <div
+            id="coinsPhSearchCount"
+            style="display:none;"
+          ></div>
 
-              <div
-                id="coinsPhSearchCount"
-                class="coinsph-search-count"
-              >
-                GCash / InstaPay payout route.
-              </div>
+          <div
+            id="coinsPhBankResults"
+            class="coinsph-results"
+            aria-live="polite"
+            style="display:none;"
+          ></div>
 
-              <div
-                id="coinsPhBankResults"
-                class="coinsph-results"
-                aria-live="polite"
-              ></div>
-
-              <div
-                id="coinsPhSelectedBank"
-                class="coinsph-selected"
-              >
-                <div
-                  id="coinsPhSelectedBankLabel"
-                  class="coinsph-selected-label"
-                ></div>
-
-                <div
-                  id="coinsPhSelectedBankMeta"
-                  class="coinsph-selected-meta"
-                ></div>
-
-                <div
-                  id="coinsPhChannelTabs"
-                  class="coinsph-channel-tabs"
-                ></div>
-              </div>
-            </div>
-          </label>
+          <div
+            id="coinsPhSelectedBank"
+            style="display:none;"
+          >
+            <div id="coinsPhSelectedBankLabel"></div>
+            <div id="coinsPhSelectedBankMeta"></div>
+            <div id="coinsPhChannelTabs"></div>
+          </div>
 
           <div
             id="coinsPhRecipientFields"
@@ -233,24 +211,6 @@
                 placeholder="Enter GCash mobile number"
               />
             </label>
-
-            <label class="field">
-              <span>Recipient address</span>
-              <input
-                id="coinsPhRecipientAddress"
-                type="text"
-                placeholder="Optional"
-              />
-            </label>
-
-            <label class="field">
-              <span>Remarks</span>
-              <input
-                id="coinsPhRemarks"
-                type="text"
-                placeholder="Optional payment note"
-              />
-            </label>
           </div>
 
           <button
@@ -262,9 +222,11 @@
             Continue to payment
           </button>
 
-          <div class="muted" id="coinsPhHint">
-            Enter the recipient name and GCash mobile number.
-          </div>
+          <div
+            class="muted"
+            id="coinsPhHint"
+            style="display:none;"
+          ></div>
         </section>
 
         <section id="authBox" class="hidden">
