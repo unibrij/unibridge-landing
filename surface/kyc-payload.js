@@ -1,4 +1,4 @@
-// unibridge-landing/surface/public/kyc-payload.js
+// unibridge-landing/surface/kyc-payload.js
 
 /*
 --------------------------------------------------
