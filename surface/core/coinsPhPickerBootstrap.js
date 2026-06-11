@@ -15,6 +15,7 @@ Notes:
 - This module does not create settlements.
 - This module does not create funding sessions.
 - This module does not touch Brazil / SmartPay.
+- Destination UI refresh stays in pageInit.js.
 --------------------------------------------------
 */
 
@@ -47,7 +48,6 @@ export function createSurfaceCoinsPhPicker({
   continueBtn,
   setStatus,
   refreshAmountLimitUi,
-  updateDestinationFields,
   getDestinationCountryCode
 } = {}) {
   const createPicker =
@@ -99,8 +99,6 @@ export function createSurfaceCoinsPhPicker({
   ) {
     picker.mount();
   }
-
-  call(updateDestinationFields);
 
   return picker || null;
 }
