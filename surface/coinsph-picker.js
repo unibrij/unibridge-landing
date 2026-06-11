@@ -9,75 +9,133 @@ Purpose:
 - no dynamic bank search for this flow
 - collect only:
   - recipient legal name
-  - mobile wallet / phone number
-- build destination payload compatible with backend CoinsPH
-  executor, which expects recipientAccountNumber internally
+  - GCash mobile wallet number
+- build a clean canonical destination payload for backend
+
+Backend canonical destination payload:
+- country
+- currency
+- bankId
+- bankName
+- channelName
+- channelSubject
+- recipientName
+- recipientAccountNumber
+  - value is the GCash mobile phone number
+- recipientAddress optional
+- remarks optional
+
+Compatible with:
+- surface/core/coinsPhPickerBootstrap.js
 --------------------------------------------------
 */
 
 export function createCoinsPhPicker({
+  root,
+  continueBtn,
+
+  onReady,
+  onChange,
+  onValid,
+  onInvalid,
+  onError,
+
+  getDestinationCountryCode,
+
+  /*
+  --------------------------------------------------
+  Backward-compatible optional args.
+  Safe to keep for old callers.
+  --------------------------------------------------
+  */
+
   isPhilippinesDestination,
   setContinueDisabled
 } = {}) {
   let eventsBound = false;
+  let mounted = false;
   let loaded = false;
 
+  function call(fn, ...args) {
+    if (typeof fn !== "function") {
+      return null;
+    }
+
+    return fn(...args);
+  }
+
+  function resolveRoot() {
+    if (!root) {
+      return null;
+    }
+
+    if (typeof root === "string") {
+      return document.getElementById(root);
+    }
+
+    return root;
+  }
+
+  function getElement(id) {
+    const resolvedRoot =
+      resolveRoot();
+
+    return (
+      resolvedRoot?.querySelector?.(`#${id}`) ||
+      document.getElementById(id)
+    );
+  }
+
   const bankInput =
-    document.getElementById("coinsPhBank");
+    getElement("coinsPhBank");
 
   const bankSearchInput =
-    document.getElementById("coinsPhBankSearch");
+    getElement("coinsPhBankSearch");
 
   const bankResults =
-    document.getElementById("coinsPhBankResults");
+    getElement("coinsPhBankResults");
 
   const searchCount =
-    document.getElementById("coinsPhSearchCount");
+    getElement("coinsPhSearchCount");
 
   const selectedBank =
-    document.getElementById("coinsPhSelectedBank");
+    getElement("coinsPhSelectedBank");
 
   const selectedBankLabel =
-    document.getElementById("coinsPhSelectedBankLabel");
+    getElement("coinsPhSelectedBankLabel");
 
   const selectedBankMeta =
-    document.getElementById("coinsPhSelectedBankMeta");
+    getElement("coinsPhSelectedBankMeta");
 
   const channelTabs =
-    document.getElementById("coinsPhChannelTabs");
+    getElement("coinsPhChannelTabs");
 
   const channelNameInput =
-    document.getElementById("coinsPhChannelName");
+    getElement("coinsPhChannelName");
 
   const channelSubjectInput =
-    document.getElementById("coinsPhChannelSubject");
+    getElement("coinsPhChannelSubject");
 
   const recipientFields =
-    document.getElementById("coinsPhRecipientFields");
+    getElement("coinsPhRecipientFields");
 
   const recipientNameInput =
-    document.getElementById("coinsPhRecipientName");
+    getElement("coinsPhRecipientName");
 
-  const recipientAccountInput =
-    document.getElementById("coinsPhRecipientAccount");
+  const recipientPhoneInput =
+    getElement("coinsPhRecipientAccount");
 
   const recipientAddressInput =
-    document.getElementById("coinsPhRecipientAddress");
+    getElement("coinsPhRecipientAddress");
 
   const remarksInput =
-    document.getElementById("coinsPhRemarks");
+    getElement("coinsPhRemarks");
 
   const hint =
-    document.getElementById("coinsPhHint");
+    getElement("coinsPhHint");
 
   function normalizeText(value) {
     return String(value || "").trim();
-  }
-
-  function normalizePhone(value) {
-    return String(value || "")
-      .replace(/[^\d+]/g, "")
-      .trim();
   }
 
   function normalizePhoneDigits(value) {
@@ -86,23 +144,56 @@ export function createCoinsPhPicker({
       .trim();
   }
 
+  function getDestinationCountry() {
+    if (typeof getDestinationCountryCode === "function") {
+      return String(getDestinationCountryCode() || "")
+        .toUpperCase()
+        .trim();
+    }
+
+    return "";
+  }
+
   function isActivePh() {
-    return typeof isPhilippinesDestination === "function"
-      ? isPhilippinesDestination()
-      : true;
+    if (typeof isPhilippinesDestination === "function") {
+      return Boolean(isPhilippinesDestination());
+    }
+
+    const country =
+      getDestinationCountry();
+
+    return !country || country === "PH";
+  }
+
+  function setContinueStateDisabled(disabled) {
+    const value =
+      Boolean(disabled);
+
+    if (continueBtn) {
+      continueBtn.disabled =
+        value;
+    }
+
+    call(
+      setContinueDisabled,
+      value
+    );
   }
 
   function setHiddenFixedRoute() {
     if (bankInput) {
-      bankInput.value = "gcash";
+      bankInput.value =
+        "gcash";
     }
 
     if (channelNameInput) {
-      channelNameInput.value = "INSTAPAY";
+      channelNameInput.value =
+        "INSTAPAY";
     }
 
     if (channelSubjectInput) {
-      channelSubjectInput.value = "gcash";
+      channelSubjectInput.value =
+        "gcash";
     }
   }
 
@@ -110,14 +201,23 @@ export function createCoinsPhPicker({
     setHiddenFixedRoute();
 
     if (bankSearchInput) {
-      bankSearchInput.value = "GCash / InstaPay";
-      bankSearchInput.disabled = true;
-      bankSearchInput.placeholder = "GCash / InstaPay";
+      bankSearchInput.value =
+        "GCash / InstaPay";
+
+      bankSearchInput.disabled =
+        true;
+
+      bankSearchInput.placeholder =
+        "GCash / InstaPay";
     }
 
     if (bankResults) {
-      bankResults.innerHTML = "";
-      bankResults.classList.remove("active");
+      bankResults.innerHTML =
+        "";
+
+      bankResults.classList.remove(
+        "active"
+      );
     }
 
     if (searchCount) {
@@ -126,7 +226,9 @@ export function createCoinsPhPicker({
     }
 
     if (selectedBank) {
-      selectedBank.classList.add("active");
+      selectedBank.classList.add(
+        "active"
+      );
     }
 
     if (selectedBankLabel) {
@@ -140,13 +242,21 @@ export function createCoinsPhPicker({
     }
 
     if (channelTabs) {
-      channelTabs.innerHTML = "";
-      channelTabs.classList.remove("active");
+      channelTabs.innerHTML =
+        "";
+
+      channelTabs.classList.remove(
+        "active"
+      );
     }
 
     if (recipientFields) {
-      recipientFields.classList.remove("hidden");
-      recipientFields.style.display = "grid";
+      recipientFields.classList.remove(
+        "hidden"
+      );
+
+      recipientFields.style.display =
+        "grid";
     }
 
     if (hint) {
@@ -158,8 +268,11 @@ export function createCoinsPhPicker({
   function validateDestinationInput() {
     if (!isActivePh()) {
       return {
-        ok: false,
-        error: "COINSPH_NOT_ACTIVE_DESTINATION"
+        ok:
+          false,
+
+        error:
+          "COINSPH_NOT_ACTIVE_DESTINATION"
       };
     }
 
@@ -168,14 +281,9 @@ export function createCoinsPhPicker({
         recipientNameInput?.value
       );
 
-    const phoneRaw =
-      normalizePhone(
-        recipientAccountInput?.value
-      );
-
-    const phoneDigits =
+    const recipientPhoneNumber =
       normalizePhoneDigits(
-        phoneRaw
+        recipientPhoneInput?.value
       );
 
     const recipientAddress =
@@ -190,43 +298,61 @@ export function createCoinsPhPicker({
 
     if (!recipientName) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_NAME_REQUIRED"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_NAME_REQUIRED"
       };
     }
 
     if (recipientName.length < 2) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_NAME_TOO_SHORT"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_NAME_TOO_SHORT"
       };
     }
 
     if (recipientName.length > 80) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_NAME_TOO_LONG"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_NAME_TOO_LONG"
       };
     }
 
-    if (!phoneDigits) {
+    if (!recipientPhoneNumber) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_PHONE_REQUIRED"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_PHONE_REQUIRED"
       };
     }
 
-    if (phoneDigits.length < 10) {
+    if (recipientPhoneNumber.length < 10) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_PHONE_TOO_SHORT"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_PHONE_TOO_SHORT"
       };
     }
 
-    if (phoneDigits.length > 15) {
+    if (recipientPhoneNumber.length > 15) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_PHONE_TOO_LONG"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_PHONE_TOO_LONG"
       };
     }
 
@@ -235,8 +361,11 @@ export function createCoinsPhPicker({
       recipientAddress.length > 160
     ) {
       return {
-        ok: false,
-        error: "COINSPH_RECIPIENT_ADDRESS_TOO_LONG"
+        ok:
+          false,
+
+        error:
+          "COINSPH_RECIPIENT_ADDRESS_TOO_LONG"
       };
     }
 
@@ -245,18 +374,25 @@ export function createCoinsPhPicker({
       remarks.length > 120
     ) {
       return {
-        ok: false,
-        error: "COINSPH_REMARKS_TOO_LONG"
+        ok:
+          false,
+
+        error:
+          "COINSPH_REMARKS_TOO_LONG"
       };
     }
 
     return {
-      ok: true,
+      ok:
+        true,
+
       recipientName,
-      phone:
-        phoneDigits,
+
+      recipientPhoneNumber,
+
       recipientAddress:
         recipientAddress || null,
+
       remarks:
         remarks || null
     };
@@ -264,38 +400,67 @@ export function createCoinsPhPicker({
 
   function updateContinueState() {
     if (!isActivePh()) {
-      if (typeof setContinueDisabled === "function") {
-        setContinueDisabled(true);
-      }
+      setContinueStateDisabled(true);
+      call(onInvalid);
 
-      return;
+      return false;
     }
 
     if (!loaded) {
-      if (typeof setContinueDisabled === "function") {
-        setContinueDisabled(true);
-      }
+      setContinueStateDisabled(true);
+      call(onInvalid);
 
-      return;
+      return false;
     }
 
     const validation =
       validateDestinationInput();
 
-    if (typeof setContinueDisabled === "function") {
-      setContinueDisabled(!validation.ok);
+    setContinueStateDisabled(
+      !validation.ok
+    );
+
+    if (validation.ok) {
+      call(
+        onValid,
+        validation
+      );
+
+      return true;
     }
+
+    call(
+      onInvalid,
+      validation
+    );
+
+    return false;
   }
 
-  async function load() {
+  function notifyChange() {
+    call(onChange);
+    updateContinueState();
+  }
+
+  async function refresh() {
     if (!isActivePh()) {
-      return;
+      reset();
+      return false;
     }
 
-    loaded = true;
+    loaded =
+      true;
 
     renderFixedRoute();
     updateContinueState();
+
+    call(onReady);
+
+    return true;
+  }
+
+  async function load() {
+    return refresh();
   }
 
   function buildDestination() {
@@ -303,12 +468,14 @@ export function createCoinsPhPicker({
       validateDestinationInput();
 
     if (!validation.ok) {
-      throw new Error(validation.error);
+      throw new Error(
+        validation.error
+      );
     }
 
     const {
       recipientName,
-      phone,
+      recipientPhoneNumber,
       recipientAddress,
       remarks
     } =
@@ -327,81 +494,34 @@ export function createCoinsPhPicker({
       bankName:
         "GCash",
 
-      bankCode:
-        "gcash",
-
       channelName:
         "INSTAPAY",
 
       channelSubject:
         "gcash",
 
-      transactionChannel:
-        "INSTAPAY",
-
-      transactionSubject:
-        "gcash",
-
-      payout_channel:
-        "INSTAPAY",
-
-      payoutChannel:
-        "INSTAPAY",
-
-      name:
-        recipientName,
-
       recipientName,
 
-      recipient_name:
-        recipientName,
+      /*
+      --------------------------------------------------
+      CoinsPH backend canonical field.
 
-      account:
-        phone,
-
-      account_number:
-        phone,
-
-      accountNumber:
-        phone,
+      For GCash / InstaPay, this value is the recipient
+      mobile wallet phone number, not a bank account.
+      --------------------------------------------------
+      */
 
       recipientAccountNumber:
-        phone,
-
-      recipient_account_number:
-        phone,
-
-      phone,
-
-      mobile:
-        phone,
-
-      wallet:
-        phone,
-
-      wallet_number:
-        phone,
-
-      walletNumber:
-        phone
+        recipientPhoneNumber
     };
 
     if (recipientAddress) {
       destination.recipientAddress =
         recipientAddress;
-
-      destination.recipient_address =
-        recipientAddress;
-
-      destination.address =
-        recipientAddress;
     }
 
     if (remarks) {
       destination.remarks =
-        remarks;
-
-      destination.note =
         remarks;
     }
 
@@ -409,30 +529,42 @@ export function createCoinsPhPicker({
   }
 
   function reset() {
-    loaded = false;
+    loaded =
+      false;
 
     if (bankInput) {
-      bankInput.value = "";
+      bankInput.value =
+        "";
     }
 
     if (channelNameInput) {
-      channelNameInput.value = "";
+      channelNameInput.value =
+        "";
     }
 
     if (channelSubjectInput) {
-      channelSubjectInput.value = "";
+      channelSubjectInput.value =
+        "";
     }
 
     if (bankSearchInput) {
-      bankSearchInput.value = "";
-      bankSearchInput.disabled = false;
+      bankSearchInput.value =
+        "";
+
+      bankSearchInput.disabled =
+        false;
+
       bankSearchInput.placeholder =
         "GCash / InstaPay";
     }
 
     if (bankResults) {
-      bankResults.innerHTML = "";
-      bankResults.classList.remove("active");
+      bankResults.innerHTML =
+        "";
+
+      bankResults.classList.remove(
+        "active"
+      );
     }
 
     if (searchCount) {
@@ -441,41 +573,57 @@ export function createCoinsPhPicker({
     }
 
     if (selectedBank) {
-      selectedBank.classList.remove("active");
+      selectedBank.classList.remove(
+        "active"
+      );
     }
 
     if (selectedBankLabel) {
-      selectedBankLabel.innerText = "";
+      selectedBankLabel.innerText =
+        "";
     }
 
     if (selectedBankMeta) {
-      selectedBankMeta.innerText = "";
+      selectedBankMeta.innerText =
+        "";
     }
 
     if (channelTabs) {
-      channelTabs.innerHTML = "";
-      channelTabs.classList.remove("active");
+      channelTabs.innerHTML =
+        "";
+
+      channelTabs.classList.remove(
+        "active"
+      );
     }
 
     if (recipientFields) {
-      recipientFields.classList.add("hidden");
-      recipientFields.style.display = "none";
+      recipientFields.classList.add(
+        "hidden"
+      );
+
+      recipientFields.style.display =
+        "none";
     }
 
     if (recipientNameInput) {
-      recipientNameInput.value = "";
+      recipientNameInput.value =
+        "";
     }
 
-    if (recipientAccountInput) {
-      recipientAccountInput.value = "";
+    if (recipientPhoneInput) {
+      recipientPhoneInput.value =
+        "";
     }
 
     if (recipientAddressInput) {
-      recipientAddressInput.value = "";
+      recipientAddressInput.value =
+        "";
     }
 
     if (remarksInput) {
-      remarksInput.value = "";
+      remarksInput.value =
+        "";
     }
 
     if (hint) {
@@ -483,36 +631,69 @@ export function createCoinsPhPicker({
         "Enter the recipient name and GCash mobile number.";
     }
 
-    if (typeof setContinueDisabled === "function") {
-      setContinueDisabled(true);
-    }
+    setContinueStateDisabled(true);
   }
 
   function bindEvents() {
     if (eventsBound) {
-      return;
+      return true;
     }
 
-    eventsBound = true;
+    eventsBound =
+      true;
 
     [
       recipientNameInput,
-      recipientAccountInput,
+      recipientPhoneInput,
       recipientAddressInput,
       remarksInput
     ].forEach((input) => {
-      input?.addEventListener("input", () => {
-        updateContinueState();
-      });
+      if (!input) {
+        return;
+      }
 
-      input?.addEventListener("blur", () => {
-        updateContinueState();
-      });
+      input.addEventListener(
+        "input",
+        notifyChange
+      );
+
+      input.addEventListener(
+        "blur",
+        notifyChange
+      );
     });
+
+    return true;
+  }
+
+  function mount() {
+    if (mounted) {
+      return true;
+    }
+
+    mounted =
+      true;
+
+    bindEvents();
+
+    if (isActivePh()) {
+      refresh().catch((error) => {
+        call(
+          onError,
+          error
+        );
+      });
+    } else {
+      reset();
+    }
+
+    return true;
   }
 
   return {
+    mount,
     reset,
+    refresh,
     load,
     bindEvents,
     updateContinueState,
