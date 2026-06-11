@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/amount-limits.js
+// unibrij/unibridge-landing/surface/amount-limits.js
 
 const SOURCE_COUNTRY_LIMITS = Object.freeze({
   AE: { min: 50, max: 1000, currency: "AED" },
