@@ -1,4 +1,4 @@
-// unibridge-landing/surface/public/ui-helpers.js
+// unibridge-landing/surface/ui-helpers.js
 
 export function formatNumber(value) {
   const n = Number(value);
