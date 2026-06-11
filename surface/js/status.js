@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/js/status.js
+// unibrij/unibridge-landing/surface/js/status.js
 
 window.UnibridgeStatus = (() => {
   let lastStatusKey = null;
