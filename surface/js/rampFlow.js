@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/js/rampFlow.js
+// unibrij/unibridge-landing/surface/js/rampFlow.js
 
 window.UnibridgeRampFlow = (() => {
   function getAuthElements() {
