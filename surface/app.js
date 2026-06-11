@@ -676,7 +676,7 @@ async function startFlow() {
       coinsPhPicker.updateContinueState();
 
       setStatus(
-        "Search for the receiving bank and enter recipient details."
+        "Enter recipient name and GCash mobile number."
       );
 
       return;
@@ -835,18 +835,14 @@ async function continueFlow() {
       pendingWidgetUrl =
         redirectUrl;
 
-      setContinueButtonMode("open_payment");
-
       emit("unibridge:quote");
       emit("unibridge:payment");
 
-      setStatus(
-        "Payment prepared. Tap again to continue."
-      );
+      markPaymentStarted();
+      setAmountInputDisabled(true);
 
-      if (activeContinueBtn) {
-        activeContinueBtn.disabled = false;
-      }
+      window.location.href =
+        redirectUrl;
 
       return;
     }
@@ -923,15 +919,11 @@ async function continueFlow() {
       emit("unibridge:quote");
       emit("unibridge:payment");
 
-      setContinueButtonMode("open_payment");
+      markPaymentStarted();
+      setAmountInputDisabled(true);
 
-      setStatus(
-        "Payment prepared. Tap again to continue."
-      );
-
-      if (activeContinueBtn) {
-        activeContinueBtn.disabled = false;
-      }
+      window.location.href =
+        pendingWidgetUrl;
 
       return;
     }
