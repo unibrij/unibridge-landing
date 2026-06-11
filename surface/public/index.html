@@ -1,1480 +1,326 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <title>Controlled Validation | UniBridge Protocol</title>
   <meta
-    name="description"
-    content="Validate a controlled UniBridge payout flow with route review, funding visibility, payout tracking, and non-custodial execution evidence."
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   />
 
-  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
-  <link rel="shortcut icon" type="image/png" href="https://unibrij.io/favicon.png" />
+  <title>UniBridge — Card Payment Funding</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <meta
+    name="description"
+    content="Fund a UniBridge payout route by card through a supported ramp provider."
+  />
 
-    :root {
-      --navy: #003366;
-      --navy-2: #062f57;
-      --navy-dark: #0b1230;
-      --teal: #00d4aa;
-      --teal-2: #00b894;
-      --bg: #f8fafc;
-      --bg-soft: #eef3f7;
-      --text: #23282f;
-      --muted: #5a6c7d;
-      --border: rgba(0, 51, 102, 0.08);
-      --shadow:
-        0 24px 70px rgba(0, 51, 102, 0.08),
-        0 8px 24px rgba(0, 51, 102, 0.045);
-      --danger: #dc2626;
-    }
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
 
-    html {
-      scroll-behavior: smooth;
-    }
+  <meta name="theme-color" content="#000E2D" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="UniBridge" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    body {
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      color: var(--text);
-      overflow-x: hidden;
-      background:
-        radial-gradient(circle at 16% 0%, rgba(0, 51, 102, 0.035), transparent 30%),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 42%, #eef3f7 100%);
-    }
-
-    a {
-      text-decoration: none;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    header {
-      background: transparent;
-      position: relative;
-      z-index: 20;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 0;
-    }
-
-    .nav-logo {
-      height: 200px;
-      width: auto;
-      object-fit: contain;
-      display: block;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-link {
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 16px;
-      transition: color 0.25s ease;
-      white-space: nowrap;
-    }
-
-    .nav-link:hover {
-      color: var(--teal);
-      text-decoration: none;
-    }
-
-    .nav-button {
-      background: #00D4AA;
-      color: #003366;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-weight: 650;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      font-size: 16px;
-      text-decoration: none;
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    .nav-button:hover {
-      background: #00b894;
-      color: #003366;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-      text-decoration: none;
-    }
-
-    .surface-hero {
-      padding: 74px 0 88px;
-      background:
-        radial-gradient(circle at 74% 14%, rgba(0, 51, 102, 0.045), transparent 30%),
-        linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .surface-hero-inner {
-      max-width: 900px;
-    }
-
-    .eyebrow {
-      color: var(--teal);
-      font-size: 0.78rem;
-      line-height: 1.3;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      margin-bottom: 18px;
-      opacity: 1;
-    }
-
-    .surface-hero h1 {
-      margin: 0;
-      color: var(--navy);
-      font-size: clamp(2.65rem, 5.2vw, 5rem);
-      line-height: 1.03;
-      letter-spacing: -0.058em;
-      font-weight: 720;
-      max-width: 860px;
-    }
-
-    .surface-hero p {
-      margin: 24px 0 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 1.4vw, 1.24rem);
-      line-height: 1.72;
-      max-width: 760px;
-      font-weight: 400;
-    }
-
-    .surface-hero-meta {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 34px;
-    }
-
-    .surface-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 13px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.82);
-      border: 1px solid rgba(0, 51, 102, 0.08);
-      color: var(--navy);
-      font-size: 0.82rem;
-      font-weight: 650;
-      box-shadow: 0 10px 28px rgba(0, 51, 102, 0.055);
-    }
-
-    .surface-badge::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--teal);
-      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.12);
-      flex: 0 0 auto;
-    }
-
-    .surface-section {
-      padding: 104px 0 118px;
-      background: #f8fafc;
-    }
-
-    .surface-container {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(420px, 0.95fr);
-      gap: 72px;
-      align-items: center;
-    }
-
-    .surface-info {
-      max-width: 560px;
-      padding-top: 0;
-    }
-
-    .surface-info h2 {
-      margin: 0 0 18px;
-      color: var(--navy);
-      font-size: clamp(2.1rem, 3.4vw, 3.15rem);
-      line-height: 1.14;
-      font-weight: 650;
-      letter-spacing: -0.035em;
-    }
-
-    .surface-info > p {
-      margin: 0;
-      max-width: 540px;
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.85;
-      font-weight: 400;
-    }
-
-    .instruction-panel {
-      margin-top: 30px;
-      display: grid;
-      gap: 18px;
-    }
-
-    .instruction-card {
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      padding: 0;
-      box-shadow: none;
-    }
-
-    .instruction-card h3 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 10px;
-      color: var(--navy);
-      font-size: 1rem;
-      line-height: 1.35;
-      font-weight: 700;
-      letter-spacing: -0.015em;
-    }
-
-    .instruction-card h3::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--teal);
-      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.10);
-      flex: 0 0 auto;
-    }
-
-    .instruction-card ul {
-      margin: 0;
-      padding-left: 19px;
-      color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.75;
-    }
-
-    .instruction-card li {
-      margin: 7px 0;
-    }
-
-    .surface-proof {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 28px;
-    }
-
-    .proof-item {
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 51, 102, 0.07);
-      border-radius: 14px;
-      padding: 13px 12px;
-      box-shadow: 0 10px 26px rgba(0, 51, 102, 0.04);
-    }
-
-    .proof-item strong {
-      display: block;
-      color: var(--navy);
-      font-size: 0.78rem;
-      margin-bottom: 5px;
-      letter-spacing: -0.01em;
-    }
-
-    .proof-item span {
-      display: block;
-      color: var(--muted);
-      font-size: 0.74rem;
-      line-height: 1.4;
-    }
-
-    .surface-form-wrap {
-      position: relative;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 7px;
-      margin: 0 0 16px;
-      font-size: 11px;
-      color: #94a3b8;
-    }
-
-    .step {
-      text-align: center;
-      padding: 8px 4px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.86);
-      border: 1px solid rgba(0, 51, 102, 0.06);
-      box-shadow: 0 8px 20px rgba(0, 51, 102, 0.035);
-    }
-
-    .step.active {
-      color: #003366;
-      font-weight: 800;
-      background: rgba(0, 212, 170, 0.16);
-      border-color: rgba(0, 212, 170, 0.30);
-      box-shadow: 0 10px 24px rgba(0, 212, 170, 0.10);
-    }
-
-    .surface-form {
-      background: #ffffff;
-      border: 1px solid rgba(0, 51, 102, 0.075);
-      border-radius: 22px;
-      padding: 36px;
-      box-shadow:
-        0 24px 70px rgba(0, 51, 102, 0.08),
-        0 8px 24px rgba(0, 51, 102, 0.045);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .surface-form > * {
-      position: relative;
-      z-index: 1;
-    }
-
-    .form-header {
-      margin-bottom: 24px;
-    }
-
-    .form-header h2 {
-      margin: 0;
-      color: var(--navy);
-      font-size: 2rem;
-      line-height: 1.18;
-      font-weight: 650;
-      letter-spacing: -0.032em;
-    }
-
-    .form-header p {
-      margin: 9px 0 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.65;
-    }
-
-    .summary {
-      display: none;
-      background: rgba(0, 51, 102, 0.04);
-      border: 1px solid rgba(0, 51, 102, 0.08);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 18px;
-      font-size: 14px;
-    }
-
-    .summary div {
-      margin: 7px 0;
-      color: #334155;
-    }
-
-    .summary strong {
-      color: var(--navy);
-    }
-
-    .field-label {
-      display: block;
-      margin-top: 18px;
-      margin-bottom: 8px;
-      color: var(--navy);
-      font-size: 0.92rem;
-      line-height: 1.3;
-      font-weight: 650;
-      letter-spacing: -0.01em;
-    }
-
-    input,
-    select,
-    button {
-      width: 100%;
-      box-sizing: border-box;
-      font-family: inherit;
-    }
-
-    input,
-    select {
-      min-height: 48px;
-      border: 1px solid #dbe5ee;
-      border-radius: 10px;
-      background: #ffffff;
-      color: #23282f;
-      font-size: 0.96rem;
-      line-height: 1.5;
-      padding: 13px 14px;
-      outline: none;
-      transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background-color 0.2s ease;
-    }
-
-    input::placeholder {
-      color: rgba(90, 108, 125, 0.58);
-    }
-
-    input:focus,
-    select:focus {
-      border-color: rgba(0, 212, 170, 0.75);
-      box-shadow: 0 0 0 4px rgba(0, 212, 170, 0.12);
-      background: #ffffff;
-    }
-
-    .surface-button {
-      width: 100%;
-      border: 0;
-      border-radius: 10px;
-      background: #00D4AA;
-      color: #003366;
-      font-size: 0.98rem;
-      line-height: 1.2;
-      font-weight: 750;
-      padding: 15px 18px;
-      cursor: pointer;
-      margin-top: 24px;
-      transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background-color 0.2s ease;
-      box-shadow: 0 12px 28px rgba(0, 212, 170, 0.22);
-    }
-
-    .surface-button:hover {
-      background: #00b894;
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-    }
-
-    .surface-button:active {
-      transform: translateY(0);
-      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.2);
-    }
-
-    .surface-button:disabled {
-      opacity: 0.48;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    #pixBox,
-    #taxBox,
-    #authBox,
-    #coinsPhBox {
-      display: none;
-      margin-top: 16px;
-    }
-
-    #coinsPhRecipientFields {
-      display: none;
-      margin-top: 4px;
-    }
-
-    .coinsph-picker {
-      display: grid;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .coinsph-search-row {
-      position: relative;
-    }
-
-    #coinsPhBankSearch {
-      padding-right: 42px;
-    }
-
-    .coinsph-search-count {
-      margin-top: 7px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-    }
-
-    .coinsph-results {
-      display: none;
-      max-height: 290px;
-      overflow-y: auto;
-      border: 1px solid rgba(0, 51, 102, 0.08);
-      border-radius: 14px;
-      background: #ffffff;
-      box-shadow: 0 14px 34px rgba(0, 51, 102, 0.07);
-    }
-
-    .coinsph-results.active {
-      display: grid;
-    }
-
-    .coinsph-result {
-      width: 100%;
-      border: 0;
-      border-bottom: 1px solid rgba(0, 51, 102, 0.07);
-      background: #ffffff;
-      color: var(--text);
-      text-align: left;
-      padding: 13px 14px;
-      cursor: pointer;
-      display: grid;
-      gap: 4px;
-      box-shadow: none;
-      margin: 0;
-      border-radius: 0;
-    }
-
-    .coinsph-result:last-child {
-      border-bottom: 0;
-    }
-
-    .coinsph-result:hover,
-    .coinsph-result.active {
-      background: rgba(0, 212, 170, 0.08);
-    }
-
-    .coinsph-result strong {
-      color: var(--navy);
-      font-size: 0.92rem;
-      line-height: 1.35;
-      font-weight: 750;
-    }
-
-    .coinsph-result span {
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.35;
-    }
-
-    .coinsph-selected {
-      display: none;
-      border: 1px solid rgba(0, 212, 170, 0.26);
-      border-radius: 14px;
-      background: rgba(0, 212, 170, 0.08);
-      padding: 13px 14px;
-      margin-top: 10px;
-    }
-
-    .coinsph-selected.active {
-      display: block;
-    }
-
-    .coinsph-selected-label {
-      color: var(--navy);
-      font-size: 0.92rem;
-      line-height: 1.4;
-      font-weight: 750;
-    }
-
-    .coinsph-selected-meta {
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      margin-top: 4px;
-    }
-
-    .coinsph-channel-tabs {
-      display: none;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .coinsph-channel-tabs.active {
-      display: grid;
-    }
-
-    .coinsph-channel-tab {
-      border: 1px solid rgba(0, 51, 102, 0.10);
-      border-radius: 12px;
-      background: #ffffff;
-      color: var(--navy);
-      padding: 10px 9px;
-      font-size: 0.78rem;
-      line-height: 1.25;
-      font-weight: 750;
-      cursor: pointer;
-      box-shadow: none;
-      margin: 0;
-    }
-
-    .coinsph-channel-tab.active {
-      border-color: rgba(0, 212, 170, 0.48);
-      background: rgba(0, 212, 170, 0.13);
-    }
-
-    .coinsph-empty {
-      color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.5;
-      padding: 14px;
-    }
-
-    .surface-form h3 {
-      margin: 24px 0 12px;
-      color: var(--navy);
-      font-size: 1.15rem;
-      line-height: 1.3;
-      letter-spacing: -0.02em;
-    }
-
-    .muted {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
-      line-height: 1.55;
-    }
-
-    #status {
-      margin-top: 18px;
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.55;
-      white-space: pre-line;
-    }
-
-    .status-success {
-      color: #059669;
-      font-weight: 750;
-    }
-
-    .status-error {
-      color: var(--danger);
-      font-weight: 750;
-    }
-
-    #amountLimitHint {
-      display: none;
-      font-size: 12px;
-      margin-top: 7px;
-      color: var(--danger);
-      font-weight: 700;
-    }
-
-    .disclaimer {
-      margin-top: 22px;
-      padding: 14px 15px;
-      border: 1px solid rgba(0, 51, 102, 0.08);
-      border-radius: 14px;
-      background: rgba(0, 51, 102, 0.035);
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.58;
-    }
-
-    .disclaimer strong {
-      color: var(--navy);
-    }
-
-    .footer {
-      background: #0b1230;
-      color: #ffffff;
-      padding: 96px 48px 52px;
-    }
-
-    .footer-container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .footer-logo {
-      width: 152px;
-      height: auto;
-      margin-bottom: 56px;
-      display: block;
-      opacity: 0.92;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-content {
-      display: grid;
-      grid-template-columns: 1.35fr 1fr 1.35fr;
-      gap: 80px;
-      align-items: start;
-    }
-
-    .footer-about {
-      max-width: 390px;
-    }
-
-    .footer-about p {
-      margin: 0 0 18px;
-      color: rgba(255, 255, 255, 0.76);
-      font-size: 15px;
-      line-height: 1.75;
-      font-weight: 400;
-    }
-
-    .footer-links h3 {
-      margin: 0 0 22px;
-      color: #00a98a;
-      font-size: 15px;
-      line-height: 1.2;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-    }
-
-    .footer-links ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .footer-links li {
-      margin-bottom: 13px;
-    }
-
-    .footer-links a {
-      color: rgba(255, 255, 255, 0.84);
-      font-size: 15px;
-      line-height: 1.55;
-      font-weight: 500;
-      text-decoration: none;
-      transition: color 0.2s ease, opacity 0.2s ease;
-    }
-
-    .footer-links a:hover {
-      color: #ffffff;
-    }
-
-    .footer-links a.disabled {
-      color: rgba(255, 255, 255, 0.42);
-      cursor: default;
-      pointer-events: none;
-    }
-
-    .footer-resources li {
-      margin-bottom: 22px;
-    }
-
-    .footer-link-note {
-      display: block;
-      margin-top: 6px;
-      color: rgba(255, 255, 255, 0.54);
-      font-size: 13px;
-      line-height: 1.55;
-      font-weight: 400;
-      max-width: 300px;
-    }
-
-    .footer-bottom {
-      margin-top: 76px;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 32px;
-    }
-
-    .footer-social {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .footer-social a {
-      display: inline-flex;
-      width: 22px;
-      height: 22px;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.72;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .footer-social a:hover {
-      opacity: 1;
-      transform: translateY(-1px);
-    }
-
-    .footer-social img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-legal {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      flex-wrap: wrap;
-    }
-
-    .footer-legal a {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 14px;
-      line-height: 1.5;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .footer-legal a:hover {
-      color: #ffffff;
-    }
-
-    @media (max-width: 1024px) {
-      .surface-container {
-        gap: 56px;
-        grid-template-columns: 1fr 0.95fr;
-      }
-
-      .nav-logo {
-        height: 160px;
-      }
-    }
-
-    @media (max-width: 900px) {
-      .navbar {
-        flex-direction: column;
-        gap: 18px;
-        padding: 24px 0 22px;
-      }
-
-      .nav-logo {
-        height: 150px;
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      .surface-hero {
-        text-align: center;
-        padding: 56px 0 70px;
-      }
-
-      .surface-hero-inner {
-        margin: 0 auto;
-      }
-
-      .surface-hero p {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .surface-hero-meta {
-        justify-content: center;
-      }
-
-      .surface-section {
-        padding: 82px 0 92px;
-      }
-
-      .surface-container {
-        grid-template-columns: 1fr;
-        gap: 42px;
-        align-items: start;
-      }
-
-      .surface-info {
-        max-width: 720px;
-        padding-top: 0;
-      }
-
-      .surface-form-wrap {
-        position: static;
-      }
-
-      .surface-form {
-        padding: 30px;
-      }
-
-      .footer {
-        padding: 76px 28px 44px;
-      }
-
-      .footer-logo {
-        width: 142px;
-        margin-bottom: 48px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr 1fr;
-        gap: 48px 40px;
-      }
-
-      .footer-about {
-        grid-column: 1 / -1;
-        max-width: 520px;
-      }
-
-      .footer-bottom {
-        margin-top: 60px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .container {
-        padding: 0 18px;
-      }
-
-      .nav-logo {
-        height: 130px;
-      }
-
-      .surface-hero {
-        text-align: left;
-        padding: 46px 0 62px;
-      }
-
-      .surface-hero h1 {
-        font-size: 2.45rem;
-        line-height: 1.08;
-      }
-
-      .surface-hero p {
-        font-size: 0.98rem;
-        line-height: 1.72;
-      }
-
-      .surface-hero-meta {
-        justify-content: flex-start;
-      }
-
-      .surface-section {
-        padding: 72px 0 82px;
-      }
-
-      .surface-info h2 {
-        font-size: 2rem;
-        line-height: 1.22;
-      }
-
-      .surface-info > p {
-        font-size: 0.96rem;
-        line-height: 1.75;
-      }
-
-      .instruction-panel {
-        gap: 22px;
-      }
-
-      .instruction-card ul {
-        font-size: 0.9rem;
-      }
-
-      .surface-proof {
-        grid-template-columns: 1fr;
-      }
-
-      .steps {
-        font-size: 10px;
-        gap: 4px;
-      }
-
-      .step {
-        padding: 7px 2px;
-      }
-
-      .surface-form {
-        padding: 24px;
-        border-radius: 18px;
-      }
-
-      .form-header h2 {
-        font-size: 1.65rem;
-      }
-
-      input,
-      select {
-        font-size: 0.94rem;
-        padding: 12px 13px;
-      }
-
-      .surface-button {
-        padding: 14px 16px;
-      }
-
-      .coinsph-results {
-        max-height: 240px;
-      }
-
-      .coinsph-channel-tabs {
-        grid-template-columns: 1fr;
-      }
-
-      .footer {
-        padding: 68px 22px 40px;
-      }
-
-      .footer-logo {
-        width: 136px;
-        margin-bottom: 42px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr;
-        gap: 42px;
-      }
-
-      .footer-about p {
-        font-size: 14px;
-        line-height: 1.75;
-      }
-
-      .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 26px;
-        margin-top: 56px;
-      }
-
-      .footer-legal {
-        gap: 22px;
-      }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(24px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .fade-in {
-      animation: fadeInUp 0.6s ease-out;
-    }
-  </style>
+  <link rel="stylesheet" href="/surface/styles.css?v=1" />
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <nav class="navbar">
-        <a href="/" aria-label="Back to UniBridge home">
-          <img
-            src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
-            alt="UniBridge Logo"
-            class="nav-logo"
-          />
-        </a>
+  <main class="page">
+    <section class="hero">
+      <img
+        class="brand-logo"
+        src="/connect/icons/social/Ub.png"
+        alt="UniBridge"
+      />
 
-        <div class="nav-links">
-          <a href="/#platform" class="nav-link">Platform</a>
-          <a href="/#solutions" class="nav-link">Model</a>
-          <a href="/#trust" class="nav-link">Validation</a>
-          <a href="/docs.html" class="nav-link">Operating Model</a>
-          <a href="/#contact" class="nav-button">Request Access</a>
-        </div>
-      </nav>
-    </div>
-  </header>
+      <p class="eyebrow">Pay with UniBridge</p>
 
-  <section class="surface-hero">
-    <div class="container">
-      <div class="surface-hero-inner fade-in">
-        <div class="eyebrow">Controlled validation</div>
+      <h1>Fund your payout by card</h1>
 
-        <h1>Test a UniBridge payout flow</h1>
+      <p class="subtitle">
+        Use a supported card or ramp provider to fund your payout route.
+      </p>
+    </section>
 
-        <p>
-          Use this page to validate a small payout flow before broader rollout. Review the route,
-          funding details, destination requirements, and payout status before continuing.
-        </p>
+    <section class="card">
+      <section
+        class="steps"
+        aria-label="Card payment steps"
+      >
+        <div id="step1" class="step active">Route</div>
+        <div id="step2" class="step">Details</div>
+        <div id="step3" class="step">Payment</div>
+        <div id="step4" class="step">Processing</div>
+        <div id="step5" class="step">Done</div>
+      </section>
 
-        <div class="surface-hero-meta">
-          <span class="surface-badge">Controlled live test</span>
-          <span class="surface-badge">Non-custodial payout flow</span>
-          <span class="surface-badge">Evidence before rollout</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="surface-section">
-    <div class="container">
-      <div class="surface-container">
-        <div class="surface-info fade-in">
-          <h2>What this test validates</h2>
-
+      <section id="entryBox" class="entry-box">
+        <div class="entry-header">
+          <h2>Start your payout</h2>
           <p>
-            This surface is designed for small-value corridor validation. It helps review route behavior,
-            funding visibility, payout requirements, and execution evidence before broader activation.
+            Confirm the amount and destination, then continue to the available card payment option.
           </p>
-
-          <div class="instruction-panel">
-            <div class="instruction-card">
-              <h3>Controlled scope</h3>
-              <ul>
-                <li>Use only small-value test amounts.</li>
-                <li>Review quote, corridor, and destination details before continuing.</li>
-                <li>This surface is for validation, not public consumer remittance.</li>
-              </ul>
-            </div>
-
-            <div class="instruction-card">
-              <h3>Non-custodial flow</h3>
-              <ul>
-                <li>UniBridge coordinates the payout flow without holding customer funds.</li>
-                <li>Funding, checks, and execution remain with the relevant approved participants.</li>
-                <li>Destination requirements may vary by corridor and payout method.</li>
-              </ul>
-            </div>
-
-            <div class="instruction-card">
-              <h3>Execution evidence</h3>
-              <ul>
-                <li>Route status, funding confirmation, and payout progress may be used for review.</li>
-                <li>Delivery or return handling follows the selected payout flow state.</li>
-                <li>Use the result as validation evidence before broader rollout.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="surface-proof">
-            <div class="proof-item">
-              <strong>Route review</strong>
-              <span>Selected corridor and payout method before funding.</span>
-            </div>
-
-            <div class="proof-item">
-              <strong>Funding visibility</strong>
-              <span>Status review from funding start to confirmation.</span>
-            </div>
-
-            <div class="proof-item">
-              <strong>Payout evidence</strong>
-              <span>Execution status for partner validation.</span>
-            </div>
-          </div>
         </div>
 
-        <div class="surface-form-wrap fade-in">
-          <div class="steps">
-            <div id="step1" class="step active">Setup</div>
-            <div id="step2" class="step">Route</div>
-            <div id="step3" class="step">Payment</div>
-            <div id="step4" class="step">Processing</div>
-            <div id="step5" class="step">Done</div>
+        <section id="summary" class="summary-box hidden">
+          <div><strong>Amount</strong>: <span id="sumAmount"></span></div>
+          <div><strong>Country</strong>: <span id="sumCountry"></span></div>
+          <div id="executorFeeRow" style="display:none;">
+            <strong>Execution fee</strong>: <span id="sumExecutorFee"></span>
           </div>
+        </section>
 
-          <div class="surface-form">
-            <div class="form-header">
-              <h2>Validate payout flow</h2>
-              <p>
-                Enter the corridor and destination details to review the test flow before funding continues.
-              </p>
-            </div>
+        <div class="form-grid route-grid">
+          <label class="field">
+            <span>Amount</span>
+            <input
+              id="amount"
+              type="number"
+              step="0.01"
+              value="10"
+              placeholder="Amount"
+            />
+          </label>
 
-            <div id="summary" class="summary">
-              <div><strong>Amount</strong>: <span id="sumAmount"></span></div>
-              <div><strong>Country</strong>: <span id="sumCountry"></span></div>
-              <div id="executorFeeRow" style="display:none;">
-                <strong>Execution fee</strong>: <span id="sumExecutorFee"></span>
-              </div>
-            </div>
+          <div id="amountLimitHint"></div>
 
-            <label class="field-label" for="amount">Amount</label>
-            <input id="amount" type="number" step="0.01" value="10" placeholder="Amount" />
-            <div id="amountLimitHint"></div>
-
-            <label class="field-label" for="source_country">Source country</label>
+          <label class="field">
+            <span>Source country</span>
             <select id="source_country">
               <option value="US">United States</option>
               <option value="EU">Europe</option>
               <option value="GB">United Kingdom</option>
               <option value="AE">United Arab Emirates</option>
             </select>
+          </label>
 
-            <label class="field-label" for="country">Destination country</label>
+          <label class="field">
+            <span>Destination country</span>
             <select id="country">
               <option value="BR">Brazil</option>
               <option value="PH">Philippines</option>
             </select>
+          </label>
+        </div>
 
-            <button id="sendBtn" type="button" class="surface-button">Get quote</button>
+        <button
+          id="sendBtn"
+          type="button"
+          class="button primary"
+        >
+          Use this payout route
+        </button>
 
-            <div id="pixBox">
-              <h3>Destination details</h3>
+        <section id="pixBox" class="hidden">
+          <div class="entry-header compact">
+            <h2>Destination details</h2>
+            <p>
+              Enter the payout details required for this route.
+            </p>
+          </div>
 
-              <label class="field-label" for="pix">PIX key</label>
+          <div class="form-grid">
+            <label class="field">
+              <span>PIX key</span>
               <input id="pix" placeholder="Enter PIX key" />
+            </label>
 
-              <div id="taxBox">
-                <label class="field-label" for="taxId">Tax ID</label>
+            <div id="taxBox">
+              <label class="field">
+                <span>Tax ID</span>
                 <input id="taxId" placeholder="CPF / CNPJ" />
-              </div>
-
-              <button id="continueBtn" type="button" class="surface-button" disabled>
-                Continue to payment
-              </button>
-
-              <div class="muted">
-                Enter a valid PIX key for the test recipient.
-              </div>
-            </div>
-
-            <div id="coinsPhBox">
-              <h3>Philippines payout details</h3>
-
-              <label class="field-label" for="coinsPhBankSearch">
-                Bank / payout institution
               </label>
+            </div>
+          </div>
 
-              <div class="coinsph-picker">
-                <div class="coinsph-search-row">
-                  <input
-                    id="coinsPhBankSearch"
-                    type="text"
-                    autocomplete="off"
-                    placeholder="Search bank or payout institution"
-                  />
+          <button
+            id="continueBtn"
+            type="button"
+            class="button primary"
+            disabled
+          >
+            Continue to payment
+          </button>
 
-                  <input
-                    id="coinsPhBank"
-                    type="hidden"
-                    value=""
-                  />
+          <div class="muted">
+            Enter a valid PIX key for the recipient.
+          </div>
+        </section>
 
-                  <input
-                    id="coinsPhChannelName"
-                    type="hidden"
-                    value=""
-                  />
+        <section id="coinsPhBox" class="hidden">
+          <div class="entry-header compact">
+            <h2>Philippines payout details</h2>
+            <p>
+              Select the receiving institution and enter recipient details.
+            </p>
+          </div>
 
-                  <input
-                    id="coinsPhChannelSubject"
-                    type="hidden"
-                    value=""
-                  />
-                </div>
+          <label class="field">
+            <span>Bank / payout institution</span>
 
+            <div class="coinsph-picker">
+              <div class="coinsph-search-row">
+                <input
+                  id="coinsPhBankSearch"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Search bank or payout institution"
+                />
+
+                <input id="coinsPhBank" type="hidden" value="" />
+                <input id="coinsPhChannelName" type="hidden" value="" />
+                <input id="coinsPhChannelSubject" type="hidden" value="" />
+              </div>
+
+              <div
+                id="coinsPhSearchCount"
+                class="coinsph-search-count"
+              >
+                Loading payout institutions...
+              </div>
+
+              <div
+                id="coinsPhBankResults"
+                class="coinsph-results"
+                aria-live="polite"
+              ></div>
+
+              <div
+                id="coinsPhSelectedBank"
+                class="coinsph-selected"
+              >
                 <div
-                  id="coinsPhSearchCount"
-                  class="coinsph-search-count"
-                >
-                  Loading payout institutions...
-                </div>
-
-                <div
-                  id="coinsPhBankResults"
-                  class="coinsph-results"
-                  aria-live="polite"
+                  id="coinsPhSelectedBankLabel"
+                  class="coinsph-selected-label"
                 ></div>
 
                 <div
-                  id="coinsPhSelectedBank"
-                  class="coinsph-selected"
-                >
-                  <div
-                    id="coinsPhSelectedBankLabel"
-                    class="coinsph-selected-label"
-                  ></div>
+                  id="coinsPhSelectedBankMeta"
+                  class="coinsph-selected-meta"
+                ></div>
 
-                  <div
-                    id="coinsPhSelectedBankMeta"
-                    class="coinsph-selected-meta"
-                  ></div>
-
-                  <div
-                    id="coinsPhChannelTabs"
-                    class="coinsph-channel-tabs"
-                  ></div>
-                </div>
-              </div>
-
-              <div id="coinsPhRecipientFields">
-                <label class="field-label" for="coinsPhRecipientName">
-                  Recipient full legal name
-                </label>
-                <input
-                  id="coinsPhRecipientName"
-                  type="text"
-                  placeholder="Name as registered with the receiving bank"
-                />
-
-                <label class="field-label" for="coinsPhRecipientAccount">
-                  Bank account number
-                </label>
-                <input
-                  id="coinsPhRecipientAccount"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="Enter bank account number"
-                />
-
-                <label class="field-label" for="coinsPhRecipientAddress">
-                  Recipient address
-                </label>
-                <input
-                  id="coinsPhRecipientAddress"
-                  type="text"
-                  placeholder="Optional"
-                />
-
-                <label class="field-label" for="coinsPhRemarks">
-                  Remarks
-                </label>
-                <input
-                  id="coinsPhRemarks"
-                  type="text"
-                  placeholder="Optional payment note"
-                />
-              </div>
-
-              <button id="coinsPhContinueBtn" type="button" class="surface-button" disabled>
-                Continue to payment
-              </button>
-
-              <div class="muted" id="coinsPhHint">
-                Search for the receiving bank, select the payout channel, then enter the recipient details.
+                <div
+                  id="coinsPhChannelTabs"
+                  class="coinsph-channel-tabs"
+                ></div>
               </div>
             </div>
+          </label>
 
-            <div id="authBox">
-              <h3 id="authTitle">Authentication</h3>
+          <div
+            id="coinsPhRecipientFields"
+            class="form-grid hidden"
+          >
+            <label class="field">
+              <span>Recipient full legal name</span>
+              <input
+                id="coinsPhRecipientName"
+                type="text"
+                placeholder="Name as registered with the receiving bank"
+              />
+            </label>
 
-              <label class="field-label" for="authEmail">Email</label>
-              <input id="authEmail" type="email" placeholder="Enter email" />
+            <label class="field">
+              <span>Bank account number</span>
+              <input
+                id="coinsPhRecipientAccount"
+                type="text"
+                inputmode="numeric"
+                placeholder="Enter bank account number"
+              />
+            </label>
 
-              <label class="field-label" for="authOtp" id="authOtpLabel" style="display:none;">OTP</label>
-              <input id="authOtp" type="text" placeholder="Enter OTP" style="display:none;" />
+            <label class="field">
+              <span>Recipient address</span>
+              <input
+                id="coinsPhRecipientAddress"
+                type="text"
+                placeholder="Optional"
+              />
+            </label>
 
-              <button id="authBtn" type="button" class="surface-button" style="display:none;">
-                Continue
-              </button>
-
-              <div class="muted" id="authHint">
-                Complete the required authentication step.
-              </div>
-            </div>
-
-            <div id="status"></div>
-
-            <div class="disclaimer">
-              <strong>Controlled validation only.</strong>
-              This surface is used for small-value payout flow review. UniBridge does not hold customer funds,
-              operate local payout rails directly, or replace regulated ramp and execution providers.
-            </div>
+            <label class="field">
+              <span>Remarks</span>
+              <input
+                id="coinsPhRemarks"
+                type="text"
+                placeholder="Optional payment note"
+              />
+            </label>
           </div>
+
+          <button
+            id="coinsPhContinueBtn"
+            type="button"
+            class="button primary"
+            disabled
+          >
+            Continue to payment
+          </button>
+
+          <div class="muted" id="coinsPhHint">
+            Search for the receiving bank, select the payout channel, then enter the recipient details.
+          </div>
+        </section>
+
+        <section id="authBox" class="hidden">
+          <div class="entry-header compact">
+            <h2 id="authTitle">Authentication</h2>
+            <p id="authHint">
+              Complete the required authentication step.
+            </p>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Email</span>
+              <input
+                id="authEmail"
+                type="email"
+                placeholder="Enter email"
+              />
+            </label>
+
+            <label
+              class="field"
+              id="authOtpLabel"
+              style="display:none;"
+            >
+              <span>OTP</span>
+              <input
+                id="authOtp"
+                type="text"
+                placeholder="Enter OTP"
+                style="display:none;"
+              />
+            </label>
+          </div>
+
+          <button
+            id="authBtn"
+            type="button"
+            class="button primary"
+            style="display:none;"
+          >
+            Continue
+          </button>
+        </section>
+
+        <section
+          id="status"
+          class="status-box"
+          aria-live="polite"
+        ></section>
+
+        <div class="disclaimer">
+          <strong>Non-custodial flow.</strong>
+          UniBridge coordinates the payout path and tracks execution without holding customer funds.
         </div>
-      </div>
-    </div>
-  </section>
-
- <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
-
-    <img
-      src="public/icons/social/Ub.png"
-      alt="UniBridge Logo"
-      class="footer-logo"
-    />
-
-    <div class="footer-content">
-
-      <div class="footer-about">
-        <p>
-          B2B and B2B2C payout route coordination through supported corridors,
-          verified integrations, and controlled execution proofs.
-        </p>
-
-        <p>
-          UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
-        </p>
-
-        <p>
-          © 2026 UniBridge Technologies Ltd. All rights reserved.
-        </p>
-      </div>
-
-      <div class="footer-links">
-        <h3>Company</h3>
-        <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
-        <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
-
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
-
-          <li>
-            <a href="/docs.html">Operating Model</a>
-            <span class="footer-link-note">
-              Execution lifecycle, control model, use case, and operating layers.
-            </span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-
-    <div class="footer-bottom">
-
-      <!-- Social Icons -->
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
-
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
-
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
-
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="public/icons/social/img_twitter.svg" alt="X" />
-        </a>
-      </div>
-
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="/#contact">Contact</a>
-      </div>
-
-    </div>
-
-  </div>
-</footer>
+      </section>
+    </section>
+  </main>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="/surface/js/api.js"></script>
@@ -1486,63 +332,94 @@
 
   <script>
     function setStep(n) {
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 5; i += 1) {
         document.getElementById("step" + i)?.classList.remove("active");
       }
+
       document.getElementById("step" + n)?.classList.add("active");
     }
 
-    const summaryBox = document.getElementById("summary");
-    const pixBox = document.getElementById("pixBox");
-    const taxBox = document.getElementById("taxBox");
-    const authBox = document.getElementById("authBox");
-    const coinsPhBox = document.getElementById("coinsPhBox");
-    const coinsPhRecipientFields = document.getElementById("coinsPhRecipientFields");
+    function showElement(element) {
+      if (!element) {
+        return;
+      }
+
+      element.classList.remove("hidden");
+      element.style.display = "";
+    }
+
+    function hideElement(element) {
+      if (!element) {
+        return;
+      }
+
+      element.classList.add("hidden");
+      element.style.display = "none";
+    }
+
+    const summaryBox =
+      document.getElementById("summary");
+
+    const pixBox =
+      document.getElementById("pixBox");
+
+    const taxBox =
+      document.getElementById("taxBox");
+
+    const authBox =
+      document.getElementById("authBox");
+
+    const coinsPhBox =
+      document.getElementById("coinsPhBox");
+
+    const coinsPhRecipientFields =
+      document.getElementById("coinsPhRecipientFields");
 
     function getSelectedDestinationCountry() {
       return document.getElementById("country")?.value || "BR";
     }
 
     function showSummary() {
-      summaryBox.style.display = "block";
+      showElement(summaryBox);
     }
 
     function hideSummary() {
-      summaryBox.style.display = "none";
+      hideElement(summaryBox);
     }
 
     function showPixBox() {
-      pixBox.style.display = "block";
+      showElement(pixBox);
     }
 
     function hidePixBox() {
-      pixBox.style.display = "none";
+      hideElement(pixBox);
     }
 
     function showTaxBox() {
-      taxBox.style.display = "block";
+      showElement(taxBox);
     }
 
     function hideTaxBox() {
-      taxBox.style.display = "none";
+      hideElement(taxBox);
     }
 
     function showAuthBox() {
-      authBox.style.display = "block";
+      showElement(authBox);
     }
 
     function hideAuthBox() {
-      authBox.style.display = "none";
+      hideElement(authBox);
     }
 
     function showCoinsPhBox() {
-      coinsPhBox.style.display = "block";
+      showElement(coinsPhBox);
     }
 
     function hideCoinsPhBox() {
-      coinsPhBox.style.display = "none";
+      hideElement(coinsPhBox);
+
       if (coinsPhRecipientFields) {
-        coinsPhRecipientFields.style.display = "none";
+        hideElement(coinsPhRecipientFields);
       }
     }
 
@@ -1615,29 +492,13 @@
     document.addEventListener("DOMContentLoaded", () => {
       resetUiToStart();
 
-      const countrySelect = document.getElementById("country");
+      const countrySelect =
+        document.getElementById("country");
 
       countrySelect?.addEventListener("change", () => {
-        if (summaryBox.style.display === "block") {
+        if (!summaryBox?.classList.contains("hidden")) {
           showDestinationBox();
         }
-      });
-
-      const fadeElements = document.querySelectorAll(".fade-in");
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = 1;
-            entry.target.style.transform = "translateY(0)";
-          }
-        });
-      }, { threshold: 0.1 });
-
-      fadeElements.forEach((el) => {
-        el.style.opacity = 0;
-        el.style.transform = "translateY(20px)";
-        el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-        observer.observe(el);
       });
     });
   </script>
