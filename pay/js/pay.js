@@ -23,8 +23,7 @@ function normalizeAmount(value) {
 }
 
 function goTo(path) {
-  window.location.href =
-    path;
+  window.location.assign(path);
 }
 
 function showChoice() {
@@ -155,13 +154,69 @@ function restoreFiatContext() {
   }
 }
 
+function buildQuery({
+  source_country,
+  receiver_country,
+  amount
+} = {}) {
+  const params =
+    new URLSearchParams();
+
+  if (source_country) {
+    params.set(
+      "source_country",
+      source_country
+    );
+  }
+
+  if (receiver_country) {
+    params.set(
+      "country",
+      receiver_country
+    );
+  }
+
+  if (amount) {
+    params.set(
+      "amount",
+      String(amount)
+    );
+  }
+
+  const query =
+    params.toString();
+
+  return query
+    ? `?${query}`
+    : "";
+}
+
+function buildBankTransferUrl(context = {}) {
+  return `/fiat/bank-transfer${buildQuery(context)}`;
+}
+
+function buildSurfaceUrl(context = {}) {
+  return `/surface${buildQuery(context)}`;
+}
+
 function redirectByPaymentMethod(context) {
   if (context.payment_method === "bank_transfer") {
-    goTo("/fiat/bank-transfer");
+    goTo(
+      buildBankTransferUrl(context)
+    );
     return;
   }
 
-  goTo("/surface/ramp");
+  if (context.payment_method === "ramp") {
+    goTo(
+      buildSurfaceUrl(context)
+    );
+    return;
+  }
+
+  goTo(
+    buildSurfaceUrl(context)
+  );
 }
 
 function init() {
@@ -204,6 +259,8 @@ function init() {
         );
       }
     });
+
+  showChoice();
 }
 
 init();
