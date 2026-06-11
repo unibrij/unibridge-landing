@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/public/js/nextAction.js
+// unibrij/unibridge-landing/surface/js/nextAction.js
 
 window.UnibridgeNextAction = (() => {
   function normalizeNextAction(action) {
