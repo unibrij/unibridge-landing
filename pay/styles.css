@@ -464,6 +464,39 @@ option {
   transform: scale(0.98);
 }
 
+/* --------------------------------------------------
+   Footer
+-------------------------------------------------- */
+
+.pay-footer {
+  width: min(100%, 440px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 0 6px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.pay-footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.pay-footer a {
+  color: rgba(255, 255, 255, 0.48);
+  text-decoration: none;
+}
+
+.pay-footer a:hover {
+  color: #5eead4;
+}
+
 @media (max-width: 430px) {
   .page {
     width: min(100%, 392px);
@@ -534,6 +567,13 @@ option {
   .bank-svg {
     width: 32px;
     height: 32px;
+  }
+
+  .pay-footer {
+    width: min(100%, 392px);
+    margin-top: 10px;
+    padding: 0 4px;
+    font-size: 9.5px;
   }
 
   .actions {
