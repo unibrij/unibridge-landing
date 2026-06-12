@@ -3,6 +3,9 @@
 const STORAGE_KEY =
   "unibridge_fiat_context";
 
+const UNIBRIDGE_GUIDE_URL =
+  "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide";
+
 function getEl(id) {
   return document.getElementById(id);
 }
@@ -26,14 +29,24 @@ function goTo(path) {
   window.location.assign(path);
 }
 
+function openGuide() {
+  window.open(
+    UNIBRIDGE_GUIDE_URL,
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+
 function showChoice() {
   getEl("choiceCard")?.classList.remove("hidden");
   getEl("fiatCard")?.classList.add("hidden");
+  getEl("guideCard")?.classList.remove("hidden");
 }
 
 function showFiat() {
   getEl("choiceCard")?.classList.add("hidden");
   getEl("fiatCard")?.classList.remove("hidden");
+  getEl("guideCard")?.classList.add("hidden");
 }
 
 function getPaymentMethod() {
@@ -235,6 +248,11 @@ function init() {
   getEl("backAction")
     ?.addEventListener("click", () => {
       showChoice();
+    });
+
+  getEl("guideCardAction")
+    ?.addEventListener("click", () => {
+      openGuide();
     });
 
   getEl("fiatForm")
