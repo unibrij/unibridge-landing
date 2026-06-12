@@ -19,7 +19,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
-  <link rel="stylesheet" href="/pay/styles.css?v=8" />
+  <link rel="stylesheet" href="/pay/styles.css?v=10" />
 </head>
 
 <body>
@@ -69,6 +69,32 @@
             Continue with bank transfer or card payment.
           </small>
         </span>
+      </button>
+    </section>
+
+    <section
+      id="guideCard"
+      class="card guide-card hidden"
+      aria-labelledby="guideTitle"
+    >
+      <div class="guide-card-header">
+        <span class="guide-icon">✦</span>
+        <span class="guide-badge">Guide</span>
+      </div>
+
+      <h2 id="guideTitle">UniBridge Guide</h2>
+
+      <p>
+        Not sure which funding option fits your route? Learn about wallet,
+        fiat funding, payout routes, and safety.
+      </p>
+
+      <button
+        id="guideCardAction"
+        class="guide-action"
+        type="button"
+      >
+        Open UniBridge Guide →
       </button>
     </section>
 
@@ -164,7 +190,7 @@
 
   <script
     type="module"
-    src="/pay/js/pay.js?v=3"
+    src="/pay/js/pay.js?v=4"
   ></script>
 </body>
 </html>
