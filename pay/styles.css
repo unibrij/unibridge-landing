@@ -208,6 +208,16 @@ h1 {
   line-height: 1;
 }
 
+.choice-svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.choice-svg path {
+  vector-effect: non-scaling-stroke;
+}
+
 .choice-card strong,
 .method-card strong {
   display: block;
