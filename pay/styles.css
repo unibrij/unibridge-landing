@@ -231,32 +231,29 @@ h1 {
 }
 
 .choice-svg {
-  width: 31px;
-  height: 31px;
+  width: 36px;
+  height: 36px;
   display: block;
   filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
 }
 
 .wallet-svg {
-  width: 31px;
-  height: 31px;
+  width: 36px;
+  height: 36px;
 }
 
 .bank-svg {
-  width: 33px;
-  height: 33px;
+  width: 37px;
+  height: 37px;
 }
 
 .choice-svg path,
 .choice-svg line,
 .choice-svg rect,
 .choice-svg polyline,
-.choice-svg polygon {
-  stroke-width: 1.6;
-  vector-effect: non-scaling-stroke;
-}
-
+.choice-svg polygon,
 .choice-svg circle {
+  stroke-width: 1.35;
   vector-effect: non-scaling-stroke;
 }
 
@@ -560,13 +557,18 @@ option {
   }
 
   .choice-svg {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .wallet-svg {
+    width: 34px;
+    height: 34px;
   }
 
   .bank-svg {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
 
   .pay-footer {
