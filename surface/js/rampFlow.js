@@ -155,6 +155,239 @@ window.UnibridgeRampFlow = (() => {
     );
   }
 
+  function getStripeOnrampContainer() {
+    let container =
+      document.getElementById("stripeOnrampContainer");
+
+    if (container) {
+      return container;
+    }
+
+    const statusBox =
+      document.getElementById("status");
+
+    container =
+      document.createElement("div");
+
+    container.id =
+      "stripeOnrampContainer";
+
+    container.style.width =
+      "100%";
+
+    container.style.minHeight =
+      "620px";
+
+    container.style.marginTop =
+      "16px";
+
+    container.style.borderRadius =
+      "20px";
+
+    container.style.overflow =
+      "hidden";
+
+    if (statusBox?.parentNode) {
+      statusBox.parentNode.insertBefore(
+        container,
+        statusBox
+      );
+    } else {
+      document.body.appendChild(container);
+    }
+
+    return container;
+  }
+
+  function loadScriptOnce(src, globalName) {
+    return new Promise((resolve, reject) => {
+      if (
+        globalName &&
+        window[globalName]
+      ) {
+        resolve(true);
+        return;
+      }
+
+      const existing =
+        document.querySelector(
+          `script[src="${src}"]`
+        );
+
+      if (existing) {
+        existing.addEventListener(
+          "load",
+          () => resolve(true),
+          { once: true }
+        );
+
+        existing.addEventListener(
+          "error",
+          () => reject(new Error("script_load_failed")),
+          { once: true }
+        );
+
+        return;
+      }
+
+      const script =
+        document.createElement("script");
+
+      script.src =
+        src;
+
+      script.async =
+        true;
+
+      script.onload =
+        () => resolve(true);
+
+      script.onerror =
+        () => reject(new Error("script_load_failed"));
+
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureStripeOnrampSdk() {
+    await loadScriptOnce(
+      "https://js.stripe.com/clover/stripe.js",
+      "Stripe"
+    );
+
+    await loadScriptOnce(
+      "https://crypto-js.stripe.com/crypto-onramp-outer.js",
+      "StripeOnramp"
+    );
+
+    if (
+      typeof window.StripeOnramp !== "function"
+    ) {
+      throw new Error("stripe_onramp_sdk_missing");
+    }
+  }
+
+  async function mountStripeEmbeddedOnramp(ctx, action) {
+    const meta =
+      action?.meta || {};
+
+    const clientSecret =
+      typeof meta.client_secret === "string"
+        ? meta.client_secret.trim()
+        : "";
+
+    const publishableKey =
+      typeof meta.publishable_key === "string"
+        ? meta.publishable_key.trim()
+        : "";
+
+    if (!clientSecret) {
+      throw new Error("missing_stripe_onramp_client_secret");
+    }
+
+    if (!publishableKey) {
+      throw new Error("missing_stripe_publishable_key");
+    }
+
+    await ensureStripeOnrampSdk();
+
+    hideAuthUi();
+
+    const container =
+      getStripeOnrampContainer();
+
+    container.innerHTML =
+      "";
+
+    if (typeof ctx.setCurrentNextAction === "function") {
+      ctx.setCurrentNextAction(null);
+    }
+
+    ctx.setContinueDisabled(true);
+
+    ctx.setStatus(
+      "Opening Stripe payment..."
+    );
+
+    const stripeOnramp =
+      window.StripeOnramp(publishableKey);
+
+    const session =
+      stripeOnramp.createSession({
+        clientSecret,
+        appearance: {
+          theme: "dark"
+        }
+      });
+
+    if (
+      session &&
+      typeof session.addEventListener === "function"
+    ) {
+      session.addEventListener(
+        "onramp_session_updated",
+        (event) => {
+          const stripeSession =
+            event?.payload?.session || null;
+
+          const status =
+            stripeSession?.status || null;
+
+          console.log("STRIPE_ONRAMP_SESSION_UPDATED", {
+            status,
+            session_id:
+              stripeSession?.id || null
+          });
+
+          if (
+            status === "fulfillment_complete"
+          ) {
+            ctx.emit("unibridge:payment");
+            ctx.setStatus(
+              "Payment submitted. Waiting for on-chain confirmation..."
+            );
+            return;
+          }
+
+          if (
+            status === "rejected"
+          ) {
+            ctx.setContinueDisabled(false);
+            ctx.setStatus(
+              "Stripe payment was not completed.",
+              "error"
+            );
+            return;
+          }
+
+          ctx.setStatus(
+            "Complete the payment in the Stripe widget."
+          );
+        }
+      );
+    }
+
+    if (
+      !session ||
+      typeof session.mount !== "function"
+    ) {
+      throw new Error("stripe_onramp_session_mount_missing");
+    }
+
+    session.mount(
+      "#stripeOnrampContainer"
+    );
+
+    ctx.emit("unibridge:quote");
+    ctx.emit("unibridge:payment");
+
+    ctx.setStatus(
+      "Complete the payment in the Stripe widget."
+    );
+
+    return true;
+  }
+
   async function processStepNextActions(ctx) {
     const {
       getCurrentNextAction,
@@ -322,6 +555,20 @@ window.UnibridgeRampFlow = (() => {
           ctx.emit("unibridge:payment");
           setContinueDisabled(false);
           setStatus("Waiting for payment confirmation...");
+
+          return;
+        }
+
+        else if (
+          step === "mount_embedded_onramp" &&
+          action.provider === "stripe_onramp"
+        ) {
+          await mountStripeEmbeddedOnramp(
+            ctx,
+            action
+          );
+
+          setCurrentNextAction(null);
 
           return;
         }
