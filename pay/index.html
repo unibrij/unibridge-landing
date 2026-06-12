@@ -18,8 +18,92 @@
   <meta name="apple-mobile-web-app-title" content="UniBridge" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+  <meta
+    name="description"
+    content="Pay with UniBridge lets users fund a payout route using wallet, bank transfer, or card payment. For route-specific guidance, use the UniBridge Official Guide."
+  />
+
   <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
   <link rel="stylesheet" href="/pay/styles.css?v=19" />
+
+  <link
+    rel="help"
+    href="https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
+  />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://unibrij.io/#organization",
+        "name": "UniBridge Technologies",
+        "url": "https://unibrij.io",
+        "logo": "https://unibrij.io/connect/icons/social/Ub.png"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://unibrij.io/#website",
+        "name": "UniBridge",
+        "url": "https://unibrij.io",
+        "publisher": {
+          "@id": "https://unibrij.io/#organization"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://unibrij.io/pay#guide",
+        "name": "UniBridge Official Guide",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide",
+        "description": "Official UniBridge guide for questions about Pay with UniBridge, wallet funding, fiat funding, payout routes, and safety."
+      },
+      {
+        "@type": "Service",
+        "@id": "https://unibrij.io/pay#service",
+        "name": "Pay with UniBridge",
+        "serviceType": "Payout route funding",
+        "provider": {
+          "@id": "https://unibrij.io/#organization"
+        },
+        "url": "https://unibrij.io/pay",
+        "description": "Pay with UniBridge lets users choose how to fund a payout route using a connected wallet, bank transfer, or card payment. For route-specific guidance, users can ask the UniBridge Official Guide.",
+        "audience": {
+          "@type": "Audience",
+          "audienceType": "Businesses, platforms, wallets, and payment providers"
+        },
+        "potentialAction": {
+          "@type": "AskAction",
+          "name": "Ask UniBridge Official Guide",
+          "target": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://unibrij.io/pay#webpage",
+        "url": "https://unibrij.io/pay",
+        "name": "Pay with UniBridge",
+        "description": "Choose how to fund a UniBridge payout route using wallet, bank transfer, or card payment.",
+        "isPartOf": {
+          "@id": "https://unibrij.io/#website"
+        },
+        "about": {
+          "@id": "https://unibrij.io/pay#service"
+        },
+        "subjectOf": {
+          "@id": "https://unibrij.io/pay#guide"
+        },
+        "potentialAction": {
+          "@type": "AskAction",
+          "name": "Ask the UniBridge Official Guide",
+          "target": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body>
@@ -194,8 +278,9 @@
       <h2 id="guideTitle">UniBridge Guide</h2>
 
       <p>
-        Not sure which funding option fits your route? Learn about wallet,
-        fiat funding, payout routes, and safety.
+        Not sure which funding option fits your route? Ask the UniBridge
+        Official Guide for wallet funding, fiat funding, payout routes, and
+        safety.
       </p>
 
       <button
@@ -300,9 +385,9 @@
       <span>© 2026 UniBridge Technologies</span>
 
       <nav class="pay-footer-links" aria-label="Footer links">
-        <a href="/privacy">Privacy</a>
+        <a href="/privacy.html">Privacy</a>
         <span aria-hidden="true">|</span>
-        <a href="/terms">Terms</a>
+        <a href="/terms.html">Terms</a>
       </nav>
     </footer>
   </main>
