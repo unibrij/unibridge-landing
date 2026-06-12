@@ -139,25 +139,29 @@ h1 {
   line-height: 1.5;
 }
 
+/* --------------------------------------------------
+   Glass cards — map visible behind
+-------------------------------------------------- */
+
 .card {
   width: min(100%, 440px);
   box-sizing: border-box;
   margin-top: 8px;
   padding: 14px;
-  border: 1px solid rgba(94, 234, 212, 0.18);
+  border: 1px solid rgba(94, 234, 212, 0.26);
   border-radius: 20px;
   background:
     linear-gradient(
       180deg,
-      rgba(9, 34, 72, 0.54) 0%,
-      rgba(0, 14, 45, 0.42) 100%
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
     );
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    inset 0 0 28px rgba(94, 234, 212, 0.035);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+    0 24px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 26px rgba(94, 234, 212, 0.045);
+  backdrop-filter: blur(4.5px) saturate(125%);
+  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
   display: grid;
   gap: 10px;
   text-align: left;
@@ -169,10 +173,15 @@ h1 {
   box-sizing: border-box;
   display: flex;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 16px;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.05);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.22) 0%,
+      rgba(4, 18, 48, 0.12) 100%
+    );
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -194,8 +203,13 @@ h1 {
 
 .choice-card:hover,
 .method-card:has(input:checked) {
-  border-color: rgba(45, 212, 191, 0.32);
-  background: rgba(20, 184, 166, 0.075);
+  border-color: rgba(45, 212, 191, 0.38);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 184, 166, 0.075) 0%,
+      rgba(4, 18, 48, 0.13) 100%
+    );
 }
 
 .choice-card:active,
@@ -209,18 +223,10 @@ h1 {
   flex: 0 0 52px;
   display: grid;
   place-items: center;
-  border-radius: 16px;
   color: #5eead4;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 184, 166, 0.13) 0%,
-      rgba(20, 184, 166, 0.055) 100%
-    );
-  border: 1px solid rgba(45, 212, 191, 0.20);
-  box-shadow:
-    0 0 20px rgba(45, 212, 191, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   line-height: 1;
 }
 
@@ -228,6 +234,7 @@ h1 {
   width: 31px;
   height: 31px;
   display: block;
+  filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
 }
 
 .wallet-svg {
@@ -241,10 +248,15 @@ h1 {
 }
 
 .choice-svg path,
-.choice-svg circle,
 .choice-svg line,
+.choice-svg rect,
 .choice-svg polyline,
 .choice-svg polygon {
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.choice-svg circle {
   vector-effect: non-scaling-stroke;
 }
 
@@ -369,13 +381,15 @@ option {
 
 .guide-card {
   gap: 9px;
-  border-color: rgba(45, 212, 191, 0.36);
+  border-color: rgba(45, 212, 191, 0.42);
   background:
     linear-gradient(
       180deg,
-      rgba(9, 34, 72, 0.58) 0%,
-      rgba(0, 14, 45, 0.46) 100%
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
     );
+  backdrop-filter: blur(4.5px) saturate(128%);
+  -webkit-backdrop-filter: blur(4.5px) saturate(128%);
 }
 
 .guide-card-header {
@@ -496,18 +510,20 @@ option {
     background:
       linear-gradient(
         180deg,
-        rgba(9, 34, 72, 0.58) 0%,
-        rgba(0, 14, 45, 0.46) 100%
+        rgba(9, 34, 72, 0.22) 0%,
+        rgba(0, 14, 45, 0.12) 100%
       );
-    backdrop-filter: blur(16px) saturate(130%);
-    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    backdrop-filter: blur(4px) saturate(124%);
+    -webkit-backdrop-filter: blur(4px) saturate(124%);
   }
 
   .choice-icon {
     width: 50px;
     height: 50px;
     flex-basis: 50px;
-    border-radius: 15px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
   }
 
   .choice-svg {
