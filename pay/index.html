@@ -32,6 +32,20 @@
     href="https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
   />
 
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -70,7 +84,7 @@
           "@id": "https://unibrij.io/#organization"
         },
         "url": "https://unibrij.io/pay",
-        "description": "Pay with UniBridge lets users choose how to fund a payout route using a connected wallet, bank transfer, or card payment. For route-specific guidance, users can ask the UniBridge Official Guide.",
+        "description": "Pay with UniBridge lets users fund a payout route using a connected wallet, bank transfer, or card payment. For route-specific guidance, users can ask the UniBridge Official Guide.",
         "audience": {
           "@type": "Audience",
           "audienceType": "Businesses, platforms, wallets, and payment providers"
@@ -86,7 +100,7 @@
         "@id": "https://unibrij.io/pay#webpage",
         "url": "https://unibrij.io/pay",
         "name": "Pay with UniBridge",
-        "description": "Choose how to fund a UniBridge payout route using wallet, bank transfer, or card payment.",
+        "description": "Fund a UniBridge payout route using wallet, bank transfer, or card payment.",
         "isPartOf": {
           "@id": "https://unibrij.io/#website"
         },
@@ -111,13 +125,11 @@
   <main class="page">
     <div id="pay-brand"></div>
 
-    <section class="hero">
-      <p class="eyebrow">Pay with UniBridge</p>
+    <section class="hero" aria-labelledby="payTitle">
+      <h1 id="payTitle" class="sr-only">Pay with UniBridge</h1>
 
-      <h1>Choose how to fund your payout</h1>
-
-      <p class="subtitle">
-        Start with a wallet, bank transfer, or card payment.
+      <p class="eyebrow" aria-hidden="true">
+        Pay with UniBridge
       </p>
     </section>
 
@@ -268,7 +280,7 @@
       aria-labelledby="guideTitle"
     >
       <div class="guide-card-header">
-        <span class="guide-icon">✦</span>
+        <span class="guide-icon" aria-hidden="true">✦</span>
         <span class="guide-badge">Guide</span>
       </div>
 
@@ -379,7 +391,7 @@
     <div id="pay-footer"></div>
   </main>
 
-  <script src="/partials/pay/js/pay-includes.js?v=4"></script>
+  <script src="/partials/pay/js/pay-includes.js?v=6"></script>
 
   <script
     type="module"
