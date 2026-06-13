@@ -84,8 +84,8 @@ body {
 }
 
 .history-shell {
-  justify-content: flex-start;
-  padding-top: 84px;
+  justify-content: center;
+  padding-top: 18px;
   padding-bottom: 40px;
 }
 
