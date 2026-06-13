@@ -420,27 +420,25 @@ export default function App() {
 
   return (
     <main className="connect-shell">
-      <img
-        src="/connect/icons/social/Ub.png"
-        className="logo"
-        alt="UniBridge"
-      />
+      <header className="connect-brandbar">
+        <a
+          href="/connect"
+          className="connect-brandbar-logo-link"
+          aria-label="Pay with UniBridge"
+        >
+          <img
+            src="/public/icons/social/unibridge-orbit-lockup-white.png"
+            className="connect-brandbar-logo"
+            alt="UniBridge"
+          />
+        </a>
+      </header>
 
       <h1>Pay with your wallet</h1>
 
-<div className="motion-lines" aria-label="Pay back home. Save for next time.">
-  <div className="motion-line">
-  <span>
-    <strong>Pay back home</strong>
-  </span>
-</div>
-
-<div className="motion-line">
-  <span>
-    <strong>Save for next time</strong>
-  </span>
-</div>
-</div>
+      <p className="connect-rhythm">
+        One rhythm. Every route.
+      </p>
 
       {!isReturnedFlow && (
         <div
@@ -507,6 +505,16 @@ export default function App() {
       )}
 
       <ConnectFaq />
+
+      <footer className="connect-lite-footer">
+        <span>© 2026 UniBridge Technologies Ltd.</span>
+
+        <nav className="connect-lite-footer-links" aria-label="Footer links">
+          <a href="/privacy.html">Privacy</a>
+          <span aria-hidden="true">|</span>
+          <a href="/legal.html">Terms</a>
+        </nav>
+      </footer>
     </main>
   );
 }
