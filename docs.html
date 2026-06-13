@@ -1,12 +1,19 @@
-<!DOCTYPE html><html lang="en" dir="ltr">
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <title>Operating Model | UniBridge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Operating Model | UniBridge</title>
   <meta
     name="description"
     content="UniBridge operating model for non-custodial, stablecoin-settled payout corridors across approved partners."
-  />  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="shortcut icon" type="image/png" href="/favicon.png" />  <style>
+  />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+
+  <style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -220,127 +227,138 @@
         font-size: 0.92rem;
       }
     }
-  </style></head><body>
-  <div id="site-header"></div>  <main>
+  </style>
+</head>
+
+<body>
+  <div id="site-header"></div>
+
+  <main>
     <section class="docs-hero">
       <div class="docs-container">
-        <span class="subtle-label">UniBridge</span>    <h1>UniBridge Operating Model</h1>
+        <span class="subtle-label">UniBridge</span>
 
-    <p class="intro">
-      UniBridge coordinates stablecoin-settled payout flows across approved partners, with a non-custodial model designed for corridor review, controlled testing, and partner-led execution.
-    </p>
-  </div>
-</section>
+        <h1>UniBridge Operating Model</h1>
 
-<section class="docs-main">
-  <div class="docs-container">
-    <div class="docs-grid">
-      <div class="card">
-        <h2>What UniBridge Does</h2>
-
-        <p>
-          UniBridge is a non-custodial coordination layer for stablecoin-settled payout corridors.
-        </p>
-
-        <p>
-          It helps applications and wallets define payout paths, track funding status, and coordinate execution across approved participants.
-        </p>
-
-        <p>
-          UniBridge does not hold customer funds, operate local payout rails directly, or replace regulated ramp and execution providers.
+        <p class="intro">
+          UniBridge coordinates stablecoin-settled payout flows across approved partners, with a non-custodial model designed for corridor review, controlled testing, and partner-led execution.
         </p>
       </div>
+    </section>
 
-      <div class="card">
-        <h2>Execution Lifecycle</h2>
+    <section class="docs-main">
+      <div class="docs-container">
+        <div class="docs-grid">
+          <div class="card">
+            <h2>What UniBridge Does</h2>
 
-        <p>
-          Each payout flow moves through reviewable states before broader rollout or corridor activation.
-        </p>
-
-        <div class="flow">
-          Execution is defined → validated → committed → triggered upon funding
-        </div>
-
-        <p>
-          The lifecycle is designed so partners can understand how funding, delivery, and return handling are coordinated across the selected payout flow.
-        </p>
-      </div>
-
-      <div class="card">
-        <h2>Use Case</h2>
-
-        <p>
-          A payout application, wallet, or platform can use UniBridge to coordinate a destination payout flow:
-        </p>
-
-        <ul>
-          <li>Create a payout session</li>
-          <li>Resolve available paths for the corridor</li>
-          <li>Select the destination method and provider path</li>
-          <li>Start funding through the supported ramp flow</li>
-          <li>Track delivery or return handling through the payout lifecycle</li>
-        </ul>
-
-        <p>
-          For example, a stablecoin-funded payout flow can define the destination path first, then support delivery through local payment methods such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
-        </p>
-      </div>
-
-      <div class="card">
-        <h2>Control Model</h2>
-
-        <p>
-          UniBridge separates payout coordination from custody, licensing, and final execution.
-        </p>
-
-        <p>
-          Funding, compliance checks, custody, and final payout execution remain with the appropriate regulated or approved participants.
-        </p>
-
-        <p class="highlight">
-          The model is built for control and flexibility: defined payout paths without custody, prefunding, or provider lock-in.
-        </p>
-      </div>
-
-      <div class="card">
-        <h2>Operating Layers</h2>
-
-        <p>
-          UniBridge separates payout coordination into clear logical layers:
-        </p>
-
-        <div class="flow">
-          Client Application → Session → Coordination → Settlement Context → Execution
-        </div>
-
-        <p>
-          This structure allows payout readiness, route commitment, execution tracking, and return handling to be managed in sequence without UniBridge holding funds or directly operating local payout rails.
-        </p>
-      </div>
-
-      <div class="card">
-        <h2>Validation Before Rollout</h2>
-
-        <div class="split-card">
-          <div class="mini-panel">
-            <h3>Controlled review</h3>
             <p>
-              Partners can review the corridor, inspect the flow, and validate whether UniBridge fits the payout model before broader activation.
+              UniBridge is a non-custodial coordination layer for stablecoin-settled payout corridors.
+            </p>
+
+            <p>
+              It helps applications and wallets define payout paths, track funding status, and coordinate execution across approved participants.
+            </p>
+
+            <p>
+              UniBridge does not hold customer funds, operate local payout rails directly, or replace regulated ramp and execution providers.
             </p>
           </div>
 
-          <div class="mini-panel">
-            <h3>Execution evidence</h3>
+          <div class="card">
+            <h2>Execution Lifecycle</h2>
+
             <p>
-              Controlled tests, private documentation, route status, and payout evidence support partner review before scale.
+              Each payout flow moves through reviewable states before broader rollout or corridor activation.
             </p>
+
+            <div class="flow">
+              Execution is defined → validated → committed → triggered upon funding
+            </div>
+
+            <p>
+              The lifecycle is designed so partners can understand how funding, delivery, and return handling are coordinated across the selected payout flow.
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Use Case</h2>
+
+            <p>
+              A payout application, wallet, or platform can use UniBridge to coordinate a destination payout flow:
+            </p>
+
+            <ul>
+              <li>Create a payout session</li>
+              <li>Resolve available paths for the corridor</li>
+              <li>Select the destination method and provider path</li>
+              <li>Start funding through the supported ramp flow</li>
+              <li>Track delivery or return handling through the payout lifecycle</li>
+            </ul>
+
+            <p>
+              For example, a stablecoin-funded payout flow can define the destination path first, then support delivery through local payment methods such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Control Model</h2>
+
+            <p>
+              UniBridge separates payout coordination from custody, licensing, and final execution.
+            </p>
+
+            <p>
+              Funding, compliance checks, custody, and final payout execution remain with the appropriate regulated or approved participants.
+            </p>
+
+            <p class="highlight">
+              The model is built for control and flexibility: defined payout paths without custody, prefunding, or provider lock-in.
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Operating Layers</h2>
+
+            <p>
+              UniBridge separates payout coordination into clear logical layers:
+            </p>
+
+            <div class="flow">
+              Client Application → Session → Coordination → Settlement Context → Execution
+            </div>
+
+            <p>
+              This structure allows payout readiness, route commitment, execution tracking, and return handling to be managed in sequence without UniBridge holding funds or directly operating local payout rails.
+            </p>
+          </div>
+
+          <div class="card">
+            <h2>Validation Before Rollout</h2>
+
+            <div class="split-card">
+              <div class="mini-panel">
+                <h3>Controlled review</h3>
+                <p>
+                  Partners can review the corridor, inspect the flow, and validate whether UniBridge fits the payout model before broader activation.
+                </p>
+              </div>
+
+              <div class="mini-panel">
+                <h3>Execution evidence</h3>
+                <p>
+                  Controlled tests, private documentation, route status, and payout evidence support partner review before scale.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
+  </main>
 
-  </main>  <div id="site-footer"></div>  <script src="/partials/js/includes.js"></script></body>
+  <div id="site-footer"></div>
+
+  <script src="/partials/js/includes.js"></script>
+</body>
 </html>
