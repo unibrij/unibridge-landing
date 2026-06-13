@@ -37,6 +37,15 @@
       white-space: nowrap;
       border: 0;
     }
+
+    #pay-guide {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 
@@ -295,7 +304,12 @@
       </section>
     </section>
 
-    <div id="pay-guide"></div>
+    <div
+      id="pay-guide"
+      hidden
+      aria-hidden="true"
+      style="display: none !important;"
+    ></div>
 
     <div id="pay-footer"></div>
   </main>
