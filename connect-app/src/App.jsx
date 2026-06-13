@@ -442,10 +442,6 @@ export default function App() {
         Pay with wallet
       </p>
 
-      <p className="connect-rhythm">
-        One rhythm. Every route.
-      </p>
-
       {!isReturnedFlow && (
         <div
           className="wallet-connect-row"
