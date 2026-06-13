@@ -152,16 +152,6 @@ p {
   text-transform: uppercase;
 }
 
-.connect-rhythm {
-  margin: -2px 0 2px;
-  max-width: none;
-  color: #5eead4;
-  font-size: 15px;
-  line-height: 1.25;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
 /* --------------------------------------------------
    Wallet / form
 -------------------------------------------------- */
@@ -581,181 +571,38 @@ p {
 }
 
 /* --------------------------------------------------
-   UniBridge Guide
+   Guide link
 -------------------------------------------------- */
 
-.connect-guide {
+.connect-guide-link-wrap {
   width: min(100%, 440px);
-  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
   margin-top: 18px;
-  padding: 14px;
-  border: 1px solid rgba(45, 212, 191, 0.36);
-  border-radius: 20px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(9, 34, 72, 0.56) 0%,
-      rgba(0, 14, 45, 0.44) 100%
-    );
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 28px rgba(94, 234, 212, 0.035);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-  text-align: left;
 }
 
-.connect-guide-heading-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.connect-guide-icon {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 11px;
-  color: #5eead4;
-  background: rgba(20, 184, 166, 0.10);
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  box-shadow: 0 0 18px rgba(45, 212, 191, 0.10);
-}
-
-.connect-guide-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 22px;
-  padding: 0 9px;
-  border-radius: 999px;
-  color: #99f6e4;
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.connect-guide h2 {
-  margin: 0 0 8px;
-  color: #ffffff;
-  font-size: 18px;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.connect-guide-copy {
-  margin: 0 0 12px;
-  max-width: none;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.connect-guide-input {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 11px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.56);
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.connect-guide-send {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+.connect-guide-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
   border-radius: 999px;
-  background: #14b8a6;
-  color: #04111f;
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.connect-guide-popular {
-  display: grid;
-  gap: 7px;
-  margin-top: 12px;
-}
-
-.connect-guide-popular p {
-  margin: 0 0 2px;
-  max-width: none;
-  color: rgba(255, 255, 255, 0.60);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.connect-guide-question {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 11px;
-  border-radius: 13px;
-  border: 1px solid rgba(255, 255, 255, 0.085);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.88);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
-}
-
-.connect-guide-question span:last-child {
+  border: 1px solid rgba(45, 212, 191, 0.30);
+  background: rgba(20, 184, 166, 0.06);
   color: #5eead4;
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: 750;
   line-height: 1;
+  text-decoration: none;
 }
 
-.connect-guide-question:hover,
-.connect-guide-input:hover,
-.connect-guide-full:hover {
-  border-color: rgba(45, 212, 191, 0.32);
-  background: rgba(20, 184, 166, 0.075);
+.connect-guide-link:hover {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(45, 212, 191, 0.42);
 }
 
-.connect-guide-full {
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: 12px;
-  min-height: 38px;
-  border: 1px solid rgba(45, 212, 191, 0.38);
-  border-radius: 14px;
-  background: rgba(20, 184, 166, 0.08);
-  color: #5eead4;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.connect-guide-question:active,
-.connect-guide-input:active,
-.connect-guide-full:active {
+.connect-guide-link:active {
   transform: scale(0.98);
 }
 
@@ -861,10 +708,6 @@ p {
     font-size: 12px;
   }
 
-  .connect-rhythm {
-    font-size: 14px;
-  }
-
   .payout-form,
   .route-actions,
   .install-pwa-button {
@@ -889,31 +732,15 @@ p {
     padding: 16px;
   }
 
-  .connect-guide {
+  .connect-guide-link-wrap {
     width: min(100%, 392px);
     margin-top: 14px;
-    padding: 13px;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(9, 34, 72, 0.58) 0%,
-        rgba(0, 14, 45, 0.46) 100%
-      );
-    backdrop-filter: blur(16px) saturate(130%);
-    -webkit-backdrop-filter: blur(16px) saturate(130%);
   }
 
-  .connect-guide h2 {
-    font-size: 17px;
-  }
-
-  .connect-guide-input {
-    min-height: 40px;
-  }
-
-  .connect-guide-question {
-    min-height: 37px;
-    padding: 9px 10px;
+  .connect-guide-link {
+    min-height: 34px;
+    padding: 0 13px;
+    font-size: 12px;
   }
 
   .connect-lite-footer {
