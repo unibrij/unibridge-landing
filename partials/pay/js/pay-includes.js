@@ -29,7 +29,7 @@
   }
 
   function initPayPartials() {
-    loadStylesheetOnce("/partials/pay/css/pay-common.css");
+    loadStylesheetOnce("/partials/pay/css/pay-common.css?v=3");
 
     loadPartial("pay-brand", "/partials/pay/brand.html");
     loadPartial("pay-footer", "/partials/pay/footer.html");
