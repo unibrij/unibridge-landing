@@ -134,13 +134,27 @@ export default function HistoryPage({ walletAddress }) {
 
   return (
     <main className="connect-shell history-shell">
-      <img
-        src="/connect/icons/social/Ub.png"
-        className="logo"
-        alt="UniBridge"
-      />
+      <header className="connect-brandbar">
+        <a
+          href="/connect"
+          className="connect-brandbar-logo-link"
+          aria-label="Pay with UniBridge"
+        >
+          <img
+            src="/public/icons/social/unibridge-orbit-lockup-white.png"
+            className="connect-brandbar-logo"
+            alt="UniBridge"
+          />
+        </a>
+      </header>
 
-      <h1>Payout history</h1>
+      <h1 className="sr-only">
+        Payout history
+      </h1>
+
+      <p className="connect-eyebrow">
+        Payout history
+      </p>
 
       <section className="payout-form">
         {history.length === 0 ? (
