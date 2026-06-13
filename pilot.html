@@ -12,7 +12,7 @@
   />
 
   <link rel="canonical" href="https://unibrij.io/pilot.html" />
-  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
 
   <script type="application/ld+json">
   {
@@ -29,548 +29,276 @@
   </script>
 
   <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    body{
-      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:#23282F;
-      background:#f8fafc;
-      line-height:1.6;
+    :root {
+      --navy: #003366;
+      --navy-dark: #0b1230;
+      --teal: #00D4AA;
+      --teal-hover: #00b894;
+      --teal-dark: #00a98a;
+      --text: #23282f;
+      --muted: #5a6c7d;
+      --bg: #f8fafc;
     }
 
-    .container{
-      max-width:1200px;
-      margin:auto;
-      padding:0 20px;
+    html {
+      scroll-behavior: smooth;
     }
 
-    .navbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:24px 0;
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    .nav-logo{
-      height:200px;
+    a {
+      text-decoration: none;
     }
 
-    .nav-links{
-      display:flex;
-      gap:32px;
-      align-items:center;
+    .pilot-container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 20px;
     }
 
-    .nav-link{
-      color:#23282F;
-      text-decoration:none;
-      font-weight:500;
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 22px;
+      background: var(--teal);
+      color: var(--navy);
+      padding: 15px 28px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      transition: all 0.25s ease;
     }
 
-    .nav-link:hover{
-      color:#00D4AA;
+    .hero-cta:hover {
+      background: var(--teal-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.28);
+      text-decoration: none;
     }
 
-    .nav-button{
-      background:#00D4AA;
-      color:#003366;
-      padding:12px 24px;
-      border-radius:6px;
-      font-weight:600;
-      text-decoration:none;
+    .hero {
+      background: linear-gradient(135deg, #f8fafc, #ffffff);
+      padding: 60px 0 90px;
     }
 
-    .hero-cta{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      margin-top:22px;
-      background:#00D4AA;
-      color:#003366;
-      padding:15px 28px;
-      border-radius:8px;
-      font-size:16px;
-      font-weight:700;
-      line-height:1;
-      text-decoration:none;
-      transition:all .25s ease;
+    .hero h1 {
+      max-width: 840px;
+      color: var(--navy);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      margin-bottom: 24px;
     }
 
-    .hero-cta:hover{
-      background:#00b894;
-      transform:translateY(-2px);
-      box-shadow:0 8px 20px rgba(0,212,170,.28);
+    .hero p {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1.2rem;
     }
 
-    .hero{
-      background:linear-gradient(135deg,#f8fafc,#ffffff);
-      padding:60px 0 90px;
+    .badge {
+      color: var(--teal-dark);
+      font-weight: 700;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
-    .hero h1{
-      max-width:840px;
-      color:#003366;
-      font-size:clamp(2.4rem,6vw,4rem);
-      line-height:1.08;
-      letter-spacing:-0.04em;
-      margin-bottom:24px;
+    .section {
+      padding: 40px 20px;
     }
 
-    .hero p{
-      max-width:760px;
-      color:#5A6C7D;
-      font-size:1.2rem;
-    }
-
-    .badge{
-      color:#00a98a;
-      font-weight:700;
-      margin-bottom:18px;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-    }
-
-    .section{
-      padding:40px 20px;
-    }
-
-    .card{
-      max-width:1050px;
-      margin:28px auto;
-      padding:42px;
-      background:white;
-      border-radius:22px;
+    .card {
+      max-width: 1050px;
+      margin: 28px auto;
+      padding: 42px;
+      background: #ffffff;
+      border-radius: 22px;
       box-shadow:
-        0 24px 70px rgba(0,51,102,.08),
-        0 8px 24px rgba(0,51,102,.045);
+        0 24px 70px rgba(0, 51, 102, 0.08),
+        0 8px 24px rgba(0, 51, 102, 0.045);
     }
 
-    .card h2{
-      color:#003366;
-      margin-bottom:22px;
-      font-size:1.8rem;
+    .card h2 {
+      color: var(--navy);
+      margin-bottom: 22px;
+      font-size: 1.8rem;
     }
 
-    .card h3{
-      color:#003366;
-      margin-bottom:12px;
-      font-size:1.05rem;
+    .card h3 {
+      color: var(--navy);
+      margin-bottom: 12px;
+      font-size: 1.05rem;
     }
 
     .card p,
-    .card li{
-      color:#5A6C7D;
+    .card li {
+      color: var(--muted);
     }
 
-    .card p{
-      margin-bottom:14px;
+    .card p {
+      margin-bottom: 14px;
     }
 
-    ul{
-      padding-left:22px;
-      margin-top:12px;
+    .card strong {
+      color: var(--navy);
     }
 
-    pre{
-      background:#eef2f7;
-      color:#26323f;
-      padding:18px;
-      border-radius:12px;
-      overflow:auto;
-      font-size:.92rem;
-      line-height:1.55;
-      margin:12px 0 22px;
-      white-space:pre-wrap;
+    .card ul {
+      padding-left: 22px;
+      margin-top: 12px;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:22px;
-      margin-top:22px;
+    .card pre {
+      background: #eef2f7;
+      color: #26323f;
+      padding: 18px;
+      border-radius: 12px;
+      overflow: auto;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      margin: 12px 0 22px;
+      white-space: pre-wrap;
     }
 
-    .mini{
-      background:#f8fafc;
-      padding:24px;
-      border-radius:14px;
-      border:1px solid rgba(0,51,102,.07);
-    }
-
-    .flow{
-      margin:20px 0;
-      background:linear-gradient(135deg,#003366,#08142f);
-      color:white;
-      padding:22px;
-      border-radius:14px;
-      text-align:center;
-      font-weight:700;
-    }
-
-    .status-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:16px;
-      margin-top:22px;
-    }
-
-    .status-box{
-      background:#f8fafc;
-      border:1px solid rgba(0,51,102,.07);
-      border-radius:14px;
-      padding:20px;
-    }
-
-    .status-box strong{
-      display:block;
-      color:#00a98a;
-      margin-bottom:6px;
-      font-size:.98rem;
-    }
-
-    .error-table-wrap{
-      overflow-x:auto;
-      margin-top:22px;
-      border-radius:14px;
-      border:1px solid rgba(0,51,102,.08);
-    }
-
-    .error-table{
-      width:100%;
-      border-collapse:collapse;
-      background:#ffffff;
-      min-width:760px;
-    }
-
-    .error-table th{
-      background:#003366;
-      color:#ffffff;
-      text-align:left;
-      padding:14px 16px;
-      font-size:.9rem;
-    }
-
-    .error-table td{
-      padding:14px 16px;
-      border-top:1px solid rgba(0,51,102,.08);
-      color:#5A6C7D;
-      vertical-align:top;
-      font-size:.92rem;
-    }
-
-    .error-table td:first-child{
-      color:#00a98a;
-      font-family:monospace;
-      font-weight:700;
-    }
-
-    .error-table td:nth-child(2){
-      color:#003366;
-      font-weight:700;
-      width:80px;
-    }
-
-    .footer {
-      background: #0b1230;
-      color: #ffffff;
-      padding: 96px 48px 52px;
-    }
-
-    .footer-container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .footer-logo {
-      width: 152px;
-      height: auto;
-      margin-bottom: 56px;
-      display: block;
-      opacity: 0.92;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-content {
+    .grid {
       display: grid;
-      grid-template-columns: 1.35fr 1fr 1.35fr;
-      gap: 80px;
-      align-items: start;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      margin-top: 22px;
     }
 
-    .footer-about {
-      max-width: 390px;
+    .mini {
+      background: #f8fafc;
+      padding: 24px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 51, 102, 0.07);
     }
 
-    .footer-about p {
-      margin: 0 0 18px;
-      color: rgba(255, 255, 255, 0.76);
-      font-size: 15px;
-      line-height: 1.75;
-      font-weight: 400;
-    }
-
-    .footer-about p:last-child {
-      margin-bottom: 0;
-    }
-
-    .footer-links h3 {
-      margin: 0 0 22px;
-      color: #00a98a;
-      font-size: 15px;
-      line-height: 1.2;
+    .flow {
+      margin: 20px 0;
+      background: linear-gradient(135deg, #003366, #08142f);
+      color: #ffffff;
+      padding: 22px;
+      border-radius: 14px;
+      text-align: center;
       font-weight: 700;
-      letter-spacing: 0.01em;
     }
 
-    .footer-links ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 22px;
     }
 
-    .footer-links li {
-      margin-bottom: 13px;
+    .status-box {
+      background: #f8fafc;
+      border: 1px solid rgba(0, 51, 102, 0.07);
+      border-radius: 14px;
+      padding: 20px;
+      color: var(--muted);
     }
 
-    .footer-links a {
-      color: rgba(255, 255, 255, 0.84);
-      font-size: 15px;
-      line-height: 1.55;
-      font-weight: 500;
-      text-decoration: none;
-      transition: color 0.2s ease, opacity 0.2s ease;
-    }
-
-    .footer-links a:hover {
-      color: #ffffff;
-    }
-
-    .footer-links a.disabled {
-      color: rgba(255, 255, 255, 0.42);
-      cursor: default;
-      pointer-events: none;
-    }
-
-    .footer-resources li {
-      margin-bottom: 22px;
-    }
-
-    .footer-resources a {
+    .status-box strong {
       display: block;
-      color: rgba(255, 255, 255, 0.88);
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.45;
+      color: var(--teal-dark);
+      margin-bottom: 6px;
+      font-size: 0.98rem;
     }
 
-    .footer-resources a:hover {
-      color: #00d4aa;
+    .error-table-wrap {
+      overflow-x: auto;
+      margin-top: 22px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 51, 102, 0.08);
     }
 
-    .footer-link-note {
-      display: block;
-      margin-top: 6px;
-      color: rgba(255, 255, 255, 0.54);
-      font-size: 13px;
-      line-height: 1.55;
-      font-weight: 400;
-      max-width: 300px;
+    .error-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      min-width: 760px;
     }
 
-    .footer-bottom {
-      margin-top: 76px;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 32px;
-    }
-
-    .footer-social {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .footer-social a {
-      display: inline-flex;
-      width: 22px;
-      height: 22px;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.72;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .footer-social a:hover {
-      opacity: 1;
-      transform: translateY(-1px);
-    }
-
-    .footer-social img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-legal {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      flex-wrap: wrap;
-    }
-
-    .footer-legal a {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 14px;
-      line-height: 1.5;
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .footer-legal a:hover {
+    .error-table th {
+      background: var(--navy);
       color: #ffffff;
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 0.9rem;
+    }
+
+    .error-table td {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(0, 51, 102, 0.08);
+      color: var(--muted);
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+
+    .error-table td:first-child {
+      color: var(--teal-dark);
+      font-family: monospace;
+      font-weight: 700;
+    }
+
+    .error-table td:nth-child(2) {
+      color: var(--navy);
+      font-weight: 700;
+      width: 80px;
     }
 
     @media (max-width: 900px) {
       .grid,
-      .status-grid{
-        grid-template-columns:1fr;
-      }
-
-      .footer {
-        padding: 76px 28px 44px;
-      }
-
-      .footer-logo {
-        width: 142px;
-        margin-bottom: 48px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr 1fr;
-        gap: 48px 40px;
-      }
-
-      .footer-about {
-        grid-column: 1 / -1;
-        max-width: 520px;
-      }
-
-      .footer-bottom {
-        margin-top: 60px;
+      .status-grid {
+        grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 640px) {
-      .navbar{
-        flex-direction:column;
-        gap:18px;
+      .pilot-container {
+        padding: 0 18px;
       }
 
-      .nav-logo{
-        height:120px;
+      .hero {
+        padding: 40px 0 64px;
       }
 
-      .nav-links{
-        display:none;
+      .hero-cta {
+        width: 100%;
+        max-width: 320px;
+        margin-top: 20px;
       }
 
-      .hero{
-        padding:40px 0 64px;
-      }
-
-      .hero-cta{
-        width:100%;
-        max-width:320px;
-        margin-top:20px;
-      }
-
-      .card{
-        padding:28px;
-      }
-
-      .footer {
-        padding: 68px 22px 40px;
-      }
-
-      .footer-logo {
-        width: 136px;
-        margin-bottom: 42px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr;
-        gap: 42px;
-      }
-
-      .footer-about p {
-        font-size: 14px;
-        line-height: 1.75;
-      }
-
-      .footer-links h3 {
-        font-size: 15px;
-        margin-bottom: 18px;
-      }
-
-      .footer-links a,
-      .footer-resources a {
-        font-size: 15px;
-      }
-
-      .footer-link-note {
-        font-size: 12.5px;
-      }
-
-      .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 26px;
-        margin-top: 56px;
-      }
-
-      .footer-legal {
-        gap: 22px;
+      .card {
+        padding: 28px;
       }
     }
   </style>
 </head>
 
 <body>
-
-  <header>
-    <div class="container">
-      <nav class="navbar">
-
-        <img
-          src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
-          alt="UniBridge Logo"
-          class="nav-logo"
-        />
-
-        <div class="nav-links">
-          <a href="/#solutions" class="nav-link">Platform</a>
-          <a href="/#problem" class="nav-link">Model</a>
-          <a href="/#trust" class="nav-link">Validation</a>
-          <a href="/docs.html" class="nav-link">Operating Model</a>
-          <a href="/#contact" class="nav-button">Partner Access</a>
-        </div>
-
-      </nav>
-    </div>
-  </header>
+  <div id="site-header"></div>
 
   <main>
-
     <section class="hero">
-      <div class="container">
+      <div class="pilot-container">
         <div class="badge">Partner Pilot</div>
 
         <h1>
@@ -589,7 +317,6 @@
     </section>
 
     <section class="section">
-
       <div class="card">
         <h2>The Pilot</h2>
         <p>
@@ -769,121 +496,29 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>missing_partner_id</td>
-                <td>401</td>
-                <td>x-ub-partner-id was not provided.</td>
-              </tr>
-              <tr>
-                <td>invalid_partner_id</td>
-                <td>401</td>
-                <td>The partner identifier format is invalid.</td>
-              </tr>
-              <tr>
-                <td>unknown_partner</td>
-                <td>401</td>
-                <td>The partner is not configured or approved for pilot access.</td>
-              </tr>
-              <tr>
-                <td>missing_hmac_signature</td>
-                <td>401</td>
-                <td>x-ub-signature was not provided on a route creation request.</td>
-              </tr>
-              <tr>
-                <td>invalid_hmac</td>
-                <td>401</td>
-                <td>The request signature could not be verified.</td>
-              </tr>
-              <tr>
-                <td>missing_partner_read_token</td>
-                <td>401</td>
-                <td>The bearer token for route status review was not provided.</td>
-              </tr>
-              <tr>
-                <td>invalid_partner_read_token</td>
-                <td>401</td>
-                <td>The bearer token is invalid for the requested partner scope.</td>
-              </tr>
-              <tr>
-                <td>invalid_body</td>
-                <td>400</td>
-                <td>The request body must be a valid JSON object.</td>
-              </tr>
-              <tr>
-                <td>missing_external_reference</td>
-                <td>400</td>
-                <td>external_reference is required for pilot route tracking.</td>
-              </tr>
-              <tr>
-                <td>missing_source_country</td>
-                <td>400</td>
-                <td>source_country or source_market is required.</td>
-              </tr>
-              <tr>
-                <td>missing_destination_country</td>
-                <td>400</td>
-                <td>destination_country, destination_market, or receiver_country is required.</td>
-              </tr>
-              <tr>
-                <td>invalid_amount</td>
-                <td>400</td>
-                <td>The amount must be a positive numeric value.</td>
-              </tr>
-              <tr>
-                <td>invalid_destination</td>
-                <td>400</td>
-                <td>destination or recipient must be a valid object.</td>
-              </tr>
-              <tr>
-                <td>no_routes_available</td>
-                <td>400</td>
-                <td>No controlled pilot route is available for the requested corridor.</td>
-              </tr>
-              <tr>
-                <td>invalid_route_selection</td>
-                <td>400</td>
-                <td>The requested route_id is not available for this pilot request.</td>
-              </tr>
-              <tr>
-                <td>no_route_for_requested_payout_rail</td>
-                <td>400</td>
-                <td>No approved route supports the requested payout_rail.</td>
-              </tr>
-              <tr>
-                <td>missing_route_id</td>
-                <td>400</td>
-                <td>A route_id is required for this status request.</td>
-              </tr>
-              <tr>
-                <td>route_not_found</td>
-                <td>404</td>
-                <td>The route was not found or is outside the approved partner scope.</td>
-              </tr>
-              <tr>
-                <td>missing_partner_context</td>
-                <td>401</td>
-                <td>The request could not be linked to an approved partner context.</td>
-              </tr>
-              <tr>
-                <td>partner_route_session_create_failed</td>
-                <td>500</td>
-                <td>UniBridge could not create the internal pilot route session.</td>
-              </tr>
-              <tr>
-                <td>quote_not_ready</td>
-                <td>500</td>
-                <td>The route quote could not be prepared for pilot review.</td>
-              </tr>
-              <tr>
-                <td>funding_instructions_failed</td>
-                <td>500</td>
-                <td>Funding instructions could not be prepared.</td>
-              </tr>
-              <tr>
-                <td>internal_error</td>
-                <td>500</td>
-                <td>An unexpected server error occurred.</td>
-              </tr>
+              <tr><td>missing_partner_id</td><td>401</td><td>x-ub-partner-id was not provided.</td></tr>
+              <tr><td>invalid_partner_id</td><td>401</td><td>The partner identifier format is invalid.</td></tr>
+              <tr><td>unknown_partner</td><td>401</td><td>The partner is not configured or approved for pilot access.</td></tr>
+              <tr><td>missing_hmac_signature</td><td>401</td><td>x-ub-signature was not provided on a route creation request.</td></tr>
+              <tr><td>invalid_hmac</td><td>401</td><td>The request signature could not be verified.</td></tr>
+              <tr><td>missing_partner_read_token</td><td>401</td><td>The bearer token for route status review was not provided.</td></tr>
+              <tr><td>invalid_partner_read_token</td><td>401</td><td>The bearer token is invalid for the requested partner scope.</td></tr>
+              <tr><td>invalid_body</td><td>400</td><td>The request body must be a valid JSON object.</td></tr>
+              <tr><td>missing_external_reference</td><td>400</td><td>external_reference is required for pilot route tracking.</td></tr>
+              <tr><td>missing_source_country</td><td>400</td><td>source_country or source_market is required.</td></tr>
+              <tr><td>missing_destination_country</td><td>400</td><td>destination_country, destination_market, or receiver_country is required.</td></tr>
+              <tr><td>invalid_amount</td><td>400</td><td>The amount must be a positive numeric value.</td></tr>
+              <tr><td>invalid_destination</td><td>400</td><td>destination or recipient must be a valid object.</td></tr>
+              <tr><td>no_routes_available</td><td>400</td><td>No controlled pilot route is available for the requested corridor.</td></tr>
+              <tr><td>invalid_route_selection</td><td>400</td><td>The requested route_id is not available for this pilot request.</td></tr>
+              <tr><td>no_route_for_requested_payout_rail</td><td>400</td><td>No approved route supports the requested payout_rail.</td></tr>
+              <tr><td>missing_route_id</td><td>400</td><td>A route_id is required for this status request.</td></tr>
+              <tr><td>route_not_found</td><td>404</td><td>The route was not found or is outside the approved partner scope.</td></tr>
+              <tr><td>missing_partner_context</td><td>401</td><td>The request could not be linked to an approved partner context.</td></tr>
+              <tr><td>partner_route_session_create_failed</td><td>500</td><td>UniBridge could not create the internal pilot route session.</td></tr>
+              <tr><td>quote_not_ready</td><td>500</td><td>The route quote could not be prepared for pilot review.</td></tr>
+              <tr><td>funding_instructions_failed</td><td>500</td><td>Funding instructions could not be prepared.</td></tr>
+              <tr><td>internal_error</td><td>500</td><td>An unexpected server error occurred.</td></tr>
             </tbody>
           </table>
         </div>
@@ -907,50 +542,15 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
         </p>
 
         <div class="status-grid">
-          <div class="status-box">
-            <strong>route_locked</strong>
-            The route has been created and locked.
-          </div>
-
-          <div class="status-box">
-            <strong>funding_pending</strong>
-            UniBridge is waiting for funding.
-          </div>
-
-          <div class="status-box">
-            <strong>funding_detected</strong>
-            Funding was detected.
-          </div>
-
-          <div class="status-box">
-            <strong>execution_submitted</strong>
-            Local payout execution has been submitted.
-          </div>
-
-          <div class="status-box">
-            <strong>payout_pending</strong>
-            Payout is processing.
-          </div>
-
-          <div class="status-box">
-            <strong>payout_completed</strong>
-            Payout completed.
-          </div>
-
-          <div class="status-box">
-            <strong>manual_review</strong>
-            The route requires UniBridge review.
-          </div>
-
-          <div class="status-box">
-            <strong>payout_failed</strong>
-            The route failed.
-          </div>
-
-          <div class="status-box">
-            <strong>expired</strong>
-            The route expired.
-          </div>
+          <div class="status-box"><strong>route_locked</strong>The route has been created and locked.</div>
+          <div class="status-box"><strong>funding_pending</strong>UniBridge is waiting for funding.</div>
+          <div class="status-box"><strong>funding_detected</strong>Funding was detected.</div>
+          <div class="status-box"><strong>execution_submitted</strong>Local payout execution has been submitted.</div>
+          <div class="status-box"><strong>payout_pending</strong>Payout is processing.</div>
+          <div class="status-box"><strong>payout_completed</strong>Payout completed.</div>
+          <div class="status-box"><strong>manual_review</strong>The route requires UniBridge review.</div>
+          <div class="status-box"><strong>payout_failed</strong>The route failed.</div>
+          <div class="status-box"><strong>expired</strong>The route expired.</div>
         </div>
 
         <ul>
@@ -1062,107 +662,11 @@ Authorization: Bearer &lt;route_read_token&gt;</pre>
           </p>
         </div>
       </div>
-
     </section>
-
   </main>
 
-  <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
+  <div id="site-footer"></div>
 
-    <img
-      src="public/icons/social/Ub.png"
-      alt="UniBridge Logo"
-      class="footer-logo"
-    />
-
-    <div class="footer-content">
-
-      <div class="footer-about">
-        <p>
-          B2B and B2B2C payout route coordination through supported corridors,
-          verified integrations, and controlled execution proofs.
-        </p>
-
-        <p>
-          UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
-        </p>
-
-        <p>
-          © 2026 UniBridge Technologies Ltd. All rights reserved.
-        </p>
-      </div>
-
-      <div class="footer-links">
-        <h3>Company</h3>
-        <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
-        <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
-
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
-
-          <li>
-            <a href="/docs.html">Operating Model</a>
-            <span class="footer-link-note">
-              Execution lifecycle, control model, use case, and operating layers.
-            </span>
-          </li>
-        </ul>
-      </div>
-
-    </div>
-
-    <div class="footer-bottom">
-
-      <!-- Social Icons -->
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
-
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
-
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
-
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="public/icons/social/img_twitter.svg" alt="X" />
-        </a>
-      </div>
-
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="/#contact">Contact</a>
-      </div>
-
-    </div>
-
-  </div>
-</footer>
-
+  <script src="/partials/js/includes.js"></script>
 </body>
 </html>
