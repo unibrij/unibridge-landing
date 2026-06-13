@@ -3,7 +3,7 @@ const UNIBRIDGE_GUIDE_URL =
 
 const POPULAR_QUESTIONS = [
   "What fees apply?",
-  "Which countries are supported?",
+  "Does my payment arrive instantly?",
   "Does UniBridge hold my funds?"
 ];
 
