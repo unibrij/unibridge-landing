@@ -19,12 +19,24 @@
   property="og:description"
   content="Local rails, global access. UniBridge coordinates controlled payout routes across hosted, embedded, API, wallet, bank transfer, and card-funded flows."
 />
+<meta
+  property="og:image"
+  content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
+/>
+<meta property="og:image:alt" content="UniBridge" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.unibrij.io/" />
 
 <!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="UniBridge — Instant Payout Routes for Local Rails" />
 <meta
   name="twitter:description"
   content="UniBridge coordinates non-custodial payout routes across funding methods, settlement components, and local payout rails without custodying user funds."
+/>
+<meta
+  name="twitter:image"
+  content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
 />
 
     <!-- Canonical URL -->
@@ -221,8 +233,11 @@
         }
 
         .nav-logo {
-            height: 200px;
-            /* Increased logo size */
+            width: 260px;
+            height: auto;
+            max-height: 58px;
+            object-fit: contain;
+            display: block;
         }
 
         .nav-links {
@@ -493,7 +508,6 @@
         .solution-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 20px;
-            /* More rounded corners */
             padding: 40px 32px;
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             border: 1px solid rgba(0, 212, 170, 0.1);
@@ -533,12 +547,10 @@
 
         .solution-icon {
             width: 60px;
-            /* Slightly larger */
             height: 60px;
             margin-bottom: 24px;
             background: linear-gradient(135deg, #003366 0%, #001a33 100%);
             border-radius: 16px;
-            /* Rounded icon */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -551,7 +563,6 @@
         .solution-card h3 {
             font-size: 1.25rem;
             font-weight: 700;
-            /* Bolder */
             color: #003366;
             margin-bottom: 16px;
             transition: color 0.3s ease;
@@ -567,7 +578,6 @@
             transition: color 0.3s ease;
         }
 
-        /* Mobile responsiveness */
         @media (max-width: 768px) {
             .solutions-grid {
                 grid-template-columns: 1fr;
@@ -617,39 +627,14 @@
         }
 
         .trust-logo {
-            height: 50px;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-            filter: brightness(0) invert(1);
-        }
-
-        .trust-logo:hover {
-            opacity: 1;
-        }
-
-        .trust-logos {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 80px;
-            flex-wrap: wrap;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .trust-logo {
             height: 64px;
             opacity: 0.8;
             transition: opacity 0.3s ease;
-            /* Let the logos display in their original colors but ensure visibility */
             filter: brightness(0) invert(1);
-            /* This makes dark logos white */
         }
         
-        /* For logos that are already light/white, override the filter */
         .trust-logo.light-logo {
             filter: none;
-            /* Remove the filter for light logos */
         }
 
         .trust-logo:hover {
@@ -781,7 +766,6 @@
 
 .footer-logo {
     height: 200px;
-    /* Increased logo size */
     margin-bottom: 32px;
 }
 
@@ -893,10 +877,6 @@
                 padding: 24px 0 22px;
             }
 
-            .nav-logo {
-                height: 150px;
-            }
-
             .nav-links {
                 display: none;
             }
@@ -966,10 +946,6 @@
         }
 
         @media (max-width: 480px) {
-            .nav-logo {
-                height: 130px;
-            }
-
             .hero-title {
                 font-size: 2rem;
             }
@@ -991,13 +967,6 @@
     max-height: 345px;
     background: none;
     transform: none;
-}
-
-.hero-video-container .video-bg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
 }
 
 .hero-video-container .video-bg {
@@ -1057,10 +1026,6 @@
                 flex-direction: column !important;
                 gap: 14px !important;
                 padding: 22px 0 16px !important;
-            }
-
-            .nav-logo {
-                height: 128px !important;
             }
 
             .nav-links {
@@ -1130,10 +1095,6 @@
                 padding: 0 18px !important;
             }
 
-            .nav-logo {
-                height: 116px !important;
-            }
-
             .hero-section {
                 padding: 30px 0 52px !important;
             }
@@ -1173,6 +1134,30 @@
     font-weight: 650 !important;
     letter-spacing: -0.04em !important;
     line-height: 1.08 !important;
+  }
+}
+
+/* ===== FINAL NAV LOGO SIZE OVERRIDE ===== */
+.nav-logo {
+  width: 260px !important;
+  height: auto !important;
+  max-height: 58px !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 768px) {
+  .nav-logo {
+    width: 220px !important;
+    height: auto !important;
+    max-height: 50px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-logo {
+    width: 190px !important;
+    height: auto !important;
+    max-height: 44px !important;
   }
 }
 </style>
@@ -1673,7 +1658,6 @@
                         poster="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4">
                         <source src="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
                             type="video/mp4" />
-                        <!-- Fallback if video doesn't load -->
                         <div class="video-fallback">
                             <div>UniBridge - Managed Payout Routes</div>
                         </div>
@@ -1721,14 +1705,14 @@
   <img src="public/icons/social/bridge-logo.png.avif" alt="Bridge" />
   <img src="public/icons/social/Alchemy.logo.png" alt="Alchemy" />
   <img src="public/icons/social/polygon-logo.png" alt="Polygon" />
-  <img src="public/icons/social/Strip.logo1.png" alt="strip" />
+  <img src="public/icons/social/Strip.logo1.png" alt="Stripe" />
 
   <img src="public/icons/social/logo.D-_KihkR.svg" alt="Onramp" />
   <img src="public/icons/social/Transak.logo.png" alt="Transak" />
   <img src="public/icons/social/bridge-logo.png.avif" alt="Bridge" />
   <img src="public/icons/social/Alchemy.logo.png" alt="Alchemy" />
   <img src="public/icons/social/polygon-logo.png" alt="Polygon" />
-  <img src="public/icons/social/Strip.logo1.png" alt="strip" />
+  <img src="public/icons/social/Strip.logo1.png" alt="Stripe" />
 </div>
     </div>
 </section>
@@ -2780,7 +2764,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
 .pilot-subcopy {
   margin: 0;
 }
-      }
   </style>
 
   <div class="container">
@@ -2847,7 +2830,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
             ></textarea>
           </div>
 
-          <!-- Honeypot -->
           <input
             type="text"
             name="website"
@@ -2856,7 +2838,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
             style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
           />
 
-          <!-- Cloudflare Turnstile -->
           <div
             class="cf-turnstile"
             data-sitekey="0x4AAAAAADA4gaxEeVbe3X6F"
