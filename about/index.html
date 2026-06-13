@@ -21,8 +21,8 @@
   <meta property="og:type" content="website" />
   <link rel="canonical" href="https://www.unibrij.io/about/" />
 
-  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
-  <link rel="shortcut icon" type="image/png" href="https://unibrij.io/favicon.png" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/favicon.png" />
 
   <style>
     * {
@@ -78,6 +78,8 @@
       padding: 0 20px;
     }
 
+    /* ===== SHARED HEADER / PARTIAL HEADER STYLES ===== */
+
     header {
       background: #ffffff;
       position: relative;
@@ -92,8 +94,9 @@
     }
 
     .nav-logo {
-      height: 200px;
-      width: auto;
+      width: 260px;
+      height: auto;
+      max-height: 58px;
       object-fit: contain;
       display: block;
     }
@@ -138,6 +141,8 @@
       box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
       text-decoration: none;
     }
+
+    /* ===== ABOUT CONTENT ===== */
 
     .about-main {
       background: #ffffff;
@@ -322,6 +327,8 @@
       }
     }
 
+    /* ===== FOOTER ===== */
+
     .footer {
       background: var(--navy-dark);
       color: #ffffff;
@@ -473,11 +480,7 @@
       text-decoration: none;
     }
 
-    @media (max-width: 1024px) {
-      .nav-logo {
-        height: 160px;
-      }
-    }
+    /* ===== RESPONSIVE ===== */
 
     @media (max-width: 900px) {
       .navbar {
@@ -487,7 +490,9 @@
       }
 
       .nav-logo {
-        height: 150px;
+        width: 220px;
+        height: auto;
+        max-height: 50px;
       }
 
       .nav-links {
@@ -535,7 +540,9 @@
       }
 
       .nav-logo {
-        height: 130px;
+        width: 190px;
+        height: auto;
+        max-height: 44px;
       }
 
       .about-intro-section {
@@ -593,27 +600,7 @@
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <nav class="navbar">
-        <a href="/" aria-label="Back to UniBridge home">
-          <img
-            src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
-            alt="UniBridge Logo"
-            class="nav-logo"
-          />
-        </a>
-
-        <div class="nav-links">
-          <a href="/#platform" class="nav-link">Platform</a>
-          <a href="/#solutions" class="nav-link">Model</a>
-          <a href="/#trust" class="nav-link">Validation</a>
-          <a href="/docs.html" class="nav-link">Operating Model</a>
-          <a href="/#contact" class="nav-button">Partner Access</a>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <div id="site-header"></div>
 
   <main class="about-main">
     <section class="about-intro-section">
@@ -690,102 +677,119 @@
     </section>
   </main>
 
-  
-  <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
+  <footer class="footer">
+    <div class="footer-container">
 
-    <img
-      src="/public/icons/social/Ub.png"
-      alt="UniBridge Logo"
-      class="footer-logo"
-    />
+      <img
+        src="/public/icons/social/Ub.png"
+        alt="UniBridge Logo"
+        class="footer-logo"
+      />
 
-    <div class="footer-content">
+      <div class="footer-content">
 
-      <div class="footer-about">
-        <p>
-          B2B and B2B2C payout route coordination through supported corridors,
-          verified integrations, and controlled execution proofs.
-        </p>
+        <div class="footer-about">
+          <p>
+            B2B and B2B2C payout route coordination through supported corridors,
+            verified integrations, and controlled execution proofs.
+          </p>
 
-        <p>
-          UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
-        </p>
+          <p>
+            UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
+          </p>
 
-        <p>
-          © 2026 UniBridge Technologies Ltd. All rights reserved.
-        </p>
+          <p>
+            © 2026 UniBridge Technologies Ltd. All rights reserved.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about/">About UniBridge</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
+            <li><a href="javascript:void(0)" class="disabled">Press</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-links footer-resources">
+          <h3>Resources</h3>
+          <ul>
+            <li>
+              <a href="/pilot.html">Controlled Pilot Pack</a>
+              <span class="footer-link-note">
+                Route lifecycle, access boundaries, and pilot validation process.
+              </span>
+            </li>
+
+            <li>
+              <a href="/partner-docs/">API Reference</a>
+              <span class="footer-link-note">
+                Endpoints, authentication, status mapping, and integration flow.
+              </span>
+            </li>
+
+            <li>
+              <a href="/docs.html">Operating Model</a>
+              <span class="footer-link-note">
+                Execution lifecycle, control model, use case, and operating layers.
+              </span>
+            </li>
+          </ul>
+        </div>
+
       </div>
 
-      <div class="footer-links">
-        <h3>Company</h3>
-        <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-        </ul>
-      </div>
+      <div class="footer-bottom">
 
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
-        <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
+        <div class="footer-social">
+          <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+            <img src="/public/icons/social/img_linkedin.svg" alt="LinkedIn" />
+          </a>
 
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
+          <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+            <img src="/public/icons/social/img_telegram.svg" alt="Telegram" />
+          </a>
 
-          <li>
-            <a href="/docs.html">Operating Model</a>
-            <span class="footer-link-note">
-              Execution lifecycle, control model, use case, and operating layers.
-            </span>
-          </li>
-        </ul>
+          <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <img src="/public/icons/social/img_youtube.svg" alt="YouTube" />
+          </a>
+
+          <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
+            <img src="/public/icons/social/img_twitter.svg" alt="X" />
+          </a>
+        </div>
+
+        <div class="footer-legal">
+          <a href="/privacy.html">Privacy</a>
+          <a href="/legal.html">Terms</a>
+          <a href="/#contact">Contact</a>
+        </div>
+
       </div>
 
     </div>
+  </footer>
 
-    <div class="footer-bottom">
+  <script>
+    async function loadPartial(targetId, url) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
 
-      <!-- Social Icons -->
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="/public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
+      try {
+        const response = await fetch(url, { cache: "no-cache" });
+        if (!response.ok) {
+          throw new Error("Partial load failed: " + url);
+        }
 
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="/public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
+        target.innerHTML = await response.text();
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="/public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
-
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="/public/icons/social/img_twitter.svg" alt="X" />
-        </a>
-      </div>
-
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="/#contact">Contact</a>
-      </div>
-
-    </div>
-
-  </div>
-</footer>
+    loadPartial("site-header", "/partials/header.html");
+  </script>
 </body>
 </html>
