@@ -2,6 +2,7 @@
   position: fixed;
   top: max(18px, env(safe-area-inset-top));
   left: 28px;
+  right: 28px;
   z-index: 20;
   width: auto;
   pointer-events: none;
@@ -12,6 +13,7 @@
 }
 
 .pay-brandbar {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -72,12 +74,17 @@
 @media (max-width: 520px) {
   #pay-brand {
     top: max(16px, env(safe-area-inset-top));
-    left: 18px;
+    left: 0;
+    right: 0;
+  }
+
+  .pay-brandbar {
+    justify-content: center;
   }
 
   .pay-brandbar-logo {
     width: 190px;
-    max-width: 58vw;
+    max-width: 64vw;
   }
 
   .pay-lite-footer {
