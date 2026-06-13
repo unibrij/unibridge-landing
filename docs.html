@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<!DOCTYPE html><html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Operating Model | UniBridge</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <title>Operating Model | UniBridge</title>
   <meta
     name="description"
     content="UniBridge operating model for non-custodial, stablecoin-settled payout corridors across approved partners."
-  />
-
-  <link rel="icon" type="image/png" href="https://unibrij.io/favicon.png" />
-  <link rel="shortcut icon" type="image/png" href="https://unibrij.io/favicon.png" />
-
-  <style>
+  />  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/favicon.png" />  <style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -35,6 +28,10 @@
         0 8px 24px rgba(0, 51, 102, 0.045);
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
@@ -47,62 +44,10 @@
       text-decoration: none;
     }
 
-    .container {
+    .docs-container {
       max-width: 1120px;
       margin: 0 auto;
       padding: 0 24px;
-    }
-
-    header {
-      background: #ffffff;
-    }
-
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px 0;
-      position: relative;
-      z-index: 10;
-    }
-
-    .nav-logo {
-      height: 120px;
-      width: auto;
-      display: block;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-link {
-      color: var(--text);
-      font-weight: 500;
-      font-size: 15px;
-      transition: color 0.2s ease;
-    }
-
-    .nav-link:hover {
-      color: var(--teal-dark);
-    }
-
-    .nav-button {
-      background: var(--teal);
-      color: var(--navy);
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-weight: 650;
-      font-size: 15px;
-      transition: all 0.2s ease;
-    }
-
-    .nav-button:hover {
-      background: var(--teal-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(0, 212, 170, 0.22);
     }
 
     .docs-hero {
@@ -120,7 +65,7 @@
       text-transform: uppercase;
     }
 
-    h1 {
+    .docs-hero h1 {
       max-width: 760px;
       color: var(--navy);
       font-size: clamp(2.25rem, 5vw, 4.3rem);
@@ -154,7 +99,7 @@
       border: 1px solid rgba(0, 51, 102, 0.055);
     }
 
-    h2 {
+    .card h2 {
       color: var(--navy);
       font-size: 1.55rem;
       line-height: 1.28;
@@ -163,14 +108,14 @@
       margin-bottom: 18px;
     }
 
-    p {
+    .card p {
       color: var(--muted);
       margin-bottom: 16px;
       font-size: 0.98rem;
       line-height: 1.78;
     }
 
-    p:last-child {
+    .card p:last-child {
       margin-bottom: 0;
     }
 
@@ -191,13 +136,13 @@
       letter-spacing: -0.01em;
     }
 
-    ul {
+    .card ul {
       margin: 0 0 18px 20px;
       padding: 0;
       color: var(--muted);
     }
 
-    li {
+    .card li {
       margin-bottom: 9px;
       line-height: 1.7;
     }
@@ -228,162 +173,7 @@
       line-height: 1.72;
     }
 
-    .footer {
-      background: var(--navy-dark);
-      color: #ffffff;
-      padding: 96px 48px 52px;
-    }
-
-    .footer-container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .footer-logo {
-      width: 152px;
-      height: auto;
-      margin-bottom: 56px;
-      display: block;
-      opacity: 0.92;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-content {
-      display: grid;
-      grid-template-columns: 1.35fr 1fr 1.35fr;
-      gap: 80px;
-      align-items: start;
-    }
-
-    .footer-about {
-      max-width: 390px;
-    }
-
-    .footer-about p {
-      margin: 0 0 18px;
-      color: rgba(255, 255, 255, 0.76);
-      font-size: 15px;
-      line-height: 1.75;
-    }
-
-    .footer-links h3 {
-      margin: 0 0 22px;
-      color: var(--teal-dark);
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .footer-links ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .footer-links li {
-      margin-bottom: 13px;
-    }
-
-    .footer-links a {
-      color: rgba(255, 255, 255, 0.84);
-      font-size: 15px;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    .footer-links a:hover {
-      color: #ffffff;
-    }
-
-    .footer-links a.disabled {
-      color: rgba(255, 255, 255, 0.42);
-      cursor: default;
-      pointer-events: none;
-    }
-
-    .footer-resources li {
-      margin-bottom: 22px;
-    }
-
-    .footer-link-note {
-      display: block;
-      margin-top: 6px;
-      color: rgba(255, 255, 255, 0.54);
-      font-size: 13px;
-      line-height: 1.55;
-      max-width: 300px;
-    }
-
-    .footer-bottom {
-      margin-top: 76px;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 32px;
-    }
-
-    .footer-social {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .footer-social a {
-      display: inline-flex;
-      width: 22px;
-      height: 22px;
-      align-items: center;
-      justify-content: center;
-      opacity: 0.72;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .footer-social a:hover {
-      opacity: 1;
-      transform: translateY(-1px);
-    }
-
-    .footer-social img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-legal {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      flex-wrap: wrap;
-    }
-
-    .footer-legal a {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 14px;
-      text-decoration: none;
-    }
-
-    .footer-legal a:hover {
-      color: #ffffff;
-    }
-
     @media (max-width: 900px) {
-      .navbar {
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .nav-logo {
-        height: 112px;
-      }
-
-      .nav-links {
-        gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
       .docs-hero {
         padding: 66px 0 34px;
       }
@@ -391,49 +181,18 @@
       .split-card {
         grid-template-columns: 1fr;
       }
-
-      .footer {
-        padding: 76px 28px 44px;
-      }
-
-      .footer-logo {
-        width: 142px;
-        margin-bottom: 48px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr 1fr;
-        gap: 48px 40px;
-      }
-
-      .footer-about {
-        grid-column: 1 / -1;
-        max-width: 520px;
-      }
-
-      .footer-bottom {
-        margin-top: 60px;
-      }
     }
 
     @media (max-width: 640px) {
-      .container {
+      .docs-container {
         padding: 0 18px;
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      .nav-logo {
-        height: 102px;
       }
 
       .docs-hero {
         padding: 54px 0 30px;
       }
 
-      h1 {
+      .docs-hero h1 {
         font-size: 2.15rem;
         line-height: 1.12;
       }
@@ -452,7 +211,7 @@
         border-radius: 16px;
       }
 
-      h2 {
+      .card h2 {
         font-size: 1.34rem;
       }
 
@@ -460,276 +219,128 @@
         padding: 18px;
         font-size: 0.92rem;
       }
-
-      .footer {
-        padding: 68px 22px 40px;
-      }
-
-      .footer-logo {
-        width: 136px;
-        margin-bottom: 42px;
-      }
-
-      .footer-content {
-        grid-template-columns: 1fr;
-        gap: 42px;
-      }
-
-      .footer-about p {
-        font-size: 14px;
-      }
-
-      .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 26px;
-        margin-top: 56px;
-      }
     }
-  </style>
-</head>
-
-<body>
-  <header>
-    <div class="container">
-      <nav class="navbar">
-        <a href="/" aria-label="Back to UniBridge home">
-          <img
-            src="https://cdn.dorik.com/68f973f1d5b86c001104fa9f/images/1000112915-8WvNS.png"
-            alt="UniBridge Logo"
-            class="nav-logo"
-          />
-        </a>
-
-        <div class="nav-links">
-          <a href="/#platform" class="nav-link">Platform</a>
-          <a href="/#solutions" class="nav-link">Payout Control</a>
-          <a href="/#trust" class="nav-link">Validation</a>
-          <a href="/docs.html" class="nav-link">Operating Model</a>
-          <a href="/#contact" class="nav-button">Partner Access</a>
-        </div>
-      </nav>
-    </div>
-  </header>
-
-  <main>
+  </style></head><body>
+  <div id="site-header"></div>  <main>
     <section class="docs-hero">
-      <div class="container">
-        <span class="subtle-label">UniBridge</span>
+      <div class="docs-container">
+        <span class="subtle-label">UniBridge</span>    <h1>UniBridge Operating Model</h1>
 
-        <h1>UniBridge Operating Model</h1>
+    <p class="intro">
+      UniBridge coordinates stablecoin-settled payout flows across approved partners, with a non-custodial model designed for corridor review, controlled testing, and partner-led execution.
+    </p>
+  </div>
+</section>
 
-        <p class="intro">
-          UniBridge coordinates stablecoin-settled payout flows across approved partners, with a non-custodial model designed for corridor review, controlled testing, and partner-led execution.
+<section class="docs-main">
+  <div class="docs-container">
+    <div class="docs-grid">
+      <div class="card">
+        <h2>What UniBridge Does</h2>
+
+        <p>
+          UniBridge is a non-custodial coordination layer for stablecoin-settled payout corridors.
+        </p>
+
+        <p>
+          It helps applications and wallets define payout paths, track funding status, and coordinate execution across approved participants.
+        </p>
+
+        <p>
+          UniBridge does not hold customer funds, operate local payout rails directly, or replace regulated ramp and execution providers.
         </p>
       </div>
-    </section>
 
-    <section class="docs-main">
-      <div class="container">
-        <div class="docs-grid">
-          <div class="card">
-            <h2>What UniBridge Does</h2>
+      <div class="card">
+        <h2>Execution Lifecycle</h2>
 
+        <p>
+          Each payout flow moves through reviewable states before broader rollout or corridor activation.
+        </p>
+
+        <div class="flow">
+          Execution is defined → validated → committed → triggered upon funding
+        </div>
+
+        <p>
+          The lifecycle is designed so partners can understand how funding, delivery, and return handling are coordinated across the selected payout flow.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Use Case</h2>
+
+        <p>
+          A payout application, wallet, or platform can use UniBridge to coordinate a destination payout flow:
+        </p>
+
+        <ul>
+          <li>Create a payout session</li>
+          <li>Resolve available paths for the corridor</li>
+          <li>Select the destination method and provider path</li>
+          <li>Start funding through the supported ramp flow</li>
+          <li>Track delivery or return handling through the payout lifecycle</li>
+        </ul>
+
+        <p>
+          For example, a stablecoin-funded payout flow can define the destination path first, then support delivery through local payment methods such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Control Model</h2>
+
+        <p>
+          UniBridge separates payout coordination from custody, licensing, and final execution.
+        </p>
+
+        <p>
+          Funding, compliance checks, custody, and final payout execution remain with the appropriate regulated or approved participants.
+        </p>
+
+        <p class="highlight">
+          The model is built for control and flexibility: defined payout paths without custody, prefunding, or provider lock-in.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Operating Layers</h2>
+
+        <p>
+          UniBridge separates payout coordination into clear logical layers:
+        </p>
+
+        <div class="flow">
+          Client Application → Session → Coordination → Settlement Context → Execution
+        </div>
+
+        <p>
+          This structure allows payout readiness, route commitment, execution tracking, and return handling to be managed in sequence without UniBridge holding funds or directly operating local payout rails.
+        </p>
+      </div>
+
+      <div class="card">
+        <h2>Validation Before Rollout</h2>
+
+        <div class="split-card">
+          <div class="mini-panel">
+            <h3>Controlled review</h3>
             <p>
-              UniBridge is a non-custodial coordination layer for stablecoin-settled payout corridors.
-            </p>
-
-            <p>
-              It helps applications and wallets define payout paths, track funding status, and coordinate execution across approved participants.
-            </p>
-
-            <p>
-              UniBridge does not hold customer funds, operate local payout rails directly, or replace regulated ramp and execution providers.
+              Partners can review the corridor, inspect the flow, and validate whether UniBridge fits the payout model before broader activation.
             </p>
           </div>
 
-          <div class="card">
-            <h2>Execution Lifecycle</h2>
-
+          <div class="mini-panel">
+            <h3>Execution evidence</h3>
             <p>
-              Each payout flow moves through reviewable states before broader rollout or corridor activation.
+              Controlled tests, private documentation, route status, and payout evidence support partner review before scale.
             </p>
-
-            <div class="flow">
-              Execution is defined → validated → committed → triggered upon funding
-            </div>
-
-            <p>
-              The lifecycle is designed so partners can understand how funding, delivery, and return handling are coordinated across the selected payout flow.
-            </p>
-          </div>
-
-          <div class="card">
-            <h2>Use Case</h2>
-
-            <p>
-              A payout application, wallet, or platform can use UniBridge to coordinate a destination payout flow:
-            </p>
-
-            <ul>
-              <li>Create a payout session</li>
-              <li>Resolve available paths for the corridor</li>
-              <li>Select the destination method and provider path</li>
-              <li>Start funding through the supported ramp flow</li>
-              <li>Track delivery or return handling through the payout lifecycle</li>
-            </ul>
-
-            <p>
-              For example, a stablecoin-funded payout flow can define the destination path first, then support delivery through local payment methods such as bank transfer, wallet payout, or PIX, depending on corridor and partner configuration.
-            </p>
-          </div>
-
-          <div class="card">
-            <h2>Control Model</h2>
-
-            <p>
-              UniBridge separates payout coordination from custody, licensing, and final execution.
-            </p>
-
-            <p>
-              Funding, compliance checks, custody, and final payout execution remain with the appropriate regulated or approved participants.
-            </p>
-
-            <p class="highlight">
-              The model is built for control and flexibility: defined payout paths without custody, prefunding, or provider lock-in.
-            </p>
-          </div>
-
-          <div class="card">
-            <h2>Operating Layers</h2>
-
-            <p>
-              UniBridge separates payout coordination into clear logical layers:
-            </p>
-
-            <div class="flow">
-              Client Application → Session → Coordination → Settlement Context → Execution
-            </div>
-
-            <p>
-              This structure allows payout readiness, route commitment, execution tracking, and return handling to be managed in sequence without UniBridge holding funds or directly operating local payout rails.
-            </p>
-          </div>
-
-          <div class="card">
-            <h2>Validation Before Rollout</h2>
-
-            <div class="split-card">
-              <div class="mini-panel">
-                <h3>Controlled review</h3>
-                <p>
-                  Partners can review the corridor, inspect the flow, and validate whether UniBridge fits the payout model before broader activation.
-                </p>
-              </div>
-
-              <div class="mini-panel">
-                <h3>Execution evidence</h3>
-                <p>
-                  Controlled tests, private documentation, route status, and payout evidence support partner review before scale.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
-    </section>
-  </main>
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
-
-    <img
-      src="public/icons/social/Ub.png"
-      alt="UniBridge Logo"
-      class="footer-logo"
-    />
-
-    <div class="footer-content">
-
-      <div class="footer-about">
-        <p>
-          B2B and B2B2C payout route coordination through supported corridors,
-          verified integrations, and controlled execution proofs.
-        </p>
-
-        <p>
-          UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
-        </p>
-
-        <p>
-          © 2026 UniBridge Technologies Ltd. All rights reserved.
-        </p>
-      </div>
-
-      <div class="footer-links">
-        <h3>Company</h3>
-        <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
-        <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
-
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
-
-          <li>
-            <a href="/docs.html">Operating Model</a>
-            <span class="footer-link-note">
-              Execution lifecycle, control model, use case, and operating layers.
-            </span>
-          </li>
-        </ul>
-      </div>
-
     </div>
-
-    <div class="footer-bottom">
-
-      <!-- Social Icons -->
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
-
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
-
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
-
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="public/icons/social/img_twitter.svg" alt="X" />
-        </a>
-      </div>
-
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="/#contact">Contact</a>
-      </div>
-
-    </div>
-
   </div>
-</footer>
-</body>
+</section>
+
+  </main>  <div id="site-footer"></div>  <script src="/partials/js/includes.js"></script></body>
 </html>
