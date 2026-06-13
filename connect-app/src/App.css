@@ -5,6 +5,7 @@ body,
 }
 
 * {
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -57,7 +58,11 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 23%, rgba(45, 212, 191, 0.10), transparent 24%),
+    radial-gradient(
+      circle at 50% 23%,
+      rgba(45, 212, 191, 0.10),
+      transparent 24%
+    ),
     linear-gradient(
       180deg,
       rgba(0, 14, 45, 0.02) 0%,
@@ -72,13 +77,42 @@ body {
   padding-bottom: 40px;
 }
 
-.logo {
-  width: 82px;
-  height: auto;
-  filter:
-    drop-shadow(0 0 10px rgba(45, 212, 191, 0.22))
-    drop-shadow(0 10px 26px rgba(0, 0, 0, 0.24));
+/* --------------------------------------------------
+   Brand
+-------------------------------------------------- */
+
+.connect-brandbar {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  left: 28px;
+  right: 28px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  pointer-events: none;
 }
+
+.connect-brandbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.connect-brandbar-logo {
+  width: 260px;
+  max-width: 62vw;
+  height: auto;
+  display: block;
+  opacity: 0.94;
+  filter: none;
+}
+
+/* --------------------------------------------------
+   Hero
+-------------------------------------------------- */
 
 h1 {
   margin: 4px 0 0;
@@ -95,71 +129,19 @@ p {
   line-height: 1.5;
 }
 
-.motion-lines {
-  position: relative;
-  width: min(100%, 320px);
-  height: 24px;
+.connect-rhythm {
   margin: -2px 0 2px;
-  overflow: hidden;
-}
-
-.motion-line {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+  max-width: none;
+  color: #5eead4;
   font-size: 15px;
   line-height: 1.25;
-  opacity: 0;
-  transform: translateY(10px);
-  animation: rotateSentence 6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-
-.motion-line strong {
-  color: #5eead4;
   font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-.motion-line span {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.motion-line:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.motion-line:nth-child(2) {
-  animation-delay: 3s;
-}
-
-@keyframes rotateSentence {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  8% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  28% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  38% {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
+/* --------------------------------------------------
+   Wallet / form
+-------------------------------------------------- */
 
 .wallet-button {
   margin-top: 8px;
@@ -381,6 +363,10 @@ p {
   transform: scale(0.98);
 }
 
+/* --------------------------------------------------
+   History
+-------------------------------------------------- */
+
 .history-empty {
   max-width: none;
   text-align: center;
@@ -426,6 +412,10 @@ p {
   display: block;
   margin-top: 12px;
 }
+
+/* --------------------------------------------------
+   Review
+-------------------------------------------------- */
 
 .review-overlay {
   position: fixed;
@@ -746,6 +736,48 @@ p {
   transform: scale(0.98);
 }
 
+/* --------------------------------------------------
+   Footer
+-------------------------------------------------- */
+
+.connect-lite-footer {
+  width: min(100%, 440px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 44px;
+  padding: 26px 0 8px;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 12px;
+}
+
+.connect-lite-footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.connect-lite-footer-links a {
+  color: rgba(255, 255, 255, 0.62);
+  text-decoration: none;
+}
+
+.connect-lite-footer-links a:hover {
+  color: #ffffff;
+}
+
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .connect-brandbar-logo {
+    width: 220px;
+    max-width: 58vw;
+  }
+}
+
 @media (max-width: 430px) {
   .connect-shell {
     gap: 12px;
@@ -778,8 +810,16 @@ p {
     padding-bottom: max(40px, env(safe-area-inset-bottom));
   }
 
-  .logo {
-    width: 78px;
+  .connect-brandbar {
+    top: max(16px, env(safe-area-inset-top));
+    left: 0;
+    right: 0;
+    justify-content: center;
+  }
+
+  .connect-brandbar-logo {
+    width: 220px;
+    max-width: 68vw;
   }
 
   h1 {
@@ -790,12 +830,7 @@ p {
     font-size: 14px;
   }
 
-  .motion-lines {
-    width: min(100%, 300px);
-    height: 22px;
-  }
-
-  .motion-line {
+  .connect-rhythm {
     font-size: 14px;
   }
 
@@ -848,5 +883,15 @@ p {
   .connect-guide-question {
     min-height: 37px;
     padding: 9px 10px;
+  }
+
+  .connect-lite-footer {
+    width: min(100%, 392px);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    margin-top: 36px;
+    padding-bottom: 10px;
   }
 }
