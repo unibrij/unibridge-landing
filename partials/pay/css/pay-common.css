@@ -1,9 +1,8 @@
 #pay-brand {
-  position: absolute;
+  position: fixed;
   top: max(18px, env(safe-area-inset-top));
-  left: 18px;
-  right: 18px;
-  z-index: 10;
+  left: 28px;
+  z-index: 20;
   width: auto;
   pointer-events: none;
 }
@@ -13,7 +12,6 @@
 }
 
 .pay-brandbar {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -29,8 +27,8 @@
 }
 
 .pay-brandbar-logo {
-  width: 138px;
-  max-width: 52vw;
+  width: 260px;
+  max-width: 62vw;
   height: auto;
   display: block;
   opacity: 0.94;
@@ -64,15 +62,22 @@
   color: #ffffff;
 }
 
+@media (max-width: 900px) {
+  .pay-brandbar-logo {
+    width: 220px;
+    max-width: 58vw;
+  }
+}
+
 @media (max-width: 520px) {
   #pay-brand {
     top: max(16px, env(safe-area-inset-top));
-    left: 16px;
-    right: 16px;
+    left: 18px;
   }
 
   .pay-brandbar-logo {
-    width: 128px;
+    width: 190px;
+    max-width: 58vw;
   }
 
   .pay-lite-footer {
