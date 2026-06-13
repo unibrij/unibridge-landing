@@ -1,94 +1,76 @@
-import { useState } from "react";
+const UNIBRIDGE_GUIDE_URL =
+  "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide";
 
-const FAQS = [
-{
-  question: "Does connecting my wallet give UniBridge access to my funds?",
-  answer:
-    "No. Connecting your wallet does not give UniBridge access to your funds. It only lets UniBridge read the wallet address and prepare supported route actions. UniBridge never asks for your seed phrase or private key, and you approve every transaction yourself."
-},
-  {
-    question: "Can I use MetaMask with UniBridge?",
-    answer:
-      "Yes. You can connect MetaMask to UniBridge Connect and use it to fund supported payout routes."
-  },
-  {
-    question: "Can I use Trust Wallet with UniBridge?",
-    answer:
-      "Yes. You can connect Trust Wallet to UniBridge Connect when Trust Wallet supports the selected route network."
-  },
-  {
-    question: "Is UniBridge a wallet?",
-    answer:
-      "No. UniBridge is not a wallet. UniBridge does not create or manage your wallet. You connect the wallet you already use."
-  },
-  {
-    question: "Does UniBridge take custody of my funds?",
-    answer:
-      "No. UniBridge does not take custody of customer funds. UniBridge coordinates the payout route, while you keep control of your wallet and approve the required transaction yourself."
-  },
-  {
-    question: "Can I pay Brazil by PIX from USDC?",
-    answer:
-      "Yes. UniBridge supports routes where users can fund a Brazil PIX payout with supported stablecoins such as USDC or USDT."
-  },
-  {
-    question: "Can I reuse a payout route?",
-    answer:
-      "Yes. You can reuse saved payout route details when reuse is supported by the selected route."
-  },
-  {
-    question: "What is a payout route?",
-    answer:
-      "A payout route is a ready path that connects funding, settlement, execution, and local payout delivery."
-  }
+const POPULAR_QUESTIONS = [
+  "What fees apply?",
+  "Which countries are supported?",
+  "Does UniBridge hold my funds?"
 ];
 
+function openGuide() {
+  window.open(
+    UNIBRIDGE_GUIDE_URL,
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+
 export default function ConnectFaq() {
-  const [openIndex, setOpenIndex] = useState(0);
-
-  function toggleItem(index) {
-    setOpenIndex(current => (current === index ? null : index));
-  }
-
   return (
-    <section className="connect-faq" aria-labelledby="connect-faq-title">
-      <p className="connect-faq-eyebrow">FAQ</p>
-      <h2 id="connect-faq-title">UniBridge Connect FAQ</h2>
+    <section className="connect-guide" aria-labelledby="connect-guide-title">
+      <div className="connect-guide-heading-row">
+        <span className="connect-guide-icon" aria-hidden="true">
+          ✦
+        </span>
 
-      <div className="connect-faq-list">
-        {FAQS.map((item, index) => {
-          const isOpen = openIndex === index;
-          const panelId = `connect-faq-panel-${index}`;
-
-          return (
-            <div
-              key={item.question}
-              className={`connect-faq-item ${isOpen ? "is-open" : ""}`}
-            >
-              <button
-                type="button"
-                className="connect-faq-question"
-                aria-expanded={isOpen}
-                aria-controls={panelId}
-                onClick={() => toggleItem(index)}
-              >
-                <span>{item.question}</span>
-                <span className="connect-faq-icon" aria-hidden="true">
-                  +
-                </span>
-              </button>
-
-              <div
-                id={panelId}
-                className="connect-faq-answer"
-                hidden={!isOpen}
-              >
-                <p>{item.answer}</p>
-              </div>
-            </div>
-          );
-        })}
+        <span className="connect-guide-badge">
+          Guide
+        </span>
       </div>
+
+      <h2 id="connect-guide-title">UniBridge Guide</h2>
+
+      <p className="connect-guide-copy">
+        Questions about paying with your wallet, fees, supported countries,
+        or delivery status?
+      </p>
+
+      <button
+        type="button"
+        className="connect-guide-input"
+        onClick={openGuide}
+        aria-label="Open UniBridge Guide"
+      >
+        <span>Ask a question...</span>
+
+        <span className="connect-guide-send" aria-hidden="true">
+          →
+        </span>
+      </button>
+
+      <div className="connect-guide-popular" aria-label="Popular questions">
+        <p>Popular questions</p>
+
+        {POPULAR_QUESTIONS.map(question => (
+          <button
+            key={question}
+            type="button"
+            className="connect-guide-question"
+            onClick={openGuide}
+          >
+            <span>{question}</span>
+            <span aria-hidden="true">›</span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="connect-guide-full"
+        onClick={openGuide}
+      >
+        Open full guide →
+      </button>
     </section>
   );
 }
