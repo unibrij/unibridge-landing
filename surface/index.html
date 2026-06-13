@@ -28,13 +28,9 @@
 
 <body>
   <main class="page">
-    <section class="hero">
-      <img
-        class="brand-logo"
-        src="/connect/icons/social/Ub.png"
-        alt="UniBridge"
-      />
+    <div id="pay-brand"></div>
 
+    <section class="hero">
       <p class="eyebrow">Pay with UniBridge</p>
 
       <h1>Fund your payout by card</h1>
@@ -284,7 +280,11 @@
         </div>
       </section>
     </section>
+
+    <div id="pay-footer"></div>
   </main>
+
+  <script src="/partials/pay/js/pay-includes.js?v=5"></script>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/clover/stripe.js"></script>
