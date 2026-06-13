@@ -434,7 +434,13 @@ export default function App() {
         </a>
       </header>
 
-      <h1>Pay with your wallet</h1>
+      <h1 className="sr-only">
+        Pay with wallet
+      </h1>
+
+      <p className="connect-eyebrow">
+        Pay with wallet
+      </p>
 
       <p className="connect-rhythm">
         One rhythm. Every route.
