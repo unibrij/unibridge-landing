@@ -3,25 +3,12 @@
 const ROUTE_HISTORY_KEY = "unibridge_route_history";
 const MAX_ROUTE_HISTORY_ITEMS = 20;
 
-function canUseLocalStorage() {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.localStorage !== "undefined"
-  );
-}
-
 export function readRouteHistory() {
   try {
-    if (!canUseLocalStorage()) {
-      return [];
-    }
-
     const raw = window.localStorage.getItem(ROUTE_HISTORY_KEY);
     const parsed = JSON.parse(raw || "[]");
 
-    return Array.isArray(parsed)
-      ? parsed.map(normalizeHistoryItem).filter(Boolean)
-      : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -49,19 +36,15 @@ function toTime(value) {
 }
 
 function normalizeHistoryItem(item = {}) {
-  if (!item || typeof item !== "object") {
-    return null;
-  }
-
   return {
-    id: item.id || null,
-    route_id: item.route_id || null,
+    id: item.id,
+    route_id: item.route_id,
     payout_intent_id: item.payout_intent_id || null,
     settlement_id: item.settlement_id || null,
-    corridor: item.corridor || null,
-    amount: item.amount || null,
-    asset: item.asset || null,
-    status: item.status || null,
+    corridor: item.corridor,
+    amount: item.amount,
+    asset: item.asset,
+    status: item.status,
     created_at: item.created_at || new Date().toISOString()
   };
 }
@@ -71,31 +54,21 @@ function historyItemKey(item = {}) {
     item.payout_intent_id ||
     item.settlement_id ||
     item.id ||
+    item.route_id ||
     null
   );
 }
 
 export function writeRouteHistory(items) {
   try {
-    if (!canUseLocalStorage()) {
-      return;
-    }
-
     const list =
       Array.isArray(items)
-        ? items.map(normalizeHistoryItem).filter(Boolean)
+        ? items.map(normalizeHistoryItem)
         : [];
-
-    const sorted =
-      list
-        .sort((a, b) => (
-          toTime(b.created_at) - toTime(a.created_at)
-        ))
-        .slice(0, MAX_ROUTE_HISTORY_ITEMS);
 
     window.localStorage.setItem(
       ROUTE_HISTORY_KEY,
-      JSON.stringify(sorted)
+      JSON.stringify(list.slice(0, MAX_ROUTE_HISTORY_ITEMS))
     );
   } catch {
     // ignore local history failures
@@ -109,11 +82,6 @@ export function mergeRouteHistoryItems(items = []) {
 
     [...items, ...current].forEach(item => {
       const normalized = normalizeHistoryItem(item);
-
-      if (!normalized) {
-        return;
-      }
-
       const key = historyItemKey(normalized);
 
       if (!key) {
@@ -144,7 +112,7 @@ export function saveRouteHistoryItem(item) {
   return mergeRouteHistoryItems([
     {
       ...item,
-      created_at: item?.created_at || new Date().toISOString()
+      created_at: item.created_at || new Date().toISOString()
     }
   ]);
 }
