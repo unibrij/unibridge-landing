@@ -2,7 +2,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 34px;
 }
 
@@ -14,11 +14,11 @@
 }
 
 .pay-brandbar-logo {
-  width: 150px;
-  max-width: 58vw;
+  width: 138px;
+  max-width: 52vw;
   height: auto;
   display: block;
-  opacity: 0.92;
+  opacity: 0.94;
   filter: none;
 }
 
@@ -55,7 +55,7 @@
   }
 
   .pay-brandbar-logo {
-    width: 138px;
+    width: 128px;
   }
 
   .pay-lite-footer {
