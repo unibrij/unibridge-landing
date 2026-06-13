@@ -811,14 +811,18 @@ p {
   }
 
   .connect-brandbar {
-    top: max(16px, env(safe-area-inset-top));
-    left: 0;
-    right: 0;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
     justify-content: center;
+    margin: 0 0 4px;
+    pointer-events: none;
   }
 
   .connect-brandbar-logo {
-    width: 220px;
+    width: 200px;
     max-width: 68vw;
   }
 
