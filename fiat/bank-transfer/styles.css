@@ -109,15 +109,6 @@ body {
   gap: 8px;
 }
 
-.brand-logo {
-  width: 82px;
-  height: auto;
-  object-fit: contain;
-  filter:
-    drop-shadow(0 0 10px rgba(45, 212, 191, 0.22))
-    drop-shadow(0 10px 26px rgba(0, 0, 0, 0.24));
-}
-
 .eyebrow {
   margin: 0;
   max-width: none;
@@ -820,10 +811,6 @@ option {
         transparent 34%
       ),
       #00081f;
-  }
-
-  .brand-logo {
-    width: 78px;
   }
 
   h1 {
