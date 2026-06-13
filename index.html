@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-
 <head>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
-    <!-- SEO & Meta Tags -->
-<title>UniBridge — Instant Payout Routes for Local Rails</title>
-<meta
-  name="description"
-  content="UniBridge provides non-custodial payout route infrastructure that connects funding methods, settlement components, and local payout rails into controlled routes for B2B, B2B2C, and Pay with UniBridge flows."
-/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-<!-- Open Graph -->
-<meta property="og:title" content="UniBridge — Instant Payout Routes for Local Rails" />
-<meta
-  property="og:description"
-  content="Local rails, global access. UniBridge coordinates controlled payout routes across hosted, embedded, API, wallet, bank transfer, and card-funded flows."
-/>
-<meta
-  property="og:image"
-  content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
-/>
-<meta property="og:image:alt" content="UniBridge" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://www.unibrij.io/" />
+  <title>UniBridge — Instant Payout Routes for Local Rails</title>
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="UniBridge — Instant Payout Routes for Local Rails" />
-<meta
-  name="twitter:description"
-  content="UniBridge coordinates non-custodial payout routes across funding methods, settlement components, and local payout rails without custodying user funds."
-/>
-<meta
-  name="twitter:image"
-  content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
-/>
+  <meta
+    name="description"
+    content="UniBridge provides non-custodial payout route infrastructure that connects funding methods, settlement components, and local payout rails into controlled routes for B2B, B2B2C, and Pay with UniBridge flows."
+  />
 
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://unibrij.io/" />
+  <meta property="og:title" content="UniBridge — Instant Payout Routes for Local Rails" />
+  <meta
+    property="og:description"
+    content="Local rails, global access. UniBridge coordinates controlled payout routes across hosted, embedded, API, wallet, bank transfer, and card-funded flows."
+  />
+  <meta
+    property="og:image"
+    content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
+  />
+  <meta property="og:image:alt" content="UniBridge" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.unibrij.io/" />
 
-    <script type="application/ld+json">
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="UniBridge — Instant Payout Routes for Local Rails" />
+  <meta
+    name="twitter:description"
+    content="UniBridge coordinates non-custodial payout routes across funding methods, settlement components, and local payout rails without custodying user funds."
+  />
+  <meta
+    name="twitter:image"
+    content="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
+  />
+
+  <link rel="canonical" href="https://unibrij.io/" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+
+  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -192,2374 +191,932 @@
     "https://www.unibrij.io/connect"
   ]
 }
-</script>
+  </script>
 
-    <style>
-        /* ===== RESET & BASE STYLES ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            color: #23282F;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-        }
-
-        /* ===== CONTAINER ===== */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        .container-fluid {
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        /* ===== NAVIGATION - RIPPLE STYLE ===== */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 24px 0;
-            position: relative;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            width: 260px;
-            height: auto;
-            max-height: 58px;
-            object-fit: contain;
-            display: block;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            align-items: center;
-        }
-
-        .nav-link {
-            color: #23282F;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 16px;
-            transition: color 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: #00D4AA;
-        }
-
-        .nav-button {
-            background: #00D4AA;
-            color: #003366;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .nav-button:hover {
-            background: #00b894;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-        }
-
-        /* ===== HERO SECTION - SIDE BY SIDE LAYOUT ===== */
-        .hero-section {
-            padding: 60px 0 108px;
-            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-container {
-            display: grid;
-            grid-template-columns: 1.08fr 0.92fr;
-            gap: 56px;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .hero-content {
-            padding-right: 0px;
-        }
-
-        .hero-title {
-            font-size: 3.35rem;
-            font-weight: 700;
-            color: #003366;
-            line-height: 1.1;
-            margin-bottom: 22px;
-            letter-spacing: -0.025em;
-            max-width: 650px;
-        }
-
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: #5A6C7D;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            max-width: 500px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .primary-button {
-            background: #00D4AA;
-            color: #003366;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .primary-button:hover {
-            background: #00b894;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-        }
-
-        .secondary-button {
-    background: transparent;
-    color: #003366;
-    border: 2px solid #003366;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.secondary-button:hover {
-    background: #003366;
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* ===== HERO VIDEO - SIDE BY SIDE ===== */
-.hero-video-container {
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-    transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-    transition: all 0.5s ease;
-    height: 385px;
-}
-
-.hero-video-container:hover {
-    transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
-}
-
-.video-bg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.video-fallback {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #003366 0%, #001a33 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.25rem;
-    font-weight: 600;
-    border-radius: 20px;
-    text-align: center;
-    padding: 20px;
-}
-
-.video-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom right,
-            rgba(0, 51, 102, 0.1) 0%,
-            rgba(0, 51, 102, 0.3) 100%);
-}
-
-        /* ===== PROBLEM SECTION - RIPPLE STYLE ===== */
-        .problem-section {
-            padding: 120px 0;
-            background: #f8fafc;
-        }
-
-        .section-header {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 80px;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #003366;
-            line-height: 1.2;
-            margin-bottom: 24px;
-        }
-
-        .section-subtitle {
-            font-size: 1.25rem;
-            color: #5A6C7D;
-            line-height: 1.6;
-        }
-
-        .problem-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .problem-card {
-            background: white;
-            border-radius: 12px;
-            padding: 40px 32px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .problem-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .problem-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 24px;
-            background: #00D4AA;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-
-        .problem-card h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #003366;
-            margin-bottom: 16px;
-        }
-
-        .problem-card p {
-            color: #5A6C7D;
-            line-height: 1.6;
-        }
-
-        /* ===== SOLUTIONS SECTION - RIPPLE STYLE ===== */
-        .solutions-section {
-    padding: 120px 0;
-    background: #ffffff;
-        }
-        .solutions-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .solution-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border-radius: 20px;
-            padding: 40px 32px;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            border: 1px solid rgba(0, 212, 170, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .solution-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.1), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .solution-card:hover {
-            background: linear-gradient(135deg, #ffffff 0%, #f0fdf9 100%);
-            transform: translateY(-8px) scale(1.02);
-            box-shadow:
-                0 20px 40px rgba(0, 212, 170, 0.15),
-                0 8px 25px rgba(0, 51, 102, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            border-color: rgba(0, 212, 170, 0.3);
-        }
-
-        .solution-card:hover::before {
-            left: 100%;
-        }
-
-        .solution-card:hover .solution-icon {
-            transform: scale(1.1) rotate(5deg);
-            background: linear-gradient(135deg, #00D4AA 0%, #00b894 100%);
-        }
-
-        .solution-icon {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #003366 0%, #001a33 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
-        }
-
-        .solution-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #003366;
-            margin-bottom: 16px;
-            transition: color 0.3s ease;
-        }
-
-        .solution-card:hover h3 {
-            color: #00D4AA;
-        }
-
-        .solution-card p {
-            color: #5A6C7D;
-            line-height: 1.6;
-            transition: color 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .solutions-grid {
-                grid-template-columns: 1fr;
-                gap: 25px;
-            }
-
-            .solution-card {
-                padding: 30px 24px;
-                border-radius: 16px;
-            }
-
-            .solution-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-        }
-
-        /* ===== TRUST SECTION - RIPPLE STYLE ===== */
-        
-        .trust-header {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 80px;
-        }
-
-        .trust-header h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-
-        .trust-header p {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            line-height: 1.6;
-        }
-
-        .trust-logos {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 80px;
-            flex-wrap: wrap;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .trust-logo {
-            height: 64px;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-            filter: brightness(0) invert(1);
-        }
-        
-        .trust-logo.light-logo {
-            filter: none;
-        }
-
-        .trust-logo:hover {
-            opacity: 1;
-        }
-
-        .trust-logo:first-child {
-            filter: brightness(10) invert(0);
-        }
-
-        /* ===== CONTACT SECTION - RIPPLE STYLE ===== */
-        .contact-section {
-            padding: 120px 0;
-            background: #f8fafc;
-        }
-
-        .contact-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            max-width: 1200px;
-            margin: 0 auto;
-            align-items: start;
-        }
-
-        .contact-info h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #003366;
-            margin-bottom: 16px;
-        }
-
-        .contact-info .highlight {
-            color: #00D4AA;
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .contact-info p {
-            color: #5A6C7D;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        .dynamic-text {
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: inherit !important;
-    font-size: inherit !important;
-    line-height: inherit !important;
-    display: block !important;
-}
-
-        .contact-form {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #003366;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            background: white;
-            color: #333;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            border-color: #00D4AA;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
-        }
-
-        .form-control::placeholder {
-            color: #999;
-        }
-
-        .submit-button {
-            background: #00D4AA;
-            color: #003366;
-            border: none;
-            padding: 16px 40px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            width: 100%;
-        }
-
-        .submit-button:hover {
-            background: #00b894;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
-        }
-
-       /* ===== FOOTER - RIPPLE STYLE ===== */
-.footer {
-    background: #0C274F;
-    color: white;
-    padding: 80px 0 40px;
-}
-
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.footer-logo {
-    height: 200px;
-    margin-bottom: 32px;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 60px;
-    margin-bottom: 60px;
-}
-
-.footer-about p {
-    color: rgba(255, 255, 255, 0.8);
-    line-height: 1.6;
-    margin-bottom: 24px;
-}
-
-.footer-links h3 {
-    color: white;
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-}
-
-.footer-links ul {
-    list-style: none;
-}
-
-.footer-links li {
-    margin-bottom: 12px;
-}
-
-.footer-links a {
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-    color: #00D4AA;
-}
-
-.footer-links a.disabled {
-    cursor: default;
-    opacity: 0.7;
-}
-
-.footer-links a.disabled:hover {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.footer-bottom p {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.footer-legal {
-    display: flex;
-    gap: 24px;
-}
-
-.footer-legal a {
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.footer-legal a:hover {
-    color: #00D4AA;
-}
-
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 1024px) {
-            .hero-container {
-                gap: 60px;
-            }
-
-            .hero-title {
-                font-size: 2.75rem;
-            }
-
-            .contact-container {
-                gap: 60px;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr 1fr;
-                gap: 40px;
-            }
-
-            .trust-logos {
-                gap: 60px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 18px;
-                padding: 24px 0 22px;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .hero-container {
-                grid-template-columns: 1fr;
-                gap: 50px;
-                text-align: center;
-            }
-
-            .hero-content {
-                padding-right: 0;
-            }
-
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
-            .hero-subtitle {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .hero-video-container {
-                height: 350px;
-                transform: none;
-            }
-
-            .primary-button,
-            .secondary-button {
-                width: 100%;
-                max-width: 300px;
-                justify-content: center;
-            }
-
-            .problem-grid,
-            .solutions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .contact-container {
-                grid-template-columns: 1fr;
-                gap: 50px;
-            }
-
-            .footer-content {
-                grid-template-columns: 1fr;
-                gap: 40px;
-            }
-
-            .footer-bottom {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .trust-logos {
-                gap: 40px;
-            }
-
-            .trust-logo {
-                height: 40px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .section-title {
-                font-size: 2rem;
-            }
-
-            .contact-form {
-                padding: 24px;
-            }
-
-            .hero-video-container {
-    width: 92%;
-    margin-left: auto;
-    margin-right: auto;
-    height: calc((100vw - 64px) * 0.60) !important;
-    min-height: 295px;
-    max-height: 345px;
-    background: none;
-    transform: none;
-}
-
-.hero-video-container .video-bg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-}
-
-.hero-video-container .video-bg {
-    object-fit: cover;
-    object-position: center center;
-}
-
-            .trust-logos {
-                gap: 30px;
-            }
-
-            .trust-logo {
-                height: 35px;
-            }
-        }
-
-        /* ===== ANIMATIONS ===== */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.fade-in {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-.dynamic-text {
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: inherit !important;
-    font-size: inherit !important;
-    line-height: inherit !important;
-    display: block !important;
-}
-
-
-
-        /* ===== FINAL MOBILE HERO OVERRIDE - VISIBLE FIX ===== */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column !important;
-                gap: 14px !important;
-                padding: 22px 0 16px !important;
-            }
-
-            .nav-links {
-                display: none !important;
-            }
-
-            .hero-section {
-                padding: 36px 0 58px !important;
-            }
-
-            .hero-container {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 28px !important;
-                text-align: left !important;
-                max-width: 100% !important;
-            }
-
-            .hero-content {
-                padding-right: 0 !important;
-            }
-
-            .hero-title {
-                font-size: 2.05rem !important;
-                line-height: 1.14 !important;
-                letter-spacing: -0.038em !important;
-                margin: 0 0 18px !important;
-                max-width: 430px !important;
-            }
-
-            .hero-subtitle {
-                font-size: 0.98rem !important;
-                line-height: 1.72 !important;
-                margin: 0 0 28px !important;
-                max-width: 430px !important;
-            }
-
-            .hero-buttons {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-                justify-content: stretch !important;
-                width: 100% !important;
-                max-width: 430px !important;
-            }
-
-            .primary-button,
-            .secondary-button {
-                width: 100% !important;
-                max-width: none !important;
-                justify-content: center !important;
-                padding: 14px 18px !important;
-                border-radius: 10px !important;
-                font-size: 15px !important;
-            }
-
-            .hero-video-container {
-                height: 250px !important;
-                transform: none !important;
-                border-radius: 16px !important;
-                margin-top: 8px !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 18px !important;
-            }
-
-            .hero-section {
-                padding: 30px 0 52px !important;
-            }
-
-            .hero-title {
-                font-size: 1.86rem !important;
-                line-height: 1.16 !important;
-            }
-
-            .hero-subtitle {
-                font-size: 0.95rem !important;
-                line-height: 1.7 !important;
-                margin-bottom: 24px !important;
-            }
-
-            .hero-video-container {
-                height: 220px !important;
-            }
-        }
-
-        .accent,
-.hero-accent {
-  color: #00a98a;
-}
-
-
-.hero-title {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-  font-weight: 650 !important;
-  letter-spacing: -0.04em !important;
-  line-height: 1.08 !important;
-}
-
-@media (max-width: 768px) {
-  .hero-title {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-    font-weight: 650 !important;
-    letter-spacing: -0.04em !important;
-    line-height: 1.08 !important;
-  }
-}
-
-/* ===== FINAL NAV LOGO SIZE OVERRIDE ===== */
-.nav-logo {
-  width: 260px !important;
-  height: auto !important;
-  max-height: 58px !important;
-  object-fit: contain !important;
-}
-
-@media (max-width: 768px) {
-  .nav-logo {
-    width: 220px !important;
-    height: auto !important;
-    max-height: 50px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-logo {
-    width: 190px !important;
-    height: auto !important;
-    max-height: 44px !important;
-  }
-}
-</style>
-
-<style>
-@media (max-width: 640px) {
-  .problem-section .section-title,
-  .solutions-section .section-title,
-  .contact-info h2 {
-    font-size: 1.68rem !important;
-    line-height: 1.16 !important;
-    letter-spacing: -0.04em !important;
-    font-weight: 650 !important;
-  }
-
-  .corridor-map-copy h2,
-  .trust-header h2 {
-    font-size: 1.8rem !important;
-    line-height: 1.16 !important;
-    letter-spacing: -0.04em !important;
-    font-weight: 650 !important;
-  }
-}
-
-@media (max-width: 420px) {
-  .problem-section .section-title,
-  .solutions-section .section-title,
-  .contact-info h2 {
-    font-size: 1.54rem !important;
-  }
-
-  .corridor-map-copy h2,
-  .trust-header h2 {
-    font-size: 1.62rem !important;
-  }
-}
-</style>
-
-<style>
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #00a7a7;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 9999;
-}
-.toast.show {
-  opacity: 1;
-}
-
-    /* ================================
-   CORRIDOR MAP SECTION
-================================ */
-
-.corridor-map-section {
-  position: relative;
-  padding: 68px 20px 62px;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(0, 204, 177, 0.10), transparent 42%),
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  overflow: hidden;
-  text-align: center;
-}
-
-.corridor-map-wrap {
-  position: relative;
-  max-width: 1080px;
-  height: 430px;
-  margin: 0 auto 16px;
-}
-
-.corridor-world-map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: scale(1.04);
-  pointer-events: none;
-    opacity: 0.95;
-    z-index: 1;
-}
-
-.world-dots path {
-  fill: url(#ubDots);
-}
-
-.route-line {
-  fill: none;
-  stroke: #00ccb1;
-  stroke-width: 1.2;
-  opacity: 0.22;
-}
-
-.route-line.muted {
-  stroke: #003366;
-  opacity: 0.13;
-}
-
-.corridor-point {
-  position: absolute;
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(0, 204, 177, 0.45);
-  box-shadow:
-    0 14px 30px rgba(0, 51, 102, 0.13),
-    0 0 0 1px rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 19px;
-  z-index: 3;
-}
-
-.corridor-point::before,
-.corridor-point::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 204, 177, 0.24);
-  inset: -14px;
-  animation: corridorPulse 3s ease-out infinite;
-}
-
-.corridor-point::after {
-  inset: -28px;
-  opacity: 0.42;
-  animation-delay: 0.9s;
-}
-
-.corridor-point span {
-  position: relative;
-  z-index: 2;
-}
-
-/* Desktop positions */
-.corridor-point.us {
-  left: 14%;
-  top: 44%;
-}
-
-.corridor-point.uk {
-  left: 47%;
-  top: 32%;
-}
-
-.corridor-point.eu {
-  left: 52%;
-  top: 38%;
-}
-
-.corridor-point.uae {
-  left: 66%;
-  top: 51%;
-}
-
-.corridor-point.br {
-  left: 29%;
-  top: 67%;
-}
-
-.corridor-point.ng {
-  left: 53%;
-  top: 61%;
-}
-
-.corridor-point.ph {
-  left: 80%;
-  top: 57%;
-}
-
-.corridor-map-copy {
-  position: relative;
-  z-index: 4;
-  max-width: 780px;
-  margin: 0 auto;
-}
-
-.corridor-map-copy h2 {
-  margin: 0 0 14px;
-  color: #003366;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.15;
-  font-weight: 650;
-  letter-spacing: -0.035em;
-}
-
-.corridor-map-copy p {
-  margin: 0 auto;
-  max-width: 700px;
-  color: #6b7280;
-  font-size: 1rem;
-  line-height: 1.75;
-}
-
-@keyframes corridorPulse {
-  0% {
-    transform: scale(0.78);
-    opacity: 0.72;
-  }
-
-  70% {
-    transform: scale(1.36);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1.36);
-    opacity: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .corridor-map-section {
-    padding: 44px 0 48px !important;
-    background:
-      radial-gradient(circle at 50% 34%, rgba(0, 204, 177, 0.10), transparent 38%),
-      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
-  }
-
-  .corridor-map-wrap {
-    height: 260px !important;
-    max-width: 100% !important;
-    margin: 0 auto 18px !important;
-    overflow: hidden !important;
-  }
-
-  .corridor-world-map {
-    width: 118% !important;
-    height: 100% !important;
-    left: 50% !important;
-    transform: translateX(-50%) scale(1.02) !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-    opacity: 0.92 !important;
-    filter: contrast(1.08) saturate(1.06);
-  }
-
-  .corridor-point {
-    width: 34px !important;
-    height: 34px !important;
-    font-size: 16px !important;
-    box-shadow:
-      0 10px 22px rgba(0, 51, 102, 0.10),
-      0 0 0 1px rgba(255, 255, 255, 0.90) !important;
-  }
-
-  .corridor-point::before {
-    inset: -10px !important;
-  }
-
-  .corridor-point::after {
-    inset: -20px !important;
-  }
-
-  .corridor-point.us {
-    left: 18% !important;
-    top: 44% !important;
-  }
-
-  .corridor-point.uk {
-    left: 49% !important;
-    top: 31% !important;
-  }
-
-  .corridor-point.eu {
-    left: 57% !important;
-    top: 38% !important;
-  }
-
-  .corridor-point.uae {
-    left: 68% !important;
-    top: 52% !important;
-  }
-
-  .corridor-point.br {
-    left: 33% !important;
-    top: 64% !important;
-  }
-
-  .corridor-point.ng {
-    left: 57% !important;
-    top: 62% !important;
-  }
-
-  .corridor-point.ph {
-    left: 82% !important;
-    top: 58% !important;
-  }
-
-  .corridor-map-copy {
-    max-width: 340px !important;
-    padding: 0 18px !important;
-  }
-
-  .corridor-map-copy h2 {
-    font-size: 1.8rem !important;
-    line-height: 1.16 !important;
-    letter-spacing: -0.04em !important;
-    margin-bottom: 12px !important;
-  }
-
-  .corridor-map-copy p,
-  .corridor-map-copy .hero-subtitle {
-    font-size: 0.94rem !important;
-    line-height: 1.68 !important;
-    margin: 0 auto !important;
-    max-width: 330px !important;
-  }
-}
-
-@media (max-width: 420px) {
-  .corridor-map-wrap {
-    height: 235px !important;
-  }
-
-  .corridor-map-copy h2 {
-    font-size: 1.62rem !important;
-  }
-
-  .corridor-point {
-    width: 31px !important;
-    height: 31px !important;
-    font-size: 14px !important;
-  }
-}
-    
-.logo-marquee {
-  width: 100%;
-  max-width: 760px;
-  margin: 28px auto 0;
-  overflow: hidden;
-  position: relative;
-  z-index: 4;
-}
-
-.logo-marquee::before,
-.logo-marquee::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 70px;
-  height: 100%;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.logo-marquee::before {
-  left: 0;
-  background: linear-gradient(90deg, #f8fafc, transparent);
-}
-
-.logo-marquee::after {
-  right: 0;
-  background: linear-gradient(270deg, #f8fafc, transparent);
-}
-
-.logo-track {
-  display: flex;
-  align-items: center;
-  gap: 46px;
-  width: max-content;
-  animation: logoScroll 24s linear infinite;
-}
-
-.logo-track img {
-  flex: 0 0 auto;
-
-  width: 112px;
-  height: 28px;
-  object-fit: contain;
-
-  filter:
-    grayscale(1)
-    brightness(0)
-    saturate(100%)
-    invert(20%)
-    sepia(30%)
-    saturate(900%)
-    hue-rotate(165deg)
-    brightness(85%);
-
-  opacity: 0.45;
-
-  transition:
-    opacity 0.25s ease,
-    filter 0.25s ease;
-}
-
-.logo-track img:hover {
-  opacity: 0.85;
-
-  filter:
-    grayscale(1)
-    brightness(0)
-    saturate(100%)
-    invert(50%)
-    sepia(80%)
-    saturate(500%)
-    hue-rotate(130deg)
-    brightness(95%);
-}
-
-.logo-marquee:hover .logo-track {
-  animation-play-state: paused;
-}
-
-@keyframes logoScroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 640px) {
-  .logo-marquee {
-    max-width: 88vw;
-    margin-top: 22px;
-  }
-
-  .logo-track {
-    gap: 32px;
-    animation-duration: 20s;
-  }
-
-  .logo-track img {
-    width: 86px;
-    height: 22px;
-  }
-}
-    
-</style>
-    
-</head>
-
-<body>
-    <!-- NAVIGATION -->
-    <header>
-  <div class="container">
-    <nav class="navbar">
-
-      <img src="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
-           alt="UniBridge Logo"
-           class="nav-logo">
-
-      <div class="nav-links">
-        <a href="#solutions" class="nav-link">Platform</a>
-        <a href="#problem" class="nav-link">Model</a>
-        <a href="#trust" class="nav-link">Validation</a>
-        <a href="/docs.html" class="nav-link">Operating Model</a>
-        <a href="#contact" class="nav-button">Partner Access</a>
-      </div>
-
-    </nav>
-  </div>
-</header>
-
-    <!-- HERO SECTION WITH SIDE-BY-SIDE VIDEO -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-container">
-                <div class="hero-content fade-in">
-                    <h1 class="hero-title">
-  <span class="line">Instant payout routes</span>
-  <br />
-  <span class="line">Local rails, global access.</span>
-</h1>  
-                    
-   <p class="hero-subtitle">
-  Use Pay with UniBridge directly, or add it to your product as a hosted flow, embedded flow, or API.
-</p>  
-                    <div class="hero-buttons">
-                        <a href="/pay" class="primary-button">
-                            Pay with UniBridge
-                            <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="arrow-right"
-                                class="svg-inline--fa fa-arrow-right fa-fw icon" role="img"
-                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16" height="16">
-                                <path fill="currentColor"
-                                    d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z">
-                                </path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-                <div class="hero-video-container fade-in">
-                    <video data-testid="video-bg" class="video-bg" autoplay="" loop="" muted="" playsinline=""
-                        poster="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4">
-                        <source src="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
-                            type="video/mp4" />
-                        <div class="video-fallback">
-                            <div>UniBridge - Managed Payout Routes</div>
-                        </div>
-                    </video>
-                    <div data-testid="video-overlay" class="video-overlay"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-<!-- CORRIDOR MAP SECTION -->
-<section class="corridor-map-section">
-  <div class="corridor-map-wrap">
-
-    <img
-      class="corridor-world-map"
-      src="unibridge-landing/images/world-map.png"
-      alt=""
-      aria-hidden="true"
-    />
-
-    <div class="corridor-point us"><span>🇺🇸</span></div>
-    <div class="corridor-point uk"><span>🇬🇧</span></div>
-    <div class="corridor-point eu"><span>🇪🇺</span></div>
-    <div class="corridor-point uae"><span>🇦🇪</span></div>
-    <div class="corridor-point br"><span>🇧🇷</span></div>
-    <div class="corridor-point ng"><span>🇳🇬</span></div>
-    <div class="corridor-point ph"><span>🇵🇭</span></div>
-
-  </div>
-
-  <div class="corridor-map-copy fade-in">
-  <h2>
-  Trusted routes. <span class="accent">Proven infrastructure.</span>
-</h2>
-  <p class="hero-subtitle">
-    Built with approved route partners and payment infrastructure.
-  </p>
-</div>
-    
-   <div class="logo-marquee fade-in">
-  <div class="logo-track">
-  <img src="public/icons/social/logo.D-_KihkR.svg" alt="Onramp" />
-  <img src="public/icons/social/Transak.logo.png" alt="Transak" />
-  <img src="public/icons/social/bridge-logo.png.avif" alt="Bridge" />
-  <img src="public/icons/social/Alchemy.logo.png" alt="Alchemy" />
-  <img src="public/icons/social/polygon-logo.png" alt="Polygon" />
-  <img src="public/icons/social/Strip.logo1.png" alt="Stripe" />
-
-  <img src="public/icons/social/logo.D-_KihkR.svg" alt="Onramp" />
-  <img src="public/icons/social/Transak.logo.png" alt="Transak" />
-  <img src="public/icons/social/bridge-logo.png.avif" alt="Bridge" />
-  <img src="public/icons/social/Alchemy.logo.png" alt="Alchemy" />
-  <img src="public/icons/social/polygon-logo.png" alt="Polygon" />
-  <img src="public/icons/social/Strip.logo1.png" alt="Stripe" />
-</div>
-    </div>
-</section>
-
-    <!-- PROBLEM SECTION -->
-<section class="problem-section" id="problem">
   <style>
-    .problem-section {
-      background: #f8fafc;
-      padding: 108px 24px 112px;
-      color: #003366;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .problem-section .container {
-      max-width: 1120px;
+    :root {
+      --navy: #003366;
+      --navy-dark: #0b1230;
+      --teal: #00D4AA;
+      --teal-hover: #00b894;
+      --teal-dark: #00a98a;
+      --text: #23282f;
+      --muted: #5a6c7d;
+      --bg: #f8fafc;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #23282F;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .container-fluid {
+      width: 100%;
       margin: 0 auto;
     }
 
-    .problem-section .section-header {
-      max-width: 820px;
-      margin: 0 auto 62px;
+    .hero-section {
+      padding: 60px 0 108px;
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 56px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-content {
+      padding-right: 0;
+    }
+
+    .hero-title {
+      font-size: 3.35rem;
+      font-weight: 650 !important;
+      color: #003366;
+      line-height: 1.08 !important;
+      margin-bottom: 22px;
+      letter-spacing: -0.04em !important;
+      max-width: 650px;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin-bottom: 40px;
+      max-width: 500px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .primary-button {
+      background: #00D4AA;
+      color: #003366;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .primary-button:hover {
+      background: #00b894;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
+      text-decoration: none;
+    }
+
+    .secondary-button {
+      background: transparent;
+      color: #003366;
+      border: 2px solid #003366;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .secondary-button:hover {
+      background: #003366;
+      color: white;
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    .hero-video-container {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+      transition: all 0.5s ease;
+      height: 385px;
+    }
+
+    .hero-video-container:hover {
+      transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .video-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-fallback {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #003366 0%, #001a33 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 600;
+      border-radius: 20px;
       text-align: center;
+      padding: 20px;
     }
 
-    .problem-section .section-title {
-      margin: 0 0 18px;
+    .video-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(0, 51, 102, 0.1) 0%,
+        rgba(0, 51, 102, 0.3) 100%
+      );
+    }
+
+    .problem-section {
+      padding: 120px 0;
+      background: #f8fafc;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 80px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
       color: #003366;
-      font-size: clamp(2rem, 3.4vw, 3rem);
-      line-height: 1.18;
-      font-weight: 650;
-      letter-spacing: -0.034em;
+      line-height: 1.2;
+      margin-bottom: 24px;
     }
 
-    .problem-section .section-subtitle {
-      margin: 0 auto;
-      max-width: 790px;
-      color: #5a6c7d;
-      font-size: 1.04rem;
-      line-height: 1.82;
-      font-weight: 400;
+    .section-subtitle {
+      font-size: 1.25rem;
+      color: #5A6C7D;
+      line-height: 1.6;
     }
 
     .problem-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 28px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .problem-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 42px 32px;
-  min-height: 220px;
-  text-align: center;
-  box-shadow:
-    0 24px 70px rgba(0, 51, 102, 0.08),
-    0 8px 24px rgba(0, 51, 102, 0.045);
-  border: 1px solid rgba(0, 51, 102, 0.04);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.problem-card::before {
-  display: none;
-}
-
-.problem-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 30px 80px rgba(0, 51, 102, 0.105),
-    0 12px 32px rgba(0, 212, 170, 0.07);
-}
-
-.problem-icon {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #00d4aa;
-  color: #ffffff;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 12px 24px rgba(0, 212, 170, 0.18);
-}
-
-.problem-icon svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 2;
-}
-
-.problem-card h3 {
-  margin: 0 auto 16px;
-  max-width: 280px;
-  color: #003366;
-  font-size: 1.22rem;
-  line-height: 1.42;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-.problem-card p {
-  margin: 0 auto;
-  max-width: 300px;
-  color: #6b7a88;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  font-weight: 400;
-}
-
-    @media (max-width: 960px) {
-      .problem-section {
-        padding: 88px 22px 96px;
-      }
-
-      .problem-section .section-header {
-        margin-bottom: 48px;
-      }
-
-      .problem-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-      }
-
-      .problem-card {
-        min-height: auto;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .problem-section {
-        padding: 76px 18px 84px;
-      }
-
-      .problem-section .section-title {
-        font-size: 2rem;
-        line-height: 1.22;
-      }
-
-      .problem-section .section-subtitle {
-        font-size: 0.98rem;
-        line-height: 1.75;
-      }
-
-      .problem-card {
-        padding: 28px 24px;
-        border-radius: 18px;
-      }
-
-      .problem-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 24px;
-      }
-
-      .problem-card h3 {
-        font-size: 1.08rem;
-      }
-
-      .problem-card p {
-        font-size: 0.94rem;
-      }
-    }
-  </style>
-    
-      <div class="container">
-
-  <div class="section-header">
-    <h2 class="section-title">
-  Multiple ways in. One controlled payout flow.
-</h2>
-    <p class="section-subtitle">
-Wallet and fiat entry points move through the same controlled settlement and payout path.
-</p>
-  </div>
-
-    <div class="problem-grid">
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-          </svg>
-        </div>
-
-        <h3>Instant settlement, local payout</h3>
-        <p>
-          Settle instantly and deliver through approved local payout rails.
-        </p>
-      </div>
-
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-        </div>
-
-        <h3>No custody</h3>
-        <p>
-          UniBridge coordinates funding and payout execution without holding customer funds.
-        </p>
-      </div>
-
-      <div class="problem-card fade-in">
-        <div class="problem-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-          </svg>
-        </div>
-
-        <h3>Checks by entry point</h3>
-        <p>
-          Wallet and fiat entries follow the required checks before moving into payout execution.
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
-
-    
-<!-- SOLUTIONS SECTION -->
-<section class="solutions-section" id="solutions">
-  <style>
-    .solutions-section {
-      background: #ffffff;
-      padding: 108px 24px 116px;
-      color: #003366;
-    }
-
-    .solutions-section .container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .solutions-section .section-header {
-      max-width: 820px;
-      margin: 0 auto 64px;
+      background: white;
+      border-radius: 12px;
+      padding: 40px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
       text-align: center;
     }
 
-    .solutions-section .section-title {
-      margin: 0 0 18px;
-      color: #003366;
-      font-size: clamp(2rem, 3.5vw, 3.15rem);
-      line-height: 1.18;
-      font-weight: 650;
-      letter-spacing: -0.035em;
+    .problem-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
     }
 
-    .solutions-section .section-subtitle {
-      margin: 0 auto;
-      max-width: 760px;
-      color: #5a6c7d;
-      font-size: 1.05rem;
-      line-height: 1.8;
-      font-weight: 400;
+    .problem-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      background: #00D4AA;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .problem-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #003366;
+      margin-bottom: 16px;
+    }
+
+    .problem-card p {
+      color: #5A6C7D;
+      line-height: 1.6;
+    }
+
+    .solutions-section {
+      padding: 120px 0;
+      background: #ffffff;
     }
 
     .solutions-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .solution-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 20px;
+      padding: 40px 32px;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      border: 1px solid rgba(0, 212, 170, 0.1);
       position: relative;
-      min-height: 238px;
-      padding: 34px 34px 32px;
-      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-      border: 1px solid rgba(0, 51, 102, 0.075);
-      border-radius: 22px;
-      box-shadow:
-  0 24px 70px rgba(0, 51, 102, 0.08),
-  0 8px 24px rgba(0, 51, 102, 0.045);
       overflow: hidden;
-      transition:
-        transform 0.28s ease,
-        box-shadow 0.28s ease,
-        border-color 0.28s ease;
     }
 
     .solution-card::before {
       content: "";
       position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 18% 15%, rgba(0, 212, 170, 0.10), transparent 34%);
-      opacity: 0;
-      transition: opacity 0.28s ease;
-      pointer-events: none;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.1), transparent);
+      transition: left 0.6s ease;
     }
 
     .solution-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(0, 212, 170, 0.22);
+      background: linear-gradient(135deg, #ffffff 0%, #f0fdf9 100%);
+      transform: translateY(-8px) scale(1.02);
       box-shadow:
-        0 24px 64px rgba(0, 51, 102, 0.09),
-        0 10px 28px rgba(0, 212, 170, 0.08);
+        0 20px 40px rgba(0, 212, 170, 0.15),
+        0 8px 25px rgba(0, 51, 102, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 212, 170, 0.3);
     }
 
     .solution-card:hover::before {
-      opacity: 1;
+      left: 100%;
+    }
+
+    .solution-card:hover .solution-icon {
+      transform: scale(1.1) rotate(5deg);
+      background: linear-gradient(135deg, #00D4AA 0%, #00b894 100%);
     }
 
     .solution-icon {
-      position: relative;
-      z-index: 1;
-      width: 52px;
-      height: 52px;
-      display: inline-flex;
+      width: 60px;
+      height: 60px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #003366 0%, #001a33 100%);
+      border-radius: 16px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 28px;
-      color: #ffffff;
-      background: linear-gradient(135deg, #003366 0%, #062f57 100%);
-      border-radius: 14px;
-      box-shadow:
-        0 14px 30px rgba(0, 51, 102, 0.18),
-        inset 0 1px 0 rgba(255, 255, 255, 0.14);
-    }
-
-    .solution-icon svg {
-      width: 21px;
-      height: 21px;
-      stroke-width: 2;
+      color: white;
+      font-size: 24px;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
     }
 
     .solution-card h3 {
-      position: relative;
-      z-index: 1;
-      margin: 0 0 14px;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: #003366;
-      font-size: 1.18rem;
-      line-height: 1.35;
-      font-weight: 650;
-      letter-spacing: -0.018em;
+      margin-bottom: 16px;
+      transition: color 0.3s ease;
+    }
+
+    .solution-card:hover h3 {
+      color: #00D4AA;
     }
 
     .solution-card p {
+      color: #5A6C7D;
+      line-height: 1.6;
+      transition: color 0.3s ease;
+    }
+
+    .trust-header {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 80px;
+    }
+
+    .trust-header h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .trust-header p {
+      font-size: 1.25rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    .trust-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 80px;
+      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .trust-logo {
+      height: 64px;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+      filter: brightness(0) invert(1);
+    }
+
+    .trust-logo.light-logo {
+      filter: none;
+    }
+
+    .trust-logo:hover {
+      opacity: 1;
+    }
+
+    .trust-logo:first-child {
+      filter: brightness(10) invert(0);
+    }
+
+    .contact-section {
+      padding: 120px 0;
+      background: #f8fafc;
+    }
+
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    .contact-info h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #003366;
+      margin-bottom: 16px;
+    }
+
+    .contact-info .highlight {
+      color: #00D4AA;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .contact-info p {
+      color: #5A6C7D;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .dynamic-text {
+      background: none !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      color: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      display: block !important;
+    }
+
+    .contact-form {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #003366;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      background: white;
+      color: #333;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #00D4AA;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+    }
+
+    .form-control::placeholder {
+      color: #999;
+    }
+
+    .submit-button {
+      background: #00D4AA;
+      color: #003366;
+      border: none;
+      padding: 16px 40px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .submit-button:hover {
+      background: #00b894;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 170, 0.3);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00a7a7;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .corridor-map-section {
       position: relative;
+      padding: 68px 20px 62px;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(0, 204, 177, 0.10), transparent 42%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .corridor-map-wrap {
+      position: relative;
+      max-width: 1080px;
+      height: 430px;
+      margin: 0 auto 16px;
+    }
+
+    .corridor-world-map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: scale(1.04);
+      pointer-events: none;
+      opacity: 0.95;
       z-index: 1;
-      margin: 0;
-      max-width: 430px;
-      color: #5a6c7d;
-      font-size: 0.98rem;
+    }
+
+    .corridor-point {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 204, 177, 0.45);
+      box-shadow:
+        0 14px 30px rgba(0, 51, 102, 0.13),
+        0 0 0 1px rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      z-index: 3;
+    }
+
+    .corridor-point::before,
+    .corridor-point::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 204, 177, 0.24);
+      inset: -14px;
+      animation: corridorPulse 3s ease-out infinite;
+    }
+
+    .corridor-point::after {
+      inset: -28px;
+      opacity: 0.42;
+      animation-delay: 0.9s;
+    }
+
+    .corridor-point span {
+      position: relative;
+      z-index: 2;
+    }
+
+    .corridor-point.us {
+      left: 14%;
+      top: 44%;
+    }
+
+    .corridor-point.uk {
+      left: 47%;
+      top: 32%;
+    }
+
+    .corridor-point.eu {
+      left: 52%;
+      top: 38%;
+    }
+
+    .corridor-point.uae {
+      left: 66%;
+      top: 51%;
+    }
+
+    .corridor-point.br {
+      left: 29%;
+      top: 67%;
+    }
+
+    .corridor-point.ng {
+      left: 53%;
+      top: 61%;
+    }
+
+    .corridor-point.ph {
+      left: 80%;
+      top: 57%;
+    }
+
+    .corridor-map-copy {
+      position: relative;
+      z-index: 4;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .corridor-map-copy h2 {
+      margin: 0 0 14px;
+      color: #003366;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+      font-weight: 650;
+      letter-spacing: -0.035em;
+    }
+
+    .corridor-map-copy p {
+      margin: 0 auto;
+      max-width: 700px;
+      color: #6b7280;
+      font-size: 1rem;
       line-height: 1.75;
-      font-weight: 400;
     }
 
-    @media (max-width: 900px) {
-      .solutions-section {
-        padding: 86px 22px 94px;
-      }
-
-      .solutions-section .section-header {
-        margin-bottom: 46px;
-      }
-
-      .solutions-grid {
-        gap: 24px;
-      }
-
-      .solution-card {
-        padding: 30px 28px;
-      }
+    .accent,
+    .hero-accent {
+      color: #00a98a;
     }
 
-    @media (max-width: 700px) {
-      .solutions-grid {
-        grid-template-columns: 1fr;
+    @keyframes corridorPulse {
+      0% {
+        transform: scale(0.78);
+        opacity: 0.72;
       }
 
-      .solution-card {
-        min-height: auto;
+      70% {
+        transform: scale(1.36);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1.36);
+        opacity: 0;
       }
     }
 
-    @media (max-width: 640px) {
-      .solutions-section {
-        padding: 76px 18px 84px;
+    .logo-marquee {
+      width: 100%;
+      max-width: 760px;
+      margin: 28px auto 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 4;
+    }
+
+    .logo-marquee::before,
+    .logo-marquee::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 70px;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .logo-marquee::before {
+      left: 0;
+      background: linear-gradient(90deg, #f8fafc, transparent);
+    }
+
+    .logo-marquee::after {
+      right: 0;
+      background: linear-gradient(270deg, #f8fafc, transparent);
+    }
+
+    .logo-track {
+      display: flex;
+      align-items: center;
+      gap: 46px;
+      width: max-content;
+      animation: logoScroll 24s linear infinite;
+    }
+
+    .logo-track img {
+      flex: 0 0 auto;
+      width: 112px;
+      height: 28px;
+      object-fit: contain;
+      filter:
+        grayscale(1)
+        brightness(0)
+        saturate(100%)
+        invert(20%)
+        sepia(30%)
+        saturate(900%)
+        hue-rotate(165deg)
+        brightness(85%);
+      opacity: 0.45;
+      transition:
+        opacity 0.25s ease,
+        filter 0.25s ease;
+    }
+
+    .logo-track img:hover {
+      opacity: 0.85;
+      filter:
+        grayscale(1)
+        brightness(0)
+        saturate(100%)
+        invert(50%)
+        sepia(80%)
+        saturate(500%)
+        hue-rotate(130deg)
+        brightness(95%);
+    }
+
+    .logo-marquee:hover .logo-track {
+      animation-play-state: paused;
+    }
+
+    @keyframes logoScroll {
+      from {
+        transform: translateX(0);
       }
 
-      .solutions-section .section-title {
-        font-size: 2rem;
-        line-height: 1.22;
-      }
-
-      .solutions-section .section-subtitle {
-        font-size: 0.98rem;
-        line-height: 1.75;
-      }
-
-      .solution-card {
-        padding: 28px 24px;
-        border-radius: 18px;
-      }
-
-      .solution-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 24px;
-      }
-
-      .solution-card h3 {
-        font-size: 1.1rem;
-      }
-
-      .solution-card p {
-        font-size: 0.95rem;
+      to {
+        transform: translateX(-50%);
       }
     }
 
-      .accent {
-  color: #00a98a;
-}
+    .trust-section {
+      position: relative;
+      overflow: hidden;
+      background:
+        url("/unibridge-landing/images/trust-bg.png") center center / min(1420px, calc(100vw - 8px)) auto no-repeat,
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      padding: 14px 4px 26px;
+      min-height: auto;
+      margin-top: -18px;
+      color: #ffffff;
+    }
 
-.solutions-section .section-title {
-  margin: 0 0 18px;
-  color: #003366;
-  font-size: clamp(2rem, 3.5vw, 3.15rem);
-  line-height: 1.18;
-  font-weight: 650;
-  letter-spacing: -0.035em;
-}
-  </style>
+    .trust-panel {
+      position: relative;
+      z-index: 2;
+      overflow: visible;
+      border-radius: 28px;
+      padding: 84px 56px 72px;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
 
-  <div class="container">
-    <div class="section-header fade-in">
-      <h2 class="section-title">
-  Skip the primitives. <span class="accent"> Use the route.</span>
-</h2>
-<p class="section-subtitle">
-  Hosted flow, embedded experience, or API — one controlled payout route.
-</p>
-    </div>
+    .trust-panel::before,
+    .trust-panel::after,
+    .trust-section-map,
+    .trust-routes {
+      display: none !important;
+    }
 
-    <div class="solutions-grid">
-      <div class="solution-card fade-in">
-        <div class="solution-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 11l3 3L22 4"></path>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-          </svg>
-        </div>
-        <h3>Integrate your way</h3>
-        <p>Start with a hosted Pay with UniBridge flow. Scale to embedded or API later.</p>
-      </div>
+    .trust-content {
+      position: relative;
+      z-index: 3;
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
 
-      <div class="solution-card fade-in">
-        <div class="solution-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            <path d="M9 12l2 2 4-4"></path>
-          </svg>
-        </div>
-        <h3>No prefunding required</h3>
-        <p>Launch payout routes without tying capital in local balances.</p>
-      </div>
+    .trust-header h2 {
+      margin: 0 0 26px;
+      color: #ffffff;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.045em;
+    }
 
-      <div class="solution-card fade-in">
-        <div class="solution-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 17l6-6 4 4 8-8"></path>
-            <path d="M14 7h7v7"></path>
-          </svg>
-        </div>
-        <h3>Execution visibility</h3>
-        <p>Monitor funding, partner execution, and payout status across each route stage.</p>
-      </div>
+    .trust-accent {
+      color: #00d4aa;
+    }
 
-      <div class="solution-card fade-in">
-        <div class="solution-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="6" width="18" height="12" rx="2"></rect>
-            <path d="M7 12h.01"></path>
-            <path d="M12 12h.01"></path>
-            <path d="M17 12h.01"></path>
-          </svg>
-        </div>
-        <h3>Fixed coordination fee</h3>
-        <p>Use a fixed UniBridge coordination fee, not a percentage of payout value.</p>
-      </div>
-    </div>
-  </div>
-</section>
+    .trust-header p {
+      margin: 0 auto;
+      max-width: 780px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 1.08rem;
+      line-height: 1.85;
+    }
 
-    
-<!-- TRUST SECTION -->
-<section class="trust-section" id="trust">
-  <style>
-.trust-section {
-  position: relative;
-  overflow: hidden;
-  background:
-    url("unibridge-landing/images/trust-bg.png") center center / min(1420px, calc(100vw - 8px)) auto no-repeat,
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  padding: 14px 4px 26px;
-  min-height: auto;
-  margin-top: -18px;
-  color: #ffffff;
-}
+    .trust-statement {
+      margin: 34px auto 0;
+    }
 
-.trust-panel {
-  position: relative;
-  z-index: 2;
-  overflow: visible;
-  border-radius: 28px;
-  padding: 84px 56px 72px;
-  background: transparent !important;
-  box-shadow: none !important;
-}
+    .trust-statement span {
+      display: block;
+      color: #00d4aa;
+      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 1rem;
+      line-height: 1.85;
+      font-weight: 500;
+    }
 
-.trust-panel::before,
-.trust-panel::after,
-.trust-section-map,
-.trust-routes {
-  display: none !important;
-}
+    .trust-lifecycle-bg {
+      position: relative;
+      width: min(820px, 100%);
+      height: 92px;
+      margin: 48px auto 0;
+      z-index: 3;
+      opacity: 0.86;
+      pointer-events: none;
+    }
 
-.trust-panel::after {
-  display: none !important;
-}
+    .trust-lifecycle-line {
+      position: absolute;
+      left: 5%;
+      right: 5%;
+      top: 34px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(0, 212, 170, 0.08), rgba(0, 212, 170, 0.62), rgba(0, 212, 170, 0.08));
+      box-shadow: 0 0 32px rgba(0, 212, 170, 0.22);
+    }
 
-.trust-routes,
-.trust-section-map {
-  display: none !important;
-}
+    .trust-life-node {
+      position: absolute;
+      top: 34px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+    }
 
-.trust-content {
-  position: relative;
-  z-index: 3;
-  max-width: 860px;
-  margin: 0 auto;
-  text-align: center;
-}
+    .trust-life-node .dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(215, 255, 248, 0.94);
+      border: 2px solid rgba(0, 212, 170, 0.84);
+      box-shadow:
+        0 0 0 8px rgba(0, 212, 170, 0.09),
+        0 0 26px rgba(0, 212, 170, 0.36);
+    }
 
-.trust-header h2 {
-  margin: 0 0 26px;
-  color: #ffffff;
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1.15;
-  font-weight: 700;
-  letter-spacing: -0.045em;
-}
+    .trust-life-node.active .dot {
+      width: 42px;
+      height: 42px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.98) 0 28%, #00d4aa 29% 52%, rgba(0, 212, 170, 0.12) 53% 100%);
+      border: 1px solid rgba(183, 255, 242, 0.96);
+      box-shadow:
+        0 0 0 13px rgba(0, 212, 170, 0.11),
+        0 0 0 26px rgba(0, 212, 170, 0.05),
+        0 0 48px rgba(0, 212, 170, 0.52);
+    }
 
-.trust-accent {
-  color: #00d4aa;
-}
+    .trust-life-node.final .dot {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      background: #00d4aa;
+      color: #06233f;
+      font-size: 14px;
+      font-weight: 900;
+    }
 
-.trust-header p {
-  margin: 0 auto;
-  max-width: 780px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 1.08rem;
-  line-height: 1.85;
-}
+    .trust-life-node small {
+      color: rgba(255, 255, 255, 0.56);
+      font-size: 0.72rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
 
-.trust-statement {
-  margin: 34px auto 0;
-}
+    .trust-life-node.n1 {
+      left: 8%;
+    }
 
-.trust-statement span {
-  display: block;
-  color: #00d4aa;
-  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
-  font-size: 1rem;
-  line-height: 1.85;
-  font-weight: 500;
-}
+    .trust-life-node.n2 {
+      left: 38%;
+    }
 
-.trust-lifecycle-bg {
-  position: relative;
-  width: min(820px, 100%);
-  height: 92px;
-  margin: 48px auto 0;
-  z-index: 3;
-  opacity: 0.86;
-  pointer-events: none;
-}
+    .trust-life-node.n3 {
+      left: 68%;
+    }
 
-.trust-lifecycle-line {
-  position: absolute;
-  left: 5%;
-  right: 5%;
-  top: 34px;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(0,212,170,0.08), rgba(0,212,170,0.62), rgba(0,212,170,0.08));
-  box-shadow: 0 0 32px rgba(0, 212, 170, 0.22);
-}
+    .trust-life-node.n4 {
+      left: 94%;
+    }
 
-.trust-life-node {
-  position: absolute;
-  top: 34px;
-  transform: translate(-50%, -50%);
-  display: grid;
-  justify-items: center;
-  gap: 16px;
-}
+    .trust-typewriter::after {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 4px;
+      vertical-align: -0.12em;
+      background: #00d4aa;
+      animation: trustCursorBlink 0.85s steps(1) infinite;
+    }
 
-.trust-life-node .dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(215, 255, 248, 0.94);
-  border: 2px solid rgba(0, 212, 170, 0.84);
-  box-shadow:
-    0 0 0 8px rgba(0,212,170,0.09),
-    0 0 26px rgba(0,212,170,0.36);
-}
+    .trust-typewriter.is-complete::after {
+      opacity: 0;
+      animation: none;
+    }
 
-.trust-life-node.active .dot {
-  width: 42px;
-  height: 42px;
-  background: radial-gradient(circle, rgba(255,255,255,0.98) 0 28%, #00d4aa 29% 52%, rgba(0,212,170,0.12) 53% 100%);
-  border: 1px solid rgba(183,255,242,0.96);
-  box-shadow:
-    0 0 0 13px rgba(0,212,170,0.11),
-    0 0 0 26px rgba(0,212,170,0.05),
-    0 0 48px rgba(0,212,170,0.52);
-}
+    @keyframes trustCursorBlink {
+      50% {
+        opacity: 0;
+      }
+    }
 
-.trust-life-node.final .dot {
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  background: #00d4aa;
-  color: #06233f;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.trust-life-node small {
-  color: rgba(255,255,255,0.56);
-  font-size: 0.72rem;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.trust-life-node.n1 { left: 8%; }
-.trust-life-node.n2 { left: 38%; }
-.trust-life-node.n3 { left: 68%; }
-.trust-life-node.n4 { left: 94%; }
-
-.trust-typewriter::after {
-  content: "";
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 4px;
-  vertical-align: -0.12em;
-  background: #00d4aa;
-  animation: trustCursorBlink 0.85s steps(1) infinite;
-}
-
-.trust-typewriter.is-complete::after {
-  opacity: 0;
-  animation: none;
-}
-
-@keyframes trustCursorBlink {
-  50% { opacity: 0; }
-}
-
-@media (max-width: 640px) {
-  .trust-section {
-    padding: 76px 18px 84px;
-  }
-
-  .trust-panel {
-    padding: 48px 24px 46px;
-    border-radius: 22px;
-    background-size: cover;
-    background-position: center center;
-  }
-
-  .trust-header h2 {
-    font-size: 2rem;
-  }
-
-  .trust-header p {
-    font-size: 0.98rem;
-    line-height: 1.75;
-  }
-
-  .trust-lifecycle-bg {
-    height: 70px;
-    margin-top: 36px;
-    opacity: 0.72;
-  }
-
-  .trust-lifecycle-line {
-    top: 28px;
-  }
-
-  .trust-life-node {
-    top: 28px;
-  }
-
-  .trust-life-node small {
-    display: none;
-  }
-
-  .trust-life-node.active .dot {
-    width: 36px;
-    height: 36px;
-  }
-
-  .trust-life-node.n1 { left: 9%; }
-  .trust-life-node.n2 { left: 38%; }
-  .trust-life-node.n3 { left: 68%; }
-  .trust-life-node.n4 { left: 93%; }
-}
-
-      @media (max-width: 640px) {
-  .trust-section {
-    background:
-      url("unibridge-landing/images/trust-bg.png") center top / 760px auto no-repeat,
-      linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    padding: 0 0 10px;
-    margin-top: -8px;
-    margin-bottom: -35px;
-    min-height: 360px;
-  }
-
-  .trust-panel {
-    padding: 58px 22px 42px;
-  }
-
-  .trust-header h2 {
-  font-size: 1.8rem !important;
-  line-height: 1.16 !important;
-  letter-spacing: -0.04em !important;
-  font-weight: 650 !important;
-  margin-bottom: 18px !important;
-}
-
-  .trust-header p {
-    font-size: 0.9rem;
-    line-height: 1.65;
-    max-width: 320px;
-  }
-
-  .trust-statement {
-    margin-top: 24px;
-  }
-
-  .trust-statement span {
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
-  }
-
-  .trust-lifecycle-bg {
-    width: 92%;
-    height: 58px;
-    margin-top: 28px;
-  }
-
-  .trust-lifecycle-line {
-    top: 24px;
-  }
-
-  .trust-life-node {
-    top: 24px;
-  }
-
-  .trust-life-node small {
-    display: none;
-  }
-
-  .trust-life-node.active .dot {
-    width: 34px;
-    height: 34px;
-  }
-}
-
-@media (max-width: 640px) {
-  .section-title,
-  .solutions-section .section-title,
-  .problem-section .section-title,
-  .contact-info h2,
-  .trust-header h2 {
-    font-size: 1.8rem !important;
-    line-height: 1.16 !important;
-    letter-spacing: -0.04em !important;
-    font-weight: 650 !important;
-  }
-}
-</style>
-
-  <div class="container">
-    <div class="trust-panel">
-      <div class="trust-content">
-        <div class="trust-header fade-in">
-          <h2><span class="trust-accent">Proof before scale.</span></h2>
-
-          <p>
-            Review the route, monitor execution, inspect status, and verify payout evidence before broader rollout.
-          </p>
-
-          <div class="trust-statement">
-            <span class="trust-typewriter" data-typewriter="Ready path. Proven before scale."></span>
-          </div>
-
-          <div class="trust-lifecycle-bg" aria-hidden="true">
-            <div class="trust-lifecycle-line"></div>
-
-            <div class="trust-life-node n1">
-              <span class="dot"></span>
-              <small>defined</small>
-            </div>
-
-            <div class="trust-life-node n2 active">
-              <span class="dot"></span>
-              <small>validated</small>
-            </div>
-
-            <div class="trust-life-node n3">
-              <span class="dot"></span>
-              <small>committed</small>
-            </div>
-
-            <div class="trust-life-node n4 final">
-              <span class="dot">✓</span>
-              <small>triggered</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CONTACT SECTION -->
-<section class="contact-section" id="contact">
-  <style>
     .contact-section {
       background: #f8fafc;
       padding: 104px 24px 112px;
@@ -2589,14 +1146,6 @@ Wallet and fiat entry points move through the same controlled settlement and pay
       line-height: 1.18;
       font-weight: 650;
       letter-spacing: -0.032em;
-    }
-
-    .dynamic-text {
-      margin-bottom: 18px;
-      color: #00a98a;
-      font-size: 0.95rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
     }
 
     .contact-info p {
@@ -2703,27 +1252,359 @@ Wallet and fiat entry points move through the same controlled settlement and pay
       box-shadow: 0 8px 20px rgba(0, 212, 170, 0.2);
     }
 
-    @media (max-width: 900px) {
-      .contact-section {
-        padding: 82px 22px 92px;
+    .pilot-copy {
+      margin: 0;
+    }
+
+    .pilot-copy-gap {
+      height: 14px;
+    }
+
+    .pilot-subcopy {
+      margin: 0;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @media (max-width: 1024px) {
+      .hero-container {
+        gap: 60px;
+      }
+
+      .hero-title {
+        font-size: 2.75rem;
+      }
+
+      .contact-container {
+        gap: 60px;
+      }
+
+      .trust-logos {
+        gap: 60px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-container {
+        grid-template-columns: 1fr;
+        gap: 50px;
+        text-align: center;
+      }
+
+      .hero-content {
+        padding-right: 0;
+      }
+
+      .hero-title {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        font-weight: 650 !important;
+        letter-spacing: -0.04em !important;
+        line-height: 1.08 !important;
+      }
+
+      .hero-subtitle {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-buttons {
+        justify-content: center;
+      }
+
+      .hero-video-container {
+        height: 350px;
+        transform: none;
+      }
+
+      .primary-button,
+      .secondary-button {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+      }
+
+      .problem-grid,
+      .solutions-grid {
+        grid-template-columns: 1fr;
       }
 
       .contact-container {
         grid-template-columns: 1fr;
-        gap: 42px;
+        gap: 50px;
       }
 
-      .contact-info {
-        max-width: 680px;
-        padding-top: 0;
+      .trust-logos {
+        gap: 40px;
       }
 
-      .contact-form {
-        padding: 30px;
+      .trust-logo {
+        height: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 36px 0 58px !important;
+      }
+
+      .hero-container {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 28px !important;
+        text-align: left !important;
+        max-width: 100% !important;
+      }
+
+      .hero-content {
+        padding-right: 0 !important;
+      }
+
+      .hero-title {
+        font-size: 2.05rem !important;
+        line-height: 1.14 !important;
+        letter-spacing: -0.038em !important;
+        margin: 0 0 18px !important;
+        max-width: 430px !important;
+      }
+
+      .hero-subtitle {
+        font-size: 0.98rem !important;
+        line-height: 1.72 !important;
+        margin: 0 0 28px !important;
+        max-width: 430px !important;
+      }
+
+      .hero-buttons {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        justify-content: stretch !important;
+        width: 100% !important;
+        max-width: 430px !important;
+      }
+
+      .primary-button,
+      .secondary-button {
+        width: 100% !important;
+        max-width: none !important;
+        justify-content: center !important;
+        padding: 14px 18px !important;
+        border-radius: 10px !important;
+        font-size: 15px !important;
+      }
+
+      .hero-video-container {
+        height: 250px !important;
+        transform: none !important;
+        border-radius: 16px !important;
+        margin-top: 8px !important;
+      }
+
+      .corridor-map-section {
+        padding: 44px 0 48px !important;
+        background:
+          radial-gradient(circle at 50% 34%, rgba(0, 204, 177, 0.10), transparent 38%),
+          linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+      }
+
+      .corridor-map-wrap {
+        height: 260px !important;
+        max-width: 100% !important;
+        margin: 0 auto 18px !important;
+        overflow: hidden !important;
+      }
+
+      .corridor-world-map {
+        width: 118% !important;
+        height: 100% !important;
+        left: 50% !important;
+        transform: translateX(-50%) scale(1.02) !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        opacity: 0.92 !important;
+        filter: contrast(1.08) saturate(1.06);
+      }
+
+      .corridor-point {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 16px !important;
+        box-shadow:
+          0 10px 22px rgba(0, 51, 102, 0.10),
+          0 0 0 1px rgba(255, 255, 255, 0.90) !important;
+      }
+
+      .corridor-point::before {
+        inset: -10px !important;
+      }
+
+      .corridor-point::after {
+        inset: -20px !important;
+      }
+
+      .corridor-point.us {
+        left: 18% !important;
+        top: 44% !important;
+      }
+
+      .corridor-point.uk {
+        left: 49% !important;
+        top: 31% !important;
+      }
+
+      .corridor-point.eu {
+        left: 57% !important;
+        top: 38% !important;
+      }
+
+      .corridor-point.uae {
+        left: 68% !important;
+        top: 52% !important;
+      }
+
+      .corridor-point.br {
+        left: 33% !important;
+        top: 64% !important;
+      }
+
+      .corridor-point.ng {
+        left: 57% !important;
+        top: 62% !important;
+      }
+
+      .corridor-point.ph {
+        left: 82% !important;
+        top: 58% !important;
+      }
+
+      .corridor-map-copy {
+        max-width: 340px !important;
+        padding: 0 18px !important;
+      }
+
+      .corridor-map-copy h2 {
+        font-size: 1.8rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -0.04em !important;
+        margin-bottom: 12px !important;
+      }
+
+      .corridor-map-copy p,
+      .corridor-map-copy .hero-subtitle {
+        font-size: 0.94rem !important;
+        line-height: 1.68 !important;
+        margin: 0 auto !important;
+        max-width: 330px !important;
       }
     }
 
     @media (max-width: 640px) {
+      .problem-section .section-title,
+      .solutions-section .section-title,
+      .contact-info h2 {
+        font-size: 1.68rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -0.04em !important;
+        font-weight: 650 !important;
+      }
+
+      .corridor-map-copy h2,
+      .trust-header h2 {
+        font-size: 1.8rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -0.04em !important;
+        font-weight: 650 !important;
+      }
+
+      .logo-marquee {
+        max-width: 88vw;
+        margin-top: 22px;
+      }
+
+      .logo-track {
+        gap: 32px;
+        animation-duration: 20s;
+      }
+
+      .logo-track img {
+        width: 86px;
+        height: 22px;
+      }
+
+      .trust-section {
+        background:
+          url("/unibridge-landing/images/trust-bg.png") center top / 760px auto no-repeat,
+          linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 0 0 10px;
+        margin-top: -8px;
+        margin-bottom: -35px;
+        min-height: 360px;
+      }
+
+      .trust-panel {
+        padding: 58px 22px 42px;
+      }
+
+      .trust-header h2 {
+        font-size: 1.8rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -0.04em !important;
+        font-weight: 650 !important;
+        margin-bottom: 18px !important;
+      }
+
+      .trust-header p {
+        font-size: 0.9rem;
+        line-height: 1.65;
+        max-width: 320px;
+      }
+
+      .trust-statement {
+        margin-top: 24px;
+      }
+
+      .trust-statement span {
+        font-size: 0.78rem;
+        letter-spacing: 0.02em;
+      }
+
+      .trust-lifecycle-bg {
+        width: 92%;
+        height: 58px;
+        margin-top: 28px;
+      }
+
+      .trust-lifecycle-line {
+        top: 24px;
+      }
+
+      .trust-life-node {
+        top: 24px;
+      }
+
+      .trust-life-node small {
+        display: none;
+      }
+
+      .trust-life-node.active .dot {
+        width: 34px;
+        height: 34px;
+      }
+
       .contact-section {
         padding: 72px 18px 82px;
       }
@@ -2752,524 +1633,970 @@ Wallet and fiat entry points move through the same controlled settlement and pay
         padding: 14px 16px;
       }
     }
-      
-      .pilot-copy {
-  margin: 0;
-}
 
-.pilot-copy-gap {
-  height: 14px;
-}
-
-.pilot-subcopy {
-  margin: 0;
-}
-  </style>
-
-  <div class="container">
-    <div class="contact-container">
-      <div class="contact-info fade-in">
-        <h2 id="contact-title">Validate your payout route.</h2>
-
-        <p class="pilot-subcopy">
-  Run a controlled route with execution tracking and payout evidence before adding broader coverage.
-</p>
-    
-      </div>
-
-      <div class="contact-form fade-in">
-        <form id="contactForm" method="POST" action="/api/contact">
-          <input type="hidden" name="subject" value="New Request" />
-          <input type="hidden" name="_t" value="Y2VqVHUaWJyaWouaW8=" />
-          <input type="hidden" name="_sub" value="New Technical Review Request - UniBridge" />
-
-          <div class="form-group">
-            <label for="name">Full name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              class="form-control"
-              placeholder="Enter your full name"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Work Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              class="form-control"
-              placeholder="yourname@company.com"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="company">Company / Project</label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              class="form-control"
-              placeholder="e.g. Wallet, remittance, payroll, marketplace"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="message">Integration Goal / Use Case</label>
-            <textarea
-              id="message"
-              name="message"
-              class="form-control"
-              rows="4"
-              placeholder="Describe the payout flow, current provider stack, or execution issue."
-              required
-            ></textarea>
-          </div>
-
-          <input
-            type="text"
-            name="website"
-            tabindex="-1"
-            autocomplete="off"
-            style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
-          />
-
-          <div
-            class="cf-turnstile"
-            data-sitekey="0x4AAAAAADA4gaxEeVbe3X6F"
-            data-theme="light"
-          ></div>
-
-          <button type="submit" class="submit-button">
-            Partner Access
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-</section>
-    
-    
-<!-- FOOTER -->
-<footer class="footer">
-  <style>
-    .footer {
-      background: #0b1230;
-      color: #ffffff;
-      padding: 96px 48px 52px;
-    }
-
-    .footer-container {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    .footer-logo {
-      width: 152px;
-      height: auto;
-      margin-bottom: 56px;
-      display: block;
-      opacity: 0.92;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-content {
-      display: grid;
-      grid-template-columns: 1.35fr 1fr 1.35fr;
-      gap: 80px;
-      align-items: start;
-    }
-
-    .footer-about {
-      max-width: 390px;
-    }
-
-    .footer-about p {
-      margin: 0 0 18px;
-      color: rgba(255, 255, 255, 0.76);
-      font-size: 15px;
-      line-height: 1.75;
-      font-weight: 400;
-    }
-
-    .footer-links h3 {
-      margin: 0 0 22px;
-      color: #00a98a;
-      font-size: 15px;
-      font-weight: 700;
-    }
-
-    .footer-links ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .footer-links li {
-      margin-bottom: 13px;
-    }
-
-    .footer-links a {
-      color: rgba(255, 255, 255, 0.84);
-      font-size: 15px;
-      line-height: 1.55;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    .footer-resources li {
-      margin-bottom: 22px;
-    }
-
-    .footer-link-note {
-      display: block;
-      margin-top: 6px;
-      color: rgba(255, 255, 255, 0.54);
-      font-size: 13px;
-      line-height: 1.55;
-      max-width: 300px;
-    }
-
-    .footer-bottom {
-      margin-top: 76px;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 32px;
-    }
-
-    .footer-social {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .footer-social img {
-      width: 22px;
-      height: 22px;
-      object-fit: contain;
-      filter: brightness(0) invert(1);
-    }
-
-    .footer-legal {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      flex-wrap: wrap;
-    }
-
-    .footer-legal a {
-      color: rgba(255, 255, 255, 0.68);
-      font-size: 14px;
-      text-decoration: none;
-    }
-
-      @media (max-width: 640px) {
-  .footer {
-    padding: 72px 38px 42px !important;
-  }
-
-  .footer-logo {
-    width: 112px !important;
-    margin: 0 0 42px !important;
-  }
-
-  .footer-content {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 46px !important;
-  }
-
-  .footer-about {
-    max-width: 100% !important;
-  }
-
-  .footer-about p {
-    font-size: 15px !important;
-    line-height: 1.75 !important;
-    margin-bottom: 18px !important;
-  }
-
-  .footer-links h3 {
-    margin-bottom: 18px !important;
-  }
-
-  .footer-links li {
-    margin-bottom: 18px !important;
-  }
-
-  .footer-bottom {
-    margin-top: 54px !important;
-    padding-top: 28px !important;
-    display: block !important;
-  }
-
-  .footer-social {
-    margin-bottom: 28px !important;
-  }
-
-  .footer-legal {
-    justify-content: flex-start !important;
-    gap: 24px !important;
-  }
+    @media (max-width: 480px) {
+      .container {
+        padding: 0 18px !important;
       }
+
+      .hero-section {
+        padding: 30px 0 52px !important;
+      }
+
+      .hero-title {
+        font-size: 1.86rem !important;
+        line-height: 1.16 !important;
+      }
+
+      .hero-subtitle {
+        font-size: 0.95rem !important;
+        line-height: 1.7 !important;
+        margin-bottom: 24px !important;
+      }
+
+      .hero-video-container {
+        width: 92%;
+        margin-left: auto;
+        margin-right: auto;
+        height: calc((100vw - 64px) * 0.60) !important;
+        min-height: 295px;
+        max-height: 345px;
+        background: none;
+        transform: none;
+      }
+
+      .hero-video-container .video-bg {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+      }
+
+      .trust-logos {
+        gap: 30px;
+      }
+
+      .trust-logo {
+        height: 35px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .problem-section .section-title,
+      .solutions-section .section-title,
+      .contact-info h2 {
+        font-size: 1.54rem !important;
+      }
+
+      .corridor-map-copy h2,
+      .trust-header h2 {
+        font-size: 1.62rem !important;
+      }
+
+      .corridor-map-wrap {
+        height: 235px !important;
+      }
+
+      .corridor-point {
+        width: 31px !important;
+        height: 31px !important;
+        font-size: 14px !important;
+      }
+    }
   </style>
+</head>
 
-  <div class="footer-container">
-    <img src="public/icons/social/Ub.png" alt="UniBridge Logo" class="footer-logo" />
+<body>
+  <div id="site-header"></div>
 
-    <div class="footer-content">
-      <div class="footer-about">
-        <p>
-          B2B and B2B2C payout route coordination through supported corridors,
-          verified integrations, and controlled execution proofs.
+  <main>
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-container">
+          <div class="hero-content fade-in">
+            <h1 class="hero-title">
+              <span class="line">Instant payout routes</span>
+              <br />
+              <span class="line">Local rails, global access.</span>
+            </h1>
+
+            <p class="hero-subtitle">
+              Use Pay with UniBridge directly, or add it to your product as a hosted flow, embedded flow, or API.
+            </p>
+
+            <div class="hero-buttons">
+              <a href="/pay" class="primary-button">
+                Pay with UniBridge
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  data-prefix="fas"
+                  data-icon="arrow-right"
+                  class="svg-inline--fa fa-arrow-right fa-fw icon"
+                  role="img"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 448 512"
+                  width="16"
+                  height="16"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div class="hero-video-container fade-in">
+            <video
+              data-testid="video-bg"
+              class="video-bg"
+              autoplay
+              loop
+              muted
+              playsinline
+              poster="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
+            >
+              <source
+                src="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
+                type="video/mp4"
+              />
+              <div class="video-fallback">
+                <div>UniBridge - Managed Payout Routes</div>
+              </div>
+            </video>
+            <div data-testid="video-overlay" class="video-overlay"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="corridor-map-section">
+      <div class="corridor-map-wrap">
+        <img
+          class="corridor-world-map"
+          src="/unibridge-landing/images/world-map.png"
+          alt=""
+          aria-hidden="true"
+        />
+
+        <div class="corridor-point us"><span>🇺🇸</span></div>
+        <div class="corridor-point uk"><span>🇬🇧</span></div>
+        <div class="corridor-point eu"><span>🇪🇺</span></div>
+        <div class="corridor-point uae"><span>🇦🇪</span></div>
+        <div class="corridor-point br"><span>🇧🇷</span></div>
+        <div class="corridor-point ng"><span>🇳🇬</span></div>
+        <div class="corridor-point ph"><span>🇵🇭</span></div>
+      </div>
+
+      <div class="corridor-map-copy fade-in">
+        <h2>
+          Trusted routes. <span class="accent">Proven infrastructure.</span>
+        </h2>
+        <p class="hero-subtitle">
+          Built with approved route partners and payment infrastructure.
         </p>
-
-        <p>
-          UK tech company · No. 16823304 · Related U.S. corporation: UniBridge Technologies Inc.
-        </p>
-
-        <p>
-          © 2026 UniBridge Technologies Ltd. All rights reserved.
-        </p>
       </div>
 
-      <div class="footer-links">
-        <h3>Company</h3>
-        <ul>
-          <li><a href="/about/">About UniBridge</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Careers</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Blog</a></li>
-          <li><a href="javascript:void(0)" class="disabled">Press</a></li>
-        </ul>
+      <div class="logo-marquee fade-in">
+        <div class="logo-track">
+          <img src="/public/icons/social/logo.D-_KihkR.svg" alt="Onramp" />
+          <img src="/public/icons/social/Transak.logo.png" alt="Transak" />
+          <img src="/public/icons/social/bridge-logo.png.avif" alt="Bridge" />
+          <img src="/public/icons/social/Alchemy.logo.png" alt="Alchemy" />
+          <img src="/public/icons/social/polygon-logo.png" alt="Polygon" />
+          <img src="/public/icons/social/Strip.logo1.png" alt="Stripe" />
+
+          <img src="/public/icons/social/logo.D-_KihkR.svg" alt="Onramp" />
+          <img src="/public/icons/social/Transak.logo.png" alt="Transak" />
+          <img src="/public/icons/social/bridge-logo.png.avif" alt="Bridge" />
+          <img src="/public/icons/social/Alchemy.logo.png" alt="Alchemy" />
+          <img src="/public/icons/social/polygon-logo.png" alt="Polygon" />
+          <img src="/public/icons/social/Strip.logo1.png" alt="Stripe" />
+        </div>
       </div>
+    </section>
 
-      <div class="footer-links footer-resources">
-        <h3>Resources</h3>
-        <ul>
-          <li>
-            <a href="/pilot.html">Controlled Pilot Pack</a>
-            <span class="footer-link-note">
-              Route lifecycle, access boundaries, and pilot validation process.
-            </span>
-          </li>
+    <section class="problem-section" id="problem">
+      <style>
+        .problem-section {
+          background: #f8fafc;
+          padding: 108px 24px 112px;
+          color: #003366;
+        }
 
-          <li>
-            <a href="/partner-docs/">API Reference</a>
-            <span class="footer-link-note">
-              Endpoints, authentication, status mapping, and integration flow.
-            </span>
-          </li>
+        .problem-section .container {
+          max-width: 1120px;
+          margin: 0 auto;
+        }
 
-          <li>
-            <a href="/docs.html">Operating Model</a>
-            <span class="footer-link-note">
-              Execution lifecycle, control model, use case, and operating layers.
-            </span>
-          </li>
-        </ul>
+        .problem-section .section-header {
+          max-width: 820px;
+          margin: 0 auto 62px;
+          text-align: center;
+        }
+
+        .problem-section .section-title {
+          margin: 0 0 18px;
+          color: #003366;
+          font-size: clamp(2rem, 3.4vw, 3rem);
+          line-height: 1.18;
+          font-weight: 650;
+          letter-spacing: -0.034em;
+        }
+
+        .problem-section .section-subtitle {
+          margin: 0 auto;
+          max-width: 790px;
+          color: #5a6c7d;
+          font-size: 1.04rem;
+          line-height: 1.82;
+          font-weight: 400;
+        }
+
+        .problem-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 28px;
+        }
+
+        .problem-card {
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 42px 32px;
+          min-height: 220px;
+          text-align: center;
+          box-shadow:
+            0 24px 70px rgba(0, 51, 102, 0.08),
+            0 8px 24px rgba(0, 51, 102, 0.045);
+          border: 1px solid rgba(0, 51, 102, 0.04);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .problem-card::before {
+          display: none;
+        }
+
+        .problem-card:hover {
+          transform: translateY(-3px);
+          box-shadow:
+            0 30px 80px rgba(0, 51, 102, 0.105),
+            0 12px 32px rgba(0, 212, 170, 0.07);
+        }
+
+        .problem-icon {
+          width: 52px;
+          height: 52px;
+          margin: 0 auto 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #00d4aa;
+          color: #ffffff;
+          border-radius: 12px;
+          border: none;
+          box-shadow: 0 12px 24px rgba(0, 212, 170, 0.18);
+        }
+
+        .problem-icon svg {
+          width: 22px;
+          height: 22px;
+          stroke-width: 2;
+        }
+
+        .problem-card h3 {
+          margin: 0 auto 16px;
+          max-width: 280px;
+          color: #003366;
+          font-size: 1.22rem;
+          line-height: 1.42;
+          font-weight: 600;
+          letter-spacing: -0.015em;
+        }
+
+        .problem-card p {
+          margin: 0 auto;
+          max-width: 300px;
+          color: #6b7a88;
+          font-size: 0.95rem;
+          line-height: 1.7;
+          font-weight: 400;
+        }
+
+        @media (max-width: 960px) {
+          .problem-section {
+            padding: 88px 22px 96px;
+          }
+
+          .problem-section .section-header {
+            margin-bottom: 48px;
+          }
+
+          .problem-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+
+          .problem-card {
+            min-height: auto;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .problem-section {
+            padding: 76px 18px 84px;
+          }
+
+          .problem-section .section-title {
+            font-size: 2rem;
+            line-height: 1.22;
+          }
+
+          .problem-section .section-subtitle {
+            font-size: 0.98rem;
+            line-height: 1.75;
+          }
+
+          .problem-card {
+            padding: 28px 24px;
+            border-radius: 18px;
+          }
+
+          .problem-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 24px;
+          }
+
+          .problem-card h3 {
+            font-size: 1.08rem;
+          }
+
+          .problem-card p {
+            font-size: 0.94rem;
+          }
+        }
+      </style>
+
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            Multiple ways in. One controlled payout flow.
+          </h2>
+          <p class="section-subtitle">
+            Wallet and fiat entry points move through the same controlled settlement and payout path.
+          </p>
+        </div>
+
+        <div class="problem-grid">
+          <div class="problem-card fade-in">
+            <div class="problem-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+
+            <h3>Instant settlement, local payout</h3>
+            <p>
+              Settle instantly and deliver through approved local payout rails.
+            </p>
+          </div>
+
+          <div class="problem-card fade-in">
+            <div class="problem-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+
+            <h3>No custody</h3>
+            <p>
+              UniBridge coordinates funding and payout execution without holding customer funds.
+            </p>
+          </div>
+
+          <div class="problem-card fade-in">
+            <div class="problem-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
+
+            <h3>Checks by entry point</h3>
+            <p>
+              Wallet and fiat entries follow the required checks before moving into payout execution.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="footer-bottom">
-      <div class="footer-social">
-        <a href="https://www.linkedin.com/company/unibrij/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <img src="public/icons/social/img_linkedin.svg" alt="LinkedIn" />
-        </a>
+    <section class="solutions-section" id="solutions">
+      <style>
+        .solutions-section {
+          background: #ffffff;
+          padding: 108px 24px 116px;
+          color: #003366;
+        }
 
-        <a href="https://t.me/UniBridgeProtocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-          <img src="public/icons/social/img_telegram.svg" alt="Telegram" />
-        </a>
+        .solutions-section .container {
+          max-width: 1120px;
+          margin: 0 auto;
+        }
 
-        <a href="https://youtube.com/@unibridgeprotocol" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-          <img src="public/icons/social/img_youtube.svg" alt="YouTube" />
-        </a>
+        .solutions-section .section-header {
+          max-width: 820px;
+          margin: 0 auto 64px;
+          text-align: center;
+        }
 
-        <a href="https://x.com/UnibridgeHQ" target="_blank" rel="noopener noreferrer" aria-label="X">
-          <img src="public/icons/social/img_twitter.svg" alt="X" />
-        </a>
+        .solutions-section .section-title {
+          margin: 0 0 18px;
+          color: #003366;
+          font-size: clamp(2rem, 3.5vw, 3.15rem);
+          line-height: 1.18;
+          font-weight: 650;
+          letter-spacing: -0.035em;
+        }
+
+        .solutions-section .section-subtitle {
+          margin: 0 auto;
+          max-width: 760px;
+          color: #5a6c7d;
+          font-size: 1.05rem;
+          line-height: 1.8;
+          font-weight: 400;
+        }
+
+        .solutions-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 30px;
+        }
+
+        .solution-card {
+          position: relative;
+          min-height: 238px;
+          padding: 34px 34px 32px;
+          background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+          border: 1px solid rgba(0, 51, 102, 0.075);
+          border-radius: 22px;
+          box-shadow:
+            0 24px 70px rgba(0, 51, 102, 0.08),
+            0 8px 24px rgba(0, 51, 102, 0.045);
+          overflow: hidden;
+          transition:
+            transform 0.28s ease,
+            box-shadow 0.28s ease,
+            border-color 0.28s ease;
+        }
+
+        .solution-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at 18% 15%, rgba(0, 212, 170, 0.10), transparent 34%);
+          opacity: 0;
+          transition: opacity 0.28s ease;
+          pointer-events: none;
+        }
+
+        .solution-card:hover {
+          transform: translateY(-4px);
+          border-color: rgba(0, 212, 170, 0.22);
+          box-shadow:
+            0 24px 64px rgba(0, 51, 102, 0.09),
+            0 10px 28px rgba(0, 212, 170, 0.08);
+        }
+
+        .solution-card:hover::before {
+          opacity: 1;
+        }
+
+        .solution-icon {
+          position: relative;
+          z-index: 1;
+          width: 52px;
+          height: 52px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 28px;
+          color: #ffffff;
+          background: linear-gradient(135deg, #003366 0%, #062f57 100%);
+          border-radius: 14px;
+          box-shadow:
+            0 14px 30px rgba(0, 51, 102, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        }
+
+        .solution-icon svg {
+          width: 21px;
+          height: 21px;
+          stroke-width: 2;
+        }
+
+        .solution-card h3 {
+          position: relative;
+          z-index: 1;
+          margin: 0 0 14px;
+          color: #003366;
+          font-size: 1.18rem;
+          line-height: 1.35;
+          font-weight: 650;
+          letter-spacing: -0.018em;
+        }
+
+        .solution-card p {
+          position: relative;
+          z-index: 1;
+          margin: 0;
+          max-width: 430px;
+          color: #5a6c7d;
+          font-size: 0.98rem;
+          line-height: 1.75;
+          font-weight: 400;
+        }
+
+        @media (max-width: 900px) {
+          .solutions-section {
+            padding: 86px 22px 94px;
+          }
+
+          .solutions-section .section-header {
+            margin-bottom: 46px;
+          }
+
+          .solutions-grid {
+            gap: 24px;
+          }
+
+          .solution-card {
+            padding: 30px 28px;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .solutions-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .solution-card {
+            min-height: auto;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .solutions-section {
+            padding: 76px 18px 84px;
+          }
+
+          .solutions-section .section-title {
+            font-size: 2rem;
+            line-height: 1.22;
+          }
+
+          .solutions-section .section-subtitle {
+            font-size: 0.98rem;
+            line-height: 1.75;
+          }
+
+          .solution-card {
+            padding: 28px 24px;
+            border-radius: 18px;
+          }
+
+          .solution-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 24px;
+          }
+
+          .solution-card h3 {
+            font-size: 1.1rem;
+          }
+
+          .solution-card p {
+            font-size: 0.95rem;
+          }
+        }
+
+        .accent {
+          color: #00a98a;
+        }
+      </style>
+
+      <div class="container">
+        <div class="section-header fade-in">
+          <h2 class="section-title">
+            Skip the primitives. <span class="accent"> Use the route.</span>
+          </h2>
+          <p class="section-subtitle">
+            Hosted flow, embedded experience, or API — one controlled payout route.
+          </p>
+        </div>
+
+        <div class="solutions-grid">
+          <div class="solution-card fade-in">
+            <div class="solution-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+            </div>
+            <h3>Integrate your way</h3>
+            <p>Start with a hosted Pay with UniBridge flow. Scale to embedded or API later.</p>
+          </div>
+
+          <div class="solution-card fade-in">
+            <div class="solution-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="M9 12l2 2 4-4"></path>
+              </svg>
+            </div>
+            <h3>No prefunding required</h3>
+            <p>Launch payout routes without tying capital in local balances.</p>
+          </div>
+
+          <div class="solution-card fade-in">
+            <div class="solution-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 17l6-6 4 4 8-8"></path>
+                <path d="M14 7h7v7"></path>
+              </svg>
+            </div>
+            <h3>Execution visibility</h3>
+            <p>Monitor funding, partner execution, and payout status across each route stage.</p>
+          </div>
+
+          <div class="solution-card fade-in">
+            <div class="solution-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+                <path d="M7 12h.01"></path>
+                <path d="M12 12h.01"></path>
+                <path d="M17 12h.01"></path>
+              </svg>
+            </div>
+            <h3>Fixed coordination fee</h3>
+            <p>Use a fixed UniBridge coordination fee, not a percentage of payout value.</p>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="footer-legal">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/legal.html">Terms</a>
-        <a href="#contact">Contact</a>
+    <section class="trust-section" id="trust">
+      <div class="container">
+        <div class="trust-panel">
+          <div class="trust-content">
+            <div class="trust-header fade-in">
+              <h2><span class="trust-accent">Proof before scale.</span></h2>
+
+              <p>
+                Review the route, monitor execution, inspect status, and verify payout evidence before broader rollout.
+              </p>
+
+              <div class="trust-statement">
+                <span class="trust-typewriter" data-typewriter="Ready path. Proven before scale."></span>
+              </div>
+
+              <div class="trust-lifecycle-bg" aria-hidden="true">
+                <div class="trust-lifecycle-line"></div>
+
+                <div class="trust-life-node n1">
+                  <span class="dot"></span>
+                  <small>defined</small>
+                </div>
+
+                <div class="trust-life-node n2 active">
+                  <span class="dot"></span>
+                  <small>validated</small>
+                </div>
+
+                <div class="trust-life-node n3">
+                  <span class="dot"></span>
+                  <small>committed</small>
+                </div>
+
+                <div class="trust-life-node n4 final">
+                  <span class="dot">✓</span>
+                  <small>triggered</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</footer>
+    </section>
 
+    <section class="contact-section" id="contact">
+      <div class="container">
+        <div class="contact-container">
+          <div class="contact-info fade-in">
+            <h2 id="contact-title">Validate your payout route.</h2>
 
-    <script>
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
+            <p class="pilot-subcopy">
+              Run a controlled route with execution tracking and payout evidence before adding broader coverage.
+            </p>
+          </div>
 
-    toast.textContent = message;
-    toast.classList.add('show');
+          <div class="contact-form fade-in">
+            <form id="contactForm" method="POST" action="/api/contact">
+              <input type="hidden" name="subject" value="New Request" />
+              <input type="hidden" name="_t" value="Y2VqVHUaWJyaWouaW8=" />
+              <input type="hidden" name="_sub" value="New Technical Review Request - UniBridge" />
 
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
+              <div class="form-group">
+                <label for="name">Full name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  class="form-control"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
 
-function updateContactText() {
-    const hash = window.location.hash;
+              <div class="form-group">
+                <label for="email">Work Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form-control"
+                  placeholder="yourname@company.com"
+                  required
+                />
+              </div>
 
-    const contactTitle = document.getElementById('contact-title');
-    const submitButton = document.querySelector('.submit-button');
+              <div class="form-group">
+                <label for="company">Company / Project</label>
+                <input
+                  type="text"
+                  id="company"
+                  name="company"
+                  class="form-control"
+                  placeholder="e.g. Wallet, remittance, payroll, marketplace"
+                />
+              </div>
 
- if (!contactTitle || !submitButton) return;
+              <div class="form-group">
+                <label for="message">Integration Goal / Use Case</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Describe the payout flow, current provider stack, or execution issue."
+                  required
+                ></textarea>
+              </div>
 
-    if (hash === '#support') {
-        contactTitle.textContent = 'Technical Support';
-        submitButton.textContent = 'Get Support';
+              <input
+                type="text"
+                name="website"
+                tabindex="-1"
+                autocomplete="off"
+                style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
+              />
+
+              <div
+                class="cf-turnstile"
+                data-sitekey="0x4AAAAAADA4gaxEeVbe3X6F"
+                data-theme="light"
+              ></div>
+
+              <button type="submit" class="submit-button">
+                Partner Access
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script>
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    function updateContactText() {
+      const hash = window.location.hash;
+
+      const contactTitle = document.getElementById("contact-title");
+      const submitButton = document.querySelector(".submit-button");
+
+      if (!contactTitle || !submitButton) return;
+
+      if (hash === "#support") {
+        contactTitle.textContent = "Technical Support";
+        submitButton.textContent = "Get Support";
         return;
-    }
+      }
 
-    if (hash === '#contact-us') {
-        contactTitle.textContent = 'Contact UniBridge';
-        submitButton.textContent = 'Send Message';
+      if (hash === "#contact-us") {
+        contactTitle.textContent = "Contact UniBridge";
+        submitButton.textContent = "Send Message";
         return;
+      }
+
+      contactTitle.textContent = "Validate your payout route.";
+      submitButton.textContent = "Partner Access";
     }
 
-    contactTitle.textContent = 'Validate your payout route.';
-    submitButton.textContent = 'Partner Access';
-}
-
-function scrollToContactIfNeeded() {
-    if (['#contact', '#contact-us', '#support', '#request-access'].includes(window.location.hash)) {
-        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    function scrollToContactIfNeeded() {
+      if (["#contact", "#contact-us", "#support", "#request-access"].includes(window.location.hash)) {
+        document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+      }
     }
-}
 
-document.addEventListener('DOMContentLoaded', function () {
-    updateContactText();
+    document.addEventListener("DOMContentLoaded", function () {
+      updateContactText();
 
-    window.addEventListener('hashchange', function () {
+      window.addEventListener("hashchange", function () {
         updateContactText();
         scrollToContactIfNeeded();
-    });
+      });
 
-    document.querySelectorAll('a[href="#contact"], a[href="#contact-us"], a[href="#support"], a[href="#request-access"]').forEach(link => {
-        link.addEventListener('click', function (e) {
-            const target = this.getAttribute('href');
+      document.querySelectorAll('a[href="#contact"], a[href="#contact-us"], a[href="#support"], a[href="#request-access"]').forEach(link => {
+        link.addEventListener("click", function (e) {
+          const target = this.getAttribute("href");
 
-            if (target === '#contact') return;
+          if (target === "#contact") return;
 
-            e.preventDefault();
-            window.location.hash = target;
-            updateContactText();
-            scrollToContactIfNeeded();
+          e.preventDefault();
+          window.location.hash = target;
+          updateContactText();
+          scrollToContactIfNeeded();
         });
-    });
+      });
 
-    const contactForm = document.getElementById('contactForm');
+      const contactForm = document.getElementById("contactForm");
 
-    if (contactForm) {
-        contactForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
+      if (contactForm) {
+        contactForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData.entries());
+          const formData = new FormData(this);
+          const data = Object.fromEntries(formData.entries());
 
-            try {
-                const res = await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
+          try {
+            const res = await fetch("/api/contact", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(data)
+            });
 
-                const json = await res.json();
+            const json = await res.json();
 
-                if (json.success) {
-                    showToast('Thank you for your request! We will contact you shortly.');
-                    this.reset();
+            if (json.success) {
+              showToast("Thank you for your request! We will contact you shortly.");
+              this.reset();
 
-                    if (window.turnstile) {
-                        window.turnstile.reset();
-                    }
-                } else {
-                    showToast('Error: ' + (json.message || 'Please try again.'));
-                }
-            } catch (err) {
-                showToast('Something went wrong. Please try again.');
+              if (window.turnstile) {
+                window.turnstile.reset();
+              }
+            } else {
+              showToast("Error: " + (json.message || "Please try again."));
             }
-        });
-    }
-
-    const fadeElements = document.querySelectorAll('.fade-in');
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = 1;
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1 });
-
-    fadeElements.forEach(el => {
-        el.style.opacity = 0;
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(el);
-    });
-});
-
-window.addEventListener('load', updateContactText);
-</script>
-
-<div id="toast" class="toast"></div>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const elements = document.querySelectorAll("[data-typewriter]");
-
-    if (!elements.length) return;
-
-    elements.forEach((el) => {
-      const fullText = el.getAttribute("data-typewriter");
-      let started = false;
-
-      function typeText() {
-        let index = 0;
-        const speed = 85;
-
-        const timer = window.setInterval(() => {
-          el.textContent = fullText.slice(0, index + 1);
-          index += 1;
-
-          if (index >= fullText.length) {
-            window.clearInterval(timer);
-            el.classList.add("is-complete");
+          } catch (err) {
+            showToast("Something went wrong. Please try again.");
           }
-        }, speed);
+        });
       }
 
-      const observer = new IntersectionObserver(
-        entries => {
-          if (entries[0].isIntersecting && !started) {
-            started = true;
-            typeText();
-            observer.disconnect();
+      const fadeElements = document.querySelectorAll(".fade-in");
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = 1;
+            entry.target.style.transform = "translateY(0)";
           }
-        },
-        { threshold: 0.45 }
-      );
+        });
+      }, { threshold: 0.1 });
 
-      observer.observe(el);
+      fadeElements.forEach(el => {
+        el.style.opacity = 0;
+        el.style.transform = "translateY(20px)";
+        el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        observer.observe(el);
+      });
     });
-  });
-</script>
-</body>
-    
 
+    window.addEventListener("load", updateContactText);
+  </script>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const elements = document.querySelectorAll("[data-typewriter]");
+
+      if (!elements.length) return;
+
+      elements.forEach((el) => {
+        const fullText = el.getAttribute("data-typewriter");
+        let started = false;
+
+        function typeText() {
+          let index = 0;
+          const speed = 85;
+
+          const timer = window.setInterval(() => {
+            el.textContent = fullText.slice(0, index + 1);
+            index += 1;
+
+            if (index >= fullText.length) {
+              window.clearInterval(timer);
+              el.classList.add("is-complete");
+            }
+          }, speed);
+        }
+
+        const observer = new IntersectionObserver(
+          entries => {
+            if (entries[0].isIntersecting && !started) {
+              started = true;
+              typeText();
+              observer.disconnect();
+            }
+          },
+          { threshold: 0.45 }
+        );
+
+        observer.observe(el);
+      });
+    });
+  </script>
+
+  <script src="/partials/js/includes.js"></script>
+</body>
 </html>
