@@ -9,7 +9,22 @@
     document.head.appendChild(link);
   }
 
-  async function loadPartial(targetId, url) {
+  function renderGuideFallback(target) {
+    if (!target) return;
+
+    target.innerHTML = `
+      <div class="pay-guide-link-wrap">
+        <a
+          href="/guide"
+          class="pay-guide-link"
+        >
+          Need help? Open UniBridge Guide
+        </a>
+      </div>
+    `;
+  }
+
+  async function loadPartial(targetId, url, fallback) {
     const target = document.getElementById(targetId);
     if (!target) return;
 
@@ -22,16 +37,33 @@
         throw new Error(`Partial load failed: ${url}`);
       }
 
-      target.innerHTML = await response.text();
+      const html = await response.text();
+
+      if (!html || !html.trim()) {
+        throw new Error(`Partial empty: ${url}`);
+      }
+
+      target.innerHTML = html;
     } catch (error) {
       console.error(error);
+
+      if (typeof fallback === "function") {
+        fallback(target);
+      }
     }
   }
 
   function initPayPartials() {
-    loadStylesheetOnce("/partials/pay/css/pay-common.css?v=3");
+    loadStylesheetOnce("/partials/pay/css/pay-common.css?v=8");
 
     loadPartial("pay-brand", "/partials/pay/brand.html");
+
+    loadPartial(
+      "pay-guide",
+      "/partials/pay/guide-link.html",
+      renderGuideFallback
+    );
+
     loadPartial("pay-footer", "/partials/pay/footer.html");
   }
 
