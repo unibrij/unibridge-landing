@@ -18,21 +18,35 @@
   <meta name="apple-mobile-web-app-title" content="UniBridge" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=8" />
+  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=9" />
   <link rel="stylesheet" href="/fiat/bank-transfer/app/assets/fiat-auth.css" />
+
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
 </head>
 
 <body>
   <main class="page">
     <div id="pay-brand"></div>
 
-    <section class="hero">
-      <p class="eyebrow">Bank transfer funding</p>
+    <section class="hero" aria-labelledby="bankTransferTitle">
+      <h1 id="bankTransferTitle" class="sr-only">
+        Pay by bank transfer
+      </h1>
 
-      <h1>Pay by bank transfer</h1>
-
-      <p class="subtitle">
-        Fund your payout route from your bank account.
+      <p class="eyebrow" aria-hidden="true">
+        Bank transfer funding
       </p>
     </section>
 
@@ -259,7 +273,7 @@
     <div id="pay-footer"></div>
   </main>
 
-  <script src="/partials/pay/js/pay-includes.js?v=5"></script>
+  <script src="/partials/pay/js/pay-includes.js?v=6"></script>
 
   <script
     type="module"
