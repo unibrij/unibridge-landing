@@ -34,6 +34,9 @@ import PayoutReviewManager from "./components/PayoutReviewManager";
 import RouteActions from "./components/RouteActions";
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
+const UNIBRIDGE_GUIDE_URL =
+  "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide";
+
 function getSettlementId(settlement) {
   return (
     settlement?.settlement_id ||
@@ -505,10 +508,12 @@ export default function App() {
         </>
       )}
 
-      <div className="connect-guide-link-wrap">
+      <div className="pay-guide-link-wrap connect-guide-link-wrap">
         <a
-          href="/guide"
-          className="connect-guide-link"
+          href={UNIBRIDGE_GUIDE_URL}
+          className="pay-guide-link connect-guide-link"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           Need help? Open UniBridge Guide
         </a>
