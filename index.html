@@ -1601,7 +1601,220 @@
 }
     
 </style>
+    
+<!-- ===== UNIBRIDGE FONT TEST — STRIPE-LIKE INTER OVERRIDE ===== --><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap"
+  rel="stylesheet"
+/><style id="ub-stripe-like-font-override">
+  /* ===== STRIPE-LIKE FONT SYSTEM TEST ===== */
+  :root {
+    --ub-font-main:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
 
+    --ub-ink: #0a2540;
+    --ub-muted: #425466;
+    --ub-soft-muted: #5a6c7d;
+    --ub-accent: #00a98a;
+  }
+
+  html {
+    font-family: var(--ub-font-main) !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: geometricPrecision !important;
+  }
+
+  body {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-ink) !important;
+  }
+
+  /* ===== NAV ===== */
+  .nav-link,
+  .nav-button {
+    font-family: var(--ub-font-main) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.015em !important;
+  }
+
+  .nav-link {
+    color: var(--ub-ink) !important;
+  }
+
+  /* ===== HERO ===== */
+  .hero-title {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-ink) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.058em !important;
+    line-height: 1.03 !important;
+  }
+
+  .hero-subtitle {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-muted) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.018em !important;
+    line-height: 1.62 !important;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .submit-button {
+    font-family: var(--ub-font-main) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.018em !important;
+  }
+
+  /* ===== SECTION TITLES ===== */
+  .section-title,
+  .corridor-map-copy h2,
+  .trust-header h2,
+  .contact-info h2 {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-ink) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.054em !important;
+    line-height: 1.06 !important;
+  }
+
+  .trust-header h2 {
+    color: #ffffff !important;
+  }
+
+  .section-subtitle,
+  .corridor-map-copy p,
+  .trust-header p,
+  .contact-info p,
+  .pilot-subcopy {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-muted) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.016em !important;
+    line-height: 1.72 !important;
+  }
+
+  .trust-header p {
+    color: rgba(255, 255, 255, 0.82) !important;
+  }
+
+  /* ===== CARDS ===== */
+  .problem-card h3,
+  .solution-card h3 {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-ink) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.028em !important;
+    line-height: 1.28 !important;
+  }
+
+  .problem-card p,
+  .solution-card p {
+    font-family: var(--ub-font-main) !important;
+    color: var(--ub-soft-muted) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.014em !important;
+    line-height: 1.68 !important;
+  }
+
+  /* ===== FORM ===== */
+  .form-group label,
+  .form-control {
+    font-family: var(--ub-font-main) !important;
+  }
+
+  .form-group label {
+    color: var(--ub-ink) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.012em !important;
+  }
+
+  .form-control {
+    color: #23282f !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.012em !important;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer,
+  .footer a,
+  .footer p,
+  .footer-links h3 {
+    font-family: var(--ub-font-main) !important;
+  }
+
+  .footer-links h3 {
+    font-weight: 650 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .footer-about p,
+  .footer-links a,
+  .footer-link-note,
+  .footer-legal a {
+    letter-spacing: -0.012em !important;
+  }
+
+  /* ===== ACCENTS ===== */
+  .accent,
+  .hero-accent,
+  .trust-accent {
+    color: var(--ub-accent) !important;
+  }
+
+  /* ===== MOBILE TUNING ===== */
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2.08rem !important;
+      letter-spacing: -0.058em !important;
+      line-height: 1.05 !important;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem !important;
+      line-height: 1.64 !important;
+    }
+
+    .section-title,
+    .corridor-map-copy h2,
+    .trust-header h2,
+    .contact-info h2 {
+      letter-spacing: -0.052em !important;
+      line-height: 1.08 !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title {
+      font-size: 1.92rem !important;
+      letter-spacing: -0.055em !important;
+      line-height: 1.07 !important;
+    }
+
+    .hero-subtitle {
+      font-size: 0.96rem !important;
+      line-height: 1.66 !important;
+    }
+
+    .section-title,
+    .corridor-map-copy h2,
+    .trust-header h2,
+    .contact-info h2 {
+      font-size: 1.72rem !important;
+      letter-spacing: -0.05em !important;
+      line-height: 1.1 !important;
+    }
+  }
+</style>
 </head>
 
 <body>
