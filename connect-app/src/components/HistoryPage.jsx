@@ -1,761 +1,205 @@
-html,
-body,
-#root {
-  min-height: 100%;
-}
-
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #000E2D;
-  color: #ffffff;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.connect-shell {
-  position: relative;
-  isolation: isolate;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 18px;
-  text-align: center;
-  overflow: hidden;
-}
-
-.connect-shell::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.18) 45%,
-      #000E2D 100%
-    ),
-    url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
-    radial-gradient(
-      circle at 50% 32%,
-      rgba(45, 212, 191, 0.16),
-      transparent 34%
-    ),
-    #00081f;
-}
-
-.connect-shell::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 50% 23%,
-      rgba(45, 212, 191, 0.10),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 14, 45, 0.02) 0%,
-      rgba(0, 14, 45, 0.16) 44%,
-      rgba(0, 14, 45, 0.48) 100%
-    );
-}
-
-.history-shell {
-  justify-content: center;
-  padding-top: max(18px, env(safe-area-inset-top));
-  padding-bottom: max(40px, env(safe-area-inset-bottom));
-  overflow-y: auto;
-}
-
-/* --------------------------------------------------
-   Brand
--------------------------------------------------- */
-
-.connect-brandbar {
-  position: fixed;
-  top: max(18px, env(safe-area-inset-top));
-  left: 28px;
-  right: 28px;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  pointer-events: none;
-}
-
-.connect-brandbar-logo-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  pointer-events: auto;
-}
-
-.connect-brandbar-logo {
-  width: 260px;
-  max-width: 62vw;
-  height: auto;
-  display: block;
-  opacity: 0.94;
-  filter: none;
-}
-
-/* --------------------------------------------------
-   Hero
--------------------------------------------------- */
-
-h1 {
-  margin: 4px 0 0;
-  font-size: 31px;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-}
-
-p {
-  margin: 0;
-  max-width: 420px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.connect-eyebrow {
-  margin: 0;
-  max-width: none;
-  color: #5eead4;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-/* --------------------------------------------------
-   Wallet / form
--------------------------------------------------- */
-
-.wallet-button {
-  margin-top: 8px;
-  padding: 12px 18px;
-  border: 0;
-  border-radius: 14px;
-  background: #14b8a6;
-  color: #04111f;
-  font-size: 14px;
-  font-weight: 750;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
-}
-
-.payout-form {
-  width: min(100%, 440px);
-  box-sizing: border-box;
-  margin-top: 8px;
-  padding: 14px;
-  border: 1px solid rgba(94, 234, 212, 0.26);
-  border-radius: 20px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(9, 34, 72, 0.22) 0%,
-      rgba(0, 14, 45, 0.12) 100%
-    );
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    inset 0 0 26px rgba(94, 234, 212, 0.045);
-  backdrop-filter: blur(4.5px) saturate(125%);
-  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
-  text-align: left;
-}
-
-.route-label {
-  margin-bottom: 12px;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.payout-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 10px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-}
-
-.payout-form input,
-.payout-form select {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.075);
-  color: #ffffff;
-  font-size: 14px;
-  outline: none;
-}
-
-.payout-form input::placeholder {
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.payout-form input:focus,
-.payout-form select:focus {
-  border-color: rgba(45, 212, 191, 0.55);
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
-}
-
-.payout-form button {
-  width: 100%;
-  margin-top: 4px;
-  padding: 12px 14px;
-  border: 0;
-  border-radius: 14px;
-  background: #14b8a6;
-  color: #04111f;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.payout-form button.secondary-action {
-  margin-top: 10px;
-  background: transparent;
-  color: #5eead4;
-  border: 1px solid rgba(45, 212, 191, 0.42);
-}
-
-.wallet-pending-card {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  background: rgba(20, 184, 166, 0.08);
-  color: rgba(255, 255, 255, 0.78);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-}
-
-.wallet-pending-card strong {
-  color: #99f6e4;
-  font-size: 12px;
-}
-
-.route-info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 7px;
-  margin-top: 10px;
-}
-
-.route-info-card,
-.wallet-tx-card {
-  min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 13px;
-  padding: 8px 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.wallet-tx-card {
-  margin-top: 7px;
-}
-
-.route-info-label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.52);
-  white-space: nowrap;
-}
-
-.route-info-value {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.route-info-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-  min-width: 0;
-  max-width: 68%;
-}
+// connect-app/src/components/HistoryPage.jsx
 
-.copy-button {
-  width: auto !important;
-  margin: 0 !important;
-  padding: 2px 5px !important;
-  border-radius: 7px !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  line-height: 1 !important;
-}
-
-.copy-button:active {
-  transform: scale(0.96);
-}
-
-.route-status-pill {
-  font-size: 10px;
-  color: #99f6e4;
-  background: rgba(20, 184, 166, 0.13);
-  border: 1px solid rgba(45, 212, 191, 0.26);
-  padding: 4px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.route-actions {
-  width: min(100%, 392px);
-  box-sizing: border-box;
-  display: grid;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.route-actions button,
-.route-action-link {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid rgba(45, 212, 191, 0.32);
-  border-radius: 14px;
-  padding: 11px 14px;
-  background: rgba(20, 184, 166, 0.07);
-  color: #5eead4;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.route-actions button:hover,
-.route-action-link:hover {
-  background: rgba(20, 184, 166, 0.13);
-}
-
-.route-actions button:active,
-.route-action-link:active {
-  transform: scale(0.98);
-}
-
-/* --------------------------------------------------
-   History
--------------------------------------------------- */
-
-.history-empty {
-  max-width: none;
-  text-align: center;
-  font-size: 13px;
-}
-
-.history-list {
-  display: grid;
-  gap: 10px;
-}
-
-.history-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
-  border-radius: 16px;
-  padding: 14px 16px;
-}
-
-.history-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 5px 0;
-  font-size: 12px;
-}
-
-.history-row span {
-  color: rgba(255, 255, 255, 0.52);
-}
-
-.history-row strong {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 700;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.history-status-success {
-  color: #5eead4 !important;
-}
-
-.history-back-link {
-  display: block;
-  margin-top: 12px;
-}
-
-/* --------------------------------------------------
-   Review
--------------------------------------------------- */
-
-.review-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  background: rgba(3, 7, 18, 0.68);
-  backdrop-filter: blur(10px);
-}
-
-.review-card {
-  width: min(100%, 360px);
-  box-sizing: border-box;
-  border-radius: 22px;
-  padding: 18px;
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  background: rgba(0, 14, 45, 0.94);
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  text-align: center;
-}
-
-.review-card h2 {
-  margin: 0 0 8px;
-  font-size: 22px;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-}
-
-.review-card p {
-  max-width: none;
-  margin: 0 0 14px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 14px;
-}
-
-.review-actions {
-  display: grid;
-  gap: 8px;
-}
-
-.review-option,
-.review-submit,
-.review-later {
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 14px;
-  padding: 11px 14px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.review-option {
-  border: 1px solid rgba(45, 212, 191, 0.28);
-  background: rgba(20, 184, 166, 0.07);
-  color: #5eead4;
-}
-
-.review-option.selected {
-  background: #14b8a6;
-  color: #04111f;
-  border-color: rgba(20, 184, 166, 0.58);
-}
-
-.review-note {
-  width: 100%;
-  min-height: 82px;
-  box-sizing: border-box;
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
-  font: inherit;
-  font-size: 13px;
-  resize: vertical;
-  outline: none;
-}
-
-.review-note::placeholder {
-  color: rgba(255, 255, 255, 0.38);
-}
-
-.review-note:focus {
-  border-color: rgba(45, 212, 191, 0.55);
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
-}
-
-.review-submit {
-  margin-top: 8px;
-  border: 0;
-  background: #14b8a6;
-  color: #04111f;
-}
+import { useEffect, useState } from "react";
 
-.review-later {
-  margin-top: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.62);
-}
+import { getWalletPayoutHistory } from "../api";
+import {
+  readRouteHistory,
+  mergeRouteHistoryItems
+} from "../history/routeHistory";
 
-.review-option:active,
-.review-submit:active,
-.review-later:active {
-  transform: scale(0.98);
-}
+function shortId(value = "") {
+  const text = String(value || "").trim();
 
-.connect-debug {
-  margin: 12px 0 0;
-  white-space: pre-wrap;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 11px;
-  line-height: 1.45;
-}
+  if (!text) return "—";
+  if (text.length <= 18) return text;
 
-.install-pwa-button {
-  width: min(100%, 392px);
-  box-sizing: border-box;
-  margin-top: 4px;
-  padding: 11px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(20, 184, 166, 0.45);
-  background: #14b8a6;
-  color: #04111f;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
+  return `${text.slice(0, 8)}...${text.slice(-6)}`;
 }
 
-.install-pwa-button:active {
-  transform: scale(0.98);
+function normalizeStatus(status = "") {
+  return String(status || "").trim().toLowerCase();
 }
 
-/* --------------------------------------------------
-   Shared guide link
--------------------------------------------------- */
-
-.pay-guide-link-wrap,
-.connect-guide-link-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
+function isSuccessStatus(status = "") {
+  return [
+    "completed",
+    "complete",
+    "executed",
+    "success",
+    "succeeded",
+    "payout_completed",
+    "execution_completed"
+  ].includes(normalizeStatus(status));
 }
 
-.pay-guide-link,
-.connect-guide-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(45, 212, 191, 0.30);
-  background: rgba(20, 184, 166, 0.06);
-  color: #5eead4;
-  font-size: 12px;
-  font-weight: 750;
-  line-height: 1;
-  text-decoration: none;
-}
+function formatStatus(status = "") {
+  const value = normalizeStatus(status);
 
-.pay-guide-link:hover,
-.connect-guide-link:hover {
-  background: rgba(20, 184, 166, 0.12);
-  border-color: rgba(45, 212, 191, 0.42);
-}
+  const labels = {
+    completed: "Completed",
+    complete: "Completed",
+    executed: "Completed",
+    success: "Completed",
+    succeeded: "Completed",
+    payout_completed: "Completed",
+    execution_completed: "Completed"
+  };
 
-.pay-guide-link:active,
-.connect-guide-link:active {
-  transform: scale(0.98);
+  return labels[value] || value || "—";
 }
 
-/* --------------------------------------------------
-   Footer
--------------------------------------------------- */
+function formatAmount(item) {
+  const amount = String(item?.amount || "").trim();
+  const asset = String(item?.asset || "").trim();
 
-.connect-lite-footer {
-  width: min(100%, 440px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 44px;
-  padding: 26px 0 8px;
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 12px;
-}
+  if (!amount) return "—";
 
-.connect-lite-footer-links {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  return `${amount}${asset ? ` ${asset}` : ""}`;
 }
 
-.connect-lite-footer-links a {
-  color: rgba(255, 255, 255, 0.62);
-  text-decoration: none;
-}
+function formatDate(value) {
+  if (!value) return "—";
 
-.connect-lite-footer-links a:hover {
-  color: #ffffff;
-}
+  try {
+    const date =
+      typeof value === "string" || typeof value === "number"
+        ? new Date(value)
+        : value?._seconds
+          ? new Date(value._seconds * 1000)
+          : value?.seconds
+            ? new Date(value.seconds * 1000)
+            : null;
 
-/* --------------------------------------------------
-   Responsive
--------------------------------------------------- */
+    if (!date || Number.isNaN(date.getTime())) {
+      return "—";
+    }
 
-@media (max-width: 900px) {
-  .connect-brandbar-logo {
-    width: 220px;
-    max-width: 58vw;
+    return date.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric"
+    });
+  } catch {
+    return "—";
   }
 }
 
-@media (max-width: 430px) {
-  .connect-shell {
-    gap: 12px;
-    padding: 14px;
-    justify-content: center;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-  }
+function completedOnly(items = []) {
+  return items.filter(item =>
+    isSuccessStatus(item?.status)
+  );
+}
 
-  .connect-shell::before {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(0, 14, 45, 0.00) 0%,
-        rgba(0, 14, 45, 0.18) 45%,
-        #000E2D 100%
-      ),
-      url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
-      radial-gradient(
-        circle at 50% 32%,
-        rgba(45, 212, 191, 0.16),
-        transparent 34%
-      ),
-      #00081f;
-  }
+export default function HistoryPage({ walletAddress }) {
+  const [history, setHistory] = useState(() =>
+    completedOnly(readRouteHistory())
+  );
 
-  .history-shell {
-    justify-content: center;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(40px, env(safe-area-inset-bottom));
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  .connect-brandbar {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    justify-content: center;
-    margin: 0 0 4px;
-    pointer-events: none;
-  }
+    async function syncWalletHistory() {
+      if (!walletAddress) {
+        return;
+      }
 
-  .connect-brandbar-logo {
-    width: 200px;
-    max-width: 68vw;
-  }
+      try {
+        const items =
+          await getWalletPayoutHistory({
+            walletAddress,
+            limit: 20
+          });
 
-  h1 {
-    font-size: 29px;
-  }
+        if (cancelled) {
+          return;
+        }
 
-  p {
-    font-size: 14px;
-  }
+        const merged =
+          mergeRouteHistoryItems(items);
 
-  .connect-eyebrow {
-    font-size: 12px;
-  }
+        setHistory(completedOnly(merged));
+      } catch {
+        if (!cancelled) {
+          setHistory(completedOnly(readRouteHistory()));
+        }
+      }
+    }
 
-  .payout-form,
-  .route-actions,
-  .install-pwa-button {
-    width: min(100%, 392px);
-  }
+    syncWalletHistory();
 
-  .payout-form {
-    margin-top: 6px;
-    padding: 13px;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(9, 34, 72, 0.22) 0%,
-        rgba(0, 14, 45, 0.12) 100%
-      );
-    backdrop-filter: blur(4px) saturate(124%);
-    -webkit-backdrop-filter: blur(4px) saturate(124%);
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [walletAddress]);
 
-  .review-card {
-    width: min(100%, 350px);
-    padding: 16px;
-  }
+  return (
+    <main className="connect-shell history-shell">
+      <header className="connect-brandbar">
+        <a
+          href="/connect"
+          className="connect-brandbar-logo-link"
+          aria-label="Pay with UniBridge"
+        >
+          <img
+            src="/public/icons/social/unibridge-orbit-lockup-white.png"
+            className="connect-brandbar-logo"
+            alt="UniBridge"
+          />
+        </a>
+      </header>
 
-  .pay-guide-link-wrap,
-  .connect-guide-link-wrap {
-    margin-top: 14px;
-  }
+      <h1 className="sr-only">
+        Payout history
+      </h1>
 
-  .pay-guide-link,
-  .connect-guide-link {
-    min-height: 34px;
-    padding: 0 13px;
-    font-size: 12px;
-  }
+      <p className="connect-eyebrow">
+        Payout history
+      </p>
 
-  .connect-lite-footer {
-    width: min(100%, 392px);
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    margin-top: 36px;
-    padding-bottom: 10px;
-  }
+      <section className="payout-form">
+        {history.length === 0 ? (
+          <p className="history-empty">
+            No completed payouts yet.
+          </p>
+        ) : (
+          <div className="history-list">
+            {history.map((item, index) => (
+              <div className="history-card" key={item.id || index}>
+                <div className="history-row">
+                  <span>Reference ID</span>
+                  <strong>{shortId(item.route_id)}</strong>
+                </div>
+
+                <div className="history-row">
+                  <span>Corridor</span>
+                  <strong>{item.corridor || "—"}</strong>
+                </div>
+
+                <div className="history-row">
+                  <span>Amount</span>
+                  <strong>{formatAmount(item)}</strong>
+                </div>
+
+                <div className="history-row">
+                  <span>Status</span>
+                  <strong className="history-status-success">
+                    {formatStatus(item.status)}
+                  </strong>
+                </div>
+
+                <div className="history-row">
+                  <span>Date</span>
+                  <strong>{formatDate(item.created_at)}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <a href="/connect/" className="route-action-link history-back-link">
+          Back to payout
+        </a>
+      </section>
+    </main>
+  );
 }
