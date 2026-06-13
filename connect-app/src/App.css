@@ -16,6 +16,18 @@ body {
   color: #ffffff;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .connect-shell {
   position: relative;
   isolation: isolate;
@@ -127,6 +139,17 @@ p {
   color: rgba(255, 255, 255, 0.76);
   font-size: 15px;
   line-height: 1.5;
+}
+
+.connect-eyebrow {
+  margin: 0;
+  max-width: none;
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .connect-rhythm {
@@ -832,6 +855,10 @@ p {
 
   p {
     font-size: 14px;
+  }
+
+  .connect-eyebrow {
+    font-size: 12px;
   }
 
   .connect-rhythm {
