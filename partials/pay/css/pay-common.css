@@ -8,6 +8,7 @@
   pointer-events: none;
 }
 
+#pay-guide,
 #pay-footer {
   width: 100%;
 }
@@ -36,6 +37,46 @@
   opacity: 0.94;
   filter: none;
 }
+
+/* --------------------------------------------------
+   Shared guide link
+-------------------------------------------------- */
+
+.pay-guide-link-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.pay-guide-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.30);
+  background: rgba(20, 184, 166, 0.06);
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.pay-guide-link:hover {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(45, 212, 191, 0.42);
+}
+
+.pay-guide-link:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Shared footer
+-------------------------------------------------- */
 
 .pay-lite-footer {
   width: 100%;
@@ -90,6 +131,16 @@
   .pay-brandbar-logo {
     width: 200px;
     max-width: 68vw;
+  }
+
+  .pay-guide-link-wrap {
+    margin-top: 14px;
+  }
+
+  .pay-guide-link {
+    min-height: 34px;
+    padding: 0 13px;
+    font-size: 12px;
   }
 
   .pay-lite-footer {
