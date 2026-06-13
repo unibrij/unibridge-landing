@@ -114,12 +114,13 @@ header {
 }
 
 .footer-logo {
-  width: 152px;
+  width: 240px;
+  max-width: 100%;
   height: auto;
   margin-bottom: 56px;
   display: block;
-  opacity: 0.92;
-  filter: brightness(0) invert(1);
+  opacity: 0.94;
+  filter: none;
 }
 
 .footer-content {
@@ -279,7 +280,7 @@ header {
   }
 
   .footer-logo {
-    width: 142px;
+    width: 220px;
     margin-bottom: 48px;
   }
 
@@ -314,7 +315,7 @@ header {
   }
 
   .footer-logo {
-    width: 136px;
+    width: 205px;
     margin-bottom: 42px;
   }
 
