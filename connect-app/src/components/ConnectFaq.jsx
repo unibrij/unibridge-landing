@@ -31,21 +31,16 @@ export default function ConnectFaq() {
       <h2 id="connect-guide-title">UniBridge Guide</h2>
 
       <p className="connect-guide-copy">
-        Questions about paying with your wallet, fees, supported countries,
-        or delivery status?
+        Ask the official guide about wallet payments, fees, supported
+        countries, delivery status, and safety.
       </p>
 
       <button
         type="button"
-        className="connect-guide-input"
+        className="connect-guide-full"
         onClick={openGuide}
-        aria-label="Open UniBridge Guide"
       >
-        <span>Ask a question...</span>
-
-        <span className="connect-guide-send" aria-hidden="true">
-          →
-        </span>
+        Ask the UniBridge Guide →
       </button>
 
       <div className="connect-guide-popular" aria-label="Popular questions">
@@ -63,14 +58,6 @@ export default function ConnectFaq() {
           </button>
         ))}
       </div>
-
-      <button
-        type="button"
-        className="connect-guide-full"
-        onClick={openGuide}
-      >
-        Open full guide →
-      </button>
     </section>
   );
 }
