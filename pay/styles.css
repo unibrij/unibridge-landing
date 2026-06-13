@@ -231,20 +231,20 @@ h1 {
 }
 
 .choice-svg {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   display: block;
   filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
 }
 
 .wallet-svg {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 }
 
 .bank-svg {
-  width: 39px;
-  height: 39px;
+  width: 41px;
+  height: 41px;
 }
 
 .choice-svg path,
@@ -557,18 +557,18 @@ option {
   }
 
   .choice-svg {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 
   .wallet-svg {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 
   .bank-svg {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
 
   .pay-footer {
