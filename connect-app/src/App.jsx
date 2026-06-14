@@ -500,7 +500,7 @@ export default function App() {
               className="install-pwa-button"
               onClick={handleInstallPwa}
             >
-              Open routes faster next time
+              Save UniBridge
             </button>
           )}
         </>
