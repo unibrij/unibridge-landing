@@ -316,6 +316,44 @@ option {
   color: #04111f;
 }
 
+/* --------------------------------------------------
+   Amount currency suffix
+-------------------------------------------------- */
+
+.amount-field {
+  gap: 8px;
+}
+
+.amount-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.amount-input-wrap input {
+  width: 100%;
+  padding-right: 68px;
+}
+
+.amount-currency {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgba(94, 234, 212, 0.95);
+  pointer-events: none;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(226, 232, 240, 0.62);
+}
+
 .method-grid {
   display: grid;
   gap: 10px;
