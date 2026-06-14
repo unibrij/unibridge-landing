@@ -25,7 +25,7 @@
 
   <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
   <link rel="preload" as="image" href="/public/icons/social/unibridge-orbit-lockup-white.png" />
-  <link rel="stylesheet" href="/pay/styles.css?v=20" />
+  <link rel="stylesheet" href="/pay/styles.css?v=21" />
 
   <link
     rel="help"
@@ -182,7 +182,7 @@
         <span>
           <strong>Pay with wallet</strong>
           <small>
-            Connect your wallet and fund the payout route directly.
+            Connect your wallet to review and approve the payment.
           </small>
         </span>
       </button>
@@ -305,34 +305,49 @@
           <label class="field">
             <span>Source country</span>
 
-            <select id="sourceCountry" required>
-              <option value="US">United States</option>
-              <option value="EU">Europe / SEPA</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AE">United Arab Emirates</option>
-            </select>
+            <select
+              id="sourceCountry"
+              data-country-select="source"
+              required
+            ></select>
           </label>
 
           <label class="field">
             <span>Destination country</span>
 
-            <select id="receiverCountry" required>
-              <option value="BR">Brazil</option>
-              <option value="PH">Philippines</option>
-            </select>
+            <select
+              id="receiverCountry"
+              data-country-select="destination"
+              required
+            ></select>
           </label>
 
-          <label class="field">
-            <span>Amount</span>
+          <label class="field amount-field">
+            <span>You pay</span>
 
-            <input
-              id="amount"
-              type="number"
-              min="1"
-              step="0.01"
-              value="5"
-              required
-            />
+            <div class="amount-input-wrap">
+              <input
+                id="amount"
+                type="number"
+                min="1"
+                step="0.01"
+                value="5"
+                required
+                aria-label="Amount"
+              />
+
+              <span
+                id="amountCurrency"
+                class="amount-currency"
+                aria-hidden="true"
+              >
+                USD
+              </span>
+            </div>
+
+            <small class="field-hint">
+              Fees and final amount are shown before confirmation.
+            </small>
           </label>
         </div>
 
@@ -363,7 +378,7 @@
             <span>
               <strong>Card payment</strong>
               <small>
-                Use a supported card or ramp provider to fund the payout.
+                Pay by card through a payment partner.
               </small>
             </span>
           </label>
@@ -392,10 +407,11 @@
   </main>
 
   <script src="/partials/pay/js/pay-includes.js?v=6"></script>
+  <script src="/partials/pay/js/pay-countries.js?v=2"></script>
 
   <script
     type="module"
-    src="/pay/js/pay.js?v=4"
+    src="/pay/js/pay.js?v=5"
   ></script>
 </body>
 </html>
