@@ -49,6 +49,76 @@ function getBeneficiaryFields(route = {}) {
   return normalizeArray(route.beneficiaryFields);
 }
 
+function getRouteFlag(route = {}) {
+  const id =
+    String(route.id || route.route_id || "").toLowerCase();
+
+  const label =
+    String(route.label || route.name || "").toLowerCase();
+
+  const country =
+    String(
+      route.destination_country ||
+      route.destinationCountry ||
+      route.country ||
+      ""
+    ).toUpperCase();
+
+  if (
+    country === "BR" ||
+    id.includes("br") ||
+    label.includes("brazil") ||
+    label.includes("pix")
+  ) {
+    return "🇧🇷";
+  }
+
+  if (
+    country === "PH" ||
+    id.includes("ph") ||
+    label.includes("philippines") ||
+    label.includes("gcash") ||
+    label.includes("instapay")
+  ) {
+    return "🇵🇭";
+  }
+
+  return "🌐";
+}
+
+function getRouteDisplayLabel(route = {}) {
+  return `${getRouteFlag(route)} ${route.label || route.name || route.id || "Route"}`;
+}
+
+function getNetworkDisplayName(network = "") {
+  const value =
+    String(network || "").trim().toLowerCase();
+
+  if (value === "polygon") {
+    return "Polygon";
+  }
+
+  return network || "Network";
+}
+
+function PolygonIcon() {
+  return (
+    <span
+      className="network-icon polygon-network-icon"
+      aria-hidden="true"
+    >
+      <img
+        src="/connect/icons/networks/polygon.svg"
+        alt=""
+        width="17"
+        height="17"
+        loading="lazy"
+        decoding="async"
+      />
+    </span>
+  );
+}
+
 function resolveDisplayStatus({
   settlement,
   fundingTxHash,
@@ -137,6 +207,15 @@ export default function PayoutForm({
   const beneficiaryFields =
     getBeneficiaryFields(selectedRoute);
 
+  const selectedAsset =
+    form.asset || routeAssets[0] || "USDT";
+
+  const selectedNetwork =
+    selectedRoute?.network || "polygon";
+
+  const isPolygonNetwork =
+    String(selectedNetwork || "").toLowerCase() === "polygon";
+
   const displayStatus =
     resolveDisplayStatus({
       settlement,
@@ -151,9 +230,6 @@ export default function PayoutForm({
       walletConfirmationPending
     });
 
-  const networkLabel =
-    `${selectedRoute?.network || "polygon"} · ${form.asset || routeAssets[0] || "USDT"}`;
-
   return (
     <section className="payout-form">
       <label>
@@ -165,7 +241,7 @@ export default function PayoutForm({
         >
           {normalizeArray(routes).map(route => (
             <option key={route.id} value={route.id}>
-              {route.label}
+              {getRouteDisplayLabel(route)}
             </option>
           ))}
         </select>
@@ -191,7 +267,7 @@ export default function PayoutForm({
       <label>
         Asset
         <select
-          value={form.asset || routeAssets[0]}
+          value={selectedAsset}
           disabled={isBusy || isReturnedFlow}
           onChange={e =>
             setForm({
@@ -228,6 +304,7 @@ export default function PayoutForm({
       ))}
 
       <button
+        type="button"
         onClick={handleSend}
         disabled={isBusy && !walletConfirmationPending}
       >
@@ -249,8 +326,12 @@ export default function PayoutForm({
             Network
           </span>
 
-          <span className="route-info-value">
-            {networkLabel}
+          <span className="route-info-value network-value">
+            {isPolygonNetwork ? <PolygonIcon /> : null}
+
+            <span>
+              {getNetworkDisplayName(selectedNetwork)} · {selectedAsset}
+            </span>
           </span>
         </div>
 
