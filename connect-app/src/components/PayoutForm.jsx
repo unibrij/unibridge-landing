@@ -1,5 +1,12 @@
 // connect-app/src/components/PayoutForm.jsx
 
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
+
 const SHOW_DEBUG =
   import.meta.env.DEV ||
   new URLSearchParams(window.location.search).get("debug") === "1";
@@ -34,22 +41,17 @@ function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function getRouteAssets(route = {}) {
-  const assets =
-    normalizeArray(route.assets);
-
-  if (assets.length > 0) {
-    return assets;
-  }
-
-  return route.asset ? [route.asset] : ["USDT"];
+function uniqueValues(values = []) {
+  return Array.from(
+    new Set(
+      values
+        .map(value => String(value || "").trim().toUpperCase())
+        .filter(Boolean)
+    )
+  );
 }
 
-function getBeneficiaryFields(route = {}) {
-  return normalizeArray(route.beneficiaryFields);
-}
-
-function getRouteFlag(route = {}) {
+function isBrazilRoute(route = {}) {
   const id =
     String(route.id || route.route_id || "").toLowerCase();
 
@@ -64,22 +66,70 @@ function getRouteFlag(route = {}) {
       ""
     ).toUpperCase();
 
-  if (
+  return (
     country === "BR" ||
     id.includes("br") ||
     label.includes("brazil") ||
     label.includes("pix")
-  ) {
-    return "🇧🇷";
-  }
+  );
+}
 
-  if (
+function isPhilippinesRoute(route = {}) {
+  const id =
+    String(route.id || route.route_id || "").toLowerCase();
+
+  const label =
+    String(route.label || route.name || "").toLowerCase();
+
+  const country =
+    String(
+      route.destination_country ||
+      route.destinationCountry ||
+      route.country ||
+      ""
+    ).toUpperCase();
+
+  return (
     country === "PH" ||
     id.includes("ph") ||
     label.includes("philippines") ||
     label.includes("gcash") ||
     label.includes("instapay")
-  ) {
+  );
+}
+
+function getRouteAssets(route = {}) {
+  const backendAssets =
+    normalizeArray(route.assets);
+
+  const baseAssets =
+    backendAssets.length > 0
+      ? backendAssets
+      : route.asset
+        ? [route.asset]
+        : ["USDT"];
+
+  if (isBrazilRoute(route)) {
+    return uniqueValues([
+      ...baseAssets,
+      "USDT",
+      "USDC"
+    ]);
+  }
+
+  return uniqueValues(baseAssets);
+}
+
+function getBeneficiaryFields(route = {}) {
+  return normalizeArray(route.beneficiaryFields);
+}
+
+function getRouteFlag(route = {}) {
+  if (isBrazilRoute(route)) {
+    return "🇧🇷";
+  }
+
+  if (isPhilippinesRoute(route)) {
     return "🇵🇭";
   }
 
@@ -107,14 +157,17 @@ function PolygonIcon() {
       className="network-icon polygon-network-icon"
       aria-hidden="true"
     >
-      <img
-        src="/connect/icons/networks/polygon.svg"
-        alt=""
+      <svg
+        viewBox="0 0 38.4 33.5"
         width="17"
         height="17"
-        loading="lazy"
-        decoding="async"
-      />
+        focusable="false"
+      >
+        <path
+          fill="#8247E5"
+          d="M29 10.2c-.7-.4-1.6-.4-2.4 0L21 13.5l-3.8 2.1-5.6 3.3c-.7.4-1.6.4-2.4 0l-4.4-2.6c-.7-.4-1.2-1.2-1.2-2.1V9.1c0-.8.4-1.6 1.2-2.1l4.4-2.5c.7-.4 1.6-.4 2.4 0L16 7.1c.7.4 1.2 1.2 1.2 2.1v3.3l3.8-2.2V7c0-.8-.4-1.6-1.2-2.1L11.6.2c-.7-.4-1.6-.4-2.4 0L1.2 4.9C.4 5.3 0 6.1 0 7v9.3c0 .8.4 1.6 1.2 2.1l8.1 4.7c.7.4 1.6.4 2.4 0l5.6-3.2 3.8-2.2 5.6-3.2c.7-.4 1.6-.4 2.4 0l4.4 2.5c.7.4 1.2 1.2 1.2 2.1v5.1c0 .8-.4 1.6-1.2 2.1l-4.4 2.5c-.7.4-1.6.4-2.4 0l-4.4-2.5c-.7-.4-1.2-1.2-1.2-2.1v-3.3l-3.8 2.2v3.3c0 .8.4 1.6 1.2 2.1l8.1 4.7c.7.4 1.6.4 2.4 0l8.1-4.7c.7-.4 1.2-1.2 1.2-2.1v-9.3c0-.8-.4-1.6-1.2-2.1L29 10.2z"
+        />
+      </svg>
     </span>
   );
 }
@@ -157,6 +210,112 @@ function resolveButtonLabel({
   }
 
   return "Continue";
+}
+
+function CustomSelect({
+  value,
+  options,
+  disabled,
+  onChange,
+  ariaLabel
+}) {
+  const [isOpen, setIsOpen] =
+    useState(false);
+
+  const shellRef =
+    useRef(null);
+
+  const selectedOption =
+    options.find(option => option.value === value) ||
+    options[0] ||
+    null;
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (!shellRef.current) return;
+
+      if (!shellRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (disabled) {
+      setIsOpen(false);
+    }
+  }, [disabled]);
+
+  return (
+    <div
+      ref={shellRef}
+      className={
+        isOpen
+          ? "connect-select-shell is-open"
+          : "connect-select-shell"
+      }
+    >
+      <button
+        type="button"
+        className="connect-select-trigger"
+        disabled={disabled}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen ? "true" : "false"}
+        onClick={() => {
+          if (disabled) return;
+          setIsOpen(current => !current);
+        }}
+      >
+        <span className="connect-select-value">
+          {selectedOption?.label || "Select"}
+        </span>
+
+        <span
+          className="connect-select-chevron"
+          aria-hidden="true"
+        >
+          ⌄
+        </span>
+      </button>
+
+      <div
+        className="connect-select-menu"
+        role="listbox"
+      >
+        {options.map(option => {
+          const isSelected =
+            option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={
+                isSelected
+                  ? "connect-select-option is-selected"
+                  : "connect-select-option"
+              }
+              role="option"
+              aria-selected={isSelected ? "true" : "false"}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function CopyableValue({
@@ -208,13 +367,49 @@ export default function PayoutForm({
     getBeneficiaryFields(selectedRoute);
 
   const selectedAsset =
-    form.asset || routeAssets[0] || "USDT";
+    routeAssets.includes(form.asset)
+      ? form.asset
+      : routeAssets[0] || "USDT";
 
   const selectedNetwork =
     selectedRoute?.network || "polygon";
 
   const isPolygonNetwork =
     String(selectedNetwork || "").toLowerCase() === "polygon";
+
+  const routeOptions =
+    useMemo(
+      () =>
+        normalizeArray(routes).map(route => ({
+          value: route.id || route.route_id,
+          label: getRouteDisplayLabel(route)
+        })).filter(option => option.value),
+      [routes]
+    );
+
+  const assetOptions =
+    useMemo(
+      () =>
+        routeAssets.map(asset => ({
+          value: asset,
+          label: asset
+        })),
+      [routeAssets]
+    );
+
+  useEffect(() => {
+    if (!selectedAsset) return;
+    if (form.asset === selectedAsset) return;
+
+    setForm(current => ({
+      ...current,
+      asset: selectedAsset
+    }));
+  }, [
+    form.asset,
+    selectedAsset,
+    setForm
+  ]);
 
   const displayStatus =
     resolveDisplayStatus({
@@ -234,17 +429,14 @@ export default function PayoutForm({
     <section className="payout-form">
       <label>
         Route
-        <select
+
+        <CustomSelect
           value={selectedRouteId}
-          onChange={e => changeRoute(e.target.value)}
+          options={routeOptions}
           disabled={isBusy || isReturnedFlow}
-        >
-          {normalizeArray(routes).map(route => (
-            <option key={route.id} value={route.id}>
-              {getRouteDisplayLabel(route)}
-            </option>
-          ))}
-        </select>
+          ariaLabel="Select payout route"
+          onChange={changeRoute}
+        />
       </label>
 
       <label>
@@ -266,22 +458,19 @@ export default function PayoutForm({
 
       <label>
         Asset
-        <select
+
+        <CustomSelect
           value={selectedAsset}
+          options={assetOptions}
           disabled={isBusy || isReturnedFlow}
-          onChange={e =>
+          ariaLabel="Select funding asset"
+          onChange={asset =>
             setForm({
               ...form,
-              asset: e.target.value
+              asset
             })
           }
-        >
-          {routeAssets.map(asset => (
-            <option key={asset} value={asset}>
-              {asset}
-            </option>
-          ))}
-        </select>
+        />
       </label>
 
       {beneficiaryFields.map(field => (
