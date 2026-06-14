@@ -9,6 +9,7 @@ export const FALLBACK_ROUTES = [
     rail: "PIX",
     payout_rail: "pix",
     network: "polygon",
+    asset: "USDT",
     assets: ["USDT", "USDC"],
 
     beneficiaryFields: [
@@ -37,6 +38,16 @@ function normalizeLower(value) {
   return normalizeString(value).toLowerCase();
 }
 
+function uniqueValues(values = []) {
+  return Array.from(
+    new Set(
+      values
+        .map(value => normalizeUpper(value))
+        .filter(Boolean)
+    )
+  );
+}
+
 function fallbackPlaceholder(field = {}) {
   const name =
     normalizeLower(field.name);
@@ -56,9 +67,70 @@ function fallbackPlaceholder(field = {}) {
   return "";
 }
 
+function isBrazilPixRoute({
+  id,
+  label,
+  country,
+  rail,
+  payoutRail
+}) {
+  const routeId =
+    normalizeLower(id);
+
+  const routeLabel =
+    normalizeLower(label);
+
+  const normalizedCountry =
+    normalizeUpper(country);
+
+  const normalizedRail =
+    normalizeLower(rail);
+
+  const normalizedPayoutRail =
+    normalizeLower(payoutRail);
+
+  return (
+    normalizedCountry === "BR" ||
+    routeId.includes("br_pix") ||
+    routeId.includes("brazil") ||
+    routeLabel.includes("brazil") ||
+    routeLabel.includes("pix") ||
+    normalizedRail === "pix" ||
+    normalizedPayoutRail === "pix"
+  );
+}
+
+function normalizeBeneficiaryFields(route = {}) {
+  const backendFields =
+    Array.isArray(route.beneficiary_fields)
+      ? route.beneficiary_fields
+      : Array.isArray(route.beneficiaryFields)
+        ? route.beneficiaryFields
+        : [];
+
+  return backendFields.map(field => ({
+    name: field.name,
+    label: field.label || field.name,
+    type: field.type || "text",
+    placeholder:
+      field.placeholder ||
+      fallbackPlaceholder(field),
+    required: Boolean(field.required)
+  }));
+}
+
 export function normalizeBackendRoute(route = {}) {
   const asset =
     normalizeUpper(route.asset);
+
+  const backendAssets =
+    Array.isArray(route.assets)
+      ? route.assets
+      : Array.isArray(route.supported_assets)
+        ? route.supported_assets
+        : Array.isArray(route.supportedAssets)
+          ? route.supportedAssets
+          : [];
 
   const id =
     route.route_id ||
@@ -73,18 +145,53 @@ export function normalizeBackendRoute(route = {}) {
       .filter(Boolean)
       .join("_");
 
+  const label =
+    route.label ||
+    id;
+
+  const country =
+    normalizeUpper(route.country);
+
+  const rail =
+    normalizeUpper(route.rail);
+
+  const payoutRail =
+    normalizeLower(
+      route.payout_rail ||
+      route.payoutRail ||
+      route.rail
+    );
+
+  const network =
+    normalizeLower(route.network);
+
+  const isBrazilPix =
+    isBrazilPixRoute({
+      id,
+      label,
+      country,
+      rail,
+      payoutRail
+    });
+
+  const assets =
+    isBrazilPix
+      ? uniqueValues([
+          ...backendAssets,
+          asset,
+          "USDT",
+          "USDC"
+        ])
+      : uniqueValues([
+          ...backendAssets,
+          asset
+        ]);
+
+  const normalizedAsset =
+    asset || assets[0] || "";
+
   const beneficiaryFields =
-    Array.isArray(route.beneficiary_fields)
-      ? route.beneficiary_fields.map(field => ({
-          name: field.name,
-          label: field.label || field.name,
-          type: field.type || "text",
-          placeholder:
-            field.placeholder ||
-            fallbackPlaceholder(field),
-          required: Boolean(field.required)
-        }))
-      : [];
+    normalizeBeneficiaryFields(route);
 
   return {
     ...route,
@@ -92,29 +199,19 @@ export function normalizeBackendRoute(route = {}) {
     id,
     route_id: route.route_id || id,
 
-    label:
-      route.label ||
-      id,
+    label,
 
-    country:
-      normalizeUpper(route.country),
+    country,
 
-    rail:
-      normalizeUpper(route.rail),
+    rail,
 
-    payout_rail:
-      normalizeLower(
-        route.payout_rail ||
-        route.rail
-      ),
+    payout_rail: payoutRail,
 
-    network:
-      normalizeLower(route.network),
+    network,
 
-    asset,
+    asset: normalizedAsset,
 
-    assets:
-      asset ? [asset] : [],
+    assets,
 
     beneficiaryFields
   };
