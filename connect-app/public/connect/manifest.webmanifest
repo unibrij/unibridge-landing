@@ -1,12 +1,12 @@
 {
-  "name": "UniBridge Connect",
+  "name": "Pay with UniBridge",
   "short_name": "UniBridge",
-  "description": "Connect your wallet. Fund with stablecoins. Pay back home.",
-  "start_url": "/connect/",
-  "scope": "/connect/",
+  "description": "Access supported payout routes with wallet, bank transfer, or card funding.",
+  "start_url": "/pay",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#000E2D",
+  "theme_color": "#000E2D",
   "icons": [
     {
       "src": "/connect/icons/app/ub-app-icon-192.png",
