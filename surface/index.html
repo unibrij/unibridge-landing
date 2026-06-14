@@ -12,7 +12,7 @@
 
   <meta
     name="description"
-    content="Fund a UniBridge payout route by card through a supported ramp provider."
+    content="Pay with Visa or Mastercard through a payment partner to fund a UniBridge payout route."
   />
 
   <link rel="icon" type="image/png" href="/favicon.png" />
@@ -24,6 +24,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <link rel="stylesheet" href="/surface/styles.surface.20260611.css" />
+  <link rel="stylesheet" href="/partials/pay/css/pay-country-select.css?v=1" />
 
   <style>
     .sr-only {
@@ -92,35 +93,53 @@
         </section>
 
         <div class="form-grid route-grid">
-          <label class="field">
-            <span>Amount</span>
-            <input
-              id="amount"
-              type="number"
-              step="0.01"
-              value="10"
-              placeholder="Amount"
-            />
+          <label class="field amount-field">
+            <span>You pay</span>
+
+            <div class="amount-input-wrap">
+              <input
+                id="amount"
+                type="number"
+                step="0.01"
+                value="10"
+                placeholder="Amount"
+                aria-label="Amount"
+              />
+
+              <span
+                id="amountCurrency"
+                class="amount-currency"
+                aria-hidden="true"
+              >
+                USD
+              </span>
+            </div>
+
+            <small class="field-hint">
+              Fees and final amount are shown before confirmation.
+            </small>
           </label>
 
           <div id="amountLimitHint"></div>
 
           <label class="field">
             <span>Source country</span>
-            <select id="source_country">
-              <option value="US">United States</option>
-              <option value="EU">Europe</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AE">United Arab Emirates</option>
-            </select>
+
+            <select
+              id="source_country"
+              data-country-select="source"
+              required
+            ></select>
           </label>
 
           <label class="field">
             <span>Destination country</span>
-            <select id="country">
-              <option value="BR">Brazil</option>
-              <option value="PH">Philippines</option>
-            </select>
+
+            <select
+              id="country"
+              data-country-select="destination"
+              required
+            ></select>
           </label>
         </div>
 
@@ -315,6 +334,7 @@
   </main>
 
   <script src="/partials/pay/js/pay-includes.js?v=7"></script>
+  <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/clover/stripe.js"></script>
