@@ -320,7 +320,7 @@ export default function App() {
 
     if (!installPrompt) {
       writeDebug(
-        "Open routes faster next time",
+        "Save UniBridge",
         {
           instruction:
             "Use your browser menu and choose Add to Home Screen."
