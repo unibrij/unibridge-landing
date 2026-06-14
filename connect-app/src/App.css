@@ -305,6 +305,34 @@ p {
   overflow-wrap: anywhere;
 }
 
+.network-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.network-icon {
+  width: 17px;
+  height: 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.network-icon img {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+.network-value span {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .route-info-action {
   display: inline-flex;
   align-items: center;
