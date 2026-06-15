@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/storage.js
+// unibridge-landing/surface/storage.js
 
 export const SURFACE_STORAGE_KEY = "ub_settlement";
 
