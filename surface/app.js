@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/app.js
+// unibridge-landing/surface/app.js
 
 import {
   applyAmountLimitUi
@@ -20,6 +20,35 @@ import {
 import {
   createCoinsPhPicker
 } from "./coinsph-picker.js";
+
+import {
+  setupSurfacePwaInstall
+} from "./pwa-install.js";
+
+import {
+  buildFundingReturnUrl,
+  getSessionIdFromUrl,
+  isFundingReturn,
+  cleanupFundingReturnUrl
+} from "./return-url.js";
+
+import {
+  persistSurfaceSettlement,
+  getPersistedSurfaceSettlement,
+  clearPersistedSurfaceSettlement
+} from "./storage.js";
+
+import {
+  createCountryHelpers
+} from "./country.js";
+
+import {
+  createContinueButtons
+} from "./continue-buttons.js";
+
+import {
+  createDestinationPayloadBuilders
+} from "./destination-payload.js";
 
 const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
@@ -43,8 +72,6 @@ let currentRouteQuote = null;
 let paymentStarted = false;
 
 let coinsPhPicker = null;
-
-const STORAGE_KEY = "ub_settlement";
 
 /* =========================
    UI
@@ -103,157 +130,44 @@ function getValue(id) {
 }
 
 /* =========================
-   RETURN URL HELPERS
+   HELPERS
 ========================= */
 
-function buildFundingReturnUrl(targetSessionId) {
-  if (!targetSessionId) {
-    return null;
-  }
+const {
+  getDestinationCountryCode,
+  isPhilippinesDestination,
+  isBrazilDestination,
+  getCountryLabel,
+  getSourceCountryCode
+} = createCountryHelpers({
+  getValue
+});
 
-  try {
-    const url = new URL(window.location.href);
+const {
+  getActiveContinueButton,
+  setContinueButtonsDisabled,
+  setContinueButtonMode
+} = createContinueButtons({
+  continueBtn,
+  coinsPhContinueBtn,
+  isPhilippinesDestination
+});
 
-    url.searchParams.delete("settlement_id");
-    url.searchParams.set("session_id", targetSessionId);
-    url.searchParams.set("return", "funding");
+const {
+  buildDestinationPayload
+} = createDestinationPayloadBuilders({
+  getValue,
 
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
+  getCoinsPhPicker() {
+    return coinsPhPicker;
+  },
 
-function getSessionIdFromUrl() {
-  try {
-    const url = new URL(window.location.href);
-    const value = url.searchParams.get("session_id");
-
-    return value && value.trim()
-      ? value.trim()
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function isFundingReturn() {
-  try {
-    const url = new URL(window.location.href);
-    return url.searchParams.get("return") === "funding";
-  } catch {
-    return false;
-  }
-}
-
-function cleanupFundingReturnUrl() {
-  try {
-    const url = new URL(window.location.href);
-
-    url.searchParams.delete("session_id");
-    url.searchParams.delete("settlement_id");
-    url.searchParams.delete("return");
-
-    window.history.replaceState(
-      {},
-      document.title,
-      url.toString()
-    );
-  } catch {
-    // no-op
-  }
-}
-
-/* =========================
-   BASIC HELPERS
-========================= */
-
-function getDestinationCountryCode() {
-  return String(getValue("country")?.value || "")
-    .toUpperCase()
-    .trim();
-}
-
-function isPhilippinesDestination() {
-  return getDestinationCountryCode() === "PH";
-}
-
-function isBrazilDestination() {
-  return getDestinationCountryCode() === "BR";
-}
-
-function getActiveContinueButton() {
-  return isPhilippinesDestination()
-    ? coinsPhContinueBtn
-    : continueBtn;
-}
-
-function setContinueButtonsDisabled(disabled) {
-  if (continueBtn) {
-    continueBtn.disabled = Boolean(disabled);
-  }
-
-  if (coinsPhContinueBtn) {
-    coinsPhContinueBtn.disabled = Boolean(disabled);
-  }
-}
-
-function setContinueButtonMode(mode) {
-  const label =
-    mode === "prepare_payment"
-      ? "Prepare payment"
-      : mode === "open_payment"
-        ? "Continue to payment"
-        : "Continue";
-
-  if (continueBtn) {
-    continueBtn.innerText = label;
-  }
-
-  if (coinsPhContinueBtn) {
-    coinsPhContinueBtn.innerText = label;
-  }
-}
+  isPhilippinesDestination,
+  isBrazilDestination
+});
 
 function resetUiToStart() {
   window.resetUiToStart?.();
-}
-
-function getCountryLabel() {
-  const receiver =
-    getDestinationCountryCode();
-
-  if (receiver === "BR") {
-    return "Brazil";
-  }
-
-  if (receiver === "PH") {
-    return "Philippines";
-  }
-
-  if (receiver === "GB" || receiver === "UK") {
-    return "United Kingdom";
-  }
-
-  return receiver || "Brazil";
-}
-
-function getSourceCountryCode() {
-  const direct =
-    String(getValue("source_country")?.value || "")
-      .toUpperCase()
-      .trim();
-
-  if (direct) {
-    return direct;
-  }
-
-  const fallback =
-    String(getValue("country")?.value || "")
-      .toUpperCase()
-      .trim();
-
-  return fallback || "BR";
 }
 
 function setCurrentFundingProvider(value) {
@@ -337,53 +251,6 @@ function resetFlowForRouteInputChange() {
 }
 
 /* =========================
-   DESTINATION PAYLOAD
-========================= */
-
-function buildBrazilDestinationPayload() {
-  const pix =
-    getValue("pix")?.value.trim();
-
-  const taxIdEl =
-    getValue("taxId");
-
-  const taxId =
-    taxIdEl
-      ? taxIdEl.value.trim()
-      : "";
-
-  if (!pix) {
-    throw new Error("PIX_required");
-  }
-
-  return taxId
-    ? {
-        pix,
-        tax_id:
-          taxId
-      }
-    : {
-        pix
-      };
-}
-
-function buildDestinationPayload() {
-  if (isPhilippinesDestination()) {
-    if (!coinsPhPicker) {
-      throw new Error("COINSPH_PICKER_NOT_READY");
-    }
-
-    return coinsPhPicker.buildDestination();
-  }
-
-  if (isBrazilDestination()) {
-    return buildBrazilDestinationPayload();
-  }
-
-  throw new Error("unsupported_destination_country");
-}
-
-/* =========================
    STORAGE
 ========================= */
 
@@ -393,19 +260,14 @@ function persistState(extra = {}) {
 
   if (!id) return;
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      id,
-      ts:
-        Date.now(),
+  persistSurfaceSettlement({
+    id,
 
-      payment_started:
-        extra.payment_started ??
-        paymentStarted ??
-        false
-    })
-  );
+    paymentStarted:
+      extra.payment_started ??
+      paymentStarted ??
+      false
+  });
 }
 
 function persistSettlement(id) {
@@ -429,37 +291,6 @@ function markPaymentStarted() {
   });
 }
 
-function getPersistedSettlement() {
-  try {
-    const raw =
-      localStorage.getItem(STORAGE_KEY);
-
-    if (!raw) return null;
-
-    const data =
-      JSON.parse(raw);
-
-    if (!data?.id) {
-      return null;
-    }
-
-    if (Date.now() - data.ts > 30 * 60 * 1000) {
-      localStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-
-    return {
-      id:
-        data.id,
-
-      payment_started:
-        Boolean(data.payment_started)
-    };
-  } catch {
-    return null;
-  }
-}
-
 function clearState() {
   sessionId = null;
   routeId = null;
@@ -475,7 +306,7 @@ function clearState() {
   currentRouteQuote = null;
   paymentStarted = false;
 
-  localStorage.removeItem(STORAGE_KEY);
+  clearPersistedSurfaceSettlement();
 
   resetQuoteState();
   setAmountInputDisabled(false);
@@ -558,6 +389,10 @@ coinsPhPicker =
   });
 
 coinsPhPicker.bindEvents();
+
+setupSurfacePwaInstall({
+  setStatus
+});
 
 /* =========================
    START
@@ -1047,7 +882,7 @@ window.addEventListener("load", async () => {
   }
 
   const saved =
-    getPersistedSettlement();
+    getPersistedSurfaceSettlement();
 
   if (!saved) {
     clearState();
