@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/return-url.js
+// unibridge-landing/surface/return-url.js
 
 export function buildFundingReturnUrl(targetSessionId) {
   if (!targetSessionId) {
