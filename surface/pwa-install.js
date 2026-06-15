@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/pwa-install.js
+// unibridge-landing/surface/pwa-install.js
 
 export function setupSurfacePwaInstall({
   setStatus,
