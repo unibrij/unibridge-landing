@@ -1,4 +1,4 @@
-// unibrij/unibridge-landing/surface/country.js
+// unibridge-landing/surface/country.js
 
 function normalizeUpper(value) {
   return String(value || "")
