@@ -134,7 +134,6 @@ function getValue(id) {
 ========================= */
 
 const {
-  getDestinationCountryCode,
   isPhilippinesDestination,
   isBrazilDestination,
   getCountryLabel,
