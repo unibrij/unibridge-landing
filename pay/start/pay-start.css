@@ -1,0 +1,560 @@
+/* pay/start/pay-start.css */
+
+:root {
+  --bg: #000E2D;
+  --bg-deep: #00081f;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --muted-2: rgba(255, 255, 255, 0.52);
+  --accent: #14b8a6;
+  --accent-soft: #5eead4;
+  --border: rgba(94, 234, 212, 0.18);
+  --border-strong: rgba(94, 234, 212, 0.34);
+  --border-soft: rgba(255, 255, 255, 0.10);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pay-start-page {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 980px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px;
+  padding-top: max(18px, env(safe-area-inset-top));
+  padding-bottom: max(34px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pay-start-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000E2D 100%
+    ),
+    url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
+}
+
+.pay-start-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 23%,
+      rgba(45, 212, 191, 0.10),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.02) 0%,
+      rgba(0, 14, 45, 0.16) 44%,
+      rgba(0, 14, 45, 0.48) 100%
+    );
+}
+
+.pay-start-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 18% 18%,
+      rgba(20, 184, 166, 0.10),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 82% 26%,
+      rgba(94, 234, 212, 0.08),
+      transparent 28%
+    );
+}
+
+/* --------------------------------------------------
+   Navigation
+-------------------------------------------------- */
+
+.pay-start-nav {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pay-start-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #ffffff;
+}
+
+.pay-start-brand-mark {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #04111f;
+  background: #14b8a6;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  box-shadow:
+    0 0 22px rgba(20, 184, 166, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.pay-start-brand-text {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.pay-start-nav-link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.pay-start-nav-link:hover {
+  color: #5eead4;
+  border-color: rgba(94, 234, 212, 0.26);
+  background: rgba(20, 184, 166, 0.07);
+}
+
+/* --------------------------------------------------
+   Hero
+-------------------------------------------------- */
+
+.pay-start-hero {
+  width: min(100%, 680px);
+  margin: 72px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  text-align: center;
+}
+
+.pay-start-kicker {
+  margin: 0;
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pay-start-hero h1 {
+  margin: 0;
+  max-width: 680px;
+  color: #ffffff;
+  font-size: clamp(38px, 6vw, 62px);
+  line-height: 0.98;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+}
+
+.pay-start-subtitle {
+  margin: 0;
+  max-width: 520px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Cards
+-------------------------------------------------- */
+
+.pay-start-options {
+  width: min(100%, 880px);
+  margin: 34px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pay-start-card {
+  min-height: 430px;
+  padding: 18px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+  color: var(--text);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
+    );
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 26px rgba(94, 234, 212, 0.045);
+  backdrop-filter: blur(4.5px) saturate(125%);
+  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
+}
+
+.pay-start-card-primary {
+  border: 1px solid rgba(94, 234, 212, 0.34);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.28),
+    0 0 44px rgba(20, 184, 166, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 30px rgba(94, 234, 212, 0.055);
+}
+
+.pay-start-card-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.18) 0%,
+      rgba(4, 18, 48, 0.10) 100%
+    );
+}
+
+.pay-start-card-top {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pay-start-card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: 17px;
+}
+
+.pay-start-card-icon-muted {
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+.pay-start-badge {
+  min-height: 27px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.pay-start-card-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.pay-start-card-copy h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 23px;
+  line-height: 1.08;
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+.pay-start-card-copy p {
+  margin: 0;
+  max-width: 340px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pay-start-list {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.pay-start-list li {
+  position: relative;
+  padding-left: 20px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.pay-start-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #14b8a6;
+  box-shadow: 0 0 14px rgba(20, 184, 166, 0.36);
+}
+
+.pay-start-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: auto;
+  box-sizing: border-box;
+  border-radius: 15px;
+  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.pay-start-button-primary {
+  border: 0;
+  background: #14b8a6;
+  color: #04111f;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+.pay-start-button-secondary {
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  background: rgba(20, 184, 166, 0.07);
+  color: #5eead4;
+}
+
+.pay-start-button:hover {
+  transform: translateY(-1px);
+}
+
+.pay-start-button-primary:hover {
+  box-shadow:
+    0 16px 34px rgba(20, 184, 166, 0.23),
+    0 0 28px rgba(20, 184, 166, 0.08);
+}
+
+.pay-start-button-secondary:hover {
+  border-color: rgba(45, 212, 191, 0.44);
+  background: rgba(20, 184, 166, 0.10);
+}
+
+.pay-start-button:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Trust + footer
+-------------------------------------------------- */
+
+.pay-start-trust {
+  width: min(100%, 720px);
+  margin: 18px auto 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.pay-start-footer {
+  margin: auto auto 0;
+  padding-top: 28px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .pay-start-page {
+    width: min(100%, 440px);
+    justify-content: flex-start;
+  }
+
+  .pay-start-nav {
+    min-height: 38px;
+  }
+
+  .pay-start-brand-mark {
+    width: 29px;
+    height: 29px;
+    border-radius: 10px;
+  }
+
+  .pay-start-brand-text {
+    font-size: 11px;
+  }
+
+  .pay-start-nav-link {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .pay-start-hero {
+    margin-top: 50px;
+    width: min(100%, 420px);
+  }
+
+  .pay-start-hero h1 {
+    max-width: 390px;
+    font-size: 39px;
+    line-height: 1.02;
+  }
+
+  .pay-start-subtitle {
+    max-width: 350px;
+    font-size: 14px;
+  }
+
+  .pay-start-options {
+    width: min(100%, 440px);
+    margin-top: 26px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pay-start-card {
+    min-height: auto;
+    padding: 15px;
+    border-radius: 20px;
+    gap: 14px;
+  }
+
+  .pay-start-card-copy h2 {
+    font-size: 21px;
+  }
+
+  .pay-start-card-copy p {
+    font-size: 13px;
+  }
+
+  .pay-start-list {
+    gap: 8px;
+  }
+
+  .pay-start-list li {
+    font-size: 12px;
+  }
+
+  .pay-start-button {
+    min-height: 44px;
+    border-radius: 14px;
+    font-size: 12px;
+  }
+
+  .pay-start-trust {
+    width: min(100%, 410px);
+    margin-top: 16px;
+    font-size: 11px;
+  }
+
+  .pay-start-footer {
+    padding-top: 24px;
+  }
+}
+
+@media (max-width: 380px) {
+  .pay-start-page {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .pay-start-hero h1 {
+    font-size: 35px;
+  }
+
+  .pay-start-card {
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
