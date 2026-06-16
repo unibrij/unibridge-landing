@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Pay Agent | UniBridge</title>
+
+    <meta
+      name="description"
+      content="Use the UniBridge Pay Agent to prepare a payout route and continue with wallet funding."
+    />
+
+    <link
+      rel="stylesheet"
+      href="/pay/agent/pay-agent.css"
+    />
+  </head>
+
+  <body>
+    <main class="pay-agent-page">
+      <div class="pay-agent-bg" aria-hidden="true"></div>
+
+      <header class="pay-agent-nav">
+        <a class="pay-agent-brand" href="/">
+          <span class="pay-agent-brand-mark">V</span>
+          <span class="pay-agent-brand-text">UNIBRIDGE</span>
+        </a>
+
+        <div class="pay-agent-nav-actions">
+          <a
+            class="pay-agent-nav-link"
+            href="/pay/start/"
+          >
+            Back to start
+          </a>
+
+          <a
+            class="pay-agent-nav-link pay-agent-nav-link-muted"
+            href="https://www.unibrij.io"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            unibrij.io
+          </a>
+        </div>
+      </header>
+
+      <section class="pay-agent-hero">
+        <p class="pay-agent-kicker">
+          Pay Agent
+        </p>
+
+        <h1>
+          Prepare a payout route
+        </h1>
+
+        <p class="pay-agent-subtitle">
+          Describe the payment. UniBridge will prepare the route and guide you
+          through the required details.
+        </p>
+
+        <div class="pay-agent-hint">
+          Try: I want to pay 10 USDT to Brazil by PIX
+        </div>
+      </section>
+
+      <section
+        class="pay-agent-layout"
+        aria-label="Pay Agent route preparation"
+      >
+        <aside class="pay-agent-info-card">
+          <div class="pay-agent-info-icon" aria-hidden="true">
+            ✦
+          </div>
+
+          <div class="pay-agent-info-copy">
+            <p class="pay-agent-info-kicker">
+              Guided route
+            </p>
+
+            <h2>
+              How it works
+            </h2>
+          </div>
+
+          <ol class="pay-agent-steps">
+            <li>
+              <span>1</span>
+              <p>Describe the payment</p>
+            </li>
+
+            <li>
+              <span>2</span>
+              <p>Add recipient details</p>
+            </li>
+
+            <li>
+              <span>3</span>
+              <p>Choose wallet funding</p>
+            </li>
+
+            <li>
+              <span>4</span>
+              <p>Continue to checkout</p>
+            </li>
+          </ol>
+
+          <p class="pay-agent-trust-note">
+            UniBridge prepares the route but does not custody customer funds.
+          </p>
+        </aside>
+
+        <section
+          class="pay-agent-chat"
+          data-pay-agent-chat
+          aria-label="Pay Agent chat"
+        >
+          <div class="pay-agent-chat-card">
+            <div class="pay-agent-chat-header">
+              <div class="pay-agent-chat-title-row">
+                <div class="pay-agent-chat-icon" aria-hidden="true">
+                  ✦
+                </div>
+
+                <div>
+                  <p class="pay-agent-chat-kicker">
+                    Pay with UniBridge
+                  </p>
+
+                  <h2>
+                    Route preparation assistant
+                  </h2>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="pay-agent-reset"
+                data-pay-agent-reset
+              >
+                Reset
+              </button>
+            </div>
+
+            <div class="pay-agent-status-row">
+              <span class="pay-agent-status-label">
+                Status
+              </span>
+
+              <span
+                class="pay-agent-status"
+                data-pay-agent-status
+              ></span>
+            </div>
+
+            <div
+              class="pay-agent-messages"
+              data-pay-agent-messages
+              aria-live="polite"
+            ></div>
+
+            <div
+              class="pay-agent-actions"
+              data-pay-agent-actions
+            ></div>
+
+            <form
+              class="pay-agent-form"
+              data-pay-agent-form
+            >
+              <input
+                class="pay-agent-input"
+                data-pay-agent-input
+                type="text"
+                autocomplete="off"
+                placeholder="Example: I want to pay 10 USDT to Brazil by PIX"
+                aria-label="Pay Agent message"
+              />
+
+              <button
+                class="pay-agent-send"
+                data-pay-agent-send
+                type="submit"
+              >
+                Send
+              </button>
+            </form>
+          </div>
+        </section>
+      </section>
+
+      <footer class="pay-agent-footer">
+        © 2026 UniBridge Technologies Ltd.
+      </footer>
+    </main>
+
+    <script src="/pay/js/pay-agent-api.js"></script>
+    <script src="/pay/js/pay-agent-storage.js"></script>
+    <script src="/pay/js/pay-agent-chat.js"></script>
+  </body>
+</html>
