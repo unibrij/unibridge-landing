@@ -15,6 +15,54 @@
     />
 
     <link
+      rel="icon"
+      type="image/png"
+      href="/favicon.png"
+    />
+
+    <link
+      rel="apple-touch-icon"
+      href="/connect/icons/app/ub-app-icon-512.png"
+    />
+
+    <meta
+      name="theme-color"
+      content="#000E2D"
+    />
+
+    <meta
+      name="apple-mobile-web-app-capable"
+      content="yes"
+    />
+
+    <meta
+      name="apple-mobile-web-app-title"
+      content="UniBridge"
+    />
+
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <link
+      rel="preload"
+      as="image"
+      href="/public/icons/social/connect-map-bg.png"
+    />
+
+    <link
+      rel="preload"
+      as="image"
+      href="/public/icons/social/unibridge-orbit-lockup-white.png"
+    />
+
+    <link
+      rel="stylesheet"
+      href="/partials/pay/css/pay-common.css?v=9"
+    />
+
+    <link
       rel="stylesheet"
       href="/pay/agent/pay-agent.css"
     />
@@ -24,49 +72,7 @@
     <main class="pay-agent-page">
       <div class="pay-agent-bg" aria-hidden="true"></div>
 
-      <header class="pay-agent-nav">
-        <a class="pay-agent-brand" href="/">
-          <span class="pay-agent-brand-mark">V</span>
-          <span class="pay-agent-brand-text">UNIBRIDGE</span>
-        </a>
-
-        <div class="pay-agent-nav-actions">
-          <a
-            class="pay-agent-nav-link"
-            href="/pay/start/"
-          >
-            Back to start
-          </a>
-
-          <a
-            class="pay-agent-nav-link pay-agent-nav-link-muted"
-            href="https://www.unibrij.io"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            unibrij.io
-          </a>
-        </div>
-      </header>
-
-      <section class="pay-agent-hero">
-        <p class="pay-agent-kicker">
-          Pay Agent
-        </p>
-
-        <h1>
-          Prepare a payout route
-        </h1>
-
-        <p class="pay-agent-subtitle">
-          Describe the payment. UniBridge will prepare the route and guide you
-          through the required details.
-        </p>
-
-        <div class="pay-agent-hint">
-          Try: I want to pay 10 USDT to Brazil by PIX
-        </div>
-      </section>
+      <div id="pay-brand"></div>
 
       <section
         class="pay-agent-layout"
@@ -112,6 +118,13 @@
           <p class="pay-agent-trust-note">
             UniBridge prepares the route but does not custody customer funds.
           </p>
+
+          <a
+            class="pay-agent-nav-link"
+            href="/pay/start/"
+          >
+            Back to start
+          </a>
         </aside>
 
         <section
@@ -154,7 +167,9 @@
               <span
                 class="pay-agent-status"
                 data-pay-agent-status
-              ></span>
+              >
+                ready
+              </span>
             </div>
 
             <div
@@ -177,7 +192,7 @@
                 data-pay-agent-input
                 type="text"
                 autocomplete="off"
-                placeholder="Example: I want to pay 10 USDT to Brazil by PIX"
+                placeholder="Describe the payment"
                 aria-label="Pay Agent message"
               />
 
@@ -193,11 +208,10 @@
         </section>
       </section>
 
-      <footer class="pay-agent-footer">
-        © 2026 UniBridge Technologies Ltd.
-      </footer>
+      <div id="pay-footer"></div>
     </main>
 
+    <script src="/partials/pay/js/pay-includes.js?v=6"></script>
     <script src="/pay/js/pay-agent-api.js"></script>
     <script src="/pay/js/pay-agent-storage.js"></script>
     <script src="/pay/js/pay-agent-chat.js"></script>
