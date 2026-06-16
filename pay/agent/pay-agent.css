@@ -1,0 +1,954 @@
+/* pay/agent/pay-agent.css */
+
+:root {
+  --bg: #000E2D;
+  --bg-deep: #00081f;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --muted-2: rgba(255, 255, 255, 0.52);
+  --accent: #14b8a6;
+  --accent-soft: #5eead4;
+  --border: rgba(94, 234, 212, 0.18);
+  --border-strong: rgba(94, 234, 212, 0.34);
+  --border-soft: rgba(255, 255, 255, 0.10);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: Inter, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pay-agent-page {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 980px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px;
+  padding-top: max(18px, env(safe-area-inset-top));
+  padding-bottom: max(34px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pay-agent-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000E2D 100%
+    ),
+    url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #00081f;
+}
+
+.pay-agent-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 23%,
+      rgba(45, 212, 191, 0.10),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.02) 0%,
+      rgba(0, 14, 45, 0.16) 44%,
+      rgba(0, 14, 45, 0.48) 100%
+    );
+}
+
+.pay-agent-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 18% 18%,
+      rgba(20, 184, 166, 0.10),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 82% 26%,
+      rgba(94, 234, 212, 0.08),
+      transparent 28%
+    );
+}
+
+/* --------------------------------------------------
+   Navigation
+-------------------------------------------------- */
+
+.pay-agent-nav {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pay-agent-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #ffffff;
+}
+
+.pay-agent-brand-mark {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #04111f;
+  background: #14b8a6;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  box-shadow:
+    0 0 22px rgba(20, 184, 166, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.pay-agent-brand-text {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.pay-agent-nav-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pay-agent-nav-link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 999px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.07);
+  font-size: 12px;
+  font-weight: 800;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.pay-agent-nav-link:hover {
+  border-color: rgba(94, 234, 212, 0.34);
+  background: rgba(20, 184, 166, 0.11);
+}
+
+.pay-agent-nav-link-muted {
+  color: rgba(255, 255, 255, 0.70);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+.pay-agent-nav-link-muted:hover {
+  color: #5eead4;
+  border-color: rgba(94, 234, 212, 0.26);
+  background: rgba(20, 184, 166, 0.07);
+}
+
+/* --------------------------------------------------
+   Hero
+-------------------------------------------------- */
+
+.pay-agent-hero {
+  width: min(100%, 720px);
+  margin: 54px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  text-align: center;
+}
+
+.pay-agent-kicker {
+  margin: 0;
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pay-agent-hero h1 {
+  margin: 0;
+  max-width: 680px;
+  color: #ffffff;
+  font-size: clamp(36px, 5.4vw, 58px);
+  line-height: 0.98;
+  font-weight: 650;
+  letter-spacing: -0.055em;
+}
+
+.pay-agent-subtitle {
+  margin: 0;
+  max-width: 580px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.pay-agent-hint {
+  margin-top: 4px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+/* --------------------------------------------------
+   Layout
+-------------------------------------------------- */
+
+.pay-agent-layout {
+  width: min(100%, 920px);
+  margin: 28px auto 0;
+  display: grid;
+  grid-template-columns: minmax(230px, 0.78fr) minmax(0, 1.62fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* --------------------------------------------------
+   Info card
+-------------------------------------------------- */
+
+.pay-agent-info-card,
+.pay-agent-chat-card {
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
+    );
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 26px rgba(94, 234, 212, 0.045);
+  backdrop-filter: blur(4.5px) saturate(125%);
+  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
+}
+
+.pay-agent-info-card {
+  min-height: 520px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pay-agent-info-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: 17px;
+}
+
+.pay-agent-info-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.pay-agent-info-kicker {
+  margin: 0;
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+.pay-agent-info-copy h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 720;
+  letter-spacing: -0.035em;
+}
+
+.pay-agent-steps {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 11px;
+}
+
+.pay-agent-steps li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.pay-agent-steps span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #04111f;
+  background: #14b8a6;
+  box-shadow: 0 0 18px rgba(20, 184, 166, 0.16);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.pay-agent-steps p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.pay-agent-trust-note {
+  margin: auto 0 0;
+  padding: 12px;
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.64);
+  background: rgba(20, 184, 166, 0.055);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Chat card
+-------------------------------------------------- */
+
+.pay-agent-chat {
+  min-width: 0;
+}
+
+.pay-agent-chat-card {
+  min-height: 520px;
+  padding: 14px;
+  border: 1px solid rgba(94, 234, 212, 0.30);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pay-agent-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pay-agent-chat-title-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pay-agent-chat-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: 16px;
+}
+
+.pay-agent-chat-kicker {
+  margin: 0 0 4px;
+  color: #5eead4;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+.pay-agent-chat-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.14;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+}
+
+.pay-agent-reset {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  border-radius: 999px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.07);
+  font-size: 12px;
+  font-weight: 800;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.pay-agent-reset:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  background: rgba(20, 184, 166, 0.11);
+}
+
+.pay-agent-reset:active {
+  transform: scale(0.98);
+}
+
+.pay-agent-status-row {
+  min-height: 34px;
+  padding: 7px 9px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.045);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pay-agent-status-label {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.pay-agent-status,
+[data-pay-agent-status] {
+  min-height: 23px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------
+   Dynamic messages
+-------------------------------------------------- */
+
+.pay-agent-messages {
+  flex: 1;
+  min-height: 280px;
+  max-height: 420px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.095);
+  background: rgba(255, 255, 255, 0.035);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+
+.pay-agent-messages:empty::before {
+  content: "Tell me where you want to send the payment. For example: “I want to pay 10 USDT to Brazil by PIX.”";
+  width: fit-content;
+  max-width: min(92%, 420px);
+  padding: 11px 12px;
+  border-radius: 15px 15px 15px 5px;
+  color: rgba(255, 255, 255, 0.76);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.28) 0%,
+      rgba(4, 18, 48, 0.18) 100%
+    );
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Broad support for whatever class names the chat renderer uses */
+.pay-agent-message,
+.pay-agent-bubble,
+.pay-agent-chat-message,
+.pay-agent-message-bubble {
+  width: fit-content;
+  max-width: min(92%, 430px);
+  padding: 11px 12px;
+  border-radius: 15px;
+  color: rgba(255, 255, 255, 0.80);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.28) 0%,
+      rgba(4, 18, 48, 0.18) 100%
+    );
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.pay-agent-message.assistant,
+.pay-agent-message-assistant,
+.pay-agent-bubble-assistant,
+.pay-agent-chat-message-assistant {
+  align-self: flex-start;
+  border-bottom-left-radius: 5px;
+}
+
+.pay-agent-message.user,
+.pay-agent-message-user,
+.pay-agent-bubble-user,
+.pay-agent-chat-message-user {
+  align-self: flex-end;
+  border-bottom-right-radius: 5px;
+  color: #04111f;
+  background: #14b8a6;
+  border-color: rgba(94, 234, 212, 0.40);
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.13);
+}
+
+.pay-agent-message.system,
+.pay-agent-message-system,
+.pay-agent-bubble-system,
+.pay-agent-chat-message-system,
+.pay-agent-route-summary {
+  align-self: center;
+  width: auto;
+  max-width: 100%;
+  padding: 8px 11px;
+  border-radius: 999px;
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.075);
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pay-agent-message.error,
+.pay-agent-message-error,
+.pay-agent-error {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.20);
+  border-color: rgba(248, 113, 113, 0.26);
+}
+
+.pay-agent-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pay-agent-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pay-agent-messages::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(94, 234, 212, 0.18);
+}
+
+/* --------------------------------------------------
+   Actions
+-------------------------------------------------- */
+
+.pay-agent-actions,
+[data-pay-agent-actions] {
+  display: grid;
+  gap: 9px;
+}
+
+.pay-agent-actions:empty,
+[data-pay-agent-actions]:empty {
+  display: none;
+}
+
+.pay-agent-actions button,
+.pay-agent-action,
+.pay-agent-wallet-button,
+[data-pay-agent-actions] button {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 14px;
+  padding: 11px 14px;
+  background: #14b8a6;
+  color: #04111f;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.pay-agent-actions button:hover,
+.pay-agent-action:hover,
+.pay-agent-wallet-button:hover,
+[data-pay-agent-actions] button:hover {
+  box-shadow:
+    0 16px 34px rgba(20, 184, 166, 0.23),
+    0 0 28px rgba(20, 184, 166, 0.08);
+}
+
+.pay-agent-actions button:active,
+.pay-agent-action:active,
+.pay-agent-wallet-button:active,
+[data-pay-agent-actions] button:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Form
+-------------------------------------------------- */
+
+.pay-agent-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  align-items: center;
+}
+
+.pay-agent-input,
+[data-pay-agent-input] {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+}
+
+.pay-agent-input::placeholder,
+[data-pay-agent-input]::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.pay-agent-input:focus,
+[data-pay-agent-input]:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.pay-agent-send,
+[data-pay-agent-send] {
+  min-width: 76px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 14px;
+  padding: 0 14px;
+  background: #14b8a6;
+  color: #04111f;
+  font-size: 12px;
+  font-weight: 850;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.16);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.pay-agent-send:hover,
+[data-pay-agent-send]:hover {
+  box-shadow:
+    0 16px 34px rgba(20, 184, 166, 0.21),
+    0 0 28px rgba(20, 184, 166, 0.07);
+}
+
+.pay-agent-send:active,
+[data-pay-agent-send]:active {
+  transform: scale(0.98);
+}
+
+.pay-agent-input:disabled,
+.pay-agent-send:disabled,
+[data-pay-agent-input]:disabled,
+[data-pay-agent-send]:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------
+   Footer
+-------------------------------------------------- */
+
+.pay-agent-footer {
+  margin: auto auto 0;
+  padding-top: 28px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+
+@media (max-width: 820px) {
+  .pay-agent-page {
+    width: min(100%, 520px);
+  }
+
+  .pay-agent-hero {
+    margin-top: 46px;
+    width: min(100%, 440px);
+  }
+
+  .pay-agent-hero h1 {
+    max-width: 420px;
+    font-size: 39px;
+    line-height: 1.02;
+  }
+
+  .pay-agent-subtitle {
+    max-width: 410px;
+    font-size: 14px;
+  }
+
+  .pay-agent-hint {
+    max-width: 100%;
+    min-height: auto;
+    padding: 9px 12px;
+    text-align: center;
+  }
+
+  .pay-agent-layout {
+    width: min(100%, 440px);
+    margin-top: 24px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pay-agent-chat {
+    order: 1;
+  }
+
+  .pay-agent-info-card {
+    order: 2;
+    min-height: auto;
+  }
+
+  .pay-agent-info-card,
+  .pay-agent-chat-card {
+    border-radius: 20px;
+  }
+
+  .pay-agent-chat-card {
+    min-height: 560px;
+  }
+
+  .pay-agent-messages {
+    min-height: 315px;
+    max-height: 48vh;
+  }
+}
+
+@media (max-width: 520px) {
+  .pay-agent-page {
+    width: min(100%, 440px);
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .pay-agent-nav {
+    min-height: 38px;
+  }
+
+  .pay-agent-brand-mark {
+    width: 29px;
+    height: 29px;
+    border-radius: 10px;
+  }
+
+  .pay-agent-brand-text {
+    font-size: 11px;
+  }
+
+  .pay-agent-nav-actions {
+    gap: 6px;
+  }
+
+  .pay-agent-nav-link {
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .pay-agent-nav-link-muted {
+    display: none;
+  }
+
+  .pay-agent-hero {
+    margin-top: 42px;
+  }
+
+  .pay-agent-hero h1 {
+    font-size: 36px;
+  }
+
+  .pay-agent-layout {
+    width: min(100%, 412px);
+  }
+
+  .pay-agent-info-card,
+  .pay-agent-chat-card {
+    padding: 13px;
+  }
+
+  .pay-agent-chat-header {
+    align-items: flex-start;
+  }
+
+  .pay-agent-chat-header h2 {
+    font-size: 16px;
+  }
+
+  .pay-agent-reset {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .pay-agent-status-row {
+    min-height: 32px;
+  }
+
+  .pay-agent-messages {
+    padding: 10px;
+    min-height: 300px;
+  }
+
+  .pay-agent-message,
+  .pay-agent-bubble,
+  .pay-agent-chat-message,
+  .pay-agent-message-bubble,
+  .pay-agent-messages:empty::before {
+    max-width: 94%;
+    font-size: 12px;
+  }
+
+  .pay-agent-form {
+    grid-template-columns: 1fr;
+  }
+
+  .pay-agent-send,
+  [data-pay-agent-send] {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .pay-agent-page {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .pay-agent-hero h1 {
+    font-size: 33px;
+  }
+
+  .pay-agent-info-card,
+  .pay-agent-chat-card {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
