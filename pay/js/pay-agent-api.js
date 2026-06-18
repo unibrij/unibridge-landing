@@ -2,12 +2,13 @@
 
 /*
 --------------------------------------------------
-Pay Agent API client v1
+Pay Agent API client v2
 
 Frontend-only API wrapper for /pay chat UI.
 
 Calls:
 - POST /v2/pay-agent/chat
+- POST /v2/pay-agent/update
 - POST /v2/pay-agent/select-funding
 - POST /v2/pay-agent/handoff
 - GET  /v2/pay-agent/status/:agent_plan_id
@@ -53,7 +54,8 @@ window.UnibridgePayAgentApi = (() => {
 
     Object.entries(input).forEach(([key, item]) => {
       if (item !== undefined) {
-        output[key] = item;
+        output[key] =
+          item;
       }
     });
 
@@ -118,7 +120,9 @@ window.UnibridgePayAgentApi = (() => {
         }
       );
 
-    return parseResponse(response);
+    return parseResponse(
+      response
+    );
   }
 
   async function apiGet(path) {
@@ -136,7 +140,9 @@ window.UnibridgePayAgentApi = (() => {
         }
       );
 
-    return parseResponse(response);
+    return parseResponse(
+      response
+    );
   }
 
   function extractAgentPlanId(result = {}) {
@@ -147,7 +153,9 @@ window.UnibridgePayAgentApi = (() => {
       data.agent_plan_id ||
         data.pay_agent_plan_id ||
         data.plan_id ||
-        data.id
+        data.id ||
+        data.plan?.agent_plan_id ||
+        data.plan?.id
     );
   }
 
@@ -161,7 +169,12 @@ window.UnibridgePayAgentApi = (() => {
         data.funding_handoff?.connect_url ||
         data.funding_handoff?.hosted_url ||
         data.handoff?.connect_url ||
-        data.handoff?.hosted_url
+        data.handoff?.hosted_url ||
+        data.handoff?.url ||
+        data.selected?.connect_url ||
+        data.selected?.handoff?.connect_url ||
+        data.selected?.handoff?.hosted_url ||
+        data.url
     );
   }
 
@@ -208,6 +221,15 @@ window.UnibridgePayAgentApi = (() => {
         locale:
           normalizeString(locale) || "en"
       }
+    );
+  }
+
+  async function sendUpdateAction(payload = {}) {
+    return apiPost(
+      "/pay-agent/update",
+      stripUndefined(
+        normalizeObject(payload)
+      )
     );
   }
 
@@ -289,6 +311,8 @@ window.UnibridgePayAgentApi = (() => {
     API_BASE,
 
     sendChatMessage,
+    sendUpdateAction,
+
     selectFunding,
     createHandoff,
     getStatus,
