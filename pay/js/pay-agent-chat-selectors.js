@@ -30,6 +30,40 @@ window.UnibridgePayAgentChatSelectors = (() => {
       "bank_transfer"
   };
 
+  const INTERNAL_REPLY_TOKENS = new Set([
+    "needs_clarification",
+    "missing_pay_agent_plan_id",
+    "missing_pay_agent_turn_message",
+    "pay_agent_turn",
+    "pay_agent_llm_turn",
+    "pay_agent_deterministic_turn",
+    "pay_agent_beneficiary_answer",
+    "pay_agent_turn_state_refreshed",
+
+    "language_required",
+    "destination_required",
+    "funding_type_required",
+    "stablecoin_asset_required",
+    "fiat_currency_required",
+    "amount_required",
+    "beneficiary_required",
+    "review_required",
+    "wallet_connect_required",
+    "kyc_required",
+    "support_required",
+
+    "planning",
+    "waiting_for_user",
+    "waiting_for_kyc",
+    "waiting_for_funding",
+    "waiting_for_approval",
+    "executing",
+    "completed",
+    "cancelled",
+    "expired",
+    "failed"
+  ]);
+
   function normalizeString(value) {
     if (value === null || value === undefined) {
       return "";
@@ -61,16 +95,42 @@ window.UnibridgePayAgentChatSelectors = (() => {
       : [];
   }
 
+  function isInternalReplyText(value) {
+    const text =
+      normalizeLower(value);
+
+    if (!text) {
+      return true;
+    }
+
+    return INTERNAL_REPLY_TOKENS.has(text);
+  }
+
+  function pickFirstSafeText(...values) {
+    for (const value of values) {
+      const text =
+        normalizeString(value);
+
+      if (
+        text &&
+        !isInternalReplyText(text)
+      ) {
+        return text;
+      }
+    }
+
+    return "";
+  }
+
   function pickReplyText(response = {}) {
     const data =
       normalizeObject(response);
 
-    return normalizeString(
-      data.reply ||
-        data.current_prompt ||
-        data.current_question ||
-        data.message ||
-        ""
+    return pickFirstSafeText(
+      data.reply,
+      data.current_prompt,
+      data.current_question,
+      data.message
     );
   }
 
@@ -206,10 +266,10 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const nextAction =
       pickNextAction(response);
 
-    return normalizeString(
-      nextAction.label ||
-        nextAction.title ||
-        pickNextActionType(response)
+    return pickFirstSafeText(
+      nextAction.label,
+      nextAction.title,
+      pickNextActionType(response)
     );
   }
 
@@ -264,12 +324,12 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const data =
       normalizeObject(payload);
 
-    return normalizeString(
-      data.message ||
-        data.value ||
-        data.funding_method ||
-        data.option_id ||
-        data.action
+    return pickFirstSafeText(
+      data.message,
+      data.value,
+      data.funding_method,
+      data.option_id,
+      data.action
     );
   }
 
@@ -280,6 +340,9 @@ window.UnibridgePayAgentChatSelectors = (() => {
     normalizeLower,
     normalizeObject,
     normalizeArray,
+
+    isInternalReplyText,
+    pickFirstSafeText,
 
     pickReplyText,
     pickAgentPlanId,
