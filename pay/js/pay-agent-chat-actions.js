@@ -142,10 +142,13 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function saveChatResponse(response = {}) {
-    saveAgentPlanId(response);
-    saveResponse(response);
+    const data =
+      normalizeObject(response);
 
-    return response;
+    saveAgentPlanId(data);
+    saveResponse(data);
+
+    return data;
   }
 
   function getAgentPlanId() {
@@ -423,31 +426,47 @@ window.UnibridgePayAgentChatActions = (() => {
         data.handoff?.url ||
         data.selected?.connect_url ||
         data.selected?.handoff?.connect_url ||
+        data.selected?.handoff?.url ||
+        data.response?.connect_url ||
+        data.response?.handoff?.connect_url ||
+        data.response?.handoff?.url ||
         data.url
     );
+  }
+
+  function pickWalletResponseForStorage(result = {}) {
+    const data =
+      normalizeObject(result);
+
+    if (
+      data.selected &&
+      typeof data.selected === "object" &&
+      !Array.isArray(data.selected)
+    ) {
+      return data.selected;
+    }
+
+    if (
+      data.response &&
+      typeof data.response === "object" &&
+      !Array.isArray(data.response)
+    ) {
+      return data.response;
+    }
+
+    return data;
   }
 
   function saveWalletHandoffResult(result = {}) {
     const data =
       normalizeObject(result);
 
-    if (data.selected) {
-      saveChatResponse(
-        data.selected
-      );
-    }
+    const responseForStorage =
+      pickWalletResponseForStorage(data);
 
-    if (data.handoff) {
-      saveChatResponse(
-        data.handoff
-      );
-    }
-
-    if (!data.selected && !data.handoff) {
-      saveChatResponse(
-        data
-      );
-    }
+    saveChatResponse(
+      responseForStorage
+    );
 
     return data;
   }
@@ -483,19 +502,22 @@ window.UnibridgePayAgentChatActions = (() => {
         result
       );
 
+    const connectUrl =
+      extractConnectUrl(
+        normalizedResult
+      );
+
     return {
       result:
         normalizedResult,
 
       response:
-        normalizedResult.selected ||
-        normalizedResult.handoff ||
-        normalizedResult,
+        pickWalletResponseForStorage(
+          normalizedResult
+        ),
 
       connect_url:
-        extractConnectUrl(
-          normalizedResult
-        )
+        connectUrl
     };
   }
 
