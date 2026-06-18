@@ -67,6 +67,22 @@
       "destination": "/surface/index.html"
     },
     {
+      "source": "/pay/start",
+      "destination": "/pay/start/index.html"
+    },
+    {
+      "source": "/pay/start/",
+      "destination": "/pay/start/index.html"
+    },
+    {
+      "source": "/pay/agent",
+      "destination": "/pay/agent/index.html"
+    },
+    {
+      "source": "/pay/agent/",
+      "destination": "/pay/agent/index.html"
+    },
+    {
       "source": "/pay",
       "destination": "/pay/index.html"
     }
