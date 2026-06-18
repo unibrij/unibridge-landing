@@ -11,7 +11,7 @@
 
     <meta
       name="description"
-      content="Use the UniBridge Pay Agent to prepare a payout route and continue with wallet funding."
+      content="Use the UniBridge Pay Agent to prepare a payout route and continue with wallet, card, or bank transfer funding."
     />
 
     <link
@@ -64,7 +64,7 @@
 
     <link
       rel="stylesheet"
-      href="/pay/agent/pay-agent.css"
+      href="/pay/agent/pay-agent.css?v=3"
     />
   </head>
 
@@ -102,7 +102,7 @@
 
             <li>
               <span>3</span>
-              <p>Choose wallet funding</p>
+              <p>Choose a funding method</p>
             </li>
 
             <li>
@@ -139,7 +139,6 @@
                   <p class="pay-agent-chat-kicker">
                     Pay with UniBridge
                   </p>
-
                 </div>
               </div>
 
@@ -185,7 +184,7 @@
                 data-pay-agent-input
                 type="text"
                 autocomplete="off"
-                placeholder="Describe the payment"
+                placeholder=""
                 aria-label="Pay Agent message"
               />
 
@@ -205,8 +204,15 @@
     </main>
 
     <script src="/partials/pay/js/pay-includes.js?v=6"></script>
-    <script src="/pay/js/pay-agent-api.js"></script>
-    <script src="/pay/js/pay-agent-storage.js"></script>
-    <script src="/pay/js/pay-agent-chat.js"></script>
+
+    <script src="/pay/js/pay-agent-api.js?v=2"></script>
+    <script src="/pay/js/pay-agent-storage.js?v=3"></script>
+
+    <script src="/pay/js/pay-agent-chat-privacy.js?v=1"></script>
+    <script src="/pay/js/pay-agent-chat-selectors.js?v=1"></script>
+    <script src="/pay/js/pay-agent-chat-dom.js?v=1"></script>
+    <script src="/pay/js/pay-agent-chat-renderers.js?v=1"></script>
+    <script src="/pay/js/pay-agent-chat-actions.js?v=1"></script>
+    <script src="/pay/js/pay-agent-chat.js?v=3"></script>
   </body>
 </html>
