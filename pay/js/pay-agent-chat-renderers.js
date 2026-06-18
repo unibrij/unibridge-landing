@@ -21,6 +21,18 @@ Does not:
 */
 
 window.UnibridgePayAgentChatRenderers = (() => {
+  const HIDDEN_NEXT_ACTION_TYPES =
+    new Set([
+      "ask_language",
+      "ask_destination",
+      "ask_funding_type",
+      "ask_stablecoin_asset",
+      "ask_fiat_currency",
+      "ask_amount",
+      "ask_beneficiary",
+      "needs_clarification"
+    ]);
+
   function getDom() {
     return window.UnibridgePayAgentChatDom || null;
   }
@@ -81,11 +93,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       getDom();
 
     if (Dom?.createElement) {
-      return Dom.createElement(
-        tag,
-        className,
-        text
-      );
+      return Dom.createElement(tag, className, text);
     }
 
     const element =
@@ -173,26 +181,20 @@ window.UnibridgePayAgentChatRenderers = (() => {
         "pay-agent-info-panel-row"
       );
 
-    const labelElement =
+    row.appendChild(
       createElement(
         "span",
         "pay-agent-info-panel-label",
         label
-      );
+      )
+    );
 
-    const valueElement =
+    row.appendChild(
       createElement(
         "span",
         "pay-agent-info-panel-value",
         safeValue
-      );
-
-    row.appendChild(
-      labelElement
-    );
-
-    row.appendChild(
-      valueElement
+      )
     );
 
     card.appendChild(
@@ -267,37 +269,26 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return null;
     }
 
-    const destination =
-      normalizeObject(
-        summary.destination
-      );
-
-    const beneficiary =
-      normalizeObject(
-        summary.beneficiary
-      );
-
     const card =
       createElement(
         "div",
         "pay-agent-info-panel"
       );
 
-    const title =
+    card.appendChild(
       createElement(
         "div",
         "pay-agent-info-panel-title",
         "Review payment"
-      );
-
-    card.appendChild(
-      title
+      )
     );
 
     appendSummaryRow(
       card,
       "Destination",
-      buildDestinationSummary(destination)
+      buildDestinationSummary(
+        normalizeObject(summary.destination)
+      )
     );
 
     appendSummaryRow(
@@ -328,7 +319,9 @@ window.UnibridgePayAgentChatRenderers = (() => {
     appendSummaryRow(
       card,
       "Recipient",
-      buildRecipientSummary(beneficiary)
+      buildRecipientSummary(
+        normalizeObject(summary.beneficiary)
+      )
     );
 
     Dom.appendToMessages(
@@ -351,27 +344,21 @@ window.UnibridgePayAgentChatRenderers = (() => {
     button.type =
       "button";
 
-    const labelElement =
+    button.appendChild(
       createElement(
         "span",
         "pay-agent-action-label",
         label
-      );
-
-    button.appendChild(
-      labelElement
+      )
     );
 
     if (options.description) {
-      const descriptionElement =
+      button.appendChild(
         createElement(
           "span",
           "pay-agent-action-meta",
           options.description
-        );
-
-      button.appendChild(
-        descriptionElement
+        )
       );
     }
 
@@ -420,24 +407,19 @@ window.UnibridgePayAgentChatRenderers = (() => {
         return;
       }
 
-      const description =
-        Selectors.normalizeOptionDescription(option);
-
-      const button =
+      group.appendChild(
         createActionButton(
           label,
           () => {
             handlers.onOption?.(option);
           },
           {
-            description,
+            description:
+              Selectors.normalizeOptionDescription(option),
             secondary:
               true
           }
-        );
-
-      group.appendChild(
-        button
+        )
       );
     });
 
@@ -447,54 +429,6 @@ window.UnibridgePayAgentChatRenderers = (() => {
 
     Dom.appendToActions(
       group
-    );
-
-    return true;
-  }
-
-  function renderNextAction(
-    response = {},
-    handlers = {}
-  ) {
-    const Dom =
-      getDom();
-
-    const Selectors =
-      getSelectors();
-
-    if (!Dom || !Selectors) {
-      return false;
-    }
-
-    const nextAction =
-      Selectors.pickNextAction(response);
-
-    const actionType =
-      Selectors.pickNextActionType(response);
-
-    if (!actionType) {
-      return false;
-    }
-
-    const label =
-      Selectors.pickNextActionLabel(response);
-
-    if (!label) {
-      return false;
-    }
-
-    const button =
-      createActionButton(
-        label,
-        () => {
-          handlers.onNextAction?.(
-            nextAction
-          );
-        }
-      );
-
-    Dom.appendToActions(
-      button
     );
 
     return true;
@@ -523,6 +457,65 @@ window.UnibridgePayAgentChatRenderers = (() => {
     return Selectors.hasAvailableOptions(response);
   }
 
+  function shouldRenderNextAction(response = {}) {
+    const Selectors =
+      getSelectors();
+
+    if (!Selectors) {
+      return false;
+    }
+
+    const actionType =
+      Selectors.pickNextActionType(response);
+
+    return Boolean(
+      actionType &&
+        !HIDDEN_NEXT_ACTION_TYPES.has(actionType)
+    );
+  }
+
+  function renderNextAction(
+    response = {},
+    handlers = {}
+  ) {
+    const Dom =
+      getDom();
+
+    const Selectors =
+      getSelectors();
+
+    if (!Dom || !Selectors) {
+      return false;
+    }
+
+    if (!shouldRenderNextAction(response)) {
+      return false;
+    }
+
+    const nextAction =
+      Selectors.pickNextAction(response);
+
+    const label =
+      Selectors.pickNextActionLabel(response);
+
+    if (!label) {
+      return false;
+    }
+
+    Dom.appendToActions(
+      createActionButton(
+        label,
+        () => {
+          handlers.onNextAction?.(
+            nextAction
+          );
+        }
+      )
+    );
+
+    return true;
+  }
+
   function renderActions(
     response = {},
     handlers = {}
@@ -548,10 +541,12 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return;
     }
 
-    renderNextAction(
-      response,
-      handlers
-    );
+    if (shouldRenderNextAction(response)) {
+      renderNextAction(
+        response,
+        handlers
+      );
+    }
   }
 
   function clearMessages() {
@@ -571,6 +566,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
     renderActions,
 
     shouldRenderAvailableOptions,
+    shouldRenderNextAction,
 
     createActionButton,
 
