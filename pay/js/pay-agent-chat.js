@@ -43,31 +43,14 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function assertModules() {
-    const Dom =
-      getDom();
+    const Dom = getDom();
+    const Selectors = getSelectors();
+    const Renderers = getRenderers();
+    const Actions = getActions();
+    const Privacy = getPrivacy();
 
-    const Selectors =
-      getSelectors();
-
-    const Renderers =
-      getRenderers();
-
-    const Actions =
-      getActions();
-
-    const Privacy =
-      getPrivacy();
-
-    if (
-      !Dom ||
-      !Selectors ||
-      !Renderers ||
-      !Actions ||
-      !Privacy
-    ) {
-      throw new Error(
-        "Pay Agent chat modules are not loaded."
-      );
+    if (!Dom || !Selectors || !Renderers || !Actions || !Privacy) {
+      throw new Error("Pay Agent chat modules are not loaded.");
     }
 
     return {
@@ -80,13 +63,10 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function normalizeString(value) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.normalizeString) {
-      return Selectors.normalizeString(
-        value
-      );
+      return Selectors.normalizeString(value);
     }
 
     if (value === null || value === undefined) {
@@ -97,13 +77,10 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function normalizeObject(value) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.normalizeObject) {
-      return Selectors.normalizeObject(
-        value
-      );
+      return Selectors.normalizeObject(value);
     }
 
     if (
@@ -118,8 +95,7 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function appendAssistantError(message) {
-    const Renderers =
-      getRenderers();
+    const Renderers = getRenderers();
 
     Renderers?.appendMessage?.(
       "assistant",
@@ -135,21 +111,13 @@ window.UnibridgePayAgentChat = (() => {
       Actions
     } = assertModules();
 
-    const safeResponse =
-      normalizeObject(response);
+    const safeResponse = normalizeObject(response);
 
-    Actions.saveChatResponse(
-      safeResponse
-    );
+    Actions.saveChatResponse(safeResponse);
 
-    Renderers.renderSafeSummary(
-      safeResponse
-    );
+    Renderers.renderSafeSummary(safeResponse);
 
-    const reply =
-      Selectors.pickReplyText(
-        safeResponse
-      );
+    const reply = Selectors.pickReplyText(safeResponse);
 
     if (reply) {
       Renderers.appendMessage(
@@ -176,11 +144,9 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function appendUserSelection(label) {
-    const Renderers =
-      getRenderers();
+    const Renderers = getRenderers();
 
-    const text =
-      normalizeString(label);
+    const text = normalizeString(label);
 
     if (!text) {
       return;
@@ -216,31 +182,21 @@ window.UnibridgePayAgentChat = (() => {
     Dom.clearActions();
 
     if (label) {
-      appendUserSelection(
-        label
-      );
+      appendUserSelection(label);
     }
 
     Dom.setBusy(true);
     Dom.setStatus(status);
 
     try {
-      const response =
-        await task();
+      const response = await task();
 
       if (response) {
-        handleResponse(
-          response
-        );
+        handleResponse(response);
       }
     } catch (error) {
-      appendAssistantError(
-        error?.message
-      );
-
-      Dom.setStatus(
-        "error"
-      );
+      appendAssistantError(error?.message);
+      Dom.setStatus("error");
     } finally {
       Dom.setBusy(false);
       Dom.focusInput();
@@ -252,17 +208,14 @@ window.UnibridgePayAgentChat = (() => {
     payload = {},
     status = "updating"
   } = {}) {
-    const Actions =
-      getActions();
+    const Actions = getActions();
 
     await runBusyAction({
       status,
       label,
 
       task:
-        () => Actions.sendActionPayload(
-          payload
-        )
+        () => Actions.sendActionPayload(payload)
     });
   }
 
@@ -273,9 +226,7 @@ window.UnibridgePayAgentChat = (() => {
     } = assertModules();
 
     const optionId =
-      Selectors.normalizeOptionId(
-        option
-      );
+      Selectors.normalizeOptionId(option);
 
     const label =
       Selectors.normalizeOptionLabel(option) ||
@@ -285,11 +236,7 @@ window.UnibridgePayAgentChat = (() => {
       return;
     }
 
-    if (
-      Selectors.isWalletFundingOption(
-        option
-      )
-    ) {
+    if (Selectors.isWalletFundingOption(option)) {
       handleWalletFunding({
         label
       });
@@ -305,9 +252,7 @@ window.UnibridgePayAgentChat = (() => {
         label,
 
         payload:
-          Actions.buildFundingMethodPayload(
-            optionId
-          )
+          Actions.buildFundingMethodPayload(optionId)
       });
 
       return;
@@ -317,9 +262,7 @@ window.UnibridgePayAgentChat = (() => {
       label,
 
       payload:
-        Actions.buildOptionPayload(
-          option
-        )
+        Actions.buildOptionPayload(option)
     });
   }
 
@@ -361,9 +304,7 @@ window.UnibridgePayAgentChat = (() => {
       label,
 
       payload:
-        Actions.buildNextActionPayload(
-          nextAction
-        )
+        Actions.buildNextActionPayload(nextAction)
     });
   }
 
@@ -383,19 +324,15 @@ window.UnibridgePayAgentChat = (() => {
     Dom.clearActions();
 
     if (label) {
-      appendUserSelection(
-        label
-      );
+      appendUserSelection(label);
     }
 
     Dom.setBusy(true);
-    Dom.setStatus(
-      "preparing wallet handoff"
-    );
+    Dom.setStatus("preparing wallet handoff");
 
     Renderers.appendMessage(
       "assistant",
-      "Preparing your wallet checkout..."
+      "تمام، عم حضّر ربط المحفظة..."
     );
 
     try {
@@ -403,26 +340,15 @@ window.UnibridgePayAgentChat = (() => {
         await Actions.prepareWalletHandoff();
 
       const connectUrl =
-        normalizeString(
-          result.connect_url
-        );
+        normalizeString(result.connect_url);
 
       if (!connectUrl) {
-        handleResponse(
-          result.response ||
-            result.result ||
-            {}
+        throw new Error(
+          "Wallet checkout is not ready yet. Please try again."
         );
-
-        Dom.setBusy(false);
-        Dom.focusInput();
-
-        return;
       }
 
-      Dom.setStatus(
-        "opening wallet checkout"
-      );
+      Dom.setStatus("opening wallet checkout");
 
       window.location.href =
         connectUrl;
@@ -432,10 +358,7 @@ window.UnibridgePayAgentChat = (() => {
           "Could not prepare wallet checkout."
       );
 
-      Dom.setStatus(
-        "error"
-      );
-
+      Dom.setStatus("error");
       Dom.setBusy(false);
 
       const last =
@@ -484,26 +407,20 @@ window.UnibridgePayAgentChat = (() => {
     Dom.clearActions();
 
     const visibleMessage =
-      Privacy.getVisibleUserMessage(
-        message
-      );
+      Privacy.getVisibleUserMessage(message);
 
     Renderers.appendMessage(
       "user",
       visibleMessage,
       {
         masked:
-          Privacy.isMaskedVisibleMessage(
-            visibleMessage
-          )
+          Privacy.isMaskedVisibleMessage(visibleMessage)
       }
     );
 
     Dom.clearInput();
     Dom.setBusy(true);
-    Dom.setStatus(
-      "thinking"
-    );
+    Dom.setStatus("thinking");
 
     try {
       const response =
@@ -511,17 +428,10 @@ window.UnibridgePayAgentChat = (() => {
           message
         });
 
-      handleResponse(
-        response
-      );
+      handleResponse(response);
     } catch (error) {
-      appendAssistantError(
-        error?.message
-      );
-
-      Dom.setStatus(
-        "error"
-      );
+      appendAssistantError(error?.message);
+      Dom.setStatus("error");
     } finally {
       Dom.setBusy(false);
       Dom.focusInput();
@@ -539,9 +449,7 @@ window.UnibridgePayAgentChat = (() => {
     Dom.clearMessages();
     Dom.clearActions();
     Dom.clearInput();
-    Dom.setStatus(
-      "ready"
-    );
+    Dom.setStatus("ready");
     Dom.focusInput();
   }
 
@@ -554,10 +462,7 @@ window.UnibridgePayAgentChat = (() => {
     } = assertModules();
 
     if (!Actions.hasActivePlan()) {
-      Dom.setStatus(
-        "ready"
-      );
-
+      Dom.setStatus("ready");
       return;
     }
 
@@ -567,21 +472,14 @@ window.UnibridgePayAgentChat = (() => {
       );
 
     if (!Object.keys(last).length) {
-      Dom.setStatus(
-        "ready"
-      );
-
+      Dom.setStatus("ready");
       return;
     }
 
-    Renderers.renderSafeSummary(
-      last
-    );
+    Renderers.renderSafeSummary(last);
 
     const reply =
-      Selectors.pickReplyText(
-        last
-      );
+      Selectors.pickReplyText(last);
 
     if (reply) {
       Renderers.appendMessage(
@@ -608,16 +506,10 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function bindEvents() {
-    const Dom =
-      getDom();
+    const Dom = getDom();
 
-    Dom.bindSubmit(
-      handleSubmit
-    );
-
-    Dom.bindReset(
-      handleReset
-    );
+    Dom.bindSubmit(handleSubmit);
+    Dom.bindReset(handleReset);
   }
 
   function init() {
