@@ -529,24 +529,6 @@ a {
   scroll-behavior: smooth;
 }
 
-.pay-agent-messages:empty::before {
-  content: "Tell me where you want to send the payment. For example: “I want to pay 10 USDT to Brazil by PIX.”";
-  width: fit-content;
-  max-width: min(92%, 420px);
-  padding: 11px 12px;
-  border-radius: 15px 15px 15px 5px;
-  color: rgba(255, 255, 255, 0.76);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(12, 40, 78, 0.28) 0%,
-      rgba(4, 18, 48, 0.18) 100%
-    );
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
 /* Broad support for whatever class names the chat renderer uses */
 .pay-agent-message,
 .pay-agent-bubble,
@@ -631,6 +613,55 @@ a {
 }
 
 /* --------------------------------------------------
+   Pay Agent dynamic info panels
+-------------------------------------------------- */
+
+.pay-agent-info-panel {
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  padding: 11px 12px;
+  border-radius: 15px;
+  color: rgba(255, 255, 255, 0.78);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 184, 166, 0.075) 0%,
+      rgba(4, 18, 48, 0.12) 100%
+    );
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  display: grid;
+  gap: 7px;
+}
+
+.pay-agent-info-panel-title {
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pay-agent-info-panel-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.pay-agent-info-panel-label {
+  color: rgba(255, 255, 255, 0.48);
+  white-space: nowrap;
+}
+
+.pay-agent-info-panel-value {
+  color: rgba(255, 255, 255, 0.88);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------
    Actions
 -------------------------------------------------- */
 
@@ -643,6 +674,11 @@ a {
 .pay-agent-actions:empty,
 [data-pay-agent-actions]:empty {
   display: none;
+}
+
+.pay-agent-option-group {
+  display: grid;
+  gap: 9px;
 }
 
 .pay-agent-actions button,
@@ -684,6 +720,27 @@ a {
   transform: scale(0.98);
 }
 
+.pay-agent-action-secondary {
+  color: #ffffff !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.34) 0%,
+      rgba(4, 18, 48, 0.18) 100%
+    ) !important;
+  border: 1px solid rgba(94, 234, 212, 0.22) !important;
+  box-shadow: none !important;
+}
+
+.pay-agent-action-meta {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 /* --------------------------------------------------
    Form
 -------------------------------------------------- */
@@ -711,7 +768,7 @@ a {
 
 .pay-agent-input::placeholder,
 [data-pay-agent-input]::placeholder {
-  color: rgba(255, 255, 255, 0.38);
+  color: transparent;
 }
 
 .pay-agent-input:focus,
@@ -912,8 +969,7 @@ a {
   .pay-agent-message,
   .pay-agent-bubble,
   .pay-agent-chat-message,
-  .pay-agent-message-bubble,
-  .pay-agent-messages:empty::before {
+  .pay-agent-message-bubble {
     max-width: 94%;
     font-size: 12px;
   }
