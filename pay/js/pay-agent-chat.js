@@ -2,93 +2,93 @@
 
 /*
 --------------------------------------------------
-Pay Agent Chat UI v1
+Pay Agent Chat Controller v3
 
-Frontend controller for /pay/agent/.
-
-Responsibilities:
-- Render Pay Agent chat UI.
-- Send user messages to backend /v2/pay-agent/chat.
-- Store only agent_plan_id + safe response snapshot.
-- Show funding buttons when backend says funding is ready.
-- Select wallet funding.
-- Create handoff.
-- Open connect_url.
-- Mask standalone recipient-like user inputs in the visible chat.
+Responsibility:
+- Coordinate DOM, renderers, actions, selectors, and privacy modules.
+- Send the user's real first message to backend.
+- Handle option clicks and next_action clicks.
+- Keep the empty chat placeholder purely visual via CSS.
+- Keep controller small and orchestration-only.
 
 Does not:
-- Build normalized_intent.
-- Select route client-side.
-- Validate beneficiary fields client-side.
-- Execute payout.
-- Confirm funding.
+- Render DOM directly except through renderers/dom modules.
+- Call backend directly except through actions module.
 - Store beneficiary / PIX key in localStorage.
+- Build normalized_intent.
+- Decide route client-side.
+- Execute payout.
 --------------------------------------------------
 */
 
 window.UnibridgePayAgentChat = (() => {
-  const DEFAULT_LOCALE =
-    "en";
+  function getDom() {
+    return window.UnibridgePayAgentChatDom || null;
+  }
 
-  const MASKED_VALUE =
-    "••••••••••••••";
+  function getSelectors() {
+    return window.UnibridgePayAgentChatSelectors || null;
+  }
 
-  const SELECTORS = {
-    root:
-      "[data-pay-agent-chat]",
+  function getRenderers() {
+    return window.UnibridgePayAgentChatRenderers || null;
+  }
 
-    messages:
-      "[data-pay-agent-messages]",
+  function getActions() {
+    return window.UnibridgePayAgentChatActions || null;
+  }
 
-    form:
-      "[data-pay-agent-form]",
+  function getPrivacy() {
+    return window.UnibridgePayAgentChatPrivacy || null;
+  }
 
-    input:
-      "[data-pay-agent-input]",
+  function assertModules() {
+    const Dom =
+      getDom();
 
-    send:
-      "[data-pay-agent-send]",
+    const Selectors =
+      getSelectors();
 
-    actions:
-      "[data-pay-agent-actions]",
+    const Renderers =
+      getRenderers();
 
-    status:
-      "[data-pay-agent-status]",
+    const Actions =
+      getActions();
 
-    reset:
-      "[data-pay-agent-reset]"
-  };
+    const Privacy =
+      getPrivacy();
 
-  let state = {
-    root:
-      null,
+    if (
+      !Dom ||
+      !Selectors ||
+      !Renderers ||
+      !Actions ||
+      !Privacy
+    ) {
+      throw new Error(
+        "Pay Agent chat modules are not loaded."
+      );
+    }
 
-    messages:
-      null,
-
-    form:
-      null,
-
-    input:
-      null,
-
-    send:
-      null,
-
-    actions:
-      null,
-
-    status:
-      null,
-
-    reset:
-      null,
-
-    busy:
-      false
-  };
+    return {
+      Dom,
+      Selectors,
+      Renderers,
+      Actions,
+      Privacy
+    };
+  }
 
   function normalizeString(value) {
+    const Selectors =
+      getSelectors();
+
+    if (Selectors?.normalizeString) {
+      return Selectors.normalizeString(
+        value
+      );
+    }
+
     if (value === null || value === undefined) {
       return "";
     }
@@ -96,11 +96,16 @@ window.UnibridgePayAgentChat = (() => {
     return String(value).trim();
   }
 
-  function normalizeLower(value) {
-    return normalizeString(value).toLowerCase();
-  }
-
   function normalizeObject(value) {
+    const Selectors =
+      getSelectors();
+
+    if (Selectors?.normalizeObject) {
+      return Selectors.normalizeObject(
+        value
+      );
+    }
+
     if (
       !value ||
       typeof value !== "object" ||
@@ -112,670 +117,290 @@ window.UnibridgePayAgentChat = (() => {
     return value;
   }
 
-  function normalizeArray(value) {
-    return Array.isArray(value)
-      ? value
-      : [];
-  }
-
-  function getApi() {
-    return window.UnibridgePayAgentApi || null;
-  }
-
-  function getStorage() {
-    return window.UnibridgePayAgentStorage || null;
-  }
-
-  function createElement(tag, className, text = "") {
-    const element =
-      document.createElement(tag);
-
-    if (className) {
-      element.className =
-        className;
-    }
-
-    if (text) {
-      element.textContent =
-        text;
-    }
-
-    return element;
-  }
-
-  function clearElement(element) {
-    if (!element) {
-      return;
-    }
-
-    while (element.firstChild) {
-      element.removeChild(element.firstChild);
-    }
-  }
-
-  function setBusy(value) {
-    state.busy =
-      Boolean(value);
-
-    if (state.input) {
-      state.input.disabled =
-        state.busy;
-    }
-
-    if (state.send) {
-      state.send.disabled =
-        state.busy;
-    }
-
-    if (state.root) {
-      state.root.classList.toggle(
-        "is-busy",
-        state.busy
-      );
-    }
-  }
-
-  function setStatus(text = "ready") {
-    if (!state.status) {
-      return;
-    }
-
-    state.status.textContent =
-      normalizeString(text) || "ready";
-  }
-
-  function scrollMessagesToBottom() {
-    if (!state.messages) {
-      return;
-    }
-
-    state.messages.scrollTop =
-      state.messages.scrollHeight;
-  }
-
-  function isStandaloneEmail(value) {
-    const text =
-      normalizeString(value);
-
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
-  }
-
-  function isStandaloneCpfOrPhone(value) {
-    const text =
-      normalizeString(value);
-
-    if (!text) {
-      return false;
-    }
-
-    const digits =
-      text.replace(/\D/g, "");
-
-    if (digits.length < 8) {
-      return false;
-    }
-
-    if (digits.length > 15) {
-      return false;
-    }
-
-    return /^[+\d][\d\s().-]+$/.test(text);
-  }
-
-  function isStandalonePixRandomKey(value) {
-    const text =
-      normalizeString(value);
-
-    if (!text) {
-      return false;
-    }
-
-    if (
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(text)
-    ) {
-      return true;
-    }
-
-    if (
-      !/\s/.test(text) &&
-      /^[a-z0-9._-]{18,}$/i.test(text)
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  function shouldMaskUserMessage(value) {
-    const text =
-      normalizeString(value);
-
-    if (!text) {
-      return false;
-    }
-
-    return (
-      isStandaloneEmail(text) ||
-      isStandaloneCpfOrPhone(text) ||
-      isStandalonePixRandomKey(text)
-    );
-  }
-
-  function getVisibleUserMessage(value) {
-    const text =
-      normalizeString(value);
-
-    if (!text) {
-      return "";
-    }
-
-    return shouldMaskUserMessage(text)
-      ? MASKED_VALUE
-      : text;
-  }
-
-  function appendMessage(role, text, options = {}) {
-    if (!state.messages) {
-      return null;
-    }
-
-    const messageText =
-      normalizeString(text);
-
-    if (!messageText) {
-      return null;
-    }
-
-    const safeRole =
-      normalizeString(role) || "assistant";
-
-    const message =
-      createElement(
-        "div",
-        `pay-agent-message pay-agent-message-${safeRole}`,
-        messageText
-      );
-
-    if (options.compact) {
-      message.classList.add(
-        "pay-agent-message-compact"
-      );
-    }
-
-    if (options.masked) {
-      message.classList.add(
-        "pay-agent-message-masked"
-      );
-    }
-
-    state.messages.appendChild(
-      message
-    );
-
-    scrollMessagesToBottom();
-
-    return message;
-  }
-
-  function pickReplyText(response = {}) {
-    const data =
-      normalizeObject(response);
-
-    return normalizeString(
-      data.reply ||
-        data.current_prompt ||
-        data.message ||
-        "I’m ready."
-    );
-  }
-
-  function pickAgentPlanId(response = {}) {
-    const data =
-      normalizeObject(response);
-
-    return normalizeString(
-      data.agent_plan_id ||
-        data.pay_agent_plan_id ||
-        data.plan_id ||
-        data.id ||
-        data.plan?.agent_plan_id
-    );
-  }
-
-  function pickStatus(response = {}) {
-    const data =
-      normalizeObject(response);
-
-    return normalizeString(
-      data.status ||
-        data.plan?.status
-    );
-  }
-
-  function normalizeFundingOption(item) {
-    if (typeof item === "string") {
-      return normalizeLower(item);
-    }
-
-    const option =
-      normalizeObject(item);
-
-    return normalizeLower(
-      option.method ||
-        option.type ||
-        option.id ||
-        option.name ||
-        option.value
-    );
-  }
-
-  function pickFundingOptions(response = {}) {
-    const data =
-      normalizeObject(response);
-
-    const direct =
-      normalizeArray(data.funding_options);
-
-    if (direct.length) {
-      return direct;
-    }
-
-    return normalizeArray(
-      data.plan?.funding_options
-    );
-  }
-
-  function hasWalletFunding(response = {}) {
-    const options =
-      pickFundingOptions(response)
-        .map(normalizeFundingOption)
-        .filter(Boolean);
-
-    if (options.includes("wallet")) {
-      return true;
-    }
-
-    if (options.includes("wallet_connect")) {
-      return true;
-    }
-
-    const data =
-      normalizeObject(response);
-
-    return Boolean(
-      data.wallet_available ||
-        data.requires_wallet_connect ||
-        data.funding_handoff?.type === "wallet_connect" ||
-        data.handoff?.type === "wallet_connect" ||
-        data.plan?.selected_funding_method === "wallet"
-    );
-  }
-
-  function shouldShowFundingActions(response = {}) {
-    const status =
-      pickStatus(response);
-
-    if (
-      status === "funding_choice_required" ||
-      status === "funding_required" ||
-      status === "wallet_connect_ready"
-    ) {
-      return true;
-    }
-
-    const data =
-      normalizeObject(response);
-
-    const nextAction =
-      normalizeLower(
-        data.next_action?.type ||
-          data.next_action ||
-          ""
-      );
-
-    return (
-      nextAction === "funding_choice" ||
-      nextAction === "select_funding" ||
-      nextAction === "wallet_connect"
-    );
-  }
-
-  function buildRouteSummary(response = {}) {
-    const data =
-      normalizeObject(response);
-
-    const route =
-      normalizeObject(
-        data.route ||
-          data.plan?.route
-      );
-
-    const parts = [];
-
-    if (route.label) {
-      parts.push(
-        normalizeString(route.label)
-      );
-    } else {
-      if (route.country) {
-        parts.push(
-          normalizeString(route.country)
-        );
-      }
-
-      if (route.payout_rail || route.rail) {
-        parts.push(
-          normalizeString(
-            route.payout_rail ||
-              route.rail
-          )
-        );
-      }
-    }
-
-    if (route.asset) {
-      parts.push(
-        normalizeString(route.asset)
-      );
-    }
-
-    if (route.network) {
-      parts.push(
-        normalizeString(route.network)
-      );
-    }
-
-    return parts
-      .filter(Boolean)
-      .join(" · ");
-  }
-
-  function renderSafeSummary(response = {}) {
-    const routeSummary =
-      buildRouteSummary(response);
-
-    if (routeSummary) {
-      appendMessage(
-        "system",
-        routeSummary,
-        {
-          compact:
-            true
-        }
-      );
-    }
-  }
-
-  function clearActions() {
-    clearElement(
-      state.actions
-    );
-  }
-
-  function createActionButton(label, onClick) {
-    const button =
-      createElement(
-        "button",
-        "pay-agent-action-button",
-        label
-      );
-
-    button.type =
-      "button";
-
-    button.addEventListener(
-      "click",
-      onClick
-    );
-
-    return button;
-  }
-
-  function renderFundingActions(response = {}) {
-    clearActions();
-
-    if (!state.actions) {
-      return;
-    }
-
-    if (!shouldShowFundingActions(response)) {
-      return;
-    }
-
-    if (!hasWalletFunding(response)) {
-      appendMessage(
-        "assistant",
-        "No supported funding method is available for this route yet."
-      );
-      return;
-    }
-
-    const walletButton =
-      createActionButton(
-        "Continue with wallet",
-        handleWalletFunding
-      );
-
-    state.actions.appendChild(
-      walletButton
-    );
-  }
-
-  function saveResponse(response = {}) {
-    const storage =
-      getStorage();
-
-    if (!storage) {
-      return;
-    }
-
-    storage.saveResponse(
-      response
-    );
-  }
-
-  function saveAgentPlanId(response = {}) {
-    const storage =
-      getStorage();
-
-    if (!storage) {
-      return;
-    }
-
-    const agentPlanId =
-      pickAgentPlanId(response);
-
-    if (agentPlanId) {
-      storage.setAgentPlanId(
-        agentPlanId
-      );
-    }
-  }
-
-  function getAgentPlanId() {
-    const storage =
-      getStorage();
-
-    if (!storage) {
-      return "";
-    }
-
-    return normalizeString(
-      storage.getAgentPlanId()
-    );
-  }
-
-  function getLastSafeResponse() {
-    const storage =
-      getStorage();
-
-    if (!storage) {
-      return {};
-    }
-
-    return normalizeObject(
-      storage.getLastResponse()
+  function appendAssistantError(message) {
+    const Renderers =
+      getRenderers();
+
+    Renderers?.appendMessage?.(
+      "assistant",
+      message || "Something went wrong. Please try again."
     );
   }
 
   function handleResponse(response = {}) {
-    saveAgentPlanId(response);
-    saveResponse(response);
+    const {
+      Dom,
+      Selectors,
+      Renderers,
+      Actions
+    } = assertModules();
+
+    const safeResponse =
+      normalizeObject(response);
+
+    Actions.saveChatResponse(
+      safeResponse
+    );
+
+    Renderers.renderSafeSummary(
+      safeResponse
+    );
 
     const reply =
-      pickReplyText(response);
+      Selectors.pickReplyText(
+        safeResponse
+      );
 
-    renderSafeSummary(response);
-
-    appendMessage(
-      "assistant",
-      reply
-    );
-
-    const status =
-      pickStatus(response);
-
-    setStatus(
-      status || "ready"
-    );
-
-    renderFundingActions(response);
-  }
-
-  async function handleSubmit(event) {
-    if (event) {
-      event.preventDefault();
-    }
-
-    if (state.busy) {
-      return;
-    }
-
-    const api =
-      getApi();
-
-    if (!api) {
-      appendMessage(
+    if (reply) {
+      Renderers.appendMessage(
         "assistant",
-        "Pay Agent API is not loaded."
+        reply
       );
-      return;
     }
 
-    const message =
-      normalizeString(
-        state.input?.value
-      );
+    Dom.setStatus(
+      Selectors.pickStatus(safeResponse) ||
+        "ready"
+    );
 
-    if (!message) {
-      return;
-    }
-
-    clearActions();
-
-    const visibleMessage =
-      getVisibleUserMessage(message);
-
-    appendMessage(
-      "user",
-      visibleMessage,
+    Renderers.renderActions(
+      safeResponse,
       {
-        masked:
-          visibleMessage === MASKED_VALUE
+        onOption:
+          handleOptionSelection,
+
+        onNextAction:
+          handleNextAction
       }
     );
+  }
 
-    if (state.input) {
-      state.input.value =
-        "";
+  function appendUserSelection(label) {
+    const Renderers =
+      getRenderers();
+
+    const text =
+      normalizeString(label);
+
+    if (!text) {
+      return;
     }
 
-    setBusy(true);
-    setStatus("thinking");
+    Renderers?.appendMessage?.(
+      "user",
+      text,
+      {
+        compact:
+          true
+      }
+    );
+  }
+
+  async function runBusyAction({
+    status = "updating",
+    label = "",
+    task
+  } = {}) {
+    const {
+      Dom
+    } = assertModules();
+
+    if (Dom.isBusy()) {
+      return;
+    }
+
+    if (typeof task !== "function") {
+      return;
+    }
+
+    Dom.clearActions();
+
+    if (label) {
+      appendUserSelection(
+        label
+      );
+    }
+
+    Dom.setBusy(true);
+    Dom.setStatus(status);
 
     try {
       const response =
-        await api.sendChatMessage({
-          agent_plan_id:
-            getAgentPlanId() || undefined,
+        await task();
 
-          message,
-
-          locale:
-            DEFAULT_LOCALE
-        });
-
-      handleResponse(response);
+      if (response) {
+        handleResponse(
+          response
+        );
+      }
     } catch (error) {
-      appendMessage(
-        "assistant",
-        error?.message ||
-          "Something went wrong. Please try again."
+      appendAssistantError(
+        error?.message
       );
 
-      setStatus("error");
+      Dom.setStatus(
+        "error"
+      );
     } finally {
-      setBusy(false);
-
-      if (state.input) {
-        state.input.focus();
-      }
+      Dom.setBusy(false);
+      Dom.focusInput();
     }
   }
 
-  async function handleWalletFunding() {
-    if (state.busy) {
-      return;
-    }
+  async function handleDeterministicPayload({
+    label = "",
+    payload = {},
+    status = "updating"
+  } = {}) {
+    const Actions =
+      getActions();
 
-    const api =
-      getApi();
+    await runBusyAction({
+      status,
+      label,
 
-    if (!api) {
-      appendMessage(
-        "assistant",
-        "Pay Agent API is not loaded."
+      task:
+        () => Actions.sendActionPayload(
+          payload
+        )
+    });
+  }
+
+  function handleOptionSelection(option = {}) {
+    const {
+      Selectors,
+      Actions
+    } = assertModules();
+
+    const optionId =
+      Selectors.normalizeOptionId(
+        option
       );
+
+    const label =
+      Selectors.normalizeOptionLabel(option) ||
+      optionId;
+
+    if (!optionId) {
       return;
     }
 
-    const agentPlanId =
-      getAgentPlanId();
+    if (
+      Selectors.isWalletFundingOption(
+        option
+      )
+    ) {
+      handleWalletFunding({
+        label
+      });
 
-    if (!agentPlanId) {
-      appendMessage(
-        "assistant",
-        "I could not find the payment plan. Please start again."
+      return;
+    }
+
+    if (
+      Selectors.isCardFundingOption(option) ||
+      Selectors.isBankTransferFundingOption(option)
+    ) {
+      handleDeterministicPayload({
+        label,
+
+        payload:
+          Actions.buildFundingMethodPayload(
+            optionId
+          )
+      });
+
+      return;
+    }
+
+    handleDeterministicPayload({
+      label,
+
+      payload:
+        Actions.buildOptionPayload(
+          option
+        )
+    });
+  }
+
+  function handleNextAction(nextAction = {}) {
+    const {
+      Selectors,
+      Actions
+    } = assertModules();
+
+    const actionType =
+      Selectors.normalizeLower(
+        nextAction.type ||
+          nextAction.action
       );
+
+    const label =
+      normalizeString(
+        nextAction.label ||
+          nextAction.title ||
+          actionType
+      );
+
+    if (!actionType) {
       return;
     }
 
-    clearActions();
-    setBusy(true);
-    setStatus("preparing wallet handoff");
+    if (
+      actionType === "connect_wallet" ||
+      actionType === "approve_wallet_payment"
+    ) {
+      handleWalletFunding({
+        label
+      });
 
-    appendMessage(
+      return;
+    }
+
+    handleDeterministicPayload({
+      label,
+
+      payload:
+        Actions.buildNextActionPayload(
+          nextAction
+        )
+    });
+  }
+
+  async function handleWalletFunding({
+    label = ""
+  } = {}) {
+    const {
+      Dom,
+      Renderers,
+      Actions
+    } = assertModules();
+
+    if (Dom.isBusy()) {
+      return;
+    }
+
+    Dom.clearActions();
+
+    if (label) {
+      appendUserSelection(
+        label
+      );
+    }
+
+    Dom.setBusy(true);
+    Dom.setStatus(
+      "preparing wallet handoff"
+    );
+
+    Renderers.appendMessage(
       "assistant",
       "Preparing your wallet checkout..."
     );
 
     try {
       const result =
-        await api.selectWalletAndCreateHandoff(
-          agentPlanId
-        );
-
-      if (result.selected) {
-        saveResponse(
-          result.selected
-        );
-      }
-
-      if (result.handoff) {
-        saveResponse(
-          result.handoff
-        );
-      }
+        await Actions.prepareWalletHandoff();
 
       const connectUrl =
         normalizeString(
@@ -783,200 +408,154 @@ window.UnibridgePayAgentChat = (() => {
         );
 
       if (!connectUrl) {
-        appendMessage(
-          "assistant",
-          "Wallet handoff is ready, but no connect URL was returned."
+        handleResponse(
+          result.response ||
+            result.result ||
+            {}
         );
 
-        setStatus("handoff_ready");
-        setBusy(false);
-
-        renderFundingActions(
-          result.selected ||
-            getLastSafeResponse()
-        );
+        Dom.setBusy(false);
+        Dom.focusInput();
 
         return;
       }
 
-      setStatus("opening wallet checkout");
+      Dom.setStatus(
+        "opening wallet checkout"
+      );
 
       window.location.href =
         connectUrl;
     } catch (error) {
-      appendMessage(
-        "assistant",
+      appendAssistantError(
         error?.message ||
           "Could not prepare wallet checkout."
       );
 
-      setStatus("error");
-      setBusy(false);
-
-      renderFundingActions(
-        getLastSafeResponse()
+      Dom.setStatus(
+        "error"
       );
+
+      Dom.setBusy(false);
+
+      const last =
+        Actions.getLastSafeResponse();
+
+      if (last && Object.keys(last).length) {
+        Renderers.renderActions(
+          last,
+          {
+            onOption:
+              handleOptionSelection,
+
+            onNextAction:
+              handleNextAction
+          }
+        );
+      }
+
+      Dom.focusInput();
+    }
+  }
+
+  async function handleSubmit(event) {
+    if (event) {
+      event.preventDefault();
+    }
+
+    const {
+      Dom,
+      Renderers,
+      Actions,
+      Privacy
+    } = assertModules();
+
+    if (Dom.isBusy()) {
+      return;
+    }
+
+    const message =
+      Dom.getInputValue();
+
+    if (!message) {
+      return;
+    }
+
+    Dom.clearActions();
+
+    const visibleMessage =
+      Privacy.getVisibleUserMessage(
+        message
+      );
+
+    Renderers.appendMessage(
+      "user",
+      visibleMessage,
+      {
+        masked:
+          Privacy.isMaskedVisibleMessage(
+            visibleMessage
+          )
+      }
+    );
+
+    Dom.clearInput();
+    Dom.setBusy(true);
+    Dom.setStatus(
+      "thinking"
+    );
+
+    try {
+      const response =
+        await Actions.sendChatMessage({
+          message
+        });
+
+      handleResponse(
+        response
+      );
+    } catch (error) {
+      appendAssistantError(
+        error?.message
+      );
+
+      Dom.setStatus(
+        "error"
+      );
+    } finally {
+      Dom.setBusy(false);
+      Dom.focusInput();
     }
   }
 
   function handleReset() {
-    const storage =
-      getStorage();
+    const {
+      Dom,
+      Actions
+    } = assertModules();
 
-    if (storage) {
-      storage.clear();
-    }
+    Actions.clearStorage();
 
-    clearElement(
-      state.messages
+    Dom.clearMessages();
+    Dom.clearActions();
+    Dom.clearInput();
+    Dom.setStatus(
+      "ready"
     );
-
-    clearActions();
-
-    setStatus("ready");
-
-    appendMessage(
-      "assistant",
-      "Tell me where you want to send the payment. For example: “I want to pay 10 USDT to Brazil by PIX.”"
-    );
-
-    if (state.input) {
-      state.input.value =
-        "";
-      state.input.focus();
-    }
-  }
-
-  function createDefaultRoot() {
-    const section =
-      createElement(
-        "section",
-        "pay-agent-chat"
-      );
-
-    section.setAttribute(
-      "data-pay-agent-chat",
-      ""
-    );
-
-    section.innerHTML = `
-      <div class="pay-agent-chat-card">
-        <div class="pay-agent-chat-header">
-          <div class="pay-agent-chat-title-row">
-            <div class="pay-agent-chat-icon" aria-hidden="true">✦</div>
-            <div>
-              <p class="pay-agent-chat-kicker">Pay with UniBridge</p>
-              <h2>Route preparation assistant</h2>
-            </div>
-          </div>
-
-          <button type="button" class="pay-agent-reset" data-pay-agent-reset>
-            Reset
-          </button>
-        </div>
-
-        <div class="pay-agent-status-row">
-          <span class="pay-agent-status-label">Status</span>
-          <span class="pay-agent-status" data-pay-agent-status>ready</span>
-        </div>
-
-        <div class="pay-agent-messages" data-pay-agent-messages></div>
-
-        <div class="pay-agent-actions" data-pay-agent-actions></div>
-
-        <form class="pay-agent-form" data-pay-agent-form>
-          <input
-            class="pay-agent-input"
-            data-pay-agent-input
-            type="text"
-            autocomplete="off"
-            placeholder="Example: I want to pay 10 USDT to Brazil by PIX"
-          />
-          <button class="pay-agent-send" data-pay-agent-send type="submit">
-            Send
-          </button>
-        </form>
-      </div>
-    `;
-
-    const mount =
-      document.querySelector("[data-pay-agent-mount]") ||
-      document.querySelector("main") ||
-      document.body;
-
-    mount.appendChild(
-      section
-    );
-
-    return section;
-  }
-
-  function bindElements(root) {
-    state.root =
-      root;
-
-    state.messages =
-      root.querySelector(
-        SELECTORS.messages
-      );
-
-    state.form =
-      root.querySelector(
-        SELECTORS.form
-      );
-
-    state.input =
-      root.querySelector(
-        SELECTORS.input
-      );
-
-    state.send =
-      root.querySelector(
-        SELECTORS.send
-      );
-
-    state.actions =
-      root.querySelector(
-        SELECTORS.actions
-      );
-
-    state.status =
-      root.querySelector(
-        SELECTORS.status
-      );
-
-    state.reset =
-      root.querySelector(
-        SELECTORS.reset
-      );
-  }
-
-  function bindEvents() {
-    if (state.form) {
-      state.form.addEventListener(
-        "submit",
-        handleSubmit
-      );
-    }
-
-    if (state.reset) {
-      state.reset.addEventListener(
-        "click",
-        handleReset
-      );
-    }
+    Dom.focusInput();
   }
 
   function restoreLastSnapshot() {
-    const storage =
-      getStorage();
+    const {
+      Dom,
+      Selectors,
+      Renderers,
+      Actions
+    } = assertModules();
 
-    if (!storage || !storage.hasActivePlan()) {
-      setStatus("ready");
-
-      appendMessage(
-        "assistant",
-        "Tell me where you want to send the payment. For example: “I want to pay 10 USDT to Brazil by PIX.”"
+    if (!Actions.hasActivePlan()) {
+      Dom.setStatus(
+        "ready"
       );
 
       return;
@@ -984,52 +563,83 @@ window.UnibridgePayAgentChat = (() => {
 
     const last =
       normalizeObject(
-        storage.getLastResponse()
+        Actions.getLastSafeResponse()
       );
 
-    appendMessage(
-      "assistant",
-      "I found your previous payment draft."
+    if (!Object.keys(last).length) {
+      Dom.setStatus(
+        "ready"
+      );
+
+      return;
+    }
+
+    Renderers.renderSafeSummary(
+      last
     );
 
-    renderSafeSummary(last);
+    const reply =
+      Selectors.pickReplyText(
+        last
+      );
 
-    if (last.reply || last.current_prompt) {
-      appendMessage(
+    if (reply) {
+      Renderers.appendMessage(
         "assistant",
-        pickReplyText(last)
+        reply
       );
     }
 
-    setStatus(
-      last.status || "ready"
+    Dom.setStatus(
+      Selectors.pickStatus(last) ||
+        "ready"
     );
 
-    renderFundingActions(last);
+    Renderers.renderActions(
+      last,
+      {
+        onOption:
+          handleOptionSelection,
+
+        onNextAction:
+          handleNextAction
+      }
+    );
+  }
+
+  function bindEvents() {
+    const Dom =
+      getDom();
+
+    Dom.bindSubmit(
+      handleSubmit
+    );
+
+    Dom.bindReset(
+      handleReset
+    );
   }
 
   function init() {
-    const root =
-      document.querySelector(
-        SELECTORS.root
-      ) ||
-      createDefaultRoot();
+    const {
+      Dom
+    } = assertModules();
 
-    bindElements(root);
+    Dom.mount();
     bindEvents();
-
     restoreLastSnapshot();
-
-    if (state.input) {
-      state.input.focus();
-    }
+    Dom.focusInput();
   }
 
   return {
     init,
+
     handleSubmit,
+    handleReset,
+    handleOptionSelection,
+    handleNextAction,
     handleWalletFunding,
-    handleReset
+    handleResponse
   };
 })();
 
