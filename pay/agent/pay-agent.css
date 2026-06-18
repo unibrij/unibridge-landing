@@ -529,6 +529,18 @@ a {
   scroll-behavior: smooth;
 }
 
+.pay-agent-messages:empty::before {
+  content: "How can I help you pay today?";
+  margin: auto;
+  max-width: 280px;
+  color: rgba(255, 255, 255, 0.62);
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
 /* Broad support for whatever class names the chat renderer uses */
 .pay-agent-message,
 .pay-agent-bubble,
@@ -597,6 +609,10 @@ a {
   color: #fecaca;
   background: rgba(127, 29, 29, 0.20);
   border-color: rgba(248, 113, 113, 0.26);
+}
+
+.pay-agent-message-masked {
+  letter-spacing: 0.08em;
 }
 
 .pay-agent-messages::-webkit-scrollbar {
@@ -964,6 +980,11 @@ a {
   .pay-agent-messages {
     padding: 10px;
     min-height: 300px;
+  }
+
+  .pay-agent-messages:empty::before {
+    max-width: 240px;
+    font-size: 17px;
   }
 
   .pay-agent-message,
