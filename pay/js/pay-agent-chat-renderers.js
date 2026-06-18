@@ -500,6 +500,29 @@ window.UnibridgePayAgentChatRenderers = (() => {
     return true;
   }
 
+  function shouldRenderAvailableOptions(response = {}) {
+    const Selectors =
+      getSelectors();
+
+    if (!Selectors) {
+      return false;
+    }
+
+    const status =
+      Selectors.pickStatus(response);
+
+    if (
+      status === "language_required" ||
+      status === "destination_required" ||
+      status === "amount_required" ||
+      status === "beneficiary_required"
+    ) {
+      return false;
+    }
+
+    return Selectors.hasAvailableOptions(response);
+  }
+
   function renderActions(
     response = {},
     handlers = {}
@@ -516,7 +539,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
 
     Dom.clearActions();
 
-    if (Selectors.hasAvailableOptions(response)) {
+    if (shouldRenderAvailableOptions(response)) {
       renderAvailableOptions(
         response,
         handlers
@@ -546,6 +569,8 @@ window.UnibridgePayAgentChatRenderers = (() => {
     renderAvailableOptions,
     renderNextAction,
     renderActions,
+
+    shouldRenderAvailableOptions,
 
     createActionButton,
 
