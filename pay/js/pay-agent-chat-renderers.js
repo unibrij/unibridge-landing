@@ -41,16 +41,46 @@ window.UnibridgePayAgentChatRenderers = (() => {
     return window.UnibridgePayAgentChatSelectors || null;
   }
 
+  function isPlainObject(value) {
+    return Boolean(
+      value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+    );
+  }
+
   function normalizeString(value) {
     const Selectors =
       getSelectors();
 
-    if (Selectors?.normalizeString) {
-      return Selectors.normalizeString(value);
+    if (
+      value === null ||
+      value === undefined
+    ) {
+      return "";
     }
 
-    if (value === null || value === undefined) {
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
+    /*
+    Never render objects as chat text.
+    This prevents "[object Object]" from appearing in the UI.
+    */
+    if (typeof value === "object") {
       return "";
+    }
+
+    if (Selectors?.normalizeString) {
+      return Selectors.normalizeString(value);
     }
 
     return String(value).trim();
@@ -64,11 +94,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return Selectors.normalizeObject(value);
     }
 
-    if (
-      !value ||
-      typeof value !== "object" ||
-      Array.isArray(value)
-    ) {
+    if (!isPlainObject(value)) {
       return {};
     }
 
@@ -93,7 +119,11 @@ window.UnibridgePayAgentChatRenderers = (() => {
       getDom();
 
     if (Dom?.createElement) {
-      return Dom.createElement(tag, className, text);
+      return Dom.createElement(
+        tag,
+        className,
+        normalizeString(text)
+      );
     }
 
     const element =
@@ -104,9 +134,12 @@ window.UnibridgePayAgentChatRenderers = (() => {
         className;
     }
 
-    if (text) {
+    const safeText =
+      normalizeString(text);
+
+    if (safeText) {
       element.textContent =
-        text;
+        safeText;
     }
 
     return element;
@@ -153,7 +186,10 @@ window.UnibridgePayAgentChatRenderers = (() => {
   }
 
   function formatSummaryValue(value) {
-    if (value === null || value === undefined) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
       return "";
     }
 
@@ -332,6 +368,13 @@ window.UnibridgePayAgentChatRenderers = (() => {
   }
 
   function createActionButton(label, onClick, options = {}) {
+    const safeLabel =
+      normalizeString(label);
+
+    if (!safeLabel) {
+      return null;
+    }
+
     const button =
       createElement(
         "button",
@@ -348,16 +391,19 @@ window.UnibridgePayAgentChatRenderers = (() => {
       createElement(
         "span",
         "pay-agent-action-label",
-        label
+        safeLabel
       )
     );
 
-    if (options.description) {
+    const description =
+      normalizeString(options.description);
+
+    if (description) {
       button.appendChild(
         createElement(
           "span",
           "pay-agent-action-meta",
-          options.description
+          description
         )
       );
     }
@@ -407,7 +453,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
         return;
       }
 
-      group.appendChild(
+      const button =
         createActionButton(
           label,
           () => {
@@ -419,8 +465,13 @@ window.UnibridgePayAgentChatRenderers = (() => {
             secondary:
               true
           }
-        )
-      );
+        );
+
+      if (button) {
+        group.appendChild(
+          button
+        );
+      }
     });
 
     if (!group.childNodes.length) {
@@ -502,7 +553,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return false;
     }
 
-    Dom.appendToActions(
+    const button =
       createActionButton(
         label,
         () => {
@@ -510,7 +561,14 @@ window.UnibridgePayAgentChatRenderers = (() => {
             nextAction
           );
         }
-      )
+      );
+
+    if (!button) {
+      return false;
+    }
+
+    Dom.appendToActions(
+      button
     );
 
     return true;
