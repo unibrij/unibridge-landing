@@ -10,6 +10,7 @@ Responsibility:
 - Send free-text chat messages.
 - Send deterministic action payloads.
 - Prepare wallet handoff and extract connect_url.
+- Prepare payment handoff and extract redirect URL.
 
 Does not:
 - Render DOM.
@@ -434,7 +435,68 @@ window.UnibridgePayAgentChatActions = (() => {
     );
   }
 
+  function extractHandoffUrl(result = {}) {
+    const data =
+      normalizeObject(result);
+
+    return normalizeString(
+      data.checkout_url ||
+        data.handoff_url ||
+        data.redirect_url ||
+        data.url ||
+        data.connect_url ||
+        data.handoff?.checkout_url ||
+        data.handoff?.handoff_url ||
+        data.handoff?.redirect_url ||
+        data.handoff?.url ||
+        data.handoff?.connect_url ||
+        data.selected?.checkout_url ||
+        data.selected?.handoff_url ||
+        data.selected?.redirect_url ||
+        data.selected?.url ||
+        data.selected?.connect_url ||
+        data.selected?.handoff?.checkout_url ||
+        data.selected?.handoff?.handoff_url ||
+        data.selected?.handoff?.redirect_url ||
+        data.selected?.handoff?.url ||
+        data.selected?.handoff?.connect_url ||
+        data.response?.checkout_url ||
+        data.response?.handoff_url ||
+        data.response?.redirect_url ||
+        data.response?.url ||
+        data.response?.connect_url ||
+        data.response?.handoff?.checkout_url ||
+        data.response?.handoff?.handoff_url ||
+        data.response?.handoff?.redirect_url ||
+        data.response?.handoff?.url ||
+        data.response?.handoff?.connect_url
+    );
+  }
+
   function pickWalletResponseForStorage(result = {}) {
+    const data =
+      normalizeObject(result);
+
+    if (
+      data.selected &&
+      typeof data.selected === "object" &&
+      !Array.isArray(data.selected)
+    ) {
+      return data.selected;
+    }
+
+    if (
+      data.response &&
+      typeof data.response === "object" &&
+      !Array.isArray(data.response)
+    ) {
+      return data.response;
+    }
+
+    return data;
+  }
+
+  function pickHandoffResponseForStorage(result = {}) {
     const data =
       normalizeObject(result);
 
@@ -463,6 +525,20 @@ window.UnibridgePayAgentChatActions = (() => {
 
     const responseForStorage =
       pickWalletResponseForStorage(data);
+
+    saveChatResponse(
+      responseForStorage
+    );
+
+    return data;
+  }
+
+  function saveHandoffResult(result = {}) {
+    const data =
+      normalizeObject(result);
+
+    const responseForStorage =
+      pickHandoffResponseForStorage(data);
 
     saveChatResponse(
       responseForStorage
@@ -521,6 +597,56 @@ window.UnibridgePayAgentChatActions = (() => {
     };
   }
 
+  async function prepareHandoff() {
+    const api =
+      assertApi();
+
+    const agentPlanId =
+      assertAgentPlanId();
+
+    if (typeof api.createHandoff !== "function") {
+      throw new Error("Pay Agent handoff API is not loaded.");
+    }
+
+    const result =
+      await api.createHandoff({
+        agent_plan_id:
+          agentPlanId
+      });
+
+    const normalizedResult =
+      saveHandoffResult(
+        result
+      );
+
+    const redirectUrl =
+      extractHandoffUrl(
+        normalizedResult
+      );
+
+    return {
+      result:
+        normalizedResult,
+
+      response:
+        pickHandoffResponseForStorage(
+          normalizedResult
+        ),
+
+      checkout_url:
+        redirectUrl,
+
+      handoff_url:
+        redirectUrl,
+
+      redirect_url:
+        redirectUrl,
+
+      url:
+        redirectUrl
+    };
+  }
+
   return {
     DEFAULT_LOCALE,
 
@@ -543,6 +669,9 @@ window.UnibridgePayAgentChatActions = (() => {
     buildNextActionPayload,
 
     prepareWalletHandoff,
-    extractConnectUrl
+    prepareHandoff,
+
+    extractConnectUrl,
+    extractHandoffUrl
   };
 })();
