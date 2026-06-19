@@ -299,6 +299,17 @@ window.UnibridgePayAgentChat = (() => {
       return;
     }
 
+    if (
+      actionType === "open_card_checkout" ||
+      actionType === "show_bank_transfer_instructions"
+    ) {
+      handlePaymentHandoff({
+        label
+      });
+
+      return;
+    }
+
     handleDeterministicPayload({
       label,
 
@@ -350,6 +361,81 @@ window.UnibridgePayAgentChat = (() => {
 
       window.location.href =
         connectUrl;
+    } catch (error) {
+      appendAssistantError(error);
+
+      Dom.setStatus("error");
+      Dom.setBusy(false);
+
+      const last =
+        Actions.getLastSafeResponse();
+
+      if (last && Object.keys(last).length) {
+        Renderers.renderActions(
+          last,
+          {
+            onOption:
+              handleOptionSelection,
+
+            onNextAction:
+              handleNextAction
+          }
+        );
+      }
+
+      Dom.focusInput();
+    }
+  }
+
+  async function handlePaymentHandoff({
+    label = ""
+  } = {}) {
+    const {
+      Dom,
+      Renderers,
+      Actions
+    } = assertModules();
+
+    if (Dom.isBusy()) {
+      return;
+    }
+
+    Dom.clearActions();
+
+    if (label) {
+      appendUserSelection(label);
+    }
+
+    Dom.setBusy(true);
+    Dom.setStatus("preparing_payment_handoff");
+
+    try {
+      const result =
+        await Actions.prepareHandoff();
+
+      const redirectUrl =
+        normalizeString(
+          result.checkout_url ||
+            result.handoff_url ||
+            result.redirect_url ||
+            result.url ||
+            result.connect_url
+        );
+
+      if (!redirectUrl) {
+        const error =
+          new Error("payment_handoff_missing_url");
+
+        error.code =
+          "payment_handoff_missing_url";
+
+        throw error;
+      }
+
+      Dom.setStatus("opening_payment_handoff");
+
+      window.location.href =
+        redirectUrl;
     } catch (error) {
       appendAssistantError(error);
 
@@ -525,6 +611,7 @@ window.UnibridgePayAgentChat = (() => {
     handleOptionSelection,
     handleNextAction,
     handleWalletFunding,
+    handlePaymentHandoff,
     handleResponse
   };
 })();
