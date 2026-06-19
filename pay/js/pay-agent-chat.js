@@ -1,26 +1,5 @@
 // pay/js/pay-agent-chat.js
 
-/*
---------------------------------------------------
-Pay Agent Chat Controller v3
-
-Responsibility:
-- Coordinate DOM, renderers, actions, selectors, and privacy modules.
-- Send the user's real first message to backend.
-- Handle option clicks and next_action clicks.
-- Keep the empty chat placeholder purely visual via CSS.
-- Keep controller small and orchestration-only.
-
-Does not:
-- Render DOM directly except through renderers/dom modules.
-- Call backend directly except through actions module.
-- Store beneficiary / PIX key in localStorage.
-- Build normalized_intent.
-- Decide route client-side.
-- Execute payout.
---------------------------------------------------
-*/
-
 window.UnibridgePayAgentChat = (() => {
   function getDom() {
     return window.UnibridgePayAgentChatDom || null;
@@ -53,13 +32,7 @@ window.UnibridgePayAgentChat = (() => {
       throw new Error("Pay Agent chat modules are not loaded.");
     }
 
-    return {
-      Dom,
-      Selectors,
-      Renderers,
-      Actions,
-      Privacy
-    };
+    return { Dom, Selectors, Renderers, Actions, Privacy };
   }
 
   function normalizeString(value) {
@@ -73,6 +46,10 @@ window.UnibridgePayAgentChat = (() => {
       return "";
     }
 
+    if (typeof value === "object") {
+      return "";
+    }
+
     return String(value).trim();
   }
 
@@ -83,23 +60,44 @@ window.UnibridgePayAgentChat = (() => {
       return Selectors.normalizeObject(value);
     }
 
-    if (
-      !value ||
-      typeof value !== "object" ||
-      Array.isArray(value)
-    ) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
       return {};
     }
 
     return value;
   }
 
-  function appendAssistantError(message) {
+  function pickSafeErrorText(error) {
+    if (typeof error === "string") {
+      return normalizeString(error);
+    }
+
+    if (!error || typeof error !== "object") {
+      return "";
+    }
+
+    return normalizeString(
+      error.user_message ||
+        error.safe_message ||
+        error.public_message ||
+        error.message ||
+        error.code
+    );
+  }
+
+  function appendAssistantError(error) {
     const Renderers = getRenderers();
+
+    const message =
+      pickSafeErrorText(error);
+
+    if (!message) {
+      return;
+    }
 
     Renderers?.appendMessage?.(
       "assistant",
-      message || "Something went wrong. Please try again."
+      message
     );
   }
 
@@ -111,13 +109,15 @@ window.UnibridgePayAgentChat = (() => {
       Actions
     } = assertModules();
 
-    const safeResponse = normalizeObject(response);
+    const safeResponse =
+      normalizeObject(response);
 
     Actions.saveChatResponse(safeResponse);
 
     Renderers.renderSafeSummary(safeResponse);
 
-    const reply = Selectors.pickReplyText(safeResponse);
+    const reply =
+      Selectors.pickReplyText(safeResponse);
 
     if (reply) {
       Renderers.appendMessage(
@@ -127,8 +127,7 @@ window.UnibridgePayAgentChat = (() => {
     }
 
     Dom.setStatus(
-      Selectors.pickStatus(safeResponse) ||
-        "ready"
+      Selectors.pickStatus(safeResponse) || "ready"
     );
 
     Renderers.renderActions(
@@ -144,9 +143,11 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function appendUserSelection(label) {
-    const Renderers = getRenderers();
+    const Renderers =
+      getRenderers();
 
-    const text = normalizeString(label);
+    const text =
+      normalizeString(label);
 
     if (!text) {
       return;
@@ -171,11 +172,7 @@ window.UnibridgePayAgentChat = (() => {
       Dom
     } = assertModules();
 
-    if (Dom.isBusy()) {
-      return;
-    }
-
-    if (typeof task !== "function") {
+    if (Dom.isBusy() || typeof task !== "function") {
       return;
     }
 
@@ -189,13 +186,14 @@ window.UnibridgePayAgentChat = (() => {
     Dom.setStatus(status);
 
     try {
-      const response = await task();
+      const response =
+        await task();
 
       if (response) {
         handleResponse(response);
       }
     } catch (error) {
-      appendAssistantError(error?.message);
+      appendAssistantError(error);
       Dom.setStatus("error");
     } finally {
       Dom.setBusy(false);
@@ -208,7 +206,8 @@ window.UnibridgePayAgentChat = (() => {
     payload = {},
     status = "updating"
   } = {}) {
-    const Actions = getActions();
+    const Actions =
+      getActions();
 
     await runBusyAction({
       status,
@@ -328,12 +327,7 @@ window.UnibridgePayAgentChat = (() => {
     }
 
     Dom.setBusy(true);
-    Dom.setStatus("preparing wallet handoff");
-
-    Renderers.appendMessage(
-      "assistant",
-      "تمام، عم حضّر ربط المحفظة..."
-    );
+    Dom.setStatus("preparing_wallet_handoff");
 
     try {
       const result =
@@ -343,20 +337,21 @@ window.UnibridgePayAgentChat = (() => {
         normalizeString(result.connect_url);
 
       if (!connectUrl) {
-        throw new Error(
-          "Wallet checkout is not ready yet. Please try again."
-        );
+        const error =
+          new Error("wallet_handoff_missing_connect_url");
+
+        error.code =
+          "wallet_handoff_missing_connect_url";
+
+        throw error;
       }
 
-      Dom.setStatus("opening wallet checkout");
+      Dom.setStatus("opening_wallet_checkout");
 
       window.location.href =
         connectUrl;
     } catch (error) {
-      appendAssistantError(
-        error?.message ||
-          "Could not prepare wallet checkout."
-      );
+      appendAssistantError(error);
 
       Dom.setStatus("error");
       Dom.setBusy(false);
@@ -430,7 +425,7 @@ window.UnibridgePayAgentChat = (() => {
 
       handleResponse(response);
     } catch (error) {
-      appendAssistantError(error?.message);
+      appendAssistantError(error);
       Dom.setStatus("error");
     } finally {
       Dom.setBusy(false);
@@ -489,8 +484,7 @@ window.UnibridgePayAgentChat = (() => {
     }
 
     Dom.setStatus(
-      Selectors.pickStatus(last) ||
-        "ready"
+      Selectors.pickStatus(last) || "ready"
     );
 
     Renderers.renderActions(
@@ -506,7 +500,8 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function bindEvents() {
-    const Dom = getDom();
+    const Dom =
+      getDom();
 
     Dom.bindSubmit(handleSubmit);
     Dom.bindReset(handleReset);
@@ -525,7 +520,6 @@ window.UnibridgePayAgentChat = (() => {
 
   return {
     init,
-
     handleSubmit,
     handleReset,
     handleOptionSelection,
