@@ -3,20 +3,6 @@
 /*
 --------------------------------------------------
 Pay Agent Chat Renderers
-
-Responsibility:
-- Render chat messages.
-- Render safe review summary cards.
-- Render available option buttons.
-- Render next_action buttons.
-- Keep UI rendering separate from API/action execution.
-
-Does not:
-- Call backend APIs.
-- Read/write storage.
-- Decide Pay Agent state transitions.
-- Build normalized_intent.
-- Mask private values.
 --------------------------------------------------
 */
 
@@ -53,10 +39,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
     const Selectors =
       getSelectors();
 
-    if (
-      value === null ||
-      value === undefined
-    ) {
+    if (value === null || value === undefined) {
       return "";
     }
 
@@ -71,10 +54,6 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return String(value).trim();
     }
 
-    /*
-    Never render objects as chat text.
-    This prevents "[object Object]" from appearing in the UI.
-    */
     if (typeof value === "object") {
       return "";
     }
@@ -186,10 +165,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
   }
 
   function formatSummaryValue(value) {
-    if (
-      value === null ||
-      value === undefined
-    ) {
+    if (value === null || value === undefined) {
       return "";
     }
 
@@ -233,9 +209,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       )
     );
 
-    card.appendChild(
-      row
-    );
+    card.appendChild(row);
   }
 
   function buildDestinationSummary(destination = {}) {
@@ -360,9 +334,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       )
     );
 
-    Dom.appendToMessages(
-      card
-    );
+    Dom.appendToMessages(card);
 
     return card;
   }
@@ -418,6 +390,209 @@ window.UnibridgePayAgentChatRenderers = (() => {
     return button;
   }
 
+  async function mountStripeEmbeddedOnramp({
+    container,
+    clientSecret,
+    publishableKey,
+    handoff
+  } = {}) {
+    if (!container || !clientSecret) {
+      return false;
+    }
+
+    if (
+      window.UnibridgeStripeOnramp &&
+      typeof window.UnibridgeStripeOnramp.mount === "function"
+    ) {
+      await window.UnibridgeStripeOnramp.mount({
+        container,
+        client_secret:
+          clientSecret,
+        publishable_key:
+          publishableKey,
+        handoff
+      });
+
+      return true;
+    }
+
+    if (
+      typeof window.Stripe === "function" &&
+      publishableKey
+    ) {
+      const stripe =
+        window.Stripe(publishableKey);
+
+      if (
+        stripe &&
+        typeof stripe.initEmbeddedOnramp === "function"
+      ) {
+        const onramp =
+          stripe.initEmbeddedOnramp({
+            clientSecret
+          });
+
+        onramp.mount(container);
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function renderCardCheckout(result = {}) {
+    const Dom =
+      getDom();
+
+    if (!Dom) {
+      return null;
+    }
+
+    const data =
+      normalizeObject(result);
+
+    const clientSecret =
+      normalizeString(data.client_secret);
+
+    const publishableKey =
+      normalizeString(data.publishable_key);
+
+    const card =
+      createElement(
+        "div",
+        "pay-agent-info-panel pay-agent-card-checkout"
+      );
+
+    card.appendChild(
+      createElement(
+        "div",
+        "pay-agent-info-panel-title",
+        "Card checkout"
+      )
+    );
+
+    card.appendChild(
+      createElement(
+        "div",
+        "pay-agent-info-panel-row",
+        "Complete the card checkout below."
+      )
+    );
+
+    const mount =
+      createElement(
+        "div",
+        "pay-agent-stripe-onramp"
+      );
+
+    mount.dataset.clientSecret =
+      clientSecret;
+
+    mount.dataset.publishableKey =
+      publishableKey;
+
+    card.appendChild(mount);
+
+    Dom.appendToMessages(card);
+
+    mountStripeEmbeddedOnramp({
+      container:
+        mount,
+      clientSecret,
+      publishableKey,
+      handoff:
+        data
+    }).then((mounted) => {
+      if (!mounted) {
+        mount.appendChild(
+          createElement(
+            "div",
+            "pay-agent-action-meta",
+            "Stripe embedded checkout is ready, but no Stripe renderer is loaded on this page."
+          )
+        );
+      }
+    }).catch(() => {
+      mount.appendChild(
+        createElement(
+          "div",
+          "pay-agent-action-meta",
+          "Unable to mount Stripe checkout. Please try again."
+        )
+      );
+    });
+
+    return card;
+  }
+
+  function renderBankTransferInstructions(result = {}) {
+    const Dom =
+      getDom();
+
+    if (!Dom) {
+      return null;
+    }
+
+    const data =
+      normalizeObject(result);
+
+    const nextAction =
+      normalizeObject(data.next_action);
+
+    const instructions =
+      normalizeObject(
+        data.source_deposit_instructions ||
+          nextAction.instructions
+      );
+
+    const card =
+      createElement(
+        "div",
+        "pay-agent-info-panel pay-agent-bank-transfer"
+      );
+
+    card.appendChild(
+      createElement(
+        "div",
+        "pay-agent-info-panel-title",
+        "Bank transfer instructions"
+      )
+    );
+
+    appendSummaryRow(
+      card,
+      "Provider",
+      data.provider || "Bridge"
+    );
+
+    appendSummaryRow(
+      card,
+      "Rail",
+      data.source_rail
+    );
+
+    appendSummaryRow(
+      card,
+      "Currency",
+      data.source_currency
+    );
+
+    Object.entries(instructions).forEach(
+      ([key, value]) => {
+        appendSummaryRow(
+          card,
+          key.replace(/_/g, " "),
+          value
+        );
+      }
+    );
+
+    Dom.appendToMessages(card);
+
+    return card;
+  }
+
   function renderAvailableOptions(
     response = {},
     handlers = {}
@@ -468,9 +643,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
         );
 
       if (button) {
-        group.appendChild(
-          button
-        );
+        group.appendChild(button);
       }
     });
 
@@ -478,9 +651,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return false;
     }
 
-    Dom.appendToActions(
-      group
-    );
+    Dom.appendToActions(group);
 
     return true;
   }
@@ -557,9 +728,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       createActionButton(
         label,
         () => {
-          handlers.onNextAction?.(
-            nextAction
-          );
+          handlers.onNextAction?.(nextAction);
         }
       );
 
@@ -567,9 +736,7 @@ window.UnibridgePayAgentChatRenderers = (() => {
       return false;
     }
 
-    Dom.appendToActions(
-      button
-    );
+    Dom.appendToActions(button);
 
     return true;
   }
@@ -622,6 +789,9 @@ window.UnibridgePayAgentChatRenderers = (() => {
     renderAvailableOptions,
     renderNextAction,
     renderActions,
+
+    renderCardCheckout,
+    renderBankTransferInstructions,
 
     shouldRenderAvailableOptions,
     shouldRenderNextAction,
