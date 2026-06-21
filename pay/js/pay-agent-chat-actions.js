@@ -10,7 +10,7 @@ Responsibility:
 - Send free-text chat messages.
 - Send deterministic action payloads.
 - Prepare wallet handoff and extract connect_url.
-- Prepare payment handoff and extract redirect URL.
+- Prepare payment handoff and extract handoff data.
 
 Does not:
 - Render DOM.
@@ -23,8 +23,7 @@ Does not:
 */
 
 window.UnibridgePayAgentChatActions = (() => {
-  const DEFAULT_LOCALE =
-    "en";
+  const DEFAULT_LOCALE = "en";
 
   function getApi() {
     return window.UnibridgePayAgentApi || null;
@@ -39,8 +38,7 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function normalizeString(value) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.normalizeString) {
       return Selectors.normalizeString(value);
@@ -54,52 +52,51 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function normalizeObject(value) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.normalizeObject) {
       return Selectors.normalizeObject(value);
     }
 
-    if (
-      !value ||
-      typeof value !== "object" ||
-      Array.isArray(value)
-    ) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
       return {};
     }
 
     return value;
   }
 
+  function pickFirstObject(...values) {
+    for (const value of values) {
+      const item = normalizeObject(value);
+
+      if (Object.keys(item).length) {
+        return item;
+      }
+    }
+
+    return {};
+  }
+
   function getFundingMethodIds() {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     return (
       Selectors?.FUNDING_METHOD_IDS || {
-        wallet:
-          "wallet",
-
-        card:
-          "card",
-
-        bankTransfer:
-          "bank_transfer"
+        wallet: "wallet",
+        card: "card",
+        bankTransfer: "bank_transfer"
       }
     );
   }
 
   function pickAgentPlanId(response = {}) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.pickAgentPlanId) {
       return Selectors.pickAgentPlanId(response);
     }
 
-    const data =
-      normalizeObject(response);
+    const data = normalizeObject(response);
 
     return normalizeString(
       data.agent_plan_id ||
@@ -112,39 +109,31 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function saveResponse(response = {}) {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (!storage?.saveResponse) {
       return;
     }
 
-    storage.saveResponse(
-      response
-    );
+    storage.saveResponse(response);
   }
 
   function saveAgentPlanId(response = {}) {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (!storage?.setAgentPlanId) {
       return;
     }
 
-    const agentPlanId =
-      pickAgentPlanId(response);
+    const agentPlanId = pickAgentPlanId(response);
 
     if (agentPlanId) {
-      storage.setAgentPlanId(
-        agentPlanId
-      );
+      storage.setAgentPlanId(agentPlanId);
     }
   }
 
   function saveChatResponse(response = {}) {
-    const data =
-      normalizeObject(response);
+    const data = normalizeObject(response);
 
     saveAgentPlanId(data);
     saveResponse(data);
@@ -153,47 +142,37 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function getAgentPlanId() {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (!storage?.getAgentPlanId) {
       return "";
     }
 
-    return normalizeString(
-      storage.getAgentPlanId()
-    );
+    return normalizeString(storage.getAgentPlanId());
   }
 
   function getLastSafeResponse() {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (!storage?.getLastResponse) {
       return {};
     }
 
-    return normalizeObject(
-      storage.getLastResponse()
-    );
+    return normalizeObject(storage.getLastResponse());
   }
 
   function hasActivePlan() {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (!storage?.hasActivePlan) {
-      return Boolean(
-        getAgentPlanId()
-      );
+      return Boolean(getAgentPlanId());
     }
 
     return storage.hasActivePlan() === true;
   }
 
   function clearStorage() {
-    const storage =
-      getStorage();
+    const storage = getStorage();
 
     if (storage?.clear) {
       storage.clear();
@@ -201,8 +180,7 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function assertApi() {
-    const api =
-      getApi();
+    const api = getApi();
 
     if (!api) {
       throw new Error("Pay Agent API is not loaded.");
@@ -212,8 +190,7 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function assertAgentPlanId() {
-    const agentPlanId =
-      getAgentPlanId();
+    const agentPlanId = getAgentPlanId();
 
     if (!agentPlanId) {
       throw new Error(
@@ -224,50 +201,36 @@ window.UnibridgePayAgentChatActions = (() => {
     return agentPlanId;
   }
 
-  async function sendChatMessage({
-    message,
-    locale = DEFAULT_LOCALE
-  } = {}) {
-    const api =
-      assertApi();
+  async function sendChatMessage({ message, locale = DEFAULT_LOCALE } = {}) {
+    const api = assertApi();
 
     if (typeof api.sendChatMessage !== "function") {
       throw new Error("Pay Agent chat API is not loaded.");
     }
 
-    const cleanMessage =
-      normalizeString(message);
+    const cleanMessage = normalizeString(message);
 
     if (!cleanMessage) {
       throw new Error("Message is empty.");
     }
 
-    const response =
-      await api.sendChatMessage({
-        agent_plan_id:
-          getAgentPlanId() || undefined,
+    const response = await api.sendChatMessage({
+      agent_plan_id: getAgentPlanId() || undefined,
+      message: cleanMessage,
+      locale
+    });
 
-        message:
-          cleanMessage,
-
-        locale
-      });
-
-    return saveChatResponse(
-      response
-    );
+    return saveChatResponse(response);
   }
 
   function buildActionMessageFromPayload(payload = {}) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
 
     if (Selectors?.buildActionMessageFromPayload) {
       return Selectors.buildActionMessageFromPayload(payload);
     }
 
-    const data =
-      normalizeObject(payload);
+    const data = normalizeObject(payload);
 
     return normalizeString(
       data.message ||
@@ -279,46 +242,32 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   async function sendActionPayload(payload = {}) {
-    const api =
-      assertApi();
-
-    const agentPlanId =
-      assertAgentPlanId();
+    const api = assertApi();
+    const agentPlanId = assertAgentPlanId();
 
     const body = {
-      agent_plan_id:
-        agentPlanId,
-
+      agent_plan_id: agentPlanId,
       ...normalizeObject(payload)
     };
 
     if (typeof api.sendUpdateAction === "function") {
-      return saveChatResponse(
-        await api.sendUpdateAction(body)
-      );
+      return saveChatResponse(await api.sendUpdateAction(body));
     }
 
     if (typeof api.updateAgentPlan === "function") {
-      return saveChatResponse(
-        await api.updateAgentPlan(body)
-      );
+      return saveChatResponse(await api.updateAgentPlan(body));
     }
 
     if (typeof api.updatePlan === "function") {
-      return saveChatResponse(
-        await api.updatePlan(body)
-      );
+      return saveChatResponse(await api.updatePlan(body));
     }
 
     if (typeof api.sendPayAgentUpdate === "function") {
-      return saveChatResponse(
-        await api.sendPayAgentUpdate(body)
-      );
+      return saveChatResponse(await api.sendPayAgentUpdate(body));
     }
 
     if (typeof api.sendChatMessage === "function") {
-      const message =
-        buildActionMessageFromPayload(body);
+      const message = buildActionMessageFromPayload(body);
 
       if (!message) {
         throw new Error("Pay Agent action message is empty.");
@@ -326,13 +275,9 @@ window.UnibridgePayAgentChatActions = (() => {
 
       return saveChatResponse(
         await api.sendChatMessage({
-          agent_plan_id:
-            agentPlanId,
-
+          agent_plan_id: agentPlanId,
           message,
-
-          locale:
-            DEFAULT_LOCALE
+          locale: DEFAULT_LOCALE
         })
       );
     }
@@ -341,103 +286,78 @@ window.UnibridgePayAgentChatActions = (() => {
   }
 
   function buildFundingMethodPayload(method) {
-    const fundingMethod =
-      normalizeString(method);
+    const fundingMethod = normalizeString(method);
 
     return {
-      action:
-        "select_funding_method",
-
-      funding_method:
-        fundingMethod,
-
-      value:
-        fundingMethod,
-
-      message:
-        fundingMethod
+      action: "select_funding_method",
+      funding_method: fundingMethod,
+      value: fundingMethod,
+      message: fundingMethod
     };
   }
 
   function buildOptionPayload(option = {}) {
-    const Selectors =
-      getSelectors();
+    const Selectors = getSelectors();
+    const item = normalizeObject(option);
 
-    const item =
-      normalizeObject(option);
+    const optionId = Selectors?.normalizeOptionId
+      ? Selectors.normalizeOptionId(option)
+      : normalizeString(
+          item.id ||
+            item.value ||
+            item.method ||
+            item.funding_method ||
+            item.type ||
+            item.action ||
+            item.name
+        );
 
-    const optionId =
-      Selectors?.normalizeOptionId
-        ? Selectors.normalizeOptionId(option)
-        : normalizeString(
-            item.id ||
-              item.value ||
-              item.method ||
-              item.funding_method ||
-              item.type ||
-              item.action ||
-              item.name
-          );
-
-    const action =
-      normalizeString(
-        item.action ||
-          "select_option"
-      );
+    const action = normalizeString(item.action || "select_option");
 
     return {
       action,
-
-      option_id:
-        optionId,
-
-      value:
-        optionId,
-
-      message:
-        optionId
+      option_id: optionId,
+      value: optionId,
+      message: optionId
     };
   }
 
   function buildNextActionPayload(nextAction = {}) {
-    const item =
-      normalizeObject(nextAction);
+    const item = normalizeObject(nextAction);
 
-    const action =
-      normalizeString(
-        item.type ||
-          item.action
-      );
+    const action = normalizeString(item.type || item.action);
 
     return {
       action,
-
-      message:
-        action
+      message: action
     };
   }
 
   function extractConnectUrl(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
 
     return normalizeString(
       data.connect_url ||
+        data.data?.connect_url ||
         data.handoff?.connect_url ||
         data.handoff?.url ||
+        data.data?.handoff?.connect_url ||
+        data.data?.handoff?.url ||
         data.selected?.connect_url ||
         data.selected?.handoff?.connect_url ||
         data.selected?.handoff?.url ||
         data.response?.connect_url ||
+        data.response?.data?.connect_url ||
         data.response?.handoff?.connect_url ||
         data.response?.handoff?.url ||
+        data.response?.data?.handoff?.connect_url ||
+        data.response?.data?.handoff?.url ||
         data.url
     );
   }
 
   function extractHandoffUrl(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
 
     return normalizeString(
       data.checkout_url ||
@@ -445,11 +365,21 @@ window.UnibridgePayAgentChatActions = (() => {
         data.redirect_url ||
         data.url ||
         data.connect_url ||
+        data.data?.checkout_url ||
+        data.data?.handoff_url ||
+        data.data?.redirect_url ||
+        data.data?.url ||
+        data.data?.connect_url ||
         data.handoff?.checkout_url ||
         data.handoff?.handoff_url ||
         data.handoff?.redirect_url ||
         data.handoff?.url ||
         data.handoff?.connect_url ||
+        data.data?.handoff?.checkout_url ||
+        data.data?.handoff?.handoff_url ||
+        data.data?.handoff?.redirect_url ||
+        data.data?.handoff?.url ||
+        data.data?.handoff?.connect_url ||
         data.selected?.checkout_url ||
         data.selected?.handoff_url ||
         data.selected?.redirect_url ||
@@ -465,17 +395,104 @@ window.UnibridgePayAgentChatActions = (() => {
         data.response?.redirect_url ||
         data.response?.url ||
         data.response?.connect_url ||
+        data.response?.data?.checkout_url ||
+        data.response?.data?.handoff_url ||
+        data.response?.data?.redirect_url ||
+        data.response?.data?.url ||
+        data.response?.data?.connect_url ||
         data.response?.handoff?.checkout_url ||
         data.response?.handoff?.handoff_url ||
         data.response?.handoff?.redirect_url ||
         data.response?.handoff?.url ||
-        data.response?.handoff?.connect_url
+        data.response?.handoff?.connect_url ||
+        data.response?.data?.handoff?.checkout_url ||
+        data.response?.data?.handoff?.handoff_url ||
+        data.response?.data?.handoff?.redirect_url ||
+        data.response?.data?.handoff?.url ||
+        data.response?.data?.handoff?.connect_url
+    );
+  }
+
+  function extractClientSecret(result = {}) {
+    const data = normalizeObject(result);
+
+    return normalizeString(
+      data.client_secret ||
+        data.data?.client_secret ||
+        data.handoff?.client_secret ||
+        data.data?.handoff?.client_secret ||
+        data.selected?.client_secret ||
+        data.selected?.handoff?.client_secret ||
+        data.response?.client_secret ||
+        data.response?.data?.client_secret ||
+        data.response?.handoff?.client_secret ||
+        data.response?.data?.handoff?.client_secret ||
+        data.next_action?.meta?.client_secret ||
+        data.data?.next_action?.meta?.client_secret ||
+        data.handoff?.next_action?.meta?.client_secret ||
+        data.data?.handoff?.next_action?.meta?.client_secret ||
+        data.selected?.next_action?.meta?.client_secret ||
+        data.selected?.handoff?.next_action?.meta?.client_secret ||
+        data.response?.next_action?.meta?.client_secret ||
+        data.response?.data?.next_action?.meta?.client_secret ||
+        data.response?.handoff?.next_action?.meta?.client_secret ||
+        data.response?.data?.handoff?.next_action?.meta?.client_secret
+    );
+  }
+
+  function extractNextAction(result = {}) {
+    const data = normalizeObject(result);
+
+    return pickFirstObject(
+      data.next_action,
+      data.data?.next_action,
+      data.handoff?.next_action,
+      data.data?.handoff?.next_action,
+      data.selected?.next_action,
+      data.selected?.handoff?.next_action,
+      data.response?.next_action,
+      data.response?.data?.next_action,
+      data.response?.handoff?.next_action,
+      data.response?.data?.handoff?.next_action
+    );
+  }
+
+  function extractFundingSessionId(result = {}) {
+    const data = normalizeObject(result);
+
+    return normalizeString(
+      data.funding_session_id ||
+        data.data?.funding_session_id ||
+        data.handoff?.funding_session_id ||
+        data.data?.handoff?.funding_session_id ||
+        data.selected?.funding_session_id ||
+        data.selected?.handoff?.funding_session_id ||
+        data.response?.funding_session_id ||
+        data.response?.data?.funding_session_id ||
+        data.response?.handoff?.funding_session_id ||
+        data.response?.data?.handoff?.funding_session_id
+    );
+  }
+
+  function extractSettlementId(result = {}) {
+    const data = normalizeObject(result);
+
+    return normalizeString(
+      data.settlement_id ||
+        data.data?.settlement_id ||
+        data.handoff?.settlement_id ||
+        data.data?.handoff?.settlement_id ||
+        data.selected?.settlement_id ||
+        data.selected?.handoff?.settlement_id ||
+        data.response?.settlement_id ||
+        data.response?.data?.settlement_id ||
+        data.response?.handoff?.settlement_id ||
+        data.response?.data?.handoff?.settlement_id
     );
   }
 
   function pickWalletResponseForStorage(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
 
     if (
       data.selected &&
@@ -491,14 +508,21 @@ window.UnibridgePayAgentChatActions = (() => {
       !Array.isArray(data.response)
     ) {
       return data.response;
+    }
+
+    if (
+      data.data &&
+      typeof data.data === "object" &&
+      !Array.isArray(data.data)
+    ) {
+      return data.data;
     }
 
     return data;
   }
 
   function pickHandoffResponseForStorage(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
 
     if (
       data.selected &&
@@ -516,134 +540,92 @@ window.UnibridgePayAgentChatActions = (() => {
       return data.response;
     }
 
+    if (
+      data.data &&
+      typeof data.data === "object" &&
+      !Array.isArray(data.data)
+    ) {
+      return data.data;
+    }
+
     return data;
   }
 
   function saveWalletHandoffResult(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
+    const responseForStorage = pickWalletResponseForStorage(data);
 
-    const responseForStorage =
-      pickWalletResponseForStorage(data);
-
-    saveChatResponse(
-      responseForStorage
-    );
+    saveChatResponse(responseForStorage);
 
     return data;
   }
 
   function saveHandoffResult(result = {}) {
-    const data =
-      normalizeObject(result);
+    const data = normalizeObject(result);
+    const responseForStorage = pickHandoffResponseForStorage(data);
 
-    const responseForStorage =
-      pickHandoffResponseForStorage(data);
-
-    saveChatResponse(
-      responseForStorage
-    );
+    saveChatResponse(responseForStorage);
 
     return data;
   }
 
   async function prepareWalletHandoff() {
-    const api =
-      assertApi();
-
-    const agentPlanId =
-      assertAgentPlanId();
-
-    const ids =
-      getFundingMethodIds();
+    const api = assertApi();
+    const agentPlanId = assertAgentPlanId();
+    const ids = getFundingMethodIds();
 
     let result = null;
 
     if (typeof api.selectWalletAndCreateHandoff === "function") {
-      result =
-        await api.selectWalletAndCreateHandoff(
-          agentPlanId
-        );
+      result = await api.selectWalletAndCreateHandoff(agentPlanId);
     } else {
-      result =
-        await sendActionPayload(
-          buildFundingMethodPayload(
-            ids.wallet
-          )
-        );
+      result = await sendActionPayload(buildFundingMethodPayload(ids.wallet));
     }
 
-    const normalizedResult =
-      saveWalletHandoffResult(
-        result
-      );
-
-    const connectUrl =
-      extractConnectUrl(
-        normalizedResult
-      );
+    const normalizedResult = saveWalletHandoffResult(result);
+    const connectUrl = extractConnectUrl(normalizedResult);
 
     return {
-      result:
-        normalizedResult,
-
-      response:
-        pickWalletResponseForStorage(
-          normalizedResult
-        ),
-
-      connect_url:
-        connectUrl
+      result: normalizedResult,
+      response: pickWalletResponseForStorage(normalizedResult),
+      connect_url: connectUrl
     };
   }
 
   async function prepareHandoff() {
-    const api =
-      assertApi();
-
-    const agentPlanId =
-      assertAgentPlanId();
+    const api = assertApi();
+    const agentPlanId = assertAgentPlanId();
 
     if (typeof api.createHandoff !== "function") {
       throw new Error("Pay Agent handoff API is not loaded.");
     }
 
-    const result =
-      await api.createHandoff({
-        agent_plan_id:
-          agentPlanId
-      });
+    const result = await api.createHandoff({
+      agent_plan_id: agentPlanId
+    });
 
-    const normalizedResult =
-      saveHandoffResult(
-        result
-      );
+    const normalizedResult = saveHandoffResult(result);
 
-    const redirectUrl =
-      extractHandoffUrl(
-        normalizedResult
-      );
+    const redirectUrl = extractHandoffUrl(normalizedResult);
+    const clientSecret = extractClientSecret(normalizedResult);
+    const nextAction = extractNextAction(normalizedResult);
+    const fundingSessionId = extractFundingSessionId(normalizedResult);
+    const settlementId = extractSettlementId(normalizedResult);
 
     return {
-      result:
-        normalizedResult,
+      result: normalizedResult,
+      response: pickHandoffResponseForStorage(normalizedResult),
 
-      response:
-        pickHandoffResponseForStorage(
-          normalizedResult
-        ),
+      client_secret: clientSecret,
+      next_action: nextAction,
 
-      checkout_url:
-        redirectUrl,
+      funding_session_id: fundingSessionId,
+      settlement_id: settlementId,
 
-      handoff_url:
-        redirectUrl,
-
-      redirect_url:
-        redirectUrl,
-
-      url:
-        redirectUrl
+      checkout_url: redirectUrl,
+      handoff_url: redirectUrl,
+      redirect_url: redirectUrl,
+      url: redirectUrl
     };
   }
 
@@ -672,6 +654,10 @@ window.UnibridgePayAgentChatActions = (() => {
     prepareHandoff,
 
     extractConnectUrl,
-    extractHandoffUrl
+    extractHandoffUrl,
+    extractClientSecret,
+    extractNextAction,
+    extractFundingSessionId,
+    extractSettlementId
   };
 })();
