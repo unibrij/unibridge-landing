@@ -112,6 +112,58 @@ window.UnibridgePayAgentChat = (() => {
     });
   }
 
+  function pickRedirectUrl(result = {}) {
+    const data = normalizeObject(result);
+
+    const nextAction =
+      normalizeObject(data.next_action);
+
+    const meta =
+      normalizeObject(nextAction.meta);
+
+    const resultData =
+      normalizeObject(data.result);
+
+    const resultNextAction =
+      normalizeObject(resultData.next_action);
+
+    const resultMeta =
+      normalizeObject(resultNextAction.meta);
+
+    return normalizeString(
+      data.redirect_url ||
+        data.handoff_url ||
+        data.checkout_url ||
+        data.widget_url ||
+        data.url ||
+        nextAction.redirect_url ||
+        nextAction.handoff_url ||
+        nextAction.checkout_url ||
+        nextAction.widget_url ||
+        nextAction.url ||
+        meta.redirect_url ||
+        meta.handoff_url ||
+        meta.checkout_url ||
+        meta.widget_url ||
+        meta.url ||
+        resultData.redirect_url ||
+        resultData.handoff_url ||
+        resultData.checkout_url ||
+        resultData.widget_url ||
+        resultData.url ||
+        resultNextAction.redirect_url ||
+        resultNextAction.handoff_url ||
+        resultNextAction.checkout_url ||
+        resultNextAction.widget_url ||
+        resultNextAction.url ||
+        resultMeta.redirect_url ||
+        resultMeta.handoff_url ||
+        resultMeta.checkout_url ||
+        resultMeta.widget_url ||
+        resultMeta.url
+    );
+  }
+
   function buildAutoHandoffKey(response = {}) {
     const Selectors = getSelectors();
 
@@ -152,7 +204,8 @@ window.UnibridgePayAgentChat = (() => {
       Renderers.appendMessage("assistant", reply);
     }
 
-    const status = Selectors.pickStatus(safeResponse) || "ready";
+    const status =
+      Selectors.pickStatus(safeResponse) || "ready";
 
     Dom.setStatus(status);
 
@@ -171,8 +224,11 @@ window.UnibridgePayAgentChat = (() => {
   async function maybeRunAutoHandoff(response = {}) {
     const { Selectors } = assertModules();
 
-    const status = Selectors.pickStatus(response);
-    const key = buildAutoHandoffKey(response);
+    const status =
+      Selectors.pickStatus(response);
+
+    const key =
+      buildAutoHandoffKey(response);
 
     if (
       autoHandoffInFlight ||
@@ -331,7 +387,9 @@ window.UnibridgePayAgentChat = (() => {
     });
   }
 
-  async function handleWalletFunding({ label = "" } = {}) {
+  async function handleWalletFunding({
+    label = ""
+  } = {}) {
     const { Dom, Renderers, Actions } = assertModules();
 
     if (Dom.isBusy() || autoHandoffInFlight) {
@@ -382,7 +440,9 @@ window.UnibridgePayAgentChat = (() => {
     }
   }
 
-  async function handleCardCheckout({ label = "" } = {}) {
+  async function handleCardCheckout({
+    label = ""
+  } = {}) {
     const { Dom, Renderers, Actions } = assertModules();
 
     if (Dom.isBusy() || autoHandoffInFlight) {
@@ -405,27 +465,46 @@ window.UnibridgePayAgentChat = (() => {
       const clientSecret =
         normalizeString(
           result.client_secret ||
-            result.next_action?.meta?.client_secret
+            result.next_action?.meta?.client_secret ||
+            result.result?.client_secret ||
+            result.result?.next_action?.meta?.client_secret
         );
 
-      if (!clientSecret) {
-        const error = new Error("card_checkout_missing_client_secret");
-        error.code = "card_checkout_missing_client_secret";
-        throw error;
+      const redirectUrl =
+        pickRedirectUrl(result);
+
+      if (clientSecret) {
+        Dom.setStatus("card_checkout_ready");
+
+        if (typeof Renderers.renderCardCheckout === "function") {
+          Renderers.renderCardCheckout(result);
+        } else if (typeof Renderers.renderEmbeddedOnramp === "function") {
+          Renderers.renderEmbeddedOnramp(result);
+        } else {
+          Renderers.appendMessage(
+            "assistant",
+            "Card checkout is ready. Please complete the embedded checkout."
+          );
+        }
+
+        return;
       }
 
-      Dom.setStatus("card_checkout_ready");
+      if (redirectUrl) {
+        Dom.setStatus("opening_card_checkout");
 
-      if (typeof Renderers.renderCardCheckout === "function") {
-        Renderers.renderCardCheckout(result);
-      } else if (typeof Renderers.renderEmbeddedOnramp === "function") {
-        Renderers.renderEmbeddedOnramp(result);
-      } else {
         Renderers.appendMessage(
           "assistant",
-          "Card checkout is ready. Please complete the embedded checkout."
+          "Card checkout is ready. Opening the checkout page now."
         );
+
+        window.location.href = redirectUrl;
+        return;
       }
+
+      const error = new Error("card_checkout_missing_client_secret_or_url");
+      error.code = "card_checkout_missing_client_secret_or_url";
+      throw error;
     } catch (error) {
       lastAutoHandoffKey = "";
       appendAssistantError(error);
@@ -446,7 +525,9 @@ window.UnibridgePayAgentChat = (() => {
     }
   }
 
-  async function handleBankTransferInstructions({ label = "" } = {}) {
+  async function handleBankTransferInstructions({
+    label = ""
+  } = {}) {
     const { Dom, Renderers, Actions } = assertModules();
 
     if (Dom.isBusy() || autoHandoffInFlight) {
