@@ -1,23 +1,5 @@
 // pay/js/pay-agent-chat-selectors.js
 
-/*
---------------------------------------------------
-Pay Agent Chat Selectors
-
-Responsibility:
-- Normalize backend responses.
-- Pick safe UI fields from Pay Agent responses.
-- Normalize options/actions for rendering.
-
-Does not:
-- Render DOM.
-- Call backend APIs.
-- Mutate storage.
-- Decide payment flow.
-- Mask private values.
---------------------------------------------------
-*/
-
 window.UnibridgePayAgentChatSelectors = (() => {
   const FUNDING_METHOD_IDS = {
     wallet:
@@ -48,7 +30,13 @@ window.UnibridgePayAgentChatSelectors = (() => {
     "amount_required",
     "beneficiary_required",
     "review_required",
+    "quote_required",
+    "materializing",
+    "handoff_required",
     "wallet_connect_required",
+    "wallet_approval_required",
+    "card_checkout_required",
+    "bank_transfer_instructions_ready",
     "kyc_required",
     "support_required",
 
@@ -66,6 +54,10 @@ window.UnibridgePayAgentChatSelectors = (() => {
 
   function normalizeString(value) {
     if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "object") {
       return "";
     }
 
@@ -175,18 +167,43 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const data =
       normalizeObject(response);
 
-    const value =
+    const direct =
       data.next_action ||
       data.plan?.next_action;
 
-    if (typeof value === "string") {
+    if (typeof direct === "string") {
       return {
         type:
-          value
+          direct
       };
     }
 
-    return normalizeObject(value);
+    if (
+      direct &&
+      typeof direct === "object" &&
+      !Array.isArray(direct)
+    ) {
+      return normalizeObject(direct);
+    }
+
+    const actions =
+      normalizeArray(
+        data.actions ||
+          data.plan?.actions
+      );
+
+    const firstAction =
+      actions.find((action) => {
+        const item =
+          normalizeObject(action);
+
+        return Boolean(
+          item.type ||
+            item.action
+        );
+      });
+
+    return normalizeObject(firstAction);
   }
 
   function pickAvailableOptions(response = {}) {
