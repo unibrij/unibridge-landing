@@ -2,27 +2,20 @@
 
 window.UnibridgePayAgentChatHandoffController = (() => {
   function normalizeString(value) {
-    const UrlPicker =
-      window.UnibridgePayAgentChatUrlPicker;
+    const UrlPicker = window.UnibridgePayAgentChatUrlPicker;
 
     if (UrlPicker?.normalizeString) {
       return UrlPicker.normalizeString(value);
     }
 
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    if (typeof value === "object") {
-      return "";
-    }
+    if (value === null || value === undefined) return "";
+    if (typeof value === "object") return "";
 
     return String(value).trim();
   }
 
   function normalizeObject(value) {
-    const UrlPicker =
-      window.UnibridgePayAgentChatUrlPicker;
+    const UrlPicker = window.UnibridgePayAgentChatUrlPicker;
 
     if (UrlPicker?.normalizeObject) {
       return UrlPicker.normalizeObject(value);
@@ -37,6 +30,102 @@ window.UnibridgePayAgentChatHandoffController = (() => {
 
   function getUrlPicker() {
     return window.UnibridgePayAgentChatUrlPicker || null;
+  }
+
+  function pickSettlementId(result = {}) {
+    const data = normalizeObject(result);
+    const resultData = normalizeObject(data.result);
+
+    return normalizeString(
+      data.settlement_id ||
+        data.funding_session_id ||
+        resultData.settlement_id ||
+        resultData.funding_session_id
+    );
+  }
+
+  async function postFundingSessionDirect(payload = {}) {
+    const response = await fetch("/v2/funding/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data =
+      await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw data || new Error("funding_session_request_failed");
+    }
+
+    return data;
+  }
+
+  async function callFundingSession({
+    Actions,
+    settlementId
+  } = {}) {
+    if (!settlementId) {
+      return null;
+    }
+
+    const payload = {
+      settlement_id: settlementId
+    };
+
+    if (typeof Actions.prepareFundingSession === "function") {
+      return Actions.prepareFundingSession(payload);
+    }
+
+    if (typeof Actions.fetchFundingSession === "function") {
+      return Actions.fetchFundingSession(payload);
+    }
+
+    if (typeof Actions.apiPost === "function") {
+      return Actions.apiPost("funding/session", payload);
+    }
+
+    if (window.UnibridgeApi?.apiPost) {
+      return window.UnibridgeApi.apiPost("funding/session", payload);
+    }
+
+    return postFundingSessionDirect(payload);
+  }
+
+  async function resolveFundingSessionFallback({
+    Actions,
+    initialResult,
+    UrlPicker
+  } = {}) {
+    const settlementId =
+      pickSettlementId(initialResult);
+
+    if (!settlementId) {
+      return null;
+    }
+
+    let funding =
+      await callFundingSession({
+        Actions,
+        settlementId
+      });
+
+    if (
+      funding?.widget_pending &&
+      !UrlPicker?.pickRedirectUrl?.(funding)
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      funding =
+        await callFundingSession({
+          Actions,
+          settlementId
+        });
+    }
+
+    return funding;
   }
 
   function create({
@@ -112,9 +201,7 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       }
     }
 
-    async function handleWalletFunding({
-      label = ""
-    } = {}) {
+    async function handleWalletFunding({ label = "" } = {}) {
       const { Dom, Actions } = assertModules();
 
       if (Dom.isBusy() || getAutoHandoffInFlight()) {
@@ -162,9 +249,7 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       }
     }
 
-    async function handleCardCheckout({
-      label = ""
-    } = {}) {
+    async function handleCardCheckout({ label = "" } = {}) {
       const { Dom, Renderers, Actions } = assertModules();
 
       if (Dom.isBusy() || getAutoHandoffInFlight()) {
@@ -188,7 +273,7 @@ window.UnibridgePayAgentChatHandoffController = (() => {
         const result =
           await Actions.prepareHandoff();
 
-        const clientSecret =
+        let clientSecret =
           UrlPicker?.pickClientSecret
             ? UrlPicker.pickClientSecret(result)
             : normalizeString(
@@ -198,18 +283,56 @@ window.UnibridgePayAgentChatHandoffController = (() => {
                   result.result?.next_action?.meta?.client_secret
               );
 
-        const redirectUrl =
+        let redirectUrl =
           UrlPicker?.pickRedirectUrl
             ? UrlPicker.pickRedirectUrl(result)
             : "";
+
+        let finalResult =
+          result;
+
+        if (!clientSecret && !redirectUrl) {
+          Dom.setStatus("preparing_card_widget");
+
+          const fundingSession =
+            await resolveFundingSessionFallback({
+              Actions,
+              initialResult: result,
+              UrlPicker
+            });
+
+          if (fundingSession) {
+            finalResult = {
+              ...normalizeObject(result),
+              funding_session:
+                fundingSession,
+              result: {
+                ...normalizeObject(result.result),
+                funding_session:
+                  fundingSession
+              },
+              ...normalizeObject(fundingSession)
+            };
+
+            clientSecret =
+              UrlPicker?.pickClientSecret
+                ? UrlPicker.pickClientSecret(finalResult)
+                : "";
+
+            redirectUrl =
+              UrlPicker?.pickRedirectUrl
+                ? UrlPicker.pickRedirectUrl(finalResult)
+                : "";
+          }
+        }
 
         if (clientSecret) {
           Dom.setStatus("card_checkout_ready");
 
           if (typeof Renderers.renderCardCheckout === "function") {
-            Renderers.renderCardCheckout(result);
+            Renderers.renderCardCheckout(finalResult);
           } else if (typeof Renderers.renderEmbeddedOnramp === "function") {
-            Renderers.renderEmbeddedOnramp(result);
+            Renderers.renderEmbeddedOnramp(finalResult);
           } else {
             Renderers.appendMessage(
               "assistant",
@@ -251,9 +374,7 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       }
     }
 
-    async function handleBankTransferInstructions({
-      label = ""
-    } = {}) {
+    async function handleBankTransferInstructions({ label = "" } = {}) {
       const { Dom, Renderers, Actions } = assertModules();
 
       if (Dom.isBusy() || getAutoHandoffInFlight()) {
