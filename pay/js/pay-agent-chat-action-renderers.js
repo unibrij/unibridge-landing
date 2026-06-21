@@ -20,6 +20,15 @@ window.UnibridgePayAgentChatActionRenderers = (() => {
       "needs_clarification"
     ]);
 
+  const NEXT_ACTION_FIRST_STATUSES =
+    new Set([
+      "card_checkout_required",
+      "bank_transfer_instructions_ready",
+      "wallet_connect_required",
+      "wallet_approval_required",
+      "handoff_required"
+    ]);
+
   function createActionButton(label, onClick, options = {}) {
     const safeLabel =
       Core.normalizeString(label);
@@ -90,6 +99,10 @@ window.UnibridgePayAgentChatActionRenderers = (() => {
       status === "amount_required" ||
       status === "beneficiary_required"
     ) {
+      return false;
+    }
+
+    if (NEXT_ACTION_FIRST_STATUSES.has(status)) {
       return false;
     }
 
@@ -232,26 +245,33 @@ window.UnibridgePayAgentChatActionRenderers = (() => {
     const Dom =
       Core.getDom();
 
-    if (!Dom) {
+    const Selectors =
+      Core.getSelectors();
+
+    if (!Dom || !Selectors) {
       return;
     }
 
     Dom.clearActions();
 
-    if (shouldRenderAvailableOptions(response)) {
-      renderAvailableOptions(
-        response,
-        handlers
-      );
+    const status =
+      Selectors.pickStatus(response);
 
+    if (
+      NEXT_ACTION_FIRST_STATUSES.has(status) &&
+      shouldRenderNextAction(response)
+    ) {
+      renderNextAction(response, handlers);
+      return;
+    }
+
+    if (shouldRenderAvailableOptions(response)) {
+      renderAvailableOptions(response, handlers);
       return;
     }
 
     if (shouldRenderNextAction(response)) {
-      renderNextAction(
-        response,
-        handlers
-      );
+      renderNextAction(response, handlers);
     }
   }
 
