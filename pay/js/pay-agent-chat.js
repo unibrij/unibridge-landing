@@ -3,6 +3,7 @@
 window.UnibridgePayAgentChat = (() => {
   let autoHandoffInFlight = false;
   let lastAutoHandoffKey = "";
+  let Handoff = null;
 
   function getDom() {
     return window.UnibridgePayAgentChatDom || null;
@@ -22,6 +23,10 @@ window.UnibridgePayAgentChat = (() => {
 
   function getPrivacy() {
     return window.UnibridgePayAgentChatPrivacy || null;
+  }
+
+  function getHandoffFactory() {
+    return window.UnibridgePayAgentChatHandoffController || null;
   }
 
   function assertModules() {
@@ -112,86 +117,66 @@ window.UnibridgePayAgentChat = (() => {
     });
   }
 
-  function pickRedirectUrl(result = {}) {
-    const data = normalizeObject(result);
+  function renderFallbackActions() {
+    const { Renderers, Actions } = assertModules();
 
-    const nextAction =
-      normalizeObject(data.next_action);
+    const last =
+      normalizeObject(
+        Actions.getLastSafeResponse()
+      );
 
-    const meta =
-      normalizeObject(nextAction.meta);
+    if (!Object.keys(last).length) {
+      return;
+    }
 
-    const resultData =
-      normalizeObject(data.result);
-
-    const resultNextAction =
-      normalizeObject(resultData.next_action);
-
-    const resultMeta =
-      normalizeObject(resultNextAction.meta);
-
-    return normalizeString(
-      data.redirect_url ||
-        data.handoff_url ||
-        data.checkout_url ||
-        data.widget_url ||
-        data.url ||
-        nextAction.redirect_url ||
-        nextAction.handoff_url ||
-        nextAction.checkout_url ||
-        nextAction.widget_url ||
-        nextAction.url ||
-        meta.redirect_url ||
-        meta.handoff_url ||
-        meta.checkout_url ||
-        meta.widget_url ||
-        meta.url ||
-        resultData.redirect_url ||
-        resultData.handoff_url ||
-        resultData.checkout_url ||
-        resultData.widget_url ||
-        resultData.url ||
-        resultNextAction.redirect_url ||
-        resultNextAction.handoff_url ||
-        resultNextAction.checkout_url ||
-        resultNextAction.widget_url ||
-        resultNextAction.url ||
-        resultMeta.redirect_url ||
-        resultMeta.handoff_url ||
-        resultMeta.checkout_url ||
-        resultMeta.widget_url ||
-        resultMeta.url
-    );
+    Renderers.renderActions(last, {
+      onOption: handleOptionSelection,
+      onNextAction: handleNextAction
+    });
   }
 
-  function buildAutoHandoffKey(response = {}) {
-    const Selectors = getSelectors();
+  function createHandoffController() {
+    const Factory = getHandoffFactory();
 
-    return [
-      Selectors?.pickStatus?.(response) || "",
-      response.agent_plan_id || "",
-      response.settlement_id || "",
-      response.funding_session_id || ""
-    ].join(":");
+    if (!Factory?.create) {
+      throw new Error("Pay Agent handoff controller is not loaded.");
+    }
+
+    return Factory.create({
+      assertModules,
+      appendUserSelection,
+      appendAssistantError,
+      renderFallbackActions,
+
+      getAutoHandoffInFlight() {
+        return autoHandoffInFlight;
+      },
+
+      setAutoHandoffInFlight(value) {
+        autoHandoffInFlight = Boolean(value);
+      },
+
+      getLastAutoHandoffKey() {
+        return lastAutoHandoffKey;
+      },
+
+      setLastAutoHandoffKey(value) {
+        lastAutoHandoffKey = normalizeString(value);
+      }
+    });
   }
 
-  function isAutoHandoffState(status) {
-    return (
-      status === "card_checkout_required" ||
-      status === "bank_transfer_instructions_ready" ||
-      status === "wallet_connect_required" ||
-      status === "wallet_approval_required"
-    );
-  }
+  function getHandoffController() {
+    if (!Handoff) {
+      Handoff = createHandoffController();
+    }
 
-  function scheduleAutoHandoff(response = {}) {
-    setTimeout(() => {
-      maybeRunAutoHandoff(response);
-    }, 50);
+    return Handoff;
   }
 
   function handleResponse(response = {}) {
     const { Dom, Selectors, Renderers, Actions } = assertModules();
+    const HandoffController = getHandoffController();
 
     const safeResponse = normalizeObject(response);
 
@@ -209,9 +194,9 @@ window.UnibridgePayAgentChat = (() => {
 
     Dom.setStatus(status);
 
-    if (isAutoHandoffState(status)) {
+    if (HandoffController.isAutoHandoffState(status)) {
       Dom.clearActions();
-      scheduleAutoHandoff(safeResponse);
+      HandoffController.scheduleAutoHandoff(safeResponse);
       return;
     }
 
@@ -219,43 +204,6 @@ window.UnibridgePayAgentChat = (() => {
       onOption: handleOptionSelection,
       onNextAction: handleNextAction
     });
-  }
-
-  async function maybeRunAutoHandoff(response = {}) {
-    const { Selectors } = assertModules();
-
-    const status =
-      Selectors.pickStatus(response);
-
-    const key =
-      buildAutoHandoffKey(response);
-
-    if (
-      autoHandoffInFlight ||
-      !key ||
-      key === lastAutoHandoffKey
-    ) {
-      return;
-    }
-
-    lastAutoHandoffKey = key;
-
-    if (status === "card_checkout_required") {
-      await handleCardCheckout({ label: "" });
-      return;
-    }
-
-    if (status === "bank_transfer_instructions_ready") {
-      await handleBankTransferInstructions({ label: "" });
-      return;
-    }
-
-    if (
-      status === "wallet_connect_required" ||
-      status === "wallet_approval_required"
-    ) {
-      await handleWalletFunding({ label: "" });
-    }
   }
 
   async function runBusyAction({
@@ -309,8 +257,10 @@ window.UnibridgePayAgentChat = (() => {
 
   function handleOptionSelection(option = {}) {
     const { Selectors, Actions } = assertModules();
+    const HandoffController = getHandoffController();
 
-    const optionId = Selectors.normalizeOptionId(option);
+    const optionId =
+      Selectors.normalizeOptionId(option);
 
     const label =
       Selectors.normalizeOptionLabel(option) ||
@@ -321,7 +271,7 @@ window.UnibridgePayAgentChat = (() => {
     }
 
     if (Selectors.isWalletFundingOption(option)) {
-      handleWalletFunding({ label });
+      HandoffController.handleWalletFunding({ label });
       return;
     }
 
@@ -331,7 +281,8 @@ window.UnibridgePayAgentChat = (() => {
     ) {
       handleDeterministicPayload({
         label,
-        payload: Actions.buildFundingMethodPayload(optionId)
+        payload:
+          Actions.buildFundingMethodPayload(optionId)
       });
 
       return;
@@ -339,12 +290,14 @@ window.UnibridgePayAgentChat = (() => {
 
     handleDeterministicPayload({
       label,
-      payload: Actions.buildOptionPayload(option)
+      payload:
+        Actions.buildOptionPayload(option)
     });
   }
 
   function handleNextAction(nextAction = {}) {
     const { Selectors, Actions } = assertModules();
+    const HandoffController = getHandoffController();
 
     const actionType =
       Selectors.normalizeLower(
@@ -367,214 +320,25 @@ window.UnibridgePayAgentChat = (() => {
       actionType === "connect_wallet" ||
       actionType === "approve_wallet_payment"
     ) {
-      handleWalletFunding({ label });
+      HandoffController.handleWalletFunding({ label });
       return;
     }
 
     if (actionType === "open_card_checkout") {
-      handleCardCheckout({ label });
+      HandoffController.handleCardCheckout({ label });
       return;
     }
 
     if (actionType === "show_bank_transfer_instructions") {
-      handleBankTransferInstructions({ label });
+      HandoffController.handleBankTransferInstructions({ label });
       return;
     }
 
     handleDeterministicPayload({
       label,
-      payload: Actions.buildNextActionPayload(nextAction)
+      payload:
+        Actions.buildNextActionPayload(nextAction)
     });
-  }
-
-  async function handleWalletFunding({
-    label = ""
-  } = {}) {
-    const { Dom, Renderers, Actions } = assertModules();
-
-    if (Dom.isBusy() || autoHandoffInFlight) {
-      return;
-    }
-
-    autoHandoffInFlight = true;
-    Dom.clearActions();
-
-    if (label) {
-      appendUserSelection(label);
-    }
-
-    Dom.setBusy(true);
-    Dom.setStatus("preparing_wallet_handoff");
-
-    try {
-      const result = await Actions.prepareWalletHandoff();
-
-      const connectUrl =
-        normalizeString(result.connect_url);
-
-      if (!connectUrl) {
-        const error = new Error("wallet_handoff_missing_connect_url");
-        error.code = "wallet_handoff_missing_connect_url";
-        throw error;
-      }
-
-      Dom.setStatus("opening_wallet_checkout");
-      window.location.href = connectUrl;
-    } catch (error) {
-      lastAutoHandoffKey = "";
-      appendAssistantError(error);
-      Dom.setStatus("error");
-
-      const last = Actions.getLastSafeResponse();
-
-      if (last && Object.keys(last).length) {
-        Renderers.renderActions(last, {
-          onOption: handleOptionSelection,
-          onNextAction: handleNextAction
-        });
-      }
-    } finally {
-      autoHandoffInFlight = false;
-      Dom.setBusy(false);
-      Dom.focusInput();
-    }
-  }
-
-  async function handleCardCheckout({
-    label = ""
-  } = {}) {
-    const { Dom, Renderers, Actions } = assertModules();
-
-    if (Dom.isBusy() || autoHandoffInFlight) {
-      return;
-    }
-
-    autoHandoffInFlight = true;
-    Dom.clearActions();
-
-    if (label) {
-      appendUserSelection(label);
-    }
-
-    Dom.setBusy(true);
-    Dom.setStatus("preparing_card_checkout");
-
-    try {
-      const result = await Actions.prepareHandoff();
-
-      const clientSecret =
-        normalizeString(
-          result.client_secret ||
-            result.next_action?.meta?.client_secret ||
-            result.result?.client_secret ||
-            result.result?.next_action?.meta?.client_secret
-        );
-
-      const redirectUrl =
-        pickRedirectUrl(result);
-
-      if (clientSecret) {
-        Dom.setStatus("card_checkout_ready");
-
-        if (typeof Renderers.renderCardCheckout === "function") {
-          Renderers.renderCardCheckout(result);
-        } else if (typeof Renderers.renderEmbeddedOnramp === "function") {
-          Renderers.renderEmbeddedOnramp(result);
-        } else {
-          Renderers.appendMessage(
-            "assistant",
-            "Card checkout is ready. Please complete the embedded checkout."
-          );
-        }
-
-        return;
-      }
-
-      if (redirectUrl) {
-        Dom.setStatus("opening_card_checkout");
-
-        Renderers.appendMessage(
-          "assistant",
-          "Card checkout is ready. Opening the checkout page now."
-        );
-
-        window.location.href = redirectUrl;
-        return;
-      }
-
-      const error = new Error("card_checkout_missing_client_secret_or_url");
-      error.code = "card_checkout_missing_client_secret_or_url";
-      throw error;
-    } catch (error) {
-      lastAutoHandoffKey = "";
-      appendAssistantError(error);
-      Dom.setStatus("error");
-
-      const last = Actions.getLastSafeResponse();
-
-      if (last && Object.keys(last).length) {
-        Renderers.renderActions(last, {
-          onOption: handleOptionSelection,
-          onNextAction: handleNextAction
-        });
-      }
-    } finally {
-      autoHandoffInFlight = false;
-      Dom.setBusy(false);
-      Dom.focusInput();
-    }
-  }
-
-  async function handleBankTransferInstructions({
-    label = ""
-  } = {}) {
-    const { Dom, Renderers, Actions } = assertModules();
-
-    if (Dom.isBusy() || autoHandoffInFlight) {
-      return;
-    }
-
-    autoHandoffInFlight = true;
-    Dom.clearActions();
-
-    if (label) {
-      appendUserSelection(label);
-    }
-
-    Dom.setBusy(true);
-    Dom.setStatus("preparing_bank_transfer_instructions");
-
-    try {
-      const result = await Actions.prepareHandoff();
-
-      Dom.setStatus("bank_transfer_instructions_ready");
-
-      if (typeof Renderers.renderBankTransferInstructions === "function") {
-        Renderers.renderBankTransferInstructions(result);
-      } else {
-        Renderers.appendMessage(
-          "assistant",
-          "Bank transfer instructions are ready."
-        );
-      }
-    } catch (error) {
-      lastAutoHandoffKey = "";
-      appendAssistantError(error);
-      Dom.setStatus("error");
-
-      const last = Actions.getLastSafeResponse();
-
-      if (last && Object.keys(last).length) {
-        Renderers.renderActions(last, {
-          onOption: handleOptionSelection,
-          onNextAction: handleNextAction
-        });
-      }
-    } finally {
-      autoHandoffInFlight = false;
-      Dom.setBusy(false);
-      Dom.focusInput();
-    }
   }
 
   async function handleSubmit(event) {
@@ -600,7 +364,8 @@ window.UnibridgePayAgentChat = (() => {
       Privacy.getVisibleUserMessage(message);
 
     Renderers.appendMessage("user", visibleMessage, {
-      masked: Privacy.isMaskedVisibleMessage(visibleMessage)
+      masked:
+        Privacy.isMaskedVisibleMessage(visibleMessage)
     });
 
     Dom.clearInput();
@@ -609,7 +374,9 @@ window.UnibridgePayAgentChat = (() => {
 
     try {
       const response =
-        await Actions.sendChatMessage({ message });
+        await Actions.sendChatMessage({
+          message
+        });
 
       handleResponse(response);
     } catch (error) {
@@ -638,6 +405,7 @@ window.UnibridgePayAgentChat = (() => {
 
   function restoreLastSnapshot() {
     const { Dom, Selectors, Renderers, Actions } = assertModules();
+    const HandoffController = getHandoffController();
 
     if (!Actions.hasActivePlan()) {
       Dom.setStatus("ready");
@@ -668,9 +436,9 @@ window.UnibridgePayAgentChat = (() => {
 
     Dom.setStatus(status);
 
-    if (isAutoHandoffState(status)) {
+    if (HandoffController.isAutoHandoffState(status)) {
       Dom.clearActions();
-      scheduleAutoHandoff(last);
+      HandoffController.scheduleAutoHandoff(last);
       return;
     }
 
@@ -691,6 +459,7 @@ window.UnibridgePayAgentChat = (() => {
     const { Dom } = assertModules();
 
     Dom.mount();
+    getHandoffController();
     bindEvents();
     restoreLastSnapshot();
     Dom.focusInput();
@@ -702,10 +471,19 @@ window.UnibridgePayAgentChat = (() => {
     handleReset,
     handleOptionSelection,
     handleNextAction,
-    handleWalletFunding,
-    handleCardCheckout,
-    handleBankTransferInstructions,
-    handleResponse
+    handleResponse,
+
+    handleWalletFunding(...args) {
+      return getHandoffController().handleWalletFunding(...args);
+    },
+
+    handleCardCheckout(...args) {
+      return getHandoffController().handleCardCheckout(...args);
+    },
+
+    handleBankTransferInstructions(...args) {
+      return getHandoffController().handleBankTransferInstructions(...args);
+    }
   };
 })();
 
