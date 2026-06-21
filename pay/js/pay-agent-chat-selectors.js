@@ -144,7 +144,7 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const data =
       normalizeObject(response);
 
-    return normalizeString(
+    return normalizeLower(
       data.current_state ||
         data.status ||
         data.plan?.current_state ||
