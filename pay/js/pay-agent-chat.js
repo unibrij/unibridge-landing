@@ -287,7 +287,6 @@ window.UnibridgePayAgentChat = (() => {
 
   function handleOptionSelection(option = {}) {
     const { Selectors, Actions } = assertModules();
-    const HandoffController = getHandoffController();
 
     const optionId =
       Selectors.normalizeOptionId(option);
@@ -300,14 +299,8 @@ window.UnibridgePayAgentChat = (() => {
       return;
     }
 
-    if (Selectors.isWalletFundingOption(option)) {
-      HandoffController.handleWalletFunding({
-        label: label || "Wallet"
-      });
-      return;
-    }
-
     if (
+      Selectors.isWalletFundingOption(option) ||
       Selectors.isCardFundingOption(option) ||
       Selectors.isBankTransferFundingOption(option)
     ) {
