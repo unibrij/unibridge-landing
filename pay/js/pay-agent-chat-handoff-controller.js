@@ -2,20 +2,27 @@
 
 window.UnibridgePayAgentChatHandoffController = (() => {
   function normalizeString(value) {
-    const UrlPicker = window.UnibridgePayAgentChatUrlPicker;
+    const UrlPicker =
+      window.UnibridgePayAgentChatUrlPicker;
 
     if (UrlPicker?.normalizeString) {
       return UrlPicker.normalizeString(value);
     }
 
-    if (value === null || value === undefined) return "";
-    if (typeof value === "object") return "";
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      return "";
+    }
 
     return String(value).trim();
   }
 
   function normalizeObject(value) {
-    const UrlPicker = window.UnibridgePayAgentChatUrlPicker;
+    const UrlPicker =
+      window.UnibridgePayAgentChatUrlPicker;
 
     if (UrlPicker?.normalizeObject) {
       return UrlPicker.normalizeObject(value);
@@ -30,121 +37,6 @@ window.UnibridgePayAgentChatHandoffController = (() => {
 
   function getUrlPicker() {
     return window.UnibridgePayAgentChatUrlPicker || null;
-  }
-
-  function pickSettlementId(result = {}) {
-    const data = normalizeObject(result);
-    const resultData = normalizeObject(data.result);
-
-    return normalizeString(
-      data.settlement_id ||
-        data.funding_session_id ||
-        resultData.settlement_id ||
-        resultData.funding_session_id
-    );
-  }
-
-  function getApiBase() {
-    const PayAgentApi =
-      window.UnibridgePayAgentApi || null;
-
-    const Api =
-      window.UnibridgeApi || null;
-
-    return normalizeString(
-      PayAgentApi?.API_BASE ||
-        PayAgentApi?.apiBase ||
-        Api?.API_BASE ||
-        Api?.apiBase ||
-        "https://unibridge-v2-1066944028362.us-central1.run.app/v2"
-    ).replace(/\/$/, "");
-  }
-
-  async function postFundingSessionDirect(payload = {}) {
-    const response =
-      await fetch(`${getApiBase()}/funding/session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body:
-          JSON.stringify(payload)
-      });
-
-    const data =
-      await response.json().catch(() => ({}));
-
-    if (!response.ok || data?.ok === false) {
-      throw data || new Error("funding_session_request_failed");
-    }
-
-    return data;
-  }
-
-  async function callFundingSession({
-    Actions,
-    settlementId
-  } = {}) {
-    if (!settlementId) {
-      return null;
-    }
-
-    const payload = {
-      settlement_id:
-        settlementId
-    };
-
-    if (typeof Actions.prepareFundingSession === "function") {
-      return Actions.prepareFundingSession(payload);
-    }
-
-    if (typeof Actions.fetchFundingSession === "function") {
-      return Actions.fetchFundingSession(payload);
-    }
-
-    if (typeof Actions.apiPost === "function") {
-      return Actions.apiPost("funding/session", payload);
-    }
-
-    if (window.UnibridgeApi?.apiPost) {
-      return window.UnibridgeApi.apiPost("funding/session", payload);
-    }
-
-    return postFundingSessionDirect(payload);
-  }
-
-  async function resolveFundingSessionFallback({
-    Actions,
-    initialResult,
-    UrlPicker
-  } = {}) {
-    const settlementId =
-      pickSettlementId(initialResult);
-
-    if (!settlementId) {
-      return null;
-    }
-
-    let funding =
-      await callFundingSession({
-        Actions,
-        settlementId
-      });
-
-    if (
-      funding?.widget_pending &&
-      !UrlPicker?.pickRedirectUrl?.(funding)
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      funding =
-        await callFundingSession({
-          Actions,
-          settlementId
-        });
-    }
-
-    return funding;
   }
 
   function create({
@@ -292,7 +184,7 @@ window.UnibridgePayAgentChatHandoffController = (() => {
         const result =
           await Actions.prepareHandoff();
 
-        let clientSecret =
+        const clientSecret =
           UrlPicker?.pickClientSecret
             ? UrlPicker.pickClientSecret(result)
             : normalizeString(
@@ -302,56 +194,34 @@ window.UnibridgePayAgentChatHandoffController = (() => {
                   result.result?.next_action?.meta?.client_secret
               );
 
-        let redirectUrl =
+        const redirectUrl =
           UrlPicker?.pickRedirectUrl
             ? UrlPicker.pickRedirectUrl(result)
-            : "";
-
-        let finalResult =
-          result;
-
-        if (!clientSecret && !redirectUrl) {
-          Dom.setStatus("preparing_card_widget");
-
-          const fundingSession =
-            await resolveFundingSessionFallback({
-              Actions,
-              initialResult: result,
-              UrlPicker
-            });
-
-          if (fundingSession) {
-            finalResult = {
-              ...normalizeObject(result),
-              funding_session:
-                fundingSession,
-              result: {
-                ...normalizeObject(result.result),
-                funding_session:
-                  fundingSession
-              },
-              ...normalizeObject(fundingSession)
-            };
-
-            clientSecret =
-              UrlPicker?.pickClientSecret
-                ? UrlPicker.pickClientSecret(finalResult)
-                : "";
-
-            redirectUrl =
-              UrlPicker?.pickRedirectUrl
-                ? UrlPicker.pickRedirectUrl(finalResult)
-                : "";
-          }
-        }
+            : normalizeString(
+                result.redirect_url ||
+                  result.handoff_url ||
+                  result.checkout_url ||
+                  result.widget_url ||
+                  result.url ||
+                  result.next_action?.redirect_url ||
+                  result.next_action?.handoff_url ||
+                  result.next_action?.checkout_url ||
+                  result.next_action?.widget_url ||
+                  result.next_action?.url ||
+                  result.next_action?.meta?.redirect_url ||
+                  result.next_action?.meta?.handoff_url ||
+                  result.next_action?.meta?.checkout_url ||
+                  result.next_action?.meta?.widget_url ||
+                  result.next_action?.meta?.url
+              );
 
         if (clientSecret) {
           Dom.setStatus("card_checkout_ready");
 
           if (typeof Renderers.renderCardCheckout === "function") {
-            Renderers.renderCardCheckout(finalResult);
+            Renderers.renderCardCheckout(result);
           } else if (typeof Renderers.renderEmbeddedOnramp === "function") {
-            Renderers.renderEmbeddedOnramp(finalResult);
+            Renderers.renderEmbeddedOnramp(result);
           } else {
             Renderers.appendMessage(
               "assistant",
