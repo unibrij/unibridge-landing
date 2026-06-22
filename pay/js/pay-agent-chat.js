@@ -54,8 +54,30 @@ window.UnibridgePayAgentChat = (() => {
       return "";
     }
 
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
     if (typeof value === "object") {
-      return "";
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          value.value ||
+          value.id ||
+          value.action ||
+          ""
+      );
     }
 
     return String(value).trim();
@@ -105,8 +127,15 @@ window.UnibridgePayAgentChat = (() => {
   }
 
   function appendUserSelection(label) {
+    const { Selectors } = assertModules();
     const Renderers = getRenderers();
-    const text = normalizeString(label);
+
+    const text =
+      Selectors.pickFirstSafeText(
+        label,
+        Selectors.normalizeOptionLabel(label),
+        Selectors.buildActionMessageFromPayload(label)
+      );
 
     if (!text) {
       return;
@@ -183,7 +212,8 @@ window.UnibridgePayAgentChat = (() => {
     Actions.saveChatResponse(safeResponse);
     Renderers.renderSafeSummary(safeResponse);
 
-    const reply = Selectors.pickReplyText(safeResponse);
+    const reply =
+      Selectors.pickReplyText(safeResponse);
 
     if (reply) {
       Renderers.appendMessage("assistant", reply);
@@ -271,7 +301,9 @@ window.UnibridgePayAgentChat = (() => {
     }
 
     if (Selectors.isWalletFundingOption(option)) {
-      HandoffController.handleWalletFunding({ label });
+      HandoffController.handleWalletFunding({
+        label: label || "Wallet"
+      });
       return;
     }
 
@@ -320,23 +352,29 @@ window.UnibridgePayAgentChat = (() => {
       actionType === "connect_wallet" ||
       actionType === "approve_wallet_payment"
     ) {
-      HandoffController.handleWalletFunding({ label });
+      HandoffController.handleWalletFunding({
+        label: label || actionType
+      });
       return;
     }
 
     if (
-  actionType === "open_card_checkout" ||
-  actionType === "open_redirect_checkout" ||
-  actionType === "redirect" ||
-  actionType === "open_checkout" ||
-  actionType === "continue_card_checkout"
-) {
-  HandoffController.handleCardCheckout({ label });
-  return;
-}
+      actionType === "open_card_checkout" ||
+      actionType === "open_redirect_checkout" ||
+      actionType === "redirect" ||
+      actionType === "open_checkout" ||
+      actionType === "continue_card_checkout"
+    ) {
+      HandoffController.handleCardCheckout({
+        label: label || actionType
+      });
+      return;
+    }
 
     if (actionType === "show_bank_transfer_instructions") {
-      HandoffController.handleBankTransferInstructions({ label });
+      HandoffController.handleBankTransferInstructions({
+        label: label || actionType
+      });
       return;
     }
 
