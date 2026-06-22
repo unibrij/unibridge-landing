@@ -3,22 +3,6 @@
 /*
 --------------------------------------------------
 Pay Agent Chat Actions
-
-Responsibility:
-- Own Pay Agent API calls from the chat UI.
-- Own safe storage interaction for agent_plan_id + last safe response.
-- Send free-text chat messages.
-- Send deterministic action payloads.
-- Prepare wallet handoff and extract connect_url.
-- Prepare payment handoff and extract handoff data.
-
-Does not:
-- Render DOM.
-- Append chat messages.
-- Decide what button to show.
-- Mask private values.
-- Build normalized_intent.
-- Execute payout.
 --------------------------------------------------
 */
 
@@ -46,6 +30,32 @@ window.UnibridgePayAgentChatActions = (() => {
 
     if (value === null || value === undefined) {
       return "";
+    }
+
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
+    if (typeof value === "object") {
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          value.value ||
+          value.id ||
+          value.action ||
+          ""
+      );
     }
 
     return String(value).trim();
@@ -324,7 +334,6 @@ window.UnibridgePayAgentChatActions = (() => {
 
   function buildNextActionPayload(nextAction = {}) {
     const item = normalizeObject(nextAction);
-
     const action = normalizeString(item.type || item.action);
 
     return {
@@ -494,27 +503,15 @@ window.UnibridgePayAgentChatActions = (() => {
   function pickWalletResponseForStorage(result = {}) {
     const data = normalizeObject(result);
 
-    if (
-      data.selected &&
-      typeof data.selected === "object" &&
-      !Array.isArray(data.selected)
-    ) {
+    if (data.selected && typeof data.selected === "object" && !Array.isArray(data.selected)) {
       return data.selected;
     }
 
-    if (
-      data.response &&
-      typeof data.response === "object" &&
-      !Array.isArray(data.response)
-    ) {
+    if (data.response && typeof data.response === "object" && !Array.isArray(data.response)) {
       return data.response;
     }
 
-    if (
-      data.data &&
-      typeof data.data === "object" &&
-      !Array.isArray(data.data)
-    ) {
+    if (data.data && typeof data.data === "object" && !Array.isArray(data.data)) {
       return data.data;
     }
 
@@ -524,27 +521,15 @@ window.UnibridgePayAgentChatActions = (() => {
   function pickHandoffResponseForStorage(result = {}) {
     const data = normalizeObject(result);
 
-    if (
-      data.selected &&
-      typeof data.selected === "object" &&
-      !Array.isArray(data.selected)
-    ) {
+    if (data.selected && typeof data.selected === "object" && !Array.isArray(data.selected)) {
       return data.selected;
     }
 
-    if (
-      data.response &&
-      typeof data.response === "object" &&
-      !Array.isArray(data.response)
-    ) {
+    if (data.response && typeof data.response === "object" && !Array.isArray(data.response)) {
       return data.response;
     }
 
-    if (
-      data.data &&
-      typeof data.data === "object" &&
-      !Array.isArray(data.data)
-    ) {
+    if (data.data && typeof data.data === "object" && !Array.isArray(data.data)) {
       return data.data;
     }
 
