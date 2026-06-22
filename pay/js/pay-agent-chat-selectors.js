@@ -2,14 +2,9 @@
 
 window.UnibridgePayAgentChatSelectors = (() => {
   const FUNDING_METHOD_IDS = {
-    wallet:
-      "wallet",
-
-    card:
-      "card",
-
-    bankTransfer:
-      "bank_transfer"
+    wallet: "wallet",
+    card: "card",
+    bankTransfer: "bank_transfer"
   };
 
   const INTERNAL_REPLY_TOKENS = new Set([
@@ -57,8 +52,30 @@ window.UnibridgePayAgentChatSelectors = (() => {
       return "";
     }
 
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
     if (typeof value === "object") {
-      return "";
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          value.prompt ||
+          value.question ||
+          value.body ||
+          ""
+      );
     }
 
     return String(value).trim();
@@ -118,11 +135,41 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const data =
       normalizeObject(response);
 
+    const plan =
+      normalizeObject(data.plan);
+
+    const nextAction =
+      normalizeObject(
+        data.next_action ||
+          plan.next_action
+      );
+
     return pickFirstSafeText(
       data.reply,
       data.current_prompt,
       data.current_question,
-      data.message
+      data.message,
+      data.text,
+      data.content,
+      data.prompt,
+      data.question,
+      data.body,
+
+      plan.reply,
+      plan.current_prompt,
+      plan.current_question,
+      plan.message,
+      plan.text,
+      plan.content,
+      plan.prompt,
+      plan.question,
+      plan.body,
+
+      nextAction.message,
+      nextAction.label,
+      nextAction.title,
+      nextAction.text,
+      nextAction.content
     );
   }
 
@@ -173,8 +220,7 @@ window.UnibridgePayAgentChatSelectors = (() => {
 
     if (typeof direct === "string") {
       return {
-        type:
-          direct
+        type: direct
       };
     }
 
