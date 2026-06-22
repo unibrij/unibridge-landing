@@ -324,10 +324,16 @@ window.UnibridgePayAgentChat = (() => {
       return;
     }
 
-    if (actionType === "open_card_checkout") {
-      HandoffController.handleCardCheckout({ label });
-      return;
-    }
+    if (
+  actionType === "open_card_checkout" ||
+  actionType === "open_redirect_checkout" ||
+  actionType === "redirect" ||
+  actionType === "open_checkout" ||
+  actionType === "continue_card_checkout"
+) {
+  HandoffController.handleCardCheckout({ label });
+  return;
+}
 
     if (actionType === "show_bank_transfer_instructions") {
       HandoffController.handleBankTransferInstructions({ label });
