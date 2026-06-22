@@ -84,6 +84,29 @@ window.UnibridgePayAgentChatDom = (() => {
       return "";
     }
 
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
+    if (typeof value === "object") {
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          ""
+      );
+    }
+
     return String(value).trim();
   }
 
@@ -96,9 +119,12 @@ window.UnibridgePayAgentChatDom = (() => {
         className;
     }
 
-    if (text) {
+    const safeText =
+      normalizeString(text);
+
+    if (safeText) {
       element.textContent =
-        text;
+        safeText;
     }
 
     return element;
@@ -320,7 +346,7 @@ window.UnibridgePayAgentChatDom = (() => {
     }
 
     state.input.value =
-      value;
+      normalizeString(value);
   }
 
   function clearInput() {
