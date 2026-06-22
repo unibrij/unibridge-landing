@@ -2,19 +2,40 @@
 
 window.UnibridgePayAgentChatHandoffController = (() => {
   function normalizeString(value) {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "string") {
+      return value.trim();
+    }
+
+    if (
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      return String(value).trim();
+    }
+
+    if (typeof value === "object") {
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          value.url ||
+          value.href ||
+          ""
+      );
+    }
+
     const UrlPicker =
       window.UnibridgePayAgentChatUrlPicker;
 
     if (UrlPicker?.normalizeString) {
       return UrlPicker.normalizeString(value);
-    }
-
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    if (typeof value === "object") {
-      return "";
     }
 
     return String(value).trim();
@@ -122,8 +143,11 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       setAutoHandoffInFlight(true);
       Dom.clearActions();
 
-      if (label) {
-        appendUserSelection(label);
+      const safeLabel =
+        normalizeString(label);
+
+      if (safeLabel) {
+        appendUserSelection(safeLabel);
       }
 
       Dom.setBusy(true);
@@ -133,8 +157,10 @@ window.UnibridgePayAgentChatHandoffController = (() => {
         const result =
           await Actions.prepareWalletHandoff();
 
+        console.log("[PAY_AGENT_WALLET_HANDOFF_RESULT]", result);
+
         const connectUrl =
-          normalizeString(result.connect_url);
+          normalizeString(result?.connect_url);
 
         if (!connectUrl) {
           const error =
@@ -173,8 +199,11 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       setAutoHandoffInFlight(true);
       Dom.clearActions();
 
-      if (label) {
-        appendUserSelection(label);
+      const safeLabel =
+        normalizeString(label);
+
+      if (safeLabel) {
+        appendUserSelection(safeLabel);
       }
 
       Dom.setBusy(true);
@@ -188,31 +217,31 @@ window.UnibridgePayAgentChatHandoffController = (() => {
           UrlPicker?.pickClientSecret
             ? UrlPicker.pickClientSecret(result)
             : normalizeString(
-                result.client_secret ||
-                  result.next_action?.meta?.client_secret ||
-                  result.result?.client_secret ||
-                  result.result?.next_action?.meta?.client_secret
+                result?.client_secret ||
+                  result?.next_action?.meta?.client_secret ||
+                  result?.result?.client_secret ||
+                  result?.result?.next_action?.meta?.client_secret
               );
 
         const redirectUrl =
           UrlPicker?.pickRedirectUrl
             ? UrlPicker.pickRedirectUrl(result)
             : normalizeString(
-                result.redirect_url ||
-                  result.handoff_url ||
-                  result.checkout_url ||
-                  result.widget_url ||
-                  result.url ||
-                  result.next_action?.redirect_url ||
-                  result.next_action?.handoff_url ||
-                  result.next_action?.checkout_url ||
-                  result.next_action?.widget_url ||
-                  result.next_action?.url ||
-                  result.next_action?.meta?.redirect_url ||
-                  result.next_action?.meta?.handoff_url ||
-                  result.next_action?.meta?.checkout_url ||
-                  result.next_action?.meta?.widget_url ||
-                  result.next_action?.meta?.url
+                result?.redirect_url ||
+                  result?.handoff_url ||
+                  result?.checkout_url ||
+                  result?.widget_url ||
+                  result?.url ||
+                  result?.next_action?.redirect_url ||
+                  result?.next_action?.handoff_url ||
+                  result?.next_action?.checkout_url ||
+                  result?.next_action?.widget_url ||
+                  result?.next_action?.url ||
+                  result?.next_action?.meta?.redirect_url ||
+                  result?.next_action?.meta?.handoff_url ||
+                  result?.next_action?.meta?.checkout_url ||
+                  result?.next_action?.meta?.widget_url ||
+                  result?.next_action?.meta?.url
               );
 
         if (clientSecret) {
@@ -273,8 +302,11 @@ window.UnibridgePayAgentChatHandoffController = (() => {
       setAutoHandoffInFlight(true);
       Dom.clearActions();
 
-      if (label) {
-        appendUserSelection(label);
+      const safeLabel =
+        normalizeString(label);
+
+      if (safeLabel) {
+        appendUserSelection(safeLabel);
       }
 
       Dom.setBusy(true);
