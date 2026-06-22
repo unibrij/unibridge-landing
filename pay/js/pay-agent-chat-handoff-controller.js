@@ -44,19 +44,37 @@ window.UnibridgePayAgentChatHandoffController = (() => {
     );
   }
 
+  function getApiBase() {
+    const PayAgentApi =
+      window.UnibridgePayAgentApi || null;
+
+    const Api =
+      window.UnibridgeApi || null;
+
+    return normalizeString(
+      PayAgentApi?.API_BASE ||
+        PayAgentApi?.apiBase ||
+        Api?.API_BASE ||
+        Api?.apiBase ||
+        "https://unibridge-v2-1066944028362.us-central1.run.app/v2"
+    ).replace(/\/$/, "");
+  }
+
   async function postFundingSessionDirect(payload = {}) {
-    const response = await fetch("/v2/funding/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+    const response =
+      await fetch(`${getApiBase()}/funding/session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body:
+          JSON.stringify(payload)
+      });
 
     const data =
       await response.json().catch(() => ({}));
 
-    if (!response.ok) {
+    if (!response.ok || data?.ok === false) {
       throw data || new Error("funding_session_request_failed");
     }
 
@@ -72,7 +90,8 @@ window.UnibridgePayAgentChatHandoffController = (() => {
     }
 
     const payload = {
-      settlement_id: settlementId
+      settlement_id:
+        settlementId
     };
 
     if (typeof Actions.prepareFundingSession === "function") {
