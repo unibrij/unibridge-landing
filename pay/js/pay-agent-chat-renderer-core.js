@@ -36,7 +36,15 @@ window.UnibridgePayAgentChatRendererCore = (() => {
     }
 
     if (typeof value === "object") {
-      return "";
+      return normalizeString(
+        value.reply ||
+          value.message ||
+          value.text ||
+          value.label ||
+          value.content ||
+          value.title ||
+          ""
+      );
     }
 
     if (Selectors?.normalizeString) {
@@ -103,8 +111,13 @@ window.UnibridgePayAgentChatRendererCore = (() => {
 
     if (
       typeof value === "string" ||
-      typeof value === "number"
+      typeof value === "number" ||
+      typeof value === "boolean"
     ) {
+      return normalizeString(value);
+    }
+
+    if (typeof value === "object") {
       return normalizeString(value);
     }
 
