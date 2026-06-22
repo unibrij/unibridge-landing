@@ -8,6 +8,14 @@ window.UnibridgePayAgentChatMessageRenderers = (() => {
     throw new Error("Pay Agent renderer core is not loaded.");
   }
 
+  function isBlockedObjectString(value) {
+    return (
+      value === "[object Object]" ||
+      value === "object Object" ||
+      value === "[object object]"
+    );
+  }
+
   function appendMessage(role, text, options = {}) {
     const Dom =
       Core.getDom();
@@ -15,7 +23,16 @@ window.UnibridgePayAgentChatMessageRenderers = (() => {
     const messageText =
       Core.normalizeString(text);
 
-    if (!messageText) {
+    if (
+      !messageText ||
+      isBlockedObjectString(messageText)
+    ) {
+      console.warn("[PAY_AGENT_BLOCKED_OBJECT_MESSAGE]", {
+        role,
+        raw:
+          text
+      });
+
       return null;
     }
 
