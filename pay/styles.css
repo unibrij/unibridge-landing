@@ -278,21 +278,19 @@ h1 {
 .agent-choice-icon {
   position: relative;
   border-radius: 14px;
-  background: rgba(20, 184, 166, 0.10);
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  box-shadow: 0 0 18px rgba(45, 212, 191, 0.10);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .agent-choice-logo {
   width: 48px;
   height: 48px;
-  object-fit: contain;
   display: block;
-  filter:
-    brightness(1.35)
-    contrast(1.35)
-    saturate(1.15)
-    drop-shadow(0 0 7px rgba(45, 212, 191, 0.35));
+  background: #5eead4;
+  -webkit-mask: url("/public/icons/social/ub-agent-icon1.png") center / contain no-repeat;
+  mask: url("/public/icons/social/ub-agent-icon1.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
 }
 
 .agent-choice-badge {
