@@ -20,17 +20,12 @@
 
   <meta
     name="description"
-    content="Pay with UniBridge lets users fund a payout route using wallet, bank transfer, or card payment. For route-specific guidance, use the UniBridge Official Guide."
+    content="Pay with UniBridge lets users fund a payout route using wallet, bank transfer, card payment, or the UniBridge Pay Agent."
   />
 
   <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
   <link rel="preload" as="image" href="/public/icons/social/unibridge-orbit-lockup-white.png" />
   <link rel="stylesheet" href="/pay/styles.css?v=23" />
-
-  <link
-    rel="help"
-    href="https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
-  />
 
   <style>
     .sr-only {
@@ -68,12 +63,12 @@
       },
       {
         "@type": "WebApplication",
-        "@id": "https://unibrij.io/pay#guide",
-        "name": "UniBridge Official Guide",
+        "@id": "https://unibrij.io/pay#agent",
+        "name": "UniBridge Pay Agent",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "url": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide",
-        "description": "Official UniBridge guide for questions about Pay with UniBridge, wallet funding, fiat funding, payout routes, and safety."
+        "url": "https://unibrij.io/pay/agent/",
+        "description": "UniBridge Pay Agent helps users describe a payment and prepare the payout route."
       },
       {
         "@type": "Service",
@@ -84,15 +79,15 @@
           "@id": "https://unibrij.io/#organization"
         },
         "url": "https://unibrij.io/pay",
-        "description": "Pay with UniBridge lets users fund a payout route using a connected wallet, bank transfer, or card payment. For route-specific guidance, users can ask the UniBridge Official Guide.",
+        "description": "Pay with UniBridge lets users fund a payout route using a connected wallet, bank transfer, card payment, or the UniBridge Pay Agent.",
         "audience": {
           "@type": "Audience",
           "audienceType": "Businesses, platforms, wallets, and payment providers"
         },
         "potentialAction": {
-          "@type": "AskAction",
-          "name": "Ask UniBridge Official Guide",
-          "target": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
+          "@type": "ViewAction",
+          "name": "Open UniBridge Pay Agent",
+          "target": "https://unibrij.io/pay/agent/"
         }
       },
       {
@@ -100,7 +95,7 @@
         "@id": "https://unibrij.io/pay#webpage",
         "url": "https://unibrij.io/pay",
         "name": "Pay with UniBridge",
-        "description": "Fund a UniBridge payout route using wallet, bank transfer, or card payment.",
+        "description": "Fund a UniBridge payout route using wallet, bank transfer, card payment, or the UniBridge Pay Agent.",
         "isPartOf": {
           "@id": "https://unibrij.io/#website"
         },
@@ -108,12 +103,12 @@
           "@id": "https://unibrij.io/pay#service"
         },
         "subjectOf": {
-          "@id": "https://unibrij.io/pay#guide"
+          "@id": "https://unibrij.io/pay#agent"
         },
         "potentialAction": {
-          "@type": "AskAction",
-          "name": "Ask the UniBridge Official Guide",
-          "target": "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide"
+          "@type": "ViewAction",
+          "name": "Open UniBridge Pay Agent",
+          "target": "https://unibrij.io/pay/agent/"
         }
       }
     ]
@@ -281,13 +276,13 @@
     >
       <div class="guide-card-header">
         <span class="guide-icon" aria-hidden="true">✦</span>
-        <span class="guide-badge">Guide</span>
+        <span class="guide-badge">Pay Agent</span>
       </div>
 
-      <h2 id="guideTitle">UniBridge Guide</h2>
+      <h2 id="guideTitle">Pay with UniBridge Agent</h2>
 
       <p>
-        Have a question about UniBridge?
+        Describe a payment. UniBridge prepares the route.
       </p>
 
       <button
@@ -295,7 +290,7 @@
         class="guide-action"
         type="button"
       >
-        Open UniBridge Guide →
+        Open Pay Agent →
       </button>
     </section>
 
@@ -411,7 +406,7 @@
 
   <script
     type="module"
-    src="/pay/js/pay.js?v=5"
+    src="/pay/js/pay.js?v=6"
   ></script>
 </body>
 </html>
