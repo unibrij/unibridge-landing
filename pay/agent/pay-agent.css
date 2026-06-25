@@ -266,7 +266,7 @@ a {
 
 .pay-agent-layout {
   width: min(100%, 680px);
-  margin: 34px auto 0;
+  margin: 72px auto 0;
   display: flex;
   justify-content: center;
 }
@@ -281,7 +281,7 @@ a {
 }
 
 .pay-agent-chat-card {
-  min-height: min(720px, calc(100vh - 150px));
+  min-height: min(720px, calc(100vh - 188px));
   padding: 14px;
   border: 1px solid rgba(94, 234, 212, 0.30);
   border-radius: 22px;
@@ -317,17 +317,19 @@ a {
 }
 
 .pay-agent-chat-icon {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  object-fit: contain;
-  padding: 6px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
   border-radius: 14px;
-  background: rgba(20, 184, 166, 0.08);
-  border: 1px solid rgba(94, 234, 212, 0.22);
+  color: #5eead4;
+  background: rgba(20, 184, 166, 0.10);
+  border: 1px solid rgba(45, 212, 191, 0.22);
   box-shadow:
     0 0 18px rgba(20, 184, 166, 0.10),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: 16px;
 }
 
 .pay-agent-chat-kicker {
@@ -463,8 +465,32 @@ a {
 .pay-agent-message-assistant,
 .pay-agent-bubble-assistant,
 .pay-agent-chat-message-assistant {
+  position: relative;
   align-self: flex-start;
+  margin-left: 42px;
   border-bottom-left-radius: 5px;
+}
+
+.pay-agent-message.assistant::before,
+.pay-agent-message-assistant::before,
+.pay-agent-bubble-assistant::before,
+.pay-agent-chat-message-assistant::before {
+  content: "";
+  position: absolute;
+  left: -42px;
+  top: 2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background:
+    rgba(20, 184, 166, 0.10)
+    url("/public/icons/social/Ub.png")
+    center / 19px 19px
+    no-repeat;
+  border: 1px solid rgba(94, 234, 212, 0.24);
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .pay-agent-message.user,
@@ -773,7 +799,7 @@ a {
 
   .pay-agent-layout {
     width: min(100%, 440px);
-    margin-top: 24px;
+    margin-top: 54px;
     display: flex;
   }
 
@@ -833,6 +859,7 @@ a {
 
   .pay-agent-layout {
     width: min(100%, 412px);
+    margin-top: 50px;
   }
 
   .pay-agent-chat-card {
@@ -873,6 +900,23 @@ a {
   .pay-agent-message-bubble {
     max-width: 94%;
     font-size: 12px;
+  }
+
+  .pay-agent-message.assistant,
+  .pay-agent-message-assistant,
+  .pay-agent-bubble-assistant,
+  .pay-agent-chat-message-assistant {
+    margin-left: 38px;
+  }
+
+  .pay-agent-message.assistant::before,
+  .pay-agent-message-assistant::before,
+  .pay-agent-bubble-assistant::before,
+  .pay-agent-chat-message-assistant::before {
+    left: -38px;
+    width: 28px;
+    height: 28px;
+    background-size: 18px 18px;
   }
 
   .pay-agent-form {
