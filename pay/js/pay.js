@@ -3,8 +3,8 @@
 const STORAGE_KEY =
   "unibridge_fiat_context";
 
-const UNIBRIDGE_GUIDE_URL =
-  "https://chatgpt.com/g/g-6a2bbad960e08191b39185eafbc55948-unibridge-official-guide";
+const UNIBRIDGE_PAY_AGENT_URL =
+  "/pay/agent/";
 
 function getEl(id) {
   return document.getElementById(id);
@@ -29,11 +29,9 @@ function goTo(path) {
   window.location.assign(path);
 }
 
-function openGuide() {
-  window.open(
-    UNIBRIDGE_GUIDE_URL,
-    "_blank",
-    "noopener,noreferrer"
+function openPayAgent() {
+  goTo(
+    UNIBRIDGE_PAY_AGENT_URL
   );
 }
 
@@ -252,7 +250,7 @@ function init() {
 
   getEl("guideCardAction")
     ?.addEventListener("click", () => {
-      openGuide();
+      openPayAgent();
     });
 
   getEl("fiatForm")
