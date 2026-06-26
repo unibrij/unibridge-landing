@@ -72,7 +72,6 @@ window.UnibridgePayAgentChatSelectors = (() => {
           value.content ||
           value.title ||
           value.prompt ||
-          value.question ||
           value.body ||
           ""
       );
@@ -131,45 +130,48 @@ window.UnibridgePayAgentChatSelectors = (() => {
     return "";
   }
 
-  function pickReplyText(response = {}) {
+  function hasExplicitNoMessage(response = {}) {
     const data =
       normalizeObject(response);
 
     const plan =
       normalizeObject(data.plan);
 
-    const nextAction =
-      normalizeObject(
-        data.next_action ||
-          plan.next_action
-      );
+    return (
+      data.has_message === false ||
+      data.hasMessage === false ||
+      plan.has_message === false ||
+      plan.hasMessage === false
+    );
+  }
+
+  function pickReplyText(response = {}) {
+    if (hasExplicitNoMessage(response)) {
+      return "";
+    }
+
+    const data =
+      normalizeObject(response);
+
+    const plan =
+      normalizeObject(data.plan);
 
     return pickFirstSafeText(
+      data.message,
       data.reply,
       data.current_prompt,
-      data.current_question,
-      data.message,
       data.text,
       data.content,
       data.prompt,
-      data.question,
       data.body,
 
+      plan.message,
       plan.reply,
       plan.current_prompt,
-      plan.current_question,
-      plan.message,
       plan.text,
       plan.content,
       plan.prompt,
-      plan.question,
-      plan.body,
-
-      nextAction.message,
-      nextAction.label,
-      nextAction.title,
-      nextAction.text,
-      nextAction.content
+      plan.body
     );
   }
 
@@ -388,11 +390,11 @@ window.UnibridgePayAgentChatSelectors = (() => {
       normalizeObject(payload);
 
     return pickFirstSafeText(
-      data.message,
-      data.value,
-      data.funding_method,
       data.option_id,
-      data.action
+      data.selected_option,
+      data.value,
+      data.message,
+      data.funding_method
     );
   }
 
