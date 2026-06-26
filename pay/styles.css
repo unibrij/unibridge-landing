@@ -284,8 +284,8 @@ h1 {
 }
 
 .agent-choice-logo {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   display: block;
   background: #5eead4;
   -webkit-mask: url("/public/icons/social/ub-agent-icon2.png") center / contain no-repeat;
@@ -627,8 +627,8 @@ option {
   }
 
   .agent-choice-logo {
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
   }
 
   .actions {
