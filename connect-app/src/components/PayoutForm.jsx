@@ -149,6 +149,16 @@ export default function PayoutForm({
             const options =
               normalizeDynamicOptions(payload);
 
+            console.log("CONNECT_DYNAMIC_OPTIONS_LOADED", {
+              source,
+              endpoint,
+              payload,
+              optionsLength:
+                options.length,
+              sample:
+                options.slice(0, 3)
+            });
+
             if (cancelled) return;
 
             setDynamicOptionSources(current => ({
@@ -289,6 +299,19 @@ export default function PayoutForm({
                 rawOptions,
               selectedRoute
             });
+
+          console.log("CONNECT_FIELD_OPTIONS", {
+            field,
+            source:
+              field.source,
+            rawOptionsLength:
+              normalizeArray(rawOptions).length,
+            filteredOptionsLength:
+              options.length,
+            sample:
+              options.slice(0, 3),
+            selectedRoute
+          });
 
           return (
             <label key={fieldName}>
