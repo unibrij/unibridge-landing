@@ -41,80 +41,6 @@
       border: 0;
     }
   </style>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://unibrij.io/#organization",
-        "name": "UniBridge Technologies",
-        "url": "https://unibrij.io",
-        "logo": "https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-white.png"
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://unibrij.io/#website",
-        "name": "UniBridge",
-        "url": "https://unibrij.io",
-        "publisher": {
-          "@id": "https://unibrij.io/#organization"
-        }
-      },
-      {
-        "@type": "WebApplication",
-        "@id": "https://unibrij.io/pay#agent",
-        "name": "UniBridge Pay Agent",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "url": "https://unibrij.io/pay/agent/",
-        "description": "UniBridge Pay Agent helps users describe a payment and prepare the payout route."
-      },
-      {
-        "@type": "Service",
-        "@id": "https://unibrij.io/pay#service",
-        "name": "Pay with UniBridge",
-        "serviceType": "Payout route funding",
-        "provider": {
-          "@id": "https://unibrij.io/#organization"
-        },
-        "url": "https://unibrij.io/pay",
-        "description": "Pay with UniBridge lets users fund a payout route using a connected wallet, bank transfer, card payment, or the UniBridge Pay Agent.",
-        "audience": {
-          "@type": "Audience",
-          "audienceType": "Businesses, platforms, wallets, and payment providers"
-        },
-        "potentialAction": {
-          "@type": "ViewAction",
-          "name": "Open UniBridge Pay Agent",
-          "target": "https://unibrij.io/pay/agent/"
-        }
-      },
-      {
-        "@type": "WebPage",
-        "@id": "https://unibrij.io/pay#webpage",
-        "url": "https://unibrij.io/pay",
-        "name": "Pay with UniBridge",
-        "description": "Fund a UniBridge payout route using wallet, bank transfer, card payment, or the UniBridge Pay Agent.",
-        "isPartOf": {
-          "@id": "https://unibrij.io/#website"
-        },
-        "about": {
-          "@id": "https://unibrij.io/pay#service"
-        },
-        "subjectOf": {
-          "@id": "https://unibrij.io/pay#agent"
-        },
-        "potentialAction": {
-          "@type": "ViewAction",
-          "name": "Open UniBridge Pay Agent",
-          "target": "https://unibrij.io/pay/agent/"
-        }
-      }
-    ]
-  }
-  </script>
 </head>
 
 <body>
@@ -192,42 +118,6 @@
 
     <section id="fiatCard" class="card hidden">
       <form id="fiatForm">
-        <div class="form-grid">
-          <label class="field">
-            <span>Source country</span>
-            <select id="sourceCountry" data-country-select="source" required></select>
-          </label>
-
-          <label class="field">
-            <span>Destination country</span>
-            <select id="receiverCountry" data-country-select="destination" required></select>
-          </label>
-
-          <label class="field amount-field">
-            <span>You pay</span>
-
-            <div class="amount-input-wrap">
-              <input
-                id="amount"
-                type="number"
-                min="1"
-                step="0.01"
-                value="5"
-                required
-                aria-label="Amount"
-              />
-
-              <span id="amountCurrency" class="amount-currency" aria-hidden="true">
-                USD
-              </span>
-            </div>
-
-            <small class="field-hint">
-              Fees and final amount are shown before confirmation.
-            </small>
-          </label>
-        </div>
-
         <section class="method-grid">
           <label class="method-card">
             <input type="radio" name="paymentMethod" value="bank_transfer" checked />
@@ -262,11 +152,10 @@
   </main>
 
   <script src="/partials/pay/js/pay-includes.js?v=6"></script>
-  <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
   <script
     type="module"
-    src="/pay/js/pay.js?v=6"
+    src="/pay/js/pay.js?v=7"
   ></script>
 </body>
 </html>
