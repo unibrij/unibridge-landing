@@ -12,7 +12,8 @@ import {
   readQueryParams,
   resolveInitialState,
   writeStoredState,
-  writeBankCustomerRef
+  writeBankCustomerRef,
+  clearStoredState
 } from "./state.js";
 
 import {
@@ -118,6 +119,16 @@ function hasFiatContext() {
 function goToPayEntry() {
   window.location.href =
     "/pay";
+}
+
+function startNewTransfer() {
+  clearStoredState();
+
+  window.localStorage.removeItem(
+    FIAT_CONTEXT_KEY
+  );
+
+  goToPayEntry();
 }
 
 function persist(values = {}) {
@@ -233,7 +244,9 @@ async function init() {
       handlers.handleCreateSettlement,
 
     runBankTransferFlow:
-      handlers.runBankTransferFlow
+      handlers.runBankTransferFlow,
+
+    startNewTransfer
   });
 
   try {
