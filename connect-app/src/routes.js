@@ -89,6 +89,14 @@ function normalizeLower(value) {
   return normalizeString(value).toLowerCase();
 }
 
+function getRouteCountry(route = {}) {
+  return normalizeUpper(
+    route.country ||
+      route.destination_country ||
+      route.destinationCountry
+  );
+}
+
 function uniqueValues(values = []) {
   return Array.from(
     new Set(
@@ -170,7 +178,7 @@ function isComingSoonRoute(route = {}) {
 
 function isConnectVisibleRoute(route = {}) {
   const country =
-    normalizeUpper(route.country);
+    getRouteCountry(route);
 
   const payoutRail =
     normalizeLower(
@@ -217,7 +225,7 @@ function normalizePhilippinesBeneficiaryField({
   field = {}
 } = {}) {
   const country =
-    normalizeUpper(route.country);
+    getRouteCountry(route);
 
   const name =
     normalizeLower(field.name);
@@ -245,7 +253,7 @@ function normalizePhilippinesBeneficiaryField({
 
     label_field:
       field.label_field ||
-      "bankName",
+      "label",
 
     channel_field:
       field.channel_field ||
@@ -324,11 +332,16 @@ export function normalizeBackendRoute(route = {}) {
           ? route.supportedAssets
           : [];
 
+  const sourceCountry =
+    route.country ||
+    route.destination_country ||
+    route.destinationCountry;
+
   const id =
     route.route_id ||
     route.id ||
     [
-      route.country,
+      sourceCountry,
       route.rail,
       route.network,
       asset
@@ -342,7 +355,7 @@ export function normalizeBackendRoute(route = {}) {
     id;
 
   const country =
-    normalizeUpper(route.country);
+    normalizeUpper(sourceCountry);
 
   const rail =
     normalizeUpper(route.rail);
