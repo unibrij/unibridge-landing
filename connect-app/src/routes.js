@@ -112,11 +112,11 @@ function fallbackPlaceholder(field = {}) {
   }
 
   if (name.includes("recipient_institution")) {
-    return "Select bank or wallet";
+    return "Search bank or wallet";
   }
 
   if (name.includes("institution")) {
-    return "Select bank or wallet";
+    return "Search bank or wallet";
   }
 
   if (name.includes("channel")) {
@@ -212,6 +212,51 @@ function appendComingSoonRoutes(routes = []) {
   return result;
 }
 
+function normalizePhilippinesBeneficiaryField({
+  route = {},
+  field = {}
+} = {}) {
+  const country =
+    normalizeUpper(route.country);
+
+  const name =
+    normalizeLower(field.name);
+
+  if (
+    country !== "PH" ||
+    name !== "recipient_institution"
+  ) {
+    return field;
+  }
+
+  return {
+    ...field,
+
+    type:
+      "select",
+
+    source:
+      field.source ||
+      "coinsph_ph_payout_channels",
+
+    value_field:
+      field.value_field ||
+      "channelSubject",
+
+    label_field:
+      field.label_field ||
+      "bankName",
+
+    channel_field:
+      field.channel_field ||
+      "channelName",
+
+    placeholder:
+      field.placeholder ||
+      "Search bank or wallet"
+  };
+}
+
 function normalizeBeneficiaryFields(route = {}) {
   if (isComingSoonRoute(route)) {
     return [];
@@ -224,37 +269,46 @@ function normalizeBeneficiaryFields(route = {}) {
         ? route.beneficiaryFields
         : [];
 
-  return backendFields.map(field => ({
-    ...field,
+  return backendFields.map(rawField => {
+    const field =
+      normalizePhilippinesBeneficiaryField({
+        route,
+        field:
+          rawField
+      });
 
-    name:
-      field.name,
+    return {
+      ...field,
 
-    label:
-      field.label || field.name,
+      name:
+        field.name,
 
-    type:
-      field.type || "text",
+      label:
+        field.label || field.name,
 
-    placeholder:
-      field.placeholder ||
-      fallbackPlaceholder(field),
+      type:
+        field.type || "text",
 
-    required:
-      Boolean(field.required),
+      placeholder:
+        field.placeholder ||
+        fallbackPlaceholder(field),
 
-    source:
-      field.source || null,
+      required:
+        Boolean(field.required),
 
-    value_field:
-      field.value_field || null,
+      source:
+        field.source || null,
 
-    label_field:
-      field.label_field || null,
+      value_field:
+        field.value_field || null,
 
-    channel_field:
-      field.channel_field || null
-  }));
+      label_field:
+        field.label_field || null,
+
+      channel_field:
+        field.channel_field || null
+    };
+  });
 }
 
 export function normalizeBackendRoute(route = {}) {
