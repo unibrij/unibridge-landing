@@ -9,7 +9,8 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
   <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />  <meta name="theme-color" content="#000E2D" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="UniBridge" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=9" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=9" />
+  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=10" />
   <link rel="stylesheet" href="/fiat/bank-transfer/app/assets/fiat-auth.css" />  <style>
     .sr-only {
       position: absolute;
@@ -312,7 +313,6 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
   </section>
 </section>
 
-<!-- Keep this hook hidden so shared pay includes do not break, but do not show the guide during payment execution. -->
 <div
   id="pay-guide"
   hidden
