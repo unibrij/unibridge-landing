@@ -41,12 +41,62 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
     <div class="entry-header">
       <h2>Create bank-transfer route</h2>
       <p>
-        Review your payout request, get available routes, then enter payout details.
+        Select the funding source, payout destination, and amount for this bank-transfer route.
       </p>
     </div>
 
+    <div class="form-grid">
+      <label class="field">
+        <span>Source country</span>
+
+        <select
+          id="sourceCountry"
+          data-country-select="source"
+          required
+        ></select>
+      </label>
+
+      <label class="field">
+        <span>Destination country</span>
+
+        <select
+          id="receiverCountry"
+          data-country-select="destination"
+          required
+        ></select>
+      </label>
+
+      <label class="field amount-field">
+        <span>You pay</span>
+
+        <div class="amount-input-wrap">
+          <input
+            id="amount"
+            type="number"
+            min="1"
+            step="0.01"
+            value="5"
+            required
+            aria-label="Amount"
+          />
+
+          <span
+            id="amountCurrency"
+            class="amount-currency"
+            aria-hidden="true"
+          >
+            USD
+          </span>
+        </div>
+
+        <small class="field-hint">
+          Fees and final amount are shown before confirmation.
+        </small>
+      </label>
+    </div>
+
     <section id="contextSummary" class="summary-box">
-      Loading payout request…
+      Enter bank-transfer details to get available routes.
     </section>
 
     <div class="form-grid route-grid">
@@ -272,7 +322,8 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
 
 <div id="pay-footer"></div>
 
-  </main>  <script src="/partials/pay/js/pay-includes.js?v=7"></script>  <script
+  </main>  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
+  <script src="/partials/pay/js/pay-countries.js?v=3"></script>  <script
     type="module"
     src="/fiat/bank-transfer/app/assets/fiat-auth.js"
   ></script>  <script
