@@ -18,6 +18,9 @@ const primaryButton =
 const refreshButton =
   document.getElementById("refreshStatus");
 
+const newTransferButton =
+  document.getElementById("newTransferAction");
+
 export function showEntryMode() {
   entryBox?.classList.remove("hidden");
   fundingBox?.classList.add("hidden");
@@ -178,7 +181,8 @@ export function resetEntryButtonsAfterAuthReset({
 export function attachBankTransferEvents({
   handleQuote,
   handleCreateSettlement,
-  runBankTransferFlow
+  runBankTransferFlow,
+  startNewTransfer
 } = {}) {
   quoteButton?.addEventListener(
     "click",
@@ -200,5 +204,10 @@ export function attachBankTransferEvents({
     () => {
       window.location.reload();
     }
+  );
+
+  newTransferButton?.addEventListener(
+    "click",
+    startNewTransfer
   );
 }
