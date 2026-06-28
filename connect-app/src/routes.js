@@ -60,6 +60,14 @@ function fallbackPlaceholder(field = {}) {
     return "phone, account, or wallet identifier";
   }
 
+  if (name.includes("recipient_institution")) {
+    return "Select bank or wallet";
+  }
+
+  if (name.includes("institution")) {
+    return "Select bank or wallet";
+  }
+
   if (name.includes("channel")) {
     return "bank or payout channel";
   }
@@ -109,13 +117,35 @@ function normalizeBeneficiaryFields(route = {}) {
         : [];
 
   return backendFields.map(field => ({
-    name: field.name,
-    label: field.label || field.name,
-    type: field.type || "text",
+    ...field,
+
+    name:
+      field.name,
+
+    label:
+      field.label || field.name,
+
+    type:
+      field.type || "text",
+
     placeholder:
       field.placeholder ||
       fallbackPlaceholder(field),
-    required: Boolean(field.required)
+
+    required:
+      Boolean(field.required),
+
+    source:
+      field.source || null,
+
+    value_field:
+      field.value_field || null,
+
+    label_field:
+      field.label_field || null,
+
+    channel_field:
+      field.channel_field || null
   }));
 }
 
@@ -197,7 +227,8 @@ export function normalizeBackendRoute(route = {}) {
     ...route,
 
     id,
-    route_id: route.route_id || id,
+    route_id:
+      route.route_id || id,
 
     label,
 
@@ -205,11 +236,13 @@ export function normalizeBackendRoute(route = {}) {
 
     rail,
 
-    payout_rail: payoutRail,
+    payout_rail:
+      payoutRail,
 
     network,
 
-    asset: normalizedAsset,
+    asset:
+      normalizedAsset,
 
     assets,
 
