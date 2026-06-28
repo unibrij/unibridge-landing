@@ -11,6 +11,10 @@ function normalizeString(value) {
   return String(value || "").trim();
 }
 
+function normalizeUpper(value) {
+  return normalizeString(value).toUpperCase();
+}
+
 function escapeHtml(value) {
   return normalizeString(value)
     .replaceAll("&", "&amp;")
@@ -24,6 +28,29 @@ function getEl(id) {
   return document.getElementById(id);
 }
 
+function readFieldValue(id) {
+  return normalizeString(
+    getEl(id)?.value
+  );
+}
+
+function writeFieldValue(id, value) {
+  const el =
+    getEl(id);
+
+  if (!el) {
+    return;
+  }
+
+  const normalized =
+    normalizeString(value);
+
+  if (normalized) {
+    el.value =
+      normalized;
+  }
+}
+
 export function normalizeAmount(value) {
   const amount =
     Number(value);
@@ -35,32 +62,103 @@ export function normalizeAmount(value) {
   return amount;
 }
 
-export function readFiatContext() {
-  const raw =
-    window.localStorage.getItem(
+function parseStoredFiatContext() {
+  try {
+    const raw =
+      window.localStorage.getItem(
+        FIAT_CONTEXT_KEY
+      );
+
+    if (!raw) {
+      return {};
+    }
+
+    const parsed =
+      JSON.parse(raw);
+
+    return parsed && typeof parsed === "object"
+      ? parsed
+      : {};
+  } catch {
+    window.localStorage.removeItem(
       FIAT_CONTEXT_KEY
     );
 
-  if (!raw) {
-    throw new Error("missing_fiat_context");
+    return {};
   }
+}
 
-  const parsed =
-    JSON.parse(raw);
+export function saveFiatContext(context = {}) {
+  const payload = {
+    source_country:
+      normalizeUpper(context.source_country),
+
+    receiver_country:
+      normalizeUpper(context.receiver_country),
+
+    amount:
+      normalizeAmount(context.amount),
+
+    payment_method:
+      "bank_transfer",
+
+    flow_started_at:
+      context.flow_started_at || Date.now(),
+
+    updated_at:
+      new Date().toISOString()
+  };
+
+  window.localStorage.setItem(
+    FIAT_CONTEXT_KEY,
+    JSON.stringify(payload)
+  );
+
+  return payload;
+}
+
+export function syncFiatContextFields() {
+  const stored =
+    parseStoredFiatContext();
+
+  writeFieldValue(
+    "sourceCountry",
+    stored.source_country
+  );
+
+  writeFieldValue(
+    "receiverCountry",
+    stored.receiver_country
+  );
+
+  writeFieldValue(
+    "amount",
+    stored.amount
+  );
+
+  return stored;
+}
+
+export function readFiatContext() {
+  const stored =
+    parseStoredFiatContext();
 
   const sourceCountry =
-    normalizeString(
-      parsed.source_country
-    ).toUpperCase();
+    normalizeUpper(
+      readFieldValue("sourceCountry") ||
+        stored.source_country
+    );
 
   const receiverCountry =
-    normalizeString(
-      parsed.receiver_country
-    ).toUpperCase();
+    normalizeUpper(
+      readFieldValue("receiverCountry") ||
+        stored.receiver_country
+    );
 
   const amount =
     normalizeAmount(
-      parsed.amount
+      readFieldValue("amount") ||
+        stored.amount
     );
 
   if (!sourceCountry) {
@@ -75,6 +173,21 @@ export function readFiatContext() {
     resolveSourceRail(
       sourceCountry
     );
+
+  saveFiatContext({
+    source_country:
+      sourceCountry,
+
+    receiver_country:
+      receiverCountry,
+
+    amount,
+
+    flow_started_at:
+      stored.flow_started_at ||
+      stored.started_at ||
+      Date.now()
+  });
 
   return {
     source_country:
@@ -99,6 +212,8 @@ export function renderContextSummary() {
   }
 
   try {
+    syncFiatContextFields();
+
     const context =
       readFiatContext();
 
@@ -125,14 +240,10 @@ export function renderContextSummary() {
   } catch {
     box.innerHTML = `
       <div class="summary-empty">
-        <strong>Start from Pay with UniBridge</strong>
+        <strong>Enter bank-transfer details</strong>
         <span>
-          Choose fiat funding, enter the source country, destination country,
-          and amount, then continue to bank transfer.
+          Select the source country, destination country, and amount to get available bank-transfer routes.
         </span>
-        <a class="summary-link" href="/pay">
-          Start from Pay with UniBridge
-        </a>
       </div>
     `;
 
