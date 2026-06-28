@@ -30,6 +30,13 @@ const SHOW_DEBUG =
   import.meta.env.DEV ||
   new URLSearchParams(window.location.search).get("debug") === "1";
 
+function hasOwn(value = {}, key) {
+  return Object.prototype.hasOwnProperty.call(
+    value,
+    key
+  );
+}
+
 export default function PayoutForm({
   selectedRouteId,
   selectedRoute,
@@ -114,10 +121,17 @@ export default function PayoutForm({
     let cancelled = false;
 
     async function loadDynamicSources() {
-      await Promise.all(
-        dynamicSources.map(async source => {
-          if (dynamicOptionSources[source]) return;
+      const missingSources =
+        dynamicSources.filter(source =>
+          !hasOwn(dynamicOptionSources, source)
+        );
 
+      if (missingSources.length === 0) {
+        return;
+      }
+
+      await Promise.all(
+        missingSources.map(async source => {
           const endpoint =
             DYNAMIC_OPTION_ENDPOINTS[source];
 
@@ -265,11 +279,14 @@ export default function PayoutForm({
           field.type === "select" &&
           field.source
         ) {
+          const rawOptions =
+            dynamicOptionSources[field.source];
+
           const options =
             filterFieldOptions({
               field,
               options:
-                dynamicOptionSources[field.source],
+                rawOptions,
               selectedRoute
             });
 
