@@ -189,9 +189,9 @@
 
         <section id="coinsPhBox" class="hidden">
           <div class="entry-header compact">
-            <h2>Recipient details</h2>
+            <h2>Recipient institution</h2>
             <p>
-              Enter the recipient name and GCash mobile number.
+              Select the receiving bank or wallet.
             </p>
           </div>
 
@@ -199,27 +199,30 @@
           <input id="coinsPhChannelName" type="hidden" value="" />
           <input id="coinsPhChannelSubject" type="hidden" value="" />
 
-          <input
-            id="coinsPhBankSearch"
-            type="hidden"
-            value=""
-          />
+          <label class="field">
+            <span>Bank or wallet</span>
+            <input
+              id="coinsPhBankSearch"
+              type="text"
+              autocomplete="off"
+              placeholder="Search bank or wallet"
+            />
+          </label>
 
           <div
             id="coinsPhSearchCount"
-            style="display:none;"
+            class="muted"
           ></div>
 
           <div
             id="coinsPhBankResults"
             class="coinsph-results"
             aria-live="polite"
-            style="display:none;"
           ></div>
 
           <div
             id="coinsPhSelectedBank"
-            style="display:none;"
+            class="coinsph-selected-bank"
           >
             <div id="coinsPhSelectedBankLabel"></div>
             <div id="coinsPhSelectedBankMeta"></div>
@@ -240,13 +243,13 @@
             </label>
 
             <label class="field">
-              <span>GCash mobile number</span>
+              <span>Recipient account or wallet number</span>
               <input
                 id="coinsPhRecipientAccount"
                 type="text"
                 inputmode="numeric"
-                autocomplete="tel"
-                placeholder="Enter GCash mobile number"
+                autocomplete="off"
+                placeholder="Enter account or wallet number"
               />
             </label>
           </div>
@@ -257,13 +260,12 @@
             class="button primary"
             disabled
           >
-            Continue to payment
+            Prepare payment
           </button>
 
           <div
             class="muted"
             id="coinsPhHint"
-            style="display:none;"
           ></div>
         </section>
 
