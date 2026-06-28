@@ -11,17 +11,17 @@ const SHOW_DEBUG =
   import.meta.env.DEV ||
   new URLSearchParams(window.location.search).get("debug") === "1";
 
+const DYNAMIC_OPTION_ENDPOINTS = {
+  coinsph_ph_payout_channels:
+    "/surface/options/coinsph/ph-payout-channels"
+};
+
 function shortId(value = "") {
   const text =
     String(value || "").trim();
 
-  if (!text) {
-    return "—";
-  }
-
-  if (text.length <= 20) {
-    return text;
-  }
+  if (!text) return "—";
+  if (text.length <= 20) return text;
 
   return `${text.slice(0, 10)}...${text.slice(-6)}`;
 }
@@ -30,15 +30,21 @@ async function copyToClipboard(value) {
   const text =
     String(value || "").trim();
 
-  if (!text) {
-    return;
-  }
+  if (!text) return;
 
   await navigator.clipboard.writeText(text);
 }
 
 function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function normalizeString(value) {
+  return String(value || "").trim();
+}
+
+function normalizeUpper(value) {
+  return normalizeString(value).toUpperCase();
 }
 
 function uniqueValues(values = []) {
@@ -94,7 +100,8 @@ function isPhilippinesRoute(route = {}) {
     id.includes("ph") ||
     label.includes("philippines") ||
     label.includes("gcash") ||
-    label.includes("instapay")
+    label.includes("instapay") ||
+    label.includes("pesonet")
   );
 }
 
@@ -125,14 +132,8 @@ function getBeneficiaryFields(route = {}) {
 }
 
 function getRouteFlag(route = {}) {
-  if (isBrazilRoute(route)) {
-    return "🇧🇷";
-  }
-
-  if (isPhilippinesRoute(route)) {
-    return "🇵🇭";
-  }
-
+  if (isBrazilRoute(route)) return "🇧🇷";
+  if (isPhilippinesRoute(route)) return "🇵🇭";
   return "🌐";
 }
 
@@ -144,11 +145,124 @@ function getNetworkDisplayName(network = "") {
   const value =
     String(network || "").trim().toLowerCase();
 
-  if (value === "polygon") {
-    return "Polygon";
-  }
+  if (value === "polygon") return "Polygon";
 
   return network || "Network";
+}
+
+function resolveRouteChannelName(route = {}) {
+  return normalizeUpper(
+    route.channelName ||
+      route.channel_name ||
+      route.transactionChannel ||
+      route.transaction_channel
+  );
+}
+
+function resolveOptionValue(option = {}, field = {}) {
+  return normalizeString(
+    option?.[field.value_field] ||
+      option?.value ||
+      option?.transactionSubject ||
+      option?.transaction_subject ||
+      option?.channelSubject ||
+      option?.channel_subject ||
+      option?.id
+  );
+}
+
+function resolveOptionLabel(option = {}, field = {}) {
+  return normalizeString(
+    option?.[field.label_field] ||
+      option?.label ||
+      option?.transactionSubjectName ||
+      option?.transaction_subject_name ||
+      option?.name ||
+      resolveOptionValue(option, field)
+  );
+}
+
+function resolveOptionChannel(option = {}, field = {}) {
+  return normalizeUpper(
+    option?.[field.channel_field] ||
+      option?.transactionChannel ||
+      option?.transaction_channel ||
+      option?.channelName ||
+      option?.channel_name
+  );
+}
+
+function normalizeDynamicOptions(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  const data =
+    normalizeArray(payload?.data);
+
+  if (data.length > 0) {
+    return data;
+  }
+
+  const channels =
+    normalizeArray(payload?.channels);
+
+  if (channels.length > 0) {
+    return channels;
+  }
+
+  const options =
+    normalizeArray(payload?.options);
+
+  if (options.length > 0) {
+    return options;
+  }
+
+  return [];
+}
+
+function filterFieldOptions({
+  field = {},
+  options = [],
+  selectedRoute = {}
+}) {
+  const routeChannel =
+    resolveRouteChannelName(selectedRoute);
+
+  return normalizeArray(options)
+    .filter(option => {
+      const status =
+        option?.status;
+
+      if (
+        status !== undefined &&
+        status !== null &&
+        String(status).trim() !== "1"
+      ) {
+        return false;
+      }
+
+      const optionChannel =
+        resolveOptionChannel(option, field);
+
+      if (
+        routeChannel &&
+        optionChannel &&
+        optionChannel !== routeChannel
+      ) {
+        return false;
+      }
+
+      return Boolean(
+        resolveOptionValue(option, field)
+      );
+    })
+    .map(option => ({
+      value:
+        resolveOptionValue(option, field),
+      label:
+        resolveOptionLabel(option, field)
+    }));
 }
 
 function PolygonIcon() {
@@ -177,17 +291,9 @@ function resolveDisplayStatus({
   fundingTxHash,
   walletConfirmationPending
 }) {
-  if (fundingTxHash) {
-    return "Wallet submitted";
-  }
-
-  if (walletConfirmationPending) {
-    return "Confirm in wallet";
-  }
-
-  if (settlement?.funding) {
-    return "Ready to fund";
-  }
+  if (fundingTxHash) return "Wallet submitted";
+  if (walletConfirmationPending) return "Confirm in wallet";
+  if (settlement?.funding) return "Ready to fund";
 
   return "Route ready";
 }
@@ -197,17 +303,9 @@ function resolveButtonLabel({
   settlement,
   walletConfirmationPending
 }) {
-  if (walletConfirmationPending) {
-    return "Open wallet again";
-  }
-
-  if (isBusy) {
-    return "Preparing...";
-  }
-
-  if (settlement?.funding) {
-    return "Send funding";
-  }
+  if (walletConfirmationPending) return "Open wallet again";
+  if (isBusy) return "Preparing...";
+  if (settlement?.funding) return "Send funding";
 
   return "Continue";
 }
@@ -225,9 +323,12 @@ function CustomSelect({
   const shellRef =
     useRef(null);
 
+  const safeOptions =
+    normalizeArray(options);
+
   const selectedOption =
-    options.find(option => option.value === value) ||
-    options[0] ||
+    safeOptions.find(option => option.value === value) ||
+    safeOptions[0] ||
     null;
 
   useEffect(() => {
@@ -264,12 +365,12 @@ function CustomSelect({
       <button
         type="button"
         className="connect-select-trigger"
-        disabled={disabled}
+        disabled={disabled || safeOptions.length === 0}
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={isOpen ? "true" : "false"}
         onClick={() => {
-          if (disabled) return;
+          if (disabled || safeOptions.length === 0) return;
           setIsOpen(current => !current);
         }}
       >
@@ -289,7 +390,7 @@ function CustomSelect({
         className="connect-select-menu"
         role="listbox"
       >
-        {options.map(option => {
+        {safeOptions.map(option => {
           const isSelected =
             option.value === value;
 
@@ -360,6 +461,9 @@ export default function PayoutForm({
   updateBeneficiaryField,
   routes
 }) {
+  const [dynamicOptionSources, setDynamicOptionSources] =
+    useState({});
+
   const routeAssets =
     getRouteAssets(selectedRoute);
 
@@ -380,10 +484,12 @@ export default function PayoutForm({
   const routeOptions =
     useMemo(
       () =>
-        normalizeArray(routes).map(route => ({
-          value: route.id || route.route_id,
-          label: getRouteDisplayLabel(route)
-        })).filter(option => option.value),
+        normalizeArray(routes)
+          .map(route => ({
+            value: route.id || route.route_id,
+            label: getRouteDisplayLabel(route)
+          }))
+          .filter(option => option.value),
       [routes]
     );
 
@@ -397,6 +503,82 @@ export default function PayoutForm({
       [routeAssets]
     );
 
+  const dynamicSources =
+    useMemo(
+      () =>
+        Array.from(
+          new Set(
+            beneficiaryFields
+              .map(field => field?.source)
+              .filter(source => DYNAMIC_OPTION_ENDPOINTS[source])
+          )
+        ),
+      [beneficiaryFields]
+    );
+
+  useEffect(() => {
+    if (dynamicSources.length === 0) return;
+
+    let cancelled = false;
+
+    async function loadDynamicSources() {
+      await Promise.all(
+        dynamicSources.map(async source => {
+          if (dynamicOptionSources[source]) return;
+
+          const endpoint =
+            DYNAMIC_OPTION_ENDPOINTS[source];
+
+          try {
+            const response =
+              await fetch(endpoint);
+
+            if (!response.ok) {
+              throw new Error(`options_${source}_failed`);
+            }
+
+            const payload =
+              await response.json();
+
+            const options =
+              normalizeDynamicOptions(payload);
+
+            if (cancelled) return;
+
+            setDynamicOptionSources(current => ({
+              ...current,
+              [source]:
+                options
+            }));
+          } catch (err) {
+            console.warn(
+              "CONNECT_DYNAMIC_OPTIONS_FAILED",
+              source,
+              err?.message || String(err)
+            );
+
+            if (cancelled) return;
+
+            setDynamicOptionSources(current => ({
+              ...current,
+              [source]:
+                []
+            }));
+          }
+        })
+      );
+    }
+
+    loadDynamicSources();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    dynamicSources,
+    dynamicOptionSources
+  ]);
+
   useEffect(() => {
     if (!selectedAsset) return;
     if (form.asset === selectedAsset) return;
@@ -409,6 +591,50 @@ export default function PayoutForm({
     form.asset,
     selectedAsset,
     setForm
+  ]);
+
+  useEffect(() => {
+    for (const field of beneficiaryFields) {
+      if (
+        field?.type !== "select" ||
+        !field?.source ||
+        !field?.name
+      ) {
+        continue;
+      }
+
+      const currentValue =
+        form.beneficiary?.[field.name] || "";
+
+      if (currentValue) {
+        continue;
+      }
+
+      const options =
+        filterFieldOptions({
+          field,
+          options:
+            dynamicOptionSources[field.source],
+          selectedRoute
+        });
+
+      if (options.length === 0) {
+        continue;
+      }
+
+      updateBeneficiaryField(
+        field.name,
+        options[0].value
+      );
+
+      break;
+    }
+  }, [
+    beneficiaryFields,
+    dynamicOptionSources,
+    form.beneficiary,
+    selectedRoute,
+    updateBeneficiaryField
   ]);
 
   const displayStatus =
@@ -473,24 +699,65 @@ export default function PayoutForm({
         />
       </label>
 
-      {beneficiaryFields.map(field => (
-        <label key={field.name}>
-          {field.label}
-          <input
-            type={field.type || "text"}
-            placeholder={field.placeholder}
-            required={field.required}
-            disabled={isBusy || isReturnedFlow}
-            value={form.beneficiary?.[field.name] || ""}
-            onChange={e =>
-              updateBeneficiaryField(
-                field.name,
-                e.target.value
-              )
-            }
-          />
-        </label>
-      ))}
+      {beneficiaryFields.map(field => {
+        const fieldName =
+          field.name;
+
+        if (
+          field.type === "select" &&
+          field.source
+        ) {
+          const options =
+            filterFieldOptions({
+              field,
+              options:
+                dynamicOptionSources[field.source],
+              selectedRoute
+            });
+
+          return (
+            <label key={fieldName}>
+              {field.label}
+
+              <CustomSelect
+                value={form.beneficiary?.[fieldName] || ""}
+                options={options}
+                disabled={
+                  isBusy ||
+                  isReturnedFlow ||
+                  options.length === 0
+                }
+                ariaLabel={`Select ${field.label}`}
+                onChange={value =>
+                  updateBeneficiaryField(
+                    fieldName,
+                    value
+                  )
+                }
+              />
+            </label>
+          );
+        }
+
+        return (
+          <label key={fieldName}>
+            {field.label}
+            <input
+              type={field.type || "text"}
+              placeholder={field.placeholder}
+              required={field.required}
+              disabled={isBusy || isReturnedFlow}
+              value={form.beneficiary?.[fieldName] || ""}
+              onChange={e =>
+                updateBeneficiaryField(
+                  fieldName,
+                  e.target.value
+                )
+              }
+            />
+          </label>
+        );
+      })}
 
       <button
         type="button"
