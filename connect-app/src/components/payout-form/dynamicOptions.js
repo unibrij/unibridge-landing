@@ -17,6 +17,23 @@ function normalizeUpper(value) {
   return normalizeString(value).toUpperCase();
 }
 
+function uniqueByValue(options = []) {
+  const map =
+    new Map();
+
+  options.forEach(option => {
+    if (!option?.value) {
+      return;
+    }
+
+    if (!map.has(option.value)) {
+      map.set(option.value, option);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
 export function normalizeDynamicOptions(payload) {
   if (Array.isArray(payload)) {
     return payload;
@@ -51,7 +68,10 @@ export function resolveRouteChannelName(route = {}) {
     route.channelName ||
       route.channel_name ||
       route.transactionChannel ||
-      route.transaction_channel
+      route.transaction_channel ||
+      route.rail ||
+      route.payout_rail ||
+      route.payoutRail
   );
 }
 
@@ -63,6 +83,11 @@ export function resolveOptionValue(option = {}, field = {}) {
       option?.transaction_subject ||
       option?.channelSubject ||
       option?.channel_subject ||
+      option?.bankId ||
+      option?.bank_id ||
+      option?.bankCode ||
+      option?.bank_code ||
+      option?.institution_code ||
       option?.id
   );
 }
@@ -71,8 +96,12 @@ export function resolveOptionLabel(option = {}, field = {}) {
   return normalizeString(
     option?.[field.label_field] ||
       option?.label ||
+      option?.bankName ||
+      option?.bank_name ||
       option?.transactionSubjectName ||
       option?.transaction_subject_name ||
+      option?.channelSubjectName ||
+      option?.channel_subject_name ||
       option?.name ||
       resolveOptionValue(option, field)
   );
@@ -88,6 +117,60 @@ export function resolveOptionChannel(option = {}, field = {}) {
   );
 }
 
+function optionMatchesRouteChannel({
+  option,
+  field,
+  routeChannel
+}) {
+  if (!routeChannel) {
+    return true;
+  }
+
+  const optionChannel =
+    resolveOptionChannel(option, field);
+
+  if (!optionChannel) {
+    return true;
+  }
+
+  if (optionChannel === routeChannel) {
+    return true;
+  }
+
+  /*
+  --------------------------------------------------
+  Connect PH compatibility
+
+  Backend route labels/rails may use:
+  - INSTAPAY
+  - instapay
+  - coinsph_polygon_usdc_instapay
+
+  CoinsPH options normally use:
+  - INSTAPAY
+  - SWIFTPAY_PESONET
+
+  Keep filtering strict only when a clear match exists.
+  --------------------------------------------------
+  */
+
+  if (
+    routeChannel.includes("INSTAPAY") &&
+    optionChannel.includes("INSTAPAY")
+  ) {
+    return true;
+  }
+
+  if (
+    routeChannel.includes("PESONET") &&
+    optionChannel.includes("PESONET")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function filterFieldOptions({
   field = {},
   options = [],
@@ -96,8 +179,11 @@ export function filterFieldOptions({
   const routeChannel =
     resolveRouteChannelName(selectedRoute);
 
-  return normalizeArray(options)
-    .filter(option => {
+  const rawOptions =
+    normalizeArray(options);
+
+  const availableOptions =
+    rawOptions.filter(option => {
       const status =
         option?.status;
 
@@ -109,26 +195,32 @@ export function filterFieldOptions({
         return false;
       }
 
-      const optionChannel =
-        resolveOptionChannel(option, field);
-
-      if (
-        routeChannel &&
-        optionChannel &&
-        optionChannel !== routeChannel
-      ) {
-        return false;
-      }
-
       return Boolean(
         resolveOptionValue(option, field)
       );
-    })
-    .map(option => ({
+    });
+
+  const channelFilteredOptions =
+    availableOptions.filter(option =>
+      optionMatchesRouteChannel({
+        option,
+        field,
+        routeChannel
+      })
+    );
+
+  const finalOptions =
+    channelFilteredOptions.length > 0
+      ? channelFilteredOptions
+      : availableOptions;
+
+  return uniqueByValue(
+    finalOptions.map(option => ({
       value:
         resolveOptionValue(option, field),
 
       label:
         resolveOptionLabel(option, field)
-    }));
+    }))
+  );
 }
