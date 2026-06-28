@@ -6,7 +6,9 @@ import {
 
 export const DYNAMIC_OPTION_ENDPOINTS = {
   coinsph_ph_payout_channels:
-    "/surface/options/coinsph/ph-payout-channels"
+    `/api/proxy?endpoint=${encodeURIComponent(
+      "surface/options/coinsph/ph-payout-channels"
+    )}`
 };
 
 function normalizeString(value) {
@@ -136,23 +138,6 @@ function optionMatchesRouteChannel({
   if (optionChannel === routeChannel) {
     return true;
   }
-
-  /*
-  --------------------------------------------------
-  Connect PH compatibility
-
-  Backend route labels/rails may use:
-  - INSTAPAY
-  - instapay
-  - coinsph_polygon_usdc_instapay
-
-  CoinsPH options normally use:
-  - INSTAPAY
-  - SWIFTPAY_PESONET
-
-  Keep filtering strict only when a clear match exists.
-  --------------------------------------------------
-  */
 
   if (
     routeChannel.includes("INSTAPAY") &&
