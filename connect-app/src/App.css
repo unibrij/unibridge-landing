@@ -39,7 +39,8 @@ body {
   gap: 14px;
   padding: 18px;
   text-align: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .connect-shell::before {
@@ -476,6 +477,8 @@ p {
   top: calc(100% + 8px);
   left: 0;
   right: 0;
+  max-height: 250px;
+  overflow-y: auto;
   padding: 6px;
   border-radius: 16px;
   border: 1px solid rgba(94, 234, 212, 0.24);
@@ -517,6 +520,18 @@ p {
 
 .connect-select-option:active {
   transform: scale(0.99);
+}
+
+.connect-select-option.is-disabled,
+.connect-select-option:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.connect-select-option.is-disabled:hover,
+.connect-select-option:disabled:hover {
+  background: transparent;
+  color: #ffffff;
 }
 
 /* --------------------------------------------------
