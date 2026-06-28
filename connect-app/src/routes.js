@@ -24,7 +24,58 @@ export const FALLBACK_ROUTES = [
   }
 ];
 
-export const ROUTES = FALLBACK_ROUTES;
+const COMING_SOON_ROUTES = [
+  {
+    id: "mx_spei_coming_soon",
+    route_id: "mx_spei_coming_soon",
+    label: "Mexico SPEI — Coming soon",
+    country: "MX",
+    rail: "SPEI",
+    payout_rail: "spei",
+    network: "polygon",
+    asset: "USDC",
+    assets: ["USDC"],
+    disabled: true,
+    comingSoon: true,
+    status: "coming_soon",
+    beneficiaryFields: []
+  },
+  {
+    id: "in_upi_coming_soon",
+    route_id: "in_upi_coming_soon",
+    label: "India UPI — Coming soon",
+    country: "IN",
+    rail: "UPI",
+    payout_rail: "upi",
+    network: "polygon",
+    asset: "USDC",
+    assets: ["USDC"],
+    disabled: true,
+    comingSoon: true,
+    status: "coming_soon",
+    beneficiaryFields: []
+  },
+  {
+    id: "ng_mobile_money_coming_soon",
+    route_id: "ng_mobile_money_coming_soon",
+    label: "Nigeria Mobile Money — Coming soon",
+    country: "NG",
+    rail: "MOBILE_MONEY",
+    payout_rail: "mobile_money",
+    network: "polygon",
+    asset: "USDC",
+    assets: ["USDC"],
+    disabled: true,
+    comingSoon: true,
+    status: "coming_soon",
+    beneficiaryFields: []
+  }
+];
+
+export const ROUTES = [
+  ...FALLBACK_ROUTES,
+  ...COMING_SOON_ROUTES
+];
 
 function normalizeString(value) {
   return String(value || "").trim();
@@ -108,6 +159,15 @@ function isBrazilPixRoute({
   );
 }
 
+function isComingSoonRoute(route = {}) {
+  return Boolean(
+    route.comingSoon ||
+      route.coming_soon ||
+      route.disabled ||
+      route.status === "coming_soon"
+  );
+}
+
 function isConnectVisibleRoute(route = {}) {
   const country =
     normalizeUpper(route.country);
@@ -119,19 +179,6 @@ function isConnectVisibleRoute(route = {}) {
         route.rail
     );
 
-  /*
-  --------------------------------------------------
-  Connect PH route visibility
-
-  Keep Philippines as one visible destination in Connect
-  for now. InstaPay is the primary wallet route.
-
-  PESONet remains available in backend capabilities and
-  Surface dynamic picker, but is hidden from Connect UI
-  until Connect gets a dedicated rail selector.
-  --------------------------------------------------
-  */
-
   if (
     country === "PH" &&
     payoutRail === "pesonet"
@@ -142,7 +189,34 @@ function isConnectVisibleRoute(route = {}) {
   return true;
 }
 
+function hasRoute(routeId, routes = []) {
+  const normalizedRouteId =
+    normalizeLower(routeId);
+
+  return routes.some(route =>
+    normalizeLower(route.id) === normalizedRouteId ||
+    normalizeLower(route.route_id) === normalizedRouteId
+  );
+}
+
+function appendComingSoonRoutes(routes = []) {
+  const result =
+    [...routes];
+
+  COMING_SOON_ROUTES.forEach(route => {
+    if (!hasRoute(route.id, result)) {
+      result.push(route);
+    }
+  });
+
+  return result;
+}
+
 function normalizeBeneficiaryFields(route = {}) {
+  if (isComingSoonRoute(route)) {
+    return [];
+  }
+
   const backendFields =
     Array.isArray(route.beneficiary_fields)
       ? route.beneficiary_fields
@@ -254,10 +328,7 @@ export function normalizeBackendRoute(route = {}) {
   const normalizedAsset =
     asset || assets[0] || "";
 
-  const beneficiaryFields =
-    normalizeBeneficiaryFields(route);
-
-  return {
+  const normalizedRoute = {
     ...route,
 
     id,
@@ -278,9 +349,16 @@ export function normalizeBackendRoute(route = {}) {
     asset:
       normalizedAsset,
 
-    assets,
+    assets
+  };
 
-    beneficiaryFields
+  return {
+    ...normalizedRoute,
+
+    beneficiaryFields:
+      normalizeBeneficiaryFields(
+        normalizedRoute
+      )
   };
 }
 
@@ -293,9 +371,14 @@ export function normalizeBackendRoutes(routes = []) {
   const visible =
     normalized.filter(isConnectVisibleRoute);
 
-  return visible.length > 0
-    ? visible
-    : FALLBACK_ROUTES;
+  const baseRoutes =
+    visible.length > 0
+      ? visible
+      : FALLBACK_ROUTES;
+
+  return appendComingSoonRoutes(
+    baseRoutes
+  );
 }
 
 export function getRouteById(routeId, routes = ROUTES) {
@@ -304,6 +387,7 @@ export function getRouteById(routeId, routes = ROUTES) {
       route.id === routeId ||
       route.route_id === routeId
     ) ||
+    routes.find(route => !isComingSoonRoute(route)) ||
     routes[0] ||
     FALLBACK_ROUTES[0]
   );
