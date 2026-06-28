@@ -108,6 +108,40 @@ function isBrazilPixRoute({
   );
 }
 
+function isConnectVisibleRoute(route = {}) {
+  const country =
+    normalizeUpper(route.country);
+
+  const payoutRail =
+    normalizeLower(
+      route.payout_rail ||
+        route.payoutRail ||
+        route.rail
+    );
+
+  /*
+  --------------------------------------------------
+  Connect PH route visibility
+
+  Keep Philippines as one visible destination in Connect
+  for now. InstaPay is the primary wallet route.
+
+  PESONet remains available in backend capabilities and
+  Surface dynamic picker, but is hidden from Connect UI
+  until Connect gets a dedicated rail selector.
+  --------------------------------------------------
+  */
+
+  if (
+    country === "PH" &&
+    payoutRail === "pesonet"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 function normalizeBeneficiaryFields(route = {}) {
   const backendFields =
     Array.isArray(route.beneficiary_fields)
@@ -256,8 +290,11 @@ export function normalizeBackendRoutes(routes = []) {
       ? routes.map(normalizeBackendRoute)
       : [];
 
-  return normalized.length > 0
-    ? normalized
+  const visible =
+    normalized.filter(isConnectVisibleRoute);
+
+  return visible.length > 0
+    ? visible
     : FALLBACK_ROUTES;
 }
 
