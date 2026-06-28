@@ -510,7 +510,7 @@ async function startFlow() {
       coinsPhPicker.updateContinueState();
 
       setStatus(
-        "Enter recipient name and GCash mobile number."
+        "Select recipient institution."
       );
 
       return;
