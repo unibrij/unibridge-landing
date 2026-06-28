@@ -47,6 +47,14 @@ function normalizeUpper(value) {
   return normalizeString(value).toUpperCase();
 }
 
+function normalizeSearchText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 function uniqueValues(values = []) {
   return Array.from(
     new Set(
@@ -54,6 +62,15 @@ function uniqueValues(values = []) {
         .map(value => String(value || "").trim().toUpperCase())
         .filter(Boolean)
     )
+  );
+}
+
+function isComingSoonRoute(route = {}) {
+  return Boolean(
+    route.comingSoon ||
+      route.coming_soon ||
+      route.disabled ||
+      route.status === "coming_soon"
   );
 }
 
@@ -67,9 +84,9 @@ function isBrazilRoute(route = {}) {
   const country =
     String(
       route.destination_country ||
-      route.destinationCountry ||
-      route.country ||
-      ""
+        route.destinationCountry ||
+        route.country ||
+        ""
     ).toUpperCase();
 
   return (
@@ -90,9 +107,9 @@ function isPhilippinesRoute(route = {}) {
   const country =
     String(
       route.destination_country ||
-      route.destinationCountry ||
-      route.country ||
-      ""
+        route.destinationCountry ||
+        route.country ||
+        ""
     ).toUpperCase();
 
   return (
@@ -128,12 +145,23 @@ function getRouteAssets(route = {}) {
 }
 
 function getBeneficiaryFields(route = {}) {
+  if (isComingSoonRoute(route)) {
+    return [];
+  }
+
   return normalizeArray(route.beneficiaryFields);
 }
 
 function getRouteFlag(route = {}) {
+  const country =
+    normalizeUpper(route.country);
+
   if (isBrazilRoute(route)) return "🇧🇷";
   if (isPhilippinesRoute(route)) return "🇵🇭";
+  if (country === "MX") return "🇲🇽";
+  if (country === "IN") return "🇮🇳";
+  if (country === "NG") return "🇳🇬";
+
   return "🌐";
 }
 
@@ -289,8 +317,10 @@ function PolygonIcon() {
 function resolveDisplayStatus({
   settlement,
   fundingTxHash,
-  walletConfirmationPending
+  walletConfirmationPending,
+  routeUnavailable
 }) {
+  if (routeUnavailable) return "Coming soon";
   if (fundingTxHash) return "Wallet submitted";
   if (walletConfirmationPending) return "Confirm in wallet";
   if (settlement?.funding) return "Ready to fund";
@@ -301,8 +331,10 @@ function resolveDisplayStatus({
 function resolveButtonLabel({
   isBusy,
   settlement,
-  walletConfirmationPending
+  walletConfirmationPending,
+  routeUnavailable
 }) {
+  if (routeUnavailable) return "Coming soon";
   if (walletConfirmationPending) return "Open wallet again";
   if (isBusy) return "Preparing...";
   if (settlement?.funding) return "Send funding";
@@ -394,18 +426,27 @@ function CustomSelect({
           const isSelected =
             option.value === value;
 
+          const optionDisabled =
+            Boolean(option.disabled);
+
           return (
             <button
               key={option.value}
               type="button"
-              className={
-                isSelected
-                  ? "connect-select-option is-selected"
-                  : "connect-select-option"
-              }
+              disabled={optionDisabled}
+              className={[
+                "connect-select-option",
+                isSelected ? "is-selected" : "",
+                optionDisabled ? "is-disabled" : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
               role="option"
               aria-selected={isSelected ? "true" : "false"}
+              aria-disabled={optionDisabled ? "true" : "false"}
               onClick={() => {
+                if (optionDisabled) return;
+
                 onChange(option.value);
                 setIsOpen(false);
               }}
@@ -414,6 +455,153 @@ function CustomSelect({
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function SearchableSelect({
+  value,
+  options,
+  disabled,
+  onChange,
+  ariaLabel,
+  placeholder = "Search bank or wallet"
+}) {
+  const [isOpen, setIsOpen] =
+    useState(false);
+
+  const [query, setQuery] =
+    useState("");
+
+  const shellRef =
+    useRef(null);
+
+  const safeOptions =
+    normalizeArray(options);
+
+  const selectedOption =
+    safeOptions.find(option => option.value === value) ||
+    null;
+
+  const filteredOptions =
+    useMemo(() => {
+      const search =
+        normalizeSearchText(query);
+
+      if (!search) {
+        return safeOptions.slice(0, 40);
+      }
+
+      return safeOptions
+        .filter(option =>
+          normalizeSearchText(
+            `${option.label} ${option.value}`
+          ).includes(search)
+        )
+        .slice(0, 40);
+    }, [
+      query,
+      safeOptions
+    ]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (!shellRef.current) return;
+
+      if (!shellRef.current.contains(event.target)) {
+        setIsOpen(false);
+        setQuery("");
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (disabled) {
+      setIsOpen(false);
+      setQuery("");
+    }
+  }, [disabled]);
+
+  return (
+    <div
+      ref={shellRef}
+      className={
+        isOpen
+          ? "connect-select-shell is-open"
+          : "connect-select-shell"
+      }
+    >
+      <input
+        type="text"
+        className="connect-select-trigger"
+        disabled={disabled || safeOptions.length === 0}
+        aria-label={ariaLabel}
+        placeholder={
+          selectedOption?.label ||
+          placeholder
+        }
+        value={
+          isOpen
+            ? query
+            : selectedOption?.label || ""
+        }
+        onFocus={() => {
+          if (disabled || safeOptions.length === 0) return;
+          setIsOpen(true);
+          setQuery("");
+        }}
+        onClick={() => {
+          if (disabled || safeOptions.length === 0) return;
+          setIsOpen(true);
+        }}
+        onChange={event => {
+          setQuery(event.target.value);
+          setIsOpen(true);
+        }}
+      />
+
+      <div
+        className="connect-select-menu"
+        role="listbox"
+      >
+        {filteredOptions.length > 0 ? (
+          filteredOptions.map(option => {
+            const isSelected =
+              option.value === value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={
+                  isSelected
+                    ? "connect-select-option is-selected"
+                    : "connect-select-option"
+                }
+                role="option"
+                aria-selected={isSelected ? "true" : "false"}
+                onClick={() => {
+                  onChange(option.value);
+                  setQuery("");
+                  setIsOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })
+        ) : (
+          <div className="connect-select-option">
+            No matching institution
+          </div>
+        )}
       </div>
     </div>
   );
@@ -464,6 +652,9 @@ export default function PayoutForm({
   const [dynamicOptionSources, setDynamicOptionSources] =
     useState({});
 
+  const routeUnavailable =
+    isComingSoonRoute(selectedRoute);
+
   const routeAssets =
     getRouteAssets(selectedRoute);
 
@@ -486,8 +677,14 @@ export default function PayoutForm({
       () =>
         normalizeArray(routes)
           .map(route => ({
-            value: route.id || route.route_id,
-            label: getRouteDisplayLabel(route)
+            value:
+              route.id || route.route_id,
+
+            label:
+              getRouteDisplayLabel(route),
+
+            disabled:
+              isComingSoonRoute(route)
           }))
           .filter(option => option.value),
       [routes]
@@ -593,62 +790,20 @@ export default function PayoutForm({
     setForm
   ]);
 
-  useEffect(() => {
-    for (const field of beneficiaryFields) {
-      if (
-        field?.type !== "select" ||
-        !field?.source ||
-        !field?.name
-      ) {
-        continue;
-      }
-
-      const currentValue =
-        form.beneficiary?.[field.name] || "";
-
-      if (currentValue) {
-        continue;
-      }
-
-      const options =
-        filterFieldOptions({
-          field,
-          options:
-            dynamicOptionSources[field.source],
-          selectedRoute
-        });
-
-      if (options.length === 0) {
-        continue;
-      }
-
-      updateBeneficiaryField(
-        field.name,
-        options[0].value
-      );
-
-      break;
-    }
-  }, [
-    beneficiaryFields,
-    dynamicOptionSources,
-    form.beneficiary,
-    selectedRoute,
-    updateBeneficiaryField
-  ]);
-
   const displayStatus =
     resolveDisplayStatus({
       settlement,
       fundingTxHash,
-      walletConfirmationPending
+      walletConfirmationPending,
+      routeUnavailable
     });
 
   const buttonLabel =
     resolveButtonLabel({
       isBusy,
       settlement,
-      walletConfirmationPending
+      walletConfirmationPending,
+      routeUnavailable
     });
 
   return (
@@ -672,7 +827,11 @@ export default function PayoutForm({
           min="1"
           placeholder="100"
           value={form.amount}
-          disabled={isBusy || isReturnedFlow}
+          disabled={
+            isBusy ||
+            isReturnedFlow ||
+            routeUnavailable
+          }
           onChange={e =>
             setForm({
               ...form,
@@ -688,7 +847,11 @@ export default function PayoutForm({
         <CustomSelect
           value={selectedAsset}
           options={assetOptions}
-          disabled={isBusy || isReturnedFlow}
+          disabled={
+            isBusy ||
+            isReturnedFlow ||
+            routeUnavailable
+          }
           ariaLabel="Select funding asset"
           onChange={asset =>
             setForm({
@@ -719,15 +882,17 @@ export default function PayoutForm({
             <label key={fieldName}>
               {field.label}
 
-              <CustomSelect
+              <SearchableSelect
                 value={form.beneficiary?.[fieldName] || ""}
                 options={options}
                 disabled={
                   isBusy ||
                   isReturnedFlow ||
+                  routeUnavailable ||
                   options.length === 0
                 }
-                ariaLabel={`Select ${field.label}`}
+                ariaLabel={`Search ${field.label}`}
+                placeholder="Search bank or wallet"
                 onChange={value =>
                   updateBeneficiaryField(
                     fieldName,
@@ -746,7 +911,11 @@ export default function PayoutForm({
               type={field.type || "text"}
               placeholder={field.placeholder}
               required={field.required}
-              disabled={isBusy || isReturnedFlow}
+              disabled={
+                isBusy ||
+                isReturnedFlow ||
+                routeUnavailable
+              }
               value={form.beneficiary?.[fieldName] || ""}
               onChange={e =>
                 updateBeneficiaryField(
@@ -759,10 +928,22 @@ export default function PayoutForm({
         );
       })}
 
+      {routeUnavailable ? (
+        <div className="wallet-pending-card">
+          <strong>Coming soon</strong>
+          <span>
+            This payout corridor is not available yet.
+          </span>
+        </div>
+      ) : null}
+
       <button
         type="button"
         onClick={handleSend}
-        disabled={isBusy && !walletConfirmationPending}
+        disabled={
+          routeUnavailable ||
+          (isBusy && !walletConfirmationPending)
+        }
       >
         {buttonLabel}
       </button>
