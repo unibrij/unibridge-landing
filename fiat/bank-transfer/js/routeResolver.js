@@ -30,10 +30,7 @@ function uniqueOptions(options = []) {
     new Set();
 
   return options.filter((option) => {
-    if (
-      !option ||
-      typeof option !== "object"
-    ) {
+    if (!option || typeof option !== "object") {
       return false;
     }
 
@@ -64,10 +61,7 @@ function uniqueOptions(options = []) {
 }
 
 function pickSchemaCandidate(value = {}) {
-  if (
-    !value ||
-    typeof value !== "object"
-  ) {
+  if (!value || typeof value !== "object") {
     return null;
   }
 
@@ -94,9 +88,9 @@ export function normalizeField(field = {}, fallbackName = "") {
   const name =
     normalizeString(
       field.name ||
-      field.key ||
-      field.id ||
-      fallbackName
+        field.key ||
+        field.id ||
+        fallbackName
     );
 
   if (!name) {
@@ -211,75 +205,75 @@ export function resolveRouteFields(route = {}) {
 export function resolveRouteCountry(route = {}, context = {}) {
   return normalizeUpper(
     route.receiver_country ||
-    route.destination_country ||
-    route.destination?.country ||
-    route.country ||
-    context.receiver_country
+      route.destination_country ||
+      route.destination?.country ||
+      route.country ||
+      context.receiver_country
   );
 }
 
 export function resolveRouteRail(route = {}) {
   return normalizeLower(
     route.payout_rail ||
-    route.expected_payout_rail ||
-    route.destination_rail ||
-    route.destination?.rail ||
-    route.rail
+      route.expected_payout_rail ||
+      route.destination_rail ||
+      route.destination?.rail ||
+      route.rail
   );
 }
 
 function resolveRouteExecutor(route = {}) {
   return normalizeLower(
     route.executor ||
-    route.execution_provider ||
-    route.provider ||
-    route.sender
+      route.execution_provider ||
+      route.provider ||
+      route.sender
   );
 }
 
 function resolveOptionCountry(option = {}) {
   return normalizeUpper(
     option.receiver_country ||
-    option.destination_country ||
-    option.destination?.country ||
-    option.country
+      option.destination_country ||
+      option.destination?.country ||
+      option.country
   );
 }
 
 function resolveOptionRail(option = {}) {
   return normalizeLower(
     option.payout_rail ||
-    option.expected_payout_rail ||
-    option.destination_rail ||
-    option.destination?.rail ||
-    option.rail
+      option.expected_payout_rail ||
+      option.destination_rail ||
+      option.destination?.rail ||
+      option.rail
   );
 }
 
 function resolveOptionExecutor(option = {}) {
   return normalizeLower(
     option.executor ||
-    option.execution_provider ||
-    option.provider ||
-    option.sender
+      option.execution_provider ||
+      option.provider ||
+      option.sender
   );
 }
 
 function resolveChannelName(value = {}) {
   return normalizeLower(
     value.channelName ||
-    value.channel_name ||
-    value.transactionChannel ||
-    value.transaction_channel
+      value.channel_name ||
+      value.transactionChannel ||
+      value.transaction_channel
   );
 }
 
 function resolveChannelSubject(value = {}) {
   return normalizeLower(
     value.channelSubject ||
-    value.channel_subject ||
-    value.transactionSubject ||
-    value.transaction_subject
+      value.channel_subject ||
+      value.transactionSubject ||
+      value.transaction_subject
   );
 }
 
@@ -290,10 +284,7 @@ function flattenExecutionOptions(execution = {}) {
     });
   }
 
-  if (
-    !execution ||
-    typeof execution !== "object"
-  ) {
+  if (!execution || typeof execution !== "object") {
     return [];
   }
 
@@ -303,10 +294,7 @@ function flattenExecutionOptions(execution = {}) {
         return value;
       }
 
-      if (
-        value &&
-        typeof value === "object"
-      ) {
+      if (value && typeof value === "object") {
         return [value];
       }
 
@@ -637,6 +625,73 @@ export function normalizeRoute(route = {}, resolved = {}, context = {}) {
   };
 }
 
+function isCoinsPhRoute(route = {}) {
+  return Boolean(
+    resolveRouteExecutor(route) === "coinsph" ||
+      route.channelName ||
+      route.channelSubject
+  );
+}
+
+function isAllowedCoinsPhRail(route = {}) {
+  const rail =
+    resolveRouteRail(route);
+
+  return (
+    rail === "instapay" ||
+    rail === "pesonet"
+  );
+}
+
+function getCoinsPhRailPriority(route = {}) {
+  const rail =
+    resolveRouteRail(route);
+
+  if (rail === "instapay") {
+    return 1;
+  }
+
+  if (rail === "pesonet") {
+    return 2;
+  }
+
+  return 9;
+}
+
+function filterAndSortBankTransferRoutes(routes = []) {
+  const hasCoinsPhRoutes =
+    routes.some((route) => {
+      return isCoinsPhRoute(route);
+    });
+
+  return routes
+    .filter((route) => {
+      if (!hasCoinsPhRoutes) {
+        return true;
+      }
+
+      if (!isCoinsPhRoute(route)) {
+        return true;
+      }
+
+      return isAllowedCoinsPhRail(route);
+    })
+    .sort((a, b) => {
+      const priorityDiff =
+        getCoinsPhRailPriority(a) -
+        getCoinsPhRailPriority(b);
+
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+
+      return formatRouteLabel(a)
+        .localeCompare(
+          formatRouteLabel(b)
+        );
+    });
+}
+
 function resolveRawRoutes(payload = {}, resolved = {}) {
   if (Array.isArray(payload.routes)) {
     return payload.routes;
@@ -680,14 +735,19 @@ export function resolveRoutesPayload(payload = {}, resolved = {}, context = {}) 
       resolved
     );
 
-  return rawRoutes
-    .map((route) => {
-      return normalizeRoute(
-        route,
-        resolved,
-        context
-      );
-    })
-    .filter(Boolean)
-    .filter((route) => route.enabled !== false);
+  const routes =
+    rawRoutes
+      .map((route) => {
+        return normalizeRoute(
+          route,
+          resolved,
+          context
+        );
+      })
+      .filter(Boolean)
+      .filter((route) => route.enabled !== false);
+
+  return filterAndSortBankTransferRoutes(
+    routes
+  );
 }
