@@ -86,23 +86,6 @@ function buildShell() {
             required
           />
         </label>
-
-        <label class="field">
-          <span>Recipient address</span>
-          <input
-            id="coinsPhRecipientAddress"
-            type="text"
-            autocomplete="street-address"
-          />
-        </label>
-
-        <label class="field">
-          <span>Remarks</span>
-          <input
-            id="coinsPhRemarks"
-            type="text"
-          />
-        </label>
       </div>
 
       <div id="coinsPhHint" class="field-hint">
