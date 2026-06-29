@@ -4,6 +4,92 @@ function normalizeString(value) {
   return String(value || "").trim();
 }
 
+function normalizeLower(value) {
+  return normalizeString(value).toLowerCase();
+}
+
+function normalizeUpper(value) {
+  return normalizeString(value).toUpperCase();
+}
+
+function firstNonEmpty(...values) {
+  for (const value of values) {
+    const normalized =
+      normalizeString(value);
+
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
+function uniqueOptions(options = []) {
+  const seen =
+    new Set();
+
+  return options.filter((option) => {
+    if (
+      !option ||
+      typeof option !== "object"
+    ) {
+      return false;
+    }
+
+    const key =
+      JSON.stringify([
+        option.route_id,
+        option.id,
+        option.executor,
+        option.execution_provider,
+        option.provider,
+        option.sender,
+        option.payout_rail,
+        option.rail,
+        option.channelName,
+        option.channel_name,
+        option.channelSubject,
+        option.channel_subject
+      ]);
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
+}
+
+function pickSchemaCandidate(value = {}) {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
+    return null;
+  }
+
+  return (
+    value.instruction_schema ||
+    value.destination_schema ||
+    value.beneficiary_schema ||
+    value.recipient_schema ||
+    value.required_destination_fields ||
+    value.destination_fields ||
+    value.beneficiary_fields ||
+    value.connect_beneficiary_fields ||
+    value.recipient_fields ||
+    value.fields ||
+    value.schema ||
+    value.destination?.instruction_schema ||
+    value.destination?.schema ||
+    value.destination?.fields ||
+    null
+  );
+}
+
 export function normalizeField(field = {}, fallbackName = "") {
   const name =
     normalizeString(
@@ -41,9 +127,7 @@ export function normalizeFieldsFromCandidate(candidate) {
 
   if (Array.isArray(candidate)) {
     return candidate
-      .map((field) => {
-        return normalizeField(field);
-      })
+      .map((field) => normalizeField(field))
       .filter(Boolean);
   }
 
@@ -52,9 +136,7 @@ export function normalizeFieldsFromCandidate(candidate) {
     Array.isArray(candidate.fields)
   ) {
     return candidate.fields
-      .map((field) => {
-        return normalizeField(field);
-      })
+      .map((field) => normalizeField(field))
       .filter(Boolean);
   }
 
@@ -90,9 +172,7 @@ export function normalizeFieldsFromCandidate(candidate) {
           !Array.isArray(value)
         );
       })
-      .map(([name, field]) => {
-        return normalizeField(field, name);
-      })
+      .map(([name, field]) => normalizeField(field, name))
       .filter(Boolean);
   }
 
@@ -103,9 +183,17 @@ export function resolveRouteFields(route = {}) {
   const candidates = [
     route.required_destination_fields,
     route.destination_fields,
+    route.beneficiary_fields,
+    route.connect_beneficiary_fields,
+    route.recipient_fields,
+    route.fields,
     route.destination_schema,
+    route.beneficiary_schema,
+    route.recipient_schema,
     route.instruction_schema,
-    route.schema
+    route.schema,
+    route.destination?.fields,
+    route.destination?.schema
   ];
 
   for (const candidate of candidates) {
@@ -121,67 +209,92 @@ export function resolveRouteFields(route = {}) {
 }
 
 export function resolveRouteCountry(route = {}, context = {}) {
-  return normalizeString(
+  return normalizeUpper(
     route.receiver_country ||
     route.destination_country ||
     route.destination?.country ||
     route.country ||
     context.receiver_country
-  ).toUpperCase();
+  );
 }
 
 export function resolveRouteRail(route = {}) {
-  return normalizeString(
+  return normalizeLower(
     route.payout_rail ||
     route.expected_payout_rail ||
     route.destination_rail ||
     route.destination?.rail ||
     route.rail
-  ).toLowerCase();
+  );
 }
 
-export function resolveExecutionOptions(resolved = {}, route = {}) {
-  const execution =
-    resolved?.delivery_options?.execution ||
-    resolved?.execution ||
-    {};
+function resolveRouteExecutor(route = {}) {
+  return normalizeLower(
+    route.executor ||
+    route.execution_provider ||
+    route.provider ||
+    route.sender
+  );
+}
 
-  const payoutRail =
-    resolveRouteRail(route);
+function resolveOptionCountry(option = {}) {
+  return normalizeUpper(
+    option.receiver_country ||
+    option.destination_country ||
+    option.destination?.country ||
+    option.country
+  );
+}
 
+function resolveOptionRail(option = {}) {
+  return normalizeLower(
+    option.payout_rail ||
+    option.expected_payout_rail ||
+    option.destination_rail ||
+    option.destination?.rail ||
+    option.rail
+  );
+}
+
+function resolveOptionExecutor(option = {}) {
+  return normalizeLower(
+    option.executor ||
+    option.execution_provider ||
+    option.provider ||
+    option.sender
+  );
+}
+
+function resolveChannelName(value = {}) {
+  return normalizeLower(
+    value.channelName ||
+    value.channel_name ||
+    value.transactionChannel ||
+    value.transaction_channel
+  );
+}
+
+function resolveChannelSubject(value = {}) {
+  return normalizeLower(
+    value.channelSubject ||
+    value.channel_subject ||
+    value.transactionSubject ||
+    value.transaction_subject
+  );
+}
+
+function flattenExecutionOptions(execution = {}) {
   if (Array.isArray(execution)) {
-    return execution;
+    return execution.filter((item) => {
+      return item && typeof item === "object";
+    });
   }
 
-  if (execution && typeof execution === "object") {
-    const direct =
-      execution[payoutRail];
-
-    if (Array.isArray(direct)) {
-      return direct;
-    }
-
-    if (direct && typeof direct === "object") {
-      return [direct];
-    }
-
-    const matchingKey =
-      Object.keys(execution).find((key) => {
-        return key.toLowerCase() === payoutRail;
-      });
-
-    if (matchingKey) {
-      const value =
-        execution[matchingKey];
-
-      if (Array.isArray(value)) {
-        return value;
-      }
-
-      if (value && typeof value === "object") {
-        return [value];
-      }
-    }
+  if (
+    !execution ||
+    typeof execution !== "object"
+  ) {
+    return [];
   }
 
   return Object.values(execution)
@@ -198,103 +311,263 @@ export function resolveExecutionOptions(resolved = {}, route = {}) {
       }
 
       return [];
+    })
+    .filter((item) => {
+      return item && typeof item === "object";
     });
 }
 
-export function resolveInstructionSchemaFromResolved(route = {}, resolved = {}) {
+export function resolveExecutionOptions(resolved = {}, route = {}) {
+  const execution =
+    resolved?.delivery_options?.execution ||
+    resolved?.execution ||
+    {};
+
+  const payoutRail =
+    resolveRouteRail(route);
+
+  const allOptions =
+    flattenExecutionOptions(execution);
+
+  if (
+    !payoutRail ||
+    !execution ||
+    typeof execution !== "object" ||
+    Array.isArray(execution)
+  ) {
+    return uniqueOptions(allOptions);
+  }
+
+  const direct =
+    execution[payoutRail];
+
+  const directOptions =
+    Array.isArray(direct)
+      ? direct
+      : direct && typeof direct === "object"
+        ? [direct]
+        : [];
+
+  const matchingKey =
+    Object.keys(execution).find((key) => {
+      return normalizeLower(key) === payoutRail;
+    });
+
+  const matchingValue =
+    matchingKey
+      ? execution[matchingKey]
+      : null;
+
+  const matchingKeyOptions =
+    Array.isArray(matchingValue)
+      ? matchingValue
+      : matchingValue && typeof matchingValue === "object"
+        ? [matchingValue]
+        : [];
+
+  return uniqueOptions([
+    ...directOptions,
+    ...matchingKeyOptions,
+    ...allOptions
+  ]);
+}
+
+function optionHasSchema(option = {}) {
+  return Boolean(
+    normalizeFieldsFromCandidate(
+      pickSchemaCandidate(option)
+    ).length
+  );
+}
+
+function matchByRouteId(option = {}, route = {}) {
+  const routeId =
+    firstNonEmpty(
+      route.route_id,
+      route.id
+    );
+
+  const optionRouteId =
+    firstNonEmpty(
+      option.route_id,
+      option.id
+    );
+
+  return Boolean(
+    routeId &&
+    optionRouteId &&
+    routeId === optionRouteId
+  );
+}
+
+function matchByRailAndCountry(option = {}, route = {}, context = {}) {
+  const routeRail =
+    resolveRouteRail(route);
+
+  const optionRail =
+    resolveOptionRail(option);
+
+  const routeCountry =
+    resolveRouteCountry(route, context);
+
+  const optionCountry =
+    resolveOptionCountry(option);
+
+  return Boolean(
+    routeRail &&
+    optionRail &&
+    routeRail === optionRail &&
+    (
+      !routeCountry ||
+      !optionCountry ||
+      routeCountry === optionCountry
+    )
+  );
+}
+
+function matchByChannel(option = {}, route = {}) {
+  const routeChannelName =
+    resolveChannelName(route);
+
+  const optionChannelName =
+    resolveChannelName(option);
+
+  const routeChannelSubject =
+    resolveChannelSubject(route);
+
+  const optionChannelSubject =
+    resolveChannelSubject(option);
+
+  if (
+    routeChannelName &&
+    optionChannelName &&
+    routeChannelName !== optionChannelName
+  ) {
+    return false;
+  }
+
+  if (
+    routeChannelSubject &&
+    optionChannelSubject &&
+    routeChannelSubject !== optionChannelSubject
+  ) {
+    return false;
+  }
+
+  return Boolean(
+    (
+      routeChannelName &&
+      optionChannelName
+    ) ||
+    (
+      routeChannelSubject &&
+      optionChannelSubject
+    )
+  );
+}
+
+function matchByExecutor(option = {}, route = {}) {
+  const routeExecutor =
+    resolveRouteExecutor(route);
+
+  const optionExecutor =
+    resolveOptionExecutor(option);
+
+  return Boolean(
+    routeExecutor &&
+    optionExecutor &&
+    routeExecutor === optionExecutor
+  );
+}
+
+export function resolveInstructionSchemaFromResolved(
+  route = {},
+  resolved = {},
+  context = {}
+) {
   const options =
     resolveExecutionOptions(
       resolved,
       route
     );
 
-  const routeId =
-    normalizeString(
-      route.route_id ||
-      route.id
-    );
+  const matchers = [
+    (option) => matchByRouteId(option, route),
+    (option) => matchByRailAndCountry(option, route, context),
+    (option) => matchByChannel(option, route),
+    (option) => matchByExecutor(option, route),
+    (option) => optionHasSchema(option)
+  ];
 
-  const executor =
-    normalizeString(
-      route.executor ||
-      route.execution_provider ||
-      route.provider
-    ).toLowerCase();
+  for (const matcher of matchers) {
+    const matched =
+      options.find((option) => {
+        return (
+          option &&
+          typeof option === "object" &&
+          matcher(option) &&
+          optionHasSchema(option)
+        );
+      });
 
-  const matched =
-    options.find((option) => {
-      return (
-        routeId &&
-        normalizeString(
-          option.route_id ||
-          option.id
-        ) === routeId
-      );
-    }) ||
-    options.find((option) => {
-      if (!executor) {
-        return false;
-      }
+    if (matched) {
+      return pickSchemaCandidate(matched);
+    }
+  }
 
-      return [
-        option.executor,
-        option.execution_provider,
-        option.provider,
-        option.sender
-      ]
-        .map((value) => {
-          return normalizeString(value).toLowerCase();
-        })
-        .includes(executor);
-    }) ||
-    options[0];
+  return null;
+}
 
-  return (
-    matched?.instruction_schema ||
-    matched?.destination_schema ||
-    matched?.required_destination_fields ||
-    matched?.destination_fields ||
-    matched?.schema ||
-    null
+function formatCountryLabel(route = {}) {
+  return firstNonEmpty(
+    route.receiver_country_name,
+    route.destination_country_name,
+    route.country_name,
+    route.destination?.country_name,
+    route.receiver_country_label,
+    route.destination_country_label,
+    route.country_label,
+    resolveRouteCountry(route)
   );
 }
 
+function formatRailLabel(route = {}) {
+  const raw =
+    firstNonEmpty(
+      route.payout_rail_name,
+      route.destination_rail_name,
+      route.rail_name,
+      route.payout_method_name,
+      route.destination?.rail_name,
+      route.payout_rail_label,
+      route.destination_rail_label,
+      route.rail_label,
+      route.payout_method_label,
+      resolveRouteRail(route)
+    );
+
+  return raw.length <= 8
+    ? raw.toUpperCase()
+    : raw;
+}
+
 export function formatRouteLabel(route = {}) {
-  const receiverCountry =
-    resolveRouteCountry(route);
+  const country =
+    formatCountryLabel(route);
 
-  const payoutRail =
-    resolveRouteRail(route);
+  const rail =
+    formatRailLabel(route);
 
-  if (
-    receiverCountry === "BR" &&
-    payoutRail === "pix"
-  ) {
-    return "Brazil · PIX";
+  if (country && rail) {
+    return `${country} · ${rail}`;
   }
 
-  if (receiverCountry === "BR") {
-    return payoutRail
-      ? `Brazil · ${payoutRail.toUpperCase()}`
-      : "Brazil";
+  if (country) {
+    return country;
   }
 
-  if (receiverCountry === "PH") {
-    return payoutRail
-      ? `Philippines · ${payoutRail.toUpperCase()}`
-      : "Philippines";
-  }
-
-  if (receiverCountry && payoutRail) {
-    return `${receiverCountry} · ${payoutRail.toUpperCase()}`;
-  }
-
-  if (receiverCountry) {
-    return receiverCountry;
-  }
-
-  if (payoutRail) {
-    return payoutRail.toUpperCase();
+  if (rail) {
+    return rail;
   }
 
   return "Payout route";
@@ -314,7 +587,8 @@ export function normalizeRoute(route = {}, resolved = {}, context = {}) {
   const instructionSchema =
     resolveInstructionSchemaFromResolved(
       route,
-      resolved
+      resolved,
+      context
     );
 
   const enrichedRoute = {
