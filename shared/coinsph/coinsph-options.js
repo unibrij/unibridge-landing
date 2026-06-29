@@ -1,10 +1,4 @@
-// unibridge-landing/shared/coinsph/coinsph-options.js
-
-export const COINSPH_PAYOUT_CHANNELS_ENDPOINT =
-  "surface/options/coinsph/ph-payout-channels";
-
-export const COINSPH_PAYOUT_CHANNELS_FETCH_URL =
-  "/surface/options/coinsph/ph-payout-channels";
+// shared/coinsph/coinsph-options.js
 
 export function normalizeText(value) {
   return String(value || "").trim();
@@ -44,43 +38,6 @@ export function normalizeOptionsPayload(payload) {
   }
 
   return [];
-}
-
-export async function fetchCoinsPhChannelOptions({
-  apiGet
-} = {}) {
-  if (typeof apiGet === "function") {
-    const response =
-      await apiGet(
-        COINSPH_PAYOUT_CHANNELS_ENDPOINT,
-        {}
-      );
-
-    if (!response?.ok) {
-      throw new Error(
-        response?.error ||
-          "COINSPH_CHANNELS_LOAD_FAILED"
-      );
-    }
-
-    return normalizeOptionsPayload(response);
-  }
-
-  const response =
-    await fetch(
-      COINSPH_PAYOUT_CHANNELS_FETCH_URL
-    );
-
-  if (!response.ok) {
-    throw new Error(
-      "COINSPH_CHANNELS_LOAD_FAILED"
-    );
-  }
-
-  const payload =
-    await response.json();
-
-  return normalizeOptionsPayload(payload);
 }
 
 export function getChannelPriority(option = {}) {
@@ -193,7 +150,7 @@ export function buildCoinsPhBankGroups(options = []) {
     });
 
   return Array.from(map.values())
-    .map(group => {
+    .map((group) => {
       const sortedOptions =
         group.options
           .slice()
@@ -220,15 +177,17 @@ export function buildCoinsPhBankGroups(options = []) {
 
       return {
         ...group,
+
         options:
           sortedOptions,
+
         searchText:
           normalizeSearchText(
             searchParts.join(" ")
           )
       };
     })
-    .sort((a, b) =>
-      a.label.localeCompare(b.label)
-    );
+    .sort((a, b) => {
+      return a.label.localeCompare(b.label);
+    });
 }
