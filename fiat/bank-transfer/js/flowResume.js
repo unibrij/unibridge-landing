@@ -5,6 +5,10 @@ import {
 } from "./config.js";
 
 import {
+  invalidatePreparedQuote
+} from "./entryState.js";
+
+import {
   resetSettlementAttemptForSameUser
 } from "./state.js";
 
@@ -110,6 +114,8 @@ export function resetStaleSettlementAttempt({
     state,
     nextState
   });
+
+  invalidatePreparedQuote();
 
   if (runtime) {
     runtime.preparedQuote =
