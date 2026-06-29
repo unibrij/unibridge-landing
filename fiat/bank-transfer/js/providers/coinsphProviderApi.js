@@ -1,8 +1,8 @@
-// fiat/bank-transfer/js/coinsphBankTransferApi.js
+// fiat/bank-transfer/js/providers/coinsphProviderApi.js
 
 import {
   normalizeOptionsPayload
-} from "../../../shared/coinsph/coinsph-options.js";
+} from "../../../../shared/coinsph/coinsph-options.js";
 
 const COINSPH_PAYOUT_CHANNELS_ENDPOINT =
   "surface/options/coinsph/ph-payout-channels";
@@ -14,18 +14,24 @@ function buildProxyUrl(endpoint) {
   );
 }
 
-export async function loadCoinsPhBankTransferChannelOptions() {
+export async function loadCoinsPhProviderChannelOptions() {
   const response =
     await fetch(
       buildProxyUrl(
         COINSPH_PAYOUT_CHANNELS_ENDPOINT
       ),
       {
-        method: "POST",
+        method:
+          "POST",
+
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
+          "Content-Type":
+            "application/json",
+
+          Accept:
+            "application/json"
         },
+
         body:
           "{}"
       }
