@@ -9,6 +9,10 @@ import {
 } from "./entryForm.js";
 
 import {
+  invalidatePreparedQuote
+} from "./entryState.js";
+
+import {
   readQueryParams,
   resolveInitialState,
   writeStoredState,
@@ -128,6 +132,8 @@ function startNewTransfer() {
     FIAT_CONTEXT_KEY
   );
 
+  invalidatePreparedQuote();
+
   goToPayEntry();
 }
 
@@ -246,7 +252,22 @@ async function init() {
     runBankTransferFlow:
       handlers.runBankTransferFlow,
 
-    startNewTransfer
+    startNewTransfer,
+
+    handleEntryChanged:
+      () => {
+        invalidatePreparedQuote();
+
+        runtime.preparedQuote =
+          null;
+
+        persist({
+          prepared_quote:
+            null
+        });
+      },
+
+    hasFiatContext
   });
 
   try {
@@ -256,6 +277,8 @@ async function init() {
       });
 
     if (authSync?.reset) {
+      invalidatePreparedQuote();
+
       runtime.preparedQuote =
         null;
 
