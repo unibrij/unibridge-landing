@@ -308,6 +308,9 @@ export async function prepareBankTransferSettlement() {
 
     quote,
 
+    routes:
+      availableRoutes,
+
     selected_route_id:
       selectedRoute.route_id,
 
