@@ -480,6 +480,138 @@ h1 {
   transform: scale(0.99);
 }
 
+/* --------------------------------------------------
+   CoinsPH provider picker
+-------------------------------------------------- */
+
+.coinsph-bank-transfer-destination {
+  display: grid;
+  gap: 10px;
+}
+
+.coinsph-results {
+  display: none;
+  gap: 6px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid rgba(94, 234, 212, 0.20);
+  border-radius: 14px;
+  background: rgba(2, 18, 48, 0.86);
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.coinsph-results.active {
+  display: grid;
+}
+
+.coinsph-result {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.coinsph-result:hover {
+  background: rgba(20, 184, 166, 0.14);
+}
+
+.coinsph-result strong {
+  display: block;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.coinsph-result span {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.coinsph-empty {
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.coinsph-selected-bank {
+  display: none;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 14px;
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.coinsph-selected-bank.active {
+  display: grid;
+}
+
+.coinsph-selected-bank strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.coinsph-selected-bank span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.coinsph-channel-tabs {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.coinsph-channel-tabs.active {
+  display: grid;
+}
+
+.coinsph-channel-tab {
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid rgba(45, 212, 191, 0.26);
+  border-radius: 12px;
+  background: rgba(20, 184, 166, 0.07);
+  color: #5eead4;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.coinsph-channel-tab.active,
+.coinsph-channel-tab:hover {
+  border-color: rgba(94, 234, 212, 0.48);
+  background: rgba(20, 184, 166, 0.16);
+  color: #ffffff;
+}
+
+.coinsph-recipient-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.coinsph-recipient-fields.hidden {
+  display: none !important;
+}
+
 option {
   color: #04111f;
 }
