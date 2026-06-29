@@ -22,18 +22,12 @@ export async function loadCoinsPhProviderChannelOptions() {
       ),
       {
         method:
-          "POST",
+          "GET",
 
         headers: {
-          "Content-Type":
-            "application/json",
-
           Accept:
             "application/json"
-        },
-
-        body:
-          "{}"
+        }
       }
     );
 
