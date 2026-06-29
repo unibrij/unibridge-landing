@@ -7,6 +7,13 @@ import {
 } from "./entryForm.js";
 
 import {
+  getPreparedQuote,
+  setPreparedQuote,
+  invalidatePreparedQuote,
+  hasPreparedQuote as hasEntryPreparedQuote
+} from "./entryState.js";
+
+import {
   clearDiditAutoContinue
 } from "./kycFlow.js";
 
@@ -36,7 +43,6 @@ import {
 } from "./flowUi.js";
 
 import {
-  hasPreparedQuote,
   showCustomerProfileAfterQuote,
   handleCustomerProfileError
 } from "./quoteProfileGate.js";
@@ -63,6 +69,8 @@ function applyAuthResetUi({
   hasFiatContext,
   showEntryMode
 } = {}) {
+  invalidatePreparedQuote();
+
   if (runtime) {
     runtime.preparedQuote =
       null;
@@ -192,11 +200,13 @@ export function createBankTransferHandlers({
         );
       }
 
+      const preparedQuote =
+        getPreparedQuote();
+
       if (
         handleCustomerProfileError({
           err,
-          preparedQuote:
-            runtime.preparedQuote,
+          preparedQuote,
           resolveErrorMessage,
           setStatus
         })
@@ -229,6 +239,13 @@ export function createBankTransferHandlers({
     try {
       hideCustomerProfileForm();
 
+      invalidatePreparedQuote();
+
+      if (runtime) {
+        runtime.preparedQuote =
+          null;
+      }
+
       setEntryButtonsForQuoteStart();
 
       const authSync =
@@ -247,48 +264,61 @@ export function createBankTransferHandlers({
         return;
       }
 
-      runtime.preparedQuote =
+      const prepared =
         await prepareBankTransferSettlement();
+
+      setPreparedQuote(
+        prepared
+      );
+
+      const preparedQuote =
+        getPreparedQuote();
+
+      if (runtime) {
+        runtime.preparedQuote =
+          preparedQuote;
+      }
 
       persist({
         prepared_quote:
-          runtime.preparedQuote,
+          preparedQuote,
 
         source_country:
-          runtime.preparedQuote.form?.source_country,
+          preparedQuote.form?.source_country,
 
         source_rail:
-          runtime.preparedQuote.form?.source_rail
+          preparedQuote.form?.source_rail
       });
 
       renderQuote(
         quoteBox,
         {
           form:
-            runtime.preparedQuote.form,
+            preparedQuote.form,
 
           quote:
-            runtime.preparedQuote.quote,
+            preparedQuote.quote,
 
           selectedRoute:
-            runtime.preparedQuote.selected_route
+            preparedQuote.selected_route
         }
       );
 
       showCustomerProfileAfterQuote({
-        preparedQuote:
-          runtime.preparedQuote
+        preparedQuote
       });
 
       setEntryButtonsForQuoteReady({
         hasPreparedQuote:
-          hasPreparedQuote(
-            runtime.preparedQuote
-          )
+          hasEntryPreparedQuote()
       });
     } catch (err) {
-      runtime.preparedQuote =
-        null;
+      invalidatePreparedQuote();
+
+      if (runtime) {
+        runtime.preparedQuote =
+          null;
+      }
 
       hideCustomerProfileForm();
 
@@ -327,11 +357,10 @@ export function createBankTransferHandlers({
         return;
       }
 
-      if (
-        !hasPreparedQuote(
-          runtime.preparedQuote
-        )
-      ) {
+      const preparedQuote =
+        getPreparedQuote();
+
+      if (!hasEntryPreparedQuote()) {
         hideCustomerProfileForm();
 
         setEntryButtonsForQuoteIdle({
@@ -356,7 +385,7 @@ export function createBankTransferHandlers({
 
       const created =
         await createSettlementFromPreparedQuote(
-          runtime.preparedQuote
+          preparedQuote
         );
 
       persist({
@@ -392,18 +421,20 @@ export function createBankTransferHandlers({
         err
       );
 
+      const preparedQuote =
+        getPreparedQuote();
+
       if (
         handleCustomerProfileError({
           err,
-          preparedQuote:
-            runtime.preparedQuote,
+          preparedQuote,
           resolveErrorMessage,
           setStatus
         })
       ) {
         setCreateSettlementIdle({
           hasPreparedQuote:
-            true
+            hasEntryPreparedQuote()
         });
 
         return;
@@ -412,9 +443,7 @@ export function createBankTransferHandlers({
       if (err?.handled === true) {
         setCreateSettlementIdle({
           hasPreparedQuote:
-            hasPreparedQuote(
-              runtime.preparedQuote
-            )
+            hasEntryPreparedQuote()
         });
 
         return;
@@ -427,9 +456,7 @@ export function createBankTransferHandlers({
 
       setCreateSettlementIdle({
         hasPreparedQuote:
-          hasPreparedQuote(
-            runtime.preparedQuote
-          )
+          hasEntryPreparedQuote()
       });
     }
   }
