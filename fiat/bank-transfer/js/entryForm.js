@@ -21,6 +21,10 @@ import {
   renderDestinationFields
 } from "./destinationFields.js";
 
+import {
+  hasProviderDestination
+} from "./providerDestinationRegistry.js";
+
 export {
   renderQuote
 } from "./quoteRenderer.js";
@@ -280,18 +284,22 @@ export async function prepareBankTransferSettlement() {
   }
 
   renderRouteOptions();
-  renderSelectedDestinationFields();
 
   const selectedRoute =
     getSelectedRoute();
 
-  if (!selectedRoute.required_destination_fields?.length) {
+  if (
+    !selectedRoute.required_destination_fields?.length &&
+    !hasProviderDestination(selectedRoute)
+  ) {
     hideQuoteStageFields();
 
     throw new Error(
       "route_destination_fields_missing"
     );
   }
+
+  renderSelectedDestinationFields();
 
   showQuoteStageFields();
   renderSelectedQuote();
