@@ -6,6 +6,12 @@ import {
   markFieldInvalid
 } from "./fieldErrors.js";
 
+import {
+  collectProviderDestination,
+  renderProviderDestination,
+  resetProviderDestinations
+} from "./providerDestinationRegistry.js";
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
@@ -109,7 +115,8 @@ function bindClearErrorOnEdit(container) {
 export function renderDestinationFields({
   availableRoutes = [],
   selectedRouteId = "",
-  getSelectedRoute
+  getSelectedRoute,
+  onChange
 } = {}) {
   const container =
     getEl("destinationFields");
@@ -123,11 +130,24 @@ export function renderDestinationFields({
 
   if (!availableRoutes.length || !selectedRouteId) {
     container.innerHTML = "";
+    resetProviderDestinations();
     return;
   }
 
   const route =
     getSelectedRoute();
+
+  if (
+    renderProviderDestination({
+      container,
+      route,
+      onChange
+    })
+  ) {
+    return;
+  }
+
+  resetProviderDestinations();
 
   const fields =
     route.required_destination_fields || [];
@@ -166,9 +186,16 @@ export function renderDestinationFields({
 }
 
 export function collectDestination(route = {}) {
-  const destination = {};
-
   clearDestinationErrors();
+
+  const providerDestination =
+    collectProviderDestination(route);
+
+  if (providerDestination) {
+    return providerDestination;
+  }
+
+  const destination = {};
 
   for (const field of route.required_destination_fields || []) {
     const name =
