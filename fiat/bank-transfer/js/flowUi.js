@@ -21,6 +21,57 @@ const refreshButton =
 const newTransferButton =
   document.getElementById("newTransferAction");
 
+function getEl(id) {
+  return document.getElementById(id);
+}
+
+function getRouteFieldContainer() {
+  const routeSelect =
+    getEl("routeId");
+
+  return (
+    routeSelect?.closest(".route-grid") ||
+    routeSelect?.closest(".field") ||
+    routeSelect?.parentElement ||
+    null
+  );
+}
+
+function resetQuoteStageUi() {
+  const routeSelect =
+    getEl("routeId");
+
+  const destinationFields =
+    getEl("destinationFields");
+
+  const quoteBox =
+    getEl("quoteBox");
+
+  if (routeSelect) {
+    routeSelect.disabled =
+      true;
+
+    routeSelect.innerHTML =
+      `<option value="">Get quote first</option>`;
+  }
+
+  if (destinationFields) {
+    destinationFields.innerHTML =
+      "";
+
+    destinationFields.classList.add(
+      "hidden"
+    );
+  }
+
+  getRouteFieldContainer()
+    ?.classList.add("hidden");
+
+  quoteBox?.classList.add(
+    "hidden"
+  );
+}
+
 export function showEntryMode() {
   entryBox?.classList.remove("hidden");
   fundingBox?.classList.add("hidden");
@@ -182,7 +233,9 @@ export function attachBankTransferEvents({
   handleQuote,
   handleCreateSettlement,
   runBankTransferFlow,
-  startNewTransfer
+  startNewTransfer,
+  handleEntryChanged,
+  hasFiatContext
 } = {}) {
   quoteButton?.addEventListener(
     "click",
@@ -209,5 +262,46 @@ export function attachBankTransferEvents({
   newTransferButton?.addEventListener(
     "click",
     startNewTransfer
+  );
+
+  let entryEventsReady = false;
+
+  window.setTimeout(() => {
+    entryEventsReady =
+      true;
+  }, 0);
+
+  const onEntryChanged = () => {
+    if (!entryEventsReady) {
+      return;
+    }
+
+    resetQuoteStageUi();
+
+    if (typeof handleEntryChanged === "function") {
+      handleEntryChanged();
+    }
+
+    setEntryButtonsForQuoteIdle({
+      hasFiatContext:
+        typeof hasFiatContext === "function"
+          ? hasFiatContext()
+          : true
+    });
+  };
+
+  [
+    "sourceCountry",
+    "receiverCountry"
+  ].forEach((id) => {
+    getEl(id)?.addEventListener(
+      "change",
+      onEntryChanged
+    );
+  });
+
+  getEl("amount")?.addEventListener(
+    "input",
+    onEntryChanged
   );
 }
