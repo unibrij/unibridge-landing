@@ -212,8 +212,6 @@ export function renderContextSummary() {
   }
 
   try {
-    syncFiatContextFields();
-
     const context =
       readFiatContext();
 
