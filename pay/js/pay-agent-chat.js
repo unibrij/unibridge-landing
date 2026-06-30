@@ -288,12 +288,28 @@ window.UnibridgePayAgentChat = (() => {
   function handleOptionSelection(option = {}) {
     const { Selectors, Actions } = assertModules();
 
+    const normalizedOption =
+      normalizeObject(option);
+
+    const optionPayload =
+      normalizeObject(normalizedOption.payload);
+
     const optionId =
       Selectors.normalizeOptionId(option);
 
     const label =
       Selectors.normalizeOptionLabel(option) ||
       optionId;
+
+    if (Object.keys(optionPayload).length) {
+      handleDeterministicPayload({
+        label,
+        payload:
+          optionPayload
+      });
+
+      return;
+    }
 
     if (!optionId) {
       return;
