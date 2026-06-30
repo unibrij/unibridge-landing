@@ -157,19 +157,16 @@
   }
 
   .pay-brandbar {
-    justify-content: space-between;
-    gap: 12px;
+    justify-content: center;
   }
 
   .pay-brandbar-logo {
     width: 200px;
-    max-width: 58vw;
+    max-width: 68vw;
   }
 
   .pay-domain-pill {
-    min-height: 30px;
-    padding: 0 11px;
-    font-size: 11px;
+    display: none;
   }
 
   .pay-guide-link-wrap {
