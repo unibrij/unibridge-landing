@@ -212,6 +212,47 @@ window.UnibridgePayAgentChatSelectors = (() => {
     );
   }
 
+  function pickCurrentField(response = {}) {
+    const data =
+      normalizeObject(response);
+
+    return normalizeObject(
+      data.current_field ||
+        data.currentField ||
+        data.plan?.current_field ||
+        data.plan?.currentField ||
+        data.agent_state?.current_field ||
+        data.agent_state?.currentField ||
+        data.plan?.agent_state?.current_field ||
+        data.plan?.agent_state?.currentField
+    );
+  }
+
+  function pickCurrentUi(response = {}) {
+    const data =
+      normalizeObject(response);
+
+    return normalizeObject(
+      data.current_ui ||
+        data.currentUi ||
+        data.plan?.current_ui ||
+        data.plan?.currentUi ||
+        data.agent_state?.current_ui ||
+        data.agent_state?.currentUi ||
+        data.plan?.agent_state?.current_ui ||
+        data.plan?.agent_state?.currentUi
+    );
+  }
+
+  function isInstitutionSearchUi(response = {}) {
+    const ui =
+      pickCurrentUi(response);
+
+    return normalizeLower(
+      ui.input_type
+    ) === "institution_search";
+  }
+
   function pickNextAction(response = {}) {
     const data =
       normalizeObject(response);
@@ -413,6 +454,9 @@ window.UnibridgePayAgentChatSelectors = (() => {
     pickAgentPlanId,
     pickStatus,
     pickSafeSummary,
+    pickCurrentField,
+    pickCurrentUi,
+    isInstitutionSearchUi,
     pickNextAction,
     pickAvailableOptions,
     pickNextActionType,
