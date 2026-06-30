@@ -333,13 +333,27 @@ window.UnibridgePayAgentChatSelectors = (() => {
     const item =
       normalizeObject(option);
 
-    return normalizeString(
-      item.label ||
-        item.title ||
-        item.name ||
-        item.id ||
-        item.value
-    );
+    const label =
+      normalizeString(
+        item.label ||
+          item.title ||
+          item.name ||
+          item.id ||
+          item.value
+      );
+
+    const flag =
+      normalizeString(item.flag);
+
+    if (
+      flag &&
+      label &&
+      !label.startsWith(flag)
+    ) {
+      return `${flag} ${label}`;
+    }
+
+    return label;
   }
 
   function normalizeOptionDescription(option = {}) {
