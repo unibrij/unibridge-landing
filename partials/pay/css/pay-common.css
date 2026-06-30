@@ -17,7 +17,8 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  gap: 18px;
   margin-bottom: 0;
 }
 
@@ -36,6 +37,37 @@
   display: block;
   opacity: 0.94;
   filter: none;
+}
+
+.pay-domain-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  background: rgba(20, 184, 166, 0.08);
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 0 18px rgba(20, 184, 166, 0.08);
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.pay-domain-pill:hover {
+  background: rgba(20, 184, 166, 0.14);
+  border-color: rgba(94, 234, 212, 0.34);
+  color: #99f6e4;
+  text-decoration: none;
+}
+
+.pay-domain-pill:active {
+  transform: scale(0.98);
 }
 
 /* --------------------------------------------------
@@ -125,12 +157,19 @@
   }
 
   .pay-brandbar {
-    justify-content: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   .pay-brandbar-logo {
     width: 200px;
-    max-width: 68vw;
+    max-width: 58vw;
+  }
+
+  .pay-domain-pill {
+    min-height: 30px;
+    padding: 0 11px;
+    font-size: 11px;
   }
 
   .pay-guide-link-wrap {
