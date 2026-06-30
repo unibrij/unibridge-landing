@@ -82,6 +82,312 @@ window.UnibridgePayAgentChatActionRenderers = (() => {
     return button;
   }
 
+  function getApi() {
+    return window.UnibridgePayAgentApi || null;
+  }
+
+  function normalizeCoinsPhOptionsPayload(payload = {}) {
+    const Selectors =
+      Core.getSelectors();
+
+    const data =
+      Selectors?.normalizeObject?.(payload) || {};
+
+    return Selectors?.normalizeArray?.(
+      data.options ||
+        data.channels ||
+        data.data?.options ||
+        data.data?.channels ||
+        data.result?.options ||
+        data.result?.channels
+    ) || [];
+  }
+
+  function getInstitutionOptionLabel(option = {}) {
+    const Selectors =
+      Core.getSelectors();
+
+    const item =
+      Selectors.normalizeObject(option);
+
+    return Selectors.pickFirstSafeText(
+      item.label,
+      item.name,
+      item.channelName,
+      item.transactionChannel,
+      item.id
+    );
+  }
+
+  function getInstitutionOptionDescription(option = {}) {
+    const Selectors =
+      Core.getSelectors();
+
+    const item =
+      Selectors.normalizeObject(option);
+
+    return Selectors.pickFirstSafeText(
+      item.channelSubject,
+      item.transactionSubject,
+      item.subject,
+      item.id
+    );
+  }
+
+  function getInstitutionOptionId(option = {}) {
+    const Selectors =
+      Core.getSelectors();
+
+    const item =
+      Selectors.normalizeObject(option);
+
+    return Selectors.normalizeString(
+      item.id ||
+        item.value ||
+        item.key ||
+        item.channelSubject ||
+        item.transactionSubject
+    );
+  }
+
+  function buildControlledInstitutionPayload({
+    response = {},
+    option = {}
+  } = {}) {
+    const Selectors =
+      Core.getSelectors();
+
+    const field =
+      Selectors.pickCurrentField(response);
+
+    return {
+      action:
+        "select_controlled_option",
+
+      controlled_field:
+        Selectors.normalizeString(
+          field.key ||
+            field.name ||
+            "recipient_institution"
+        ),
+
+      selected_option_id:
+        getInstitutionOptionId(option)
+    };
+  }
+
+  function renderInstitutionSearch(
+    response = {},
+    handlers = {}
+  ) {
+    const Dom =
+      Core.getDom();
+
+    const Selectors =
+      Core.getSelectors();
+
+    const Api =
+      getApi();
+
+    if (!Dom || !Selectors || !Api?.getCoinsPhPayoutChannels) {
+      return false;
+    }
+
+    if (!Selectors.isInstitutionSearchUi(response)) {
+      return false;
+    }
+
+    const wrapper =
+      Core.createElement(
+        "div",
+        "pay-agent-option-group pay-agent-institution-search"
+      );
+
+    const input =
+      Core.createElement(
+        "input",
+        "pay-agent-input pay-agent-institution-search-input"
+      );
+
+    const ui =
+      Selectors.pickCurrentUi(response);
+
+    input.type =
+      "search";
+
+    input.placeholder =
+      Selectors.normalizeString(ui.placeholder) ||
+      "Search bank or wallet";
+
+    const results =
+      Core.createElement(
+        "div",
+        "pay-agent-institution-results"
+      );
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(results);
+    Dom.appendToActions(wrapper);
+
+    let options = [];
+    let loading = false;
+
+    function renderResults(query = "") {
+      results.innerHTML = "";
+
+      const normalizedQuery =
+        Selectors.normalizeLower(query);
+
+      const minQueryLength =
+        Number(ui.min_query_length || 2);
+
+      if (
+        normalizedQuery.length < minQueryLength
+      ) {
+        results.appendChild(
+          Core.createElement(
+            "div",
+            "pay-agent-action-meta",
+            `Type at least ${minQueryLength} characters.`
+          )
+        );
+        return;
+      }
+
+      const maxResults =
+        Number(ui.max_results || 5);
+
+      const filtered =
+        options
+          .filter((option) => {
+            const label =
+              Selectors.normalizeLower(
+                getInstitutionOptionLabel(option)
+              );
+
+            const description =
+              Selectors.normalizeLower(
+                getInstitutionOptionDescription(option)
+              );
+
+            return (
+              label.includes(normalizedQuery) ||
+              description.includes(normalizedQuery)
+            );
+          })
+          .slice(0, maxResults);
+
+      if (!filtered.length) {
+        results.appendChild(
+          Core.createElement(
+            "div",
+            "pay-agent-action-meta",
+            "No matching institution found."
+          )
+        );
+        return;
+      }
+
+      filtered.forEach((option) => {
+        const label =
+          getInstitutionOptionLabel(option);
+
+        const button =
+          createActionButton(
+            label,
+            () => {
+              handlers.onOption?.({
+                id:
+                  getInstitutionOptionId(option),
+
+                label,
+
+                action:
+                  "select_controlled_option",
+
+                payload:
+                  buildControlledInstitutionPayload({
+                    response,
+                    option
+                  })
+              });
+            },
+            {
+              description:
+                getInstitutionOptionDescription(option),
+              secondary:
+                true
+            }
+          );
+
+        if (button) {
+          results.appendChild(button);
+        }
+      });
+    }
+
+    async function loadOptions() {
+      if (loading || options.length) {
+        return;
+      }
+
+      loading = true;
+
+      results.innerHTML = "";
+      results.appendChild(
+        Core.createElement(
+          "div",
+          "pay-agent-action-meta",
+          "Loading institutions..."
+        )
+      );
+
+      try {
+        const payload =
+          await Api.getCoinsPhPayoutChannels();
+
+        options =
+          normalizeCoinsPhOptionsPayload(payload);
+
+        renderResults(input.value);
+      } catch {
+        results.innerHTML = "";
+        results.appendChild(
+          Core.createElement(
+            "div",
+            "pay-agent-action-meta",
+            "Unable to load institutions."
+          )
+        );
+      } finally {
+        loading = false;
+      }
+    }
+
+    input.addEventListener(
+      "input",
+      () => {
+        loadOptions().then(() => {
+          renderResults(input.value);
+        });
+      }
+    );
+
+    input.addEventListener(
+      "focus",
+      () => {
+        loadOptions();
+      }
+    );
+
+    setTimeout(() => {
+      input.focus();
+      loadOptions();
+    }, 0);
+
+    return true;
+  }
+
   function shouldRenderAvailableOptions(response = {}) {
     const Selectors =
       Core.getSelectors();
@@ -253,6 +559,10 @@ window.UnibridgePayAgentChatActionRenderers = (() => {
     }
 
     Dom.clearActions();
+
+    if (renderInstitutionSearch(response, handlers)) {
+      return;
+    }
 
     const status =
       Selectors.pickStatus(response);
