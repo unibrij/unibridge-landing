@@ -65,6 +65,25 @@ a {
   z-index: 2;
 }
 
+.pay-agent-hero-label {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 420px);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.pay-agent-page-kicker {
+  margin: 0;
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 /* --------------------------------------------------
    Navigation
 -------------------------------------------------- */
