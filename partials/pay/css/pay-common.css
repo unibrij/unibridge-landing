@@ -98,7 +98,7 @@
       rgba(0, 14, 45, 0.18) 45%,
       #000e2d 100%
     ),
-    url("/public/icons/social/connect-map-bg.png") center 78px / 1120px auto no-repeat,
+    url("/public/icons/social/connect-map-bg-transparent.png") center 78px / 1120px auto no-repeat,
     radial-gradient(
       circle at 50% 32%,
       rgba(45, 212, 191, 0.16),
