@@ -13,6 +13,10 @@
   width: 100%;
 }
 
+/* --------------------------------------------------
+   Shared brand bar
+-------------------------------------------------- */
+
 .pay-brandbar {
   width: 100%;
   display: flex;
@@ -68,6 +72,59 @@
 
 .pay-domain-pill:active {
   transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Shared page background shell
+-------------------------------------------------- */
+
+.pay-page-shell {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #000e2d;
+}
+
+.pay-page-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.08) 0%,
+      rgba(0, 14, 45, 0.18) 45%,
+      #000e2d 100%
+    ),
+    url("/public/icons/social/connect-map-bg.png") center 78px / 1120px auto no-repeat,
+    radial-gradient(
+      circle at 50% 32%,
+      rgba(45, 212, 191, 0.16),
+      transparent 34%
+    ),
+    #000e2d;
+}
+
+.pay-page-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      rgba(20, 184, 166, 0.10),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.34) 58%,
+      #000e2d 100%
+    );
 }
 
 /* --------------------------------------------------
@@ -167,6 +224,23 @@
 
   .pay-domain-pill {
     display: none;
+  }
+
+  .pay-page-shell::before {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(0, 14, 45, 0.08) 0%,
+        rgba(0, 14, 45, 0.18) 45%,
+        #000e2d 100%
+      ),
+      url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
+      radial-gradient(
+        circle at 50% 32%,
+        rgba(45, 212, 191, 0.16),
+        transparent 34%
+      ),
+      #000e2d;
   }
 
   .pay-guide-link-wrap {
