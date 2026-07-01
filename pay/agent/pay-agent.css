@@ -47,6 +47,9 @@ a {
 }
 
 .pay-agent-page {
+  --pay-map-position: center 58px;
+  --pay-map-size: 1120px auto;
+
   position: relative;
   width: min(100%, 980px);
   min-height: 100vh;
@@ -760,11 +763,14 @@ a {
 }
 
 @media (max-width: 520px) {
-  .pay-agent-page {
-    width: min(100%, 440px);
-    padding-left: 14px;
-    padding-right: 14px;
-  }
+.pay-agent-page {
+  --pay-map-position: center 48px;
+  --pay-map-size: 760px auto;
+
+  width: min(100%, 440px);
+  padding-left: 14px;
+  padding-right: 14px;
+}
 
   .pay-agent-nav {
     min-height: 38px;
