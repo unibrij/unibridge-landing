@@ -154,7 +154,7 @@ a {
 
 .pay-agent-hero {
   width: min(100%, 720px);
-  margin: 54px auto 0;
+  margin: auto auto 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -205,31 +205,13 @@ a {
   line-height: 1.3;
 }
 
-.pay-agent-hero {
-  width: min(100%, 420px);
-  margin: 54px auto 0;
-  display: flex;
-  justify-content: center;
-  text-align: center;
-}
-
-.pay-agent-kicker {
-  margin: 0;
-  color: #5eead4;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 /* --------------------------------------------------
    Layout
 -------------------------------------------------- */
 
 .pay-agent-layout {
   width: min(100%, 680px);
-  margin: 118px auto 0;
+  margin: 14px auto auto;
   display: flex;
   justify-content: center;
 }
@@ -738,7 +720,7 @@ a {
   }
 
   .pay-agent-hero {
-    margin-top: 46px;
+    margin: auto auto 0;
     width: min(100%, 440px);
   }
 
@@ -762,7 +744,7 @@ a {
 
   .pay-agent-layout {
     width: min(100%, 440px);
-    margin-top: 78px;
+    margin: 14px auto auto;
     display: flex;
   }
 
@@ -813,7 +795,7 @@ a {
   }
 
   .pay-agent-hero {
-    margin-top: 42px;
+    margin: auto auto 0;
   }
 
   .pay-agent-hero h1 {
@@ -822,7 +804,7 @@ a {
 
   .pay-agent-layout {
     width: min(100%, 412px);
-    margin-top: 86px;
+    margin: 14px auto auto;
   }
 
   .pay-agent-chat-card {
