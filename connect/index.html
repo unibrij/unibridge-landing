@@ -3,21 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#000E2D" />
 
   <title>UniBridge Connect</title>
 
   <link rel="icon" type="image/png" href="../favicon.png" />
+  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=1" />
   <link rel="stylesheet" href="./connect.css" />
 </head>
-<body>
 
-  <main class="connect-shell">
-    <img
-      src="../public/icons/social/Ub.png"
-      class="logo"
-      alt="UniBridge"
-    />
+<body>
+  <main class="connect-shell pay-page-shell">
+    <div id="pay-brand"></div>
 
     <h1>Connect your wallet</h1>
 
@@ -63,10 +60,12 @@
 
       <pre id="connect-debug" class="connect-debug"></pre>
     </section>
+
+    <div id="pay-footer"></div>
   </main>
 
+  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
   <script type="module" src="./reown.js"></script>
   <script type="module" src="./connect.js"></script>
-
 </body>
 </html>
