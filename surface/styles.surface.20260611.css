@@ -45,7 +45,6 @@ body {
 
 .page {
   position: relative;
-  isolation: isolate;
   width: min(100%, 440px);
   min-height: 100vh;
   margin: 0 auto;
@@ -58,48 +57,14 @@ body {
   justify-content: center;
   gap: 14px;
   text-align: center;
+  overflow: visible;
 }
 
-.page::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.18) 45%,
-      #000E2D 100%
-    ),
-    url("/public/icons/social/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
-    radial-gradient(
-      circle at 50% 32%,
-      rgba(45, 212, 191, 0.16),
-      transparent 34%
-    ),
-    #00081f;
-}
-
-.page::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 50% 23%,
-      rgba(45, 212, 191, 0.10),
-      transparent 24%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 14, 45, 0.02) 0%,
-      rgba(0, 14, 45, 0.16) 44%,
-      rgba(0, 14, 45, 0.48) 100%
-    );
+.hero,
+.card,
+#pay-footer {
+  position: relative;
+  z-index: 2;
 }
 
 .hero {
@@ -635,7 +600,6 @@ h3 {
 
 /* --------------------------------------------------
    Pay country select + amount currency
-   Same behavior as /pay
 -------------------------------------------------- */
 
 .country-native-select {
@@ -791,23 +755,6 @@ h3 {
     padding-top: max(14px, env(safe-area-inset-top));
     padding-bottom: max(14px, env(safe-area-inset-bottom));
     justify-content: center;
-  }
-
-  .page::before {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(0, 14, 45, 0.00) 0%,
-        rgba(0, 14, 45, 0.18) 45%,
-        #000E2D 100%
-      ),
-      url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
-      radial-gradient(
-        circle at 50% 32%,
-        rgba(45, 212, 191, 0.16),
-        transparent 34%
-      ),
-      #00081f;
   }
 
   h1 {
