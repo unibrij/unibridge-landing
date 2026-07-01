@@ -24,11 +24,6 @@ body {
   overflow: visible;
 }
 
-#pay-brand {
-  position: relative;
-  z-index: 20;
-}
-
 .connect-shell > h1,
 .connect-shell > p,
 #wallet-button,
