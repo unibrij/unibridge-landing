@@ -53,7 +53,7 @@ body {
       180deg,
       rgba(0, 14, 45, 0.00) 0%,
       rgba(0, 14, 45, 0.18) 45%,
-      #000E2D 100%
+      #001238 100%
     ),
     url("/connect/connect-map-bg.png") center 65px / min(1180px, 118vw) auto no-repeat,
     radial-gradient(
@@ -825,7 +825,7 @@ p {
         180deg,
         rgba(0, 14, 45, 0.00) 0%,
         rgba(0, 14, 45, 0.18) 45%,
-        #000E2D 100%
+        #001238 100%
       ),
       url("/connect/connect-map-bg.png") center 78px / 780px auto no-repeat,
       radial-gradient(
