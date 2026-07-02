@@ -82,7 +82,7 @@
   position: relative;
   min-height: 100svh;
   overflow: hidden;
-  background: #08002d;
+  background: #000e2d;
 }
 
 .pay-page-shell::before {
@@ -92,19 +92,31 @@
   z-index: 0;
   pointer-events: none;
   background:
+    url("/public/icons/social/connect-map-bg.png")
+    center 78px / 1120px auto
+    no-repeat;
+
+  -webkit-mask-image:
     linear-gradient(
       180deg,
-      rgba(8, 0, 45, 0.08) 0%,
-      rgba(8, 0, 45, 0.18) 45%,
-      #08002d 100%
-    ),
-    url("/public/icons/social/connect-map-bg.png") center 78px / 1120px auto no-repeat,
-    radial-gradient(
-      circle at 50% 32%,
-      rgba(45, 212, 191, 0.16),
-      transparent 34%
-    ),
-    #08002d;
+      transparent 0%,
+      #000 8%,
+      #000 72%,
+      transparent 92%
+    );
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+
+  mask-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      #000 8%,
+      #000 72%,
+      transparent 92%
+    );
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
 }
 
 .pay-page-shell::after {
@@ -115,15 +127,15 @@
   pointer-events: none;
   background:
     radial-gradient(
-      circle at 50% 18%,
-      rgba(20, 184, 166, 0.10),
-      transparent 28%
+      circle at 50% 26%,
+      rgba(20, 184, 166, 0.09),
+      transparent 30%
     ),
     linear-gradient(
       180deg,
-      rgba(8, 0, 45, 0.00) 0%,
-      rgba(8, 0, 45, 0.34) 58%,
-      #08002d 100%
+      rgba(0, 14, 45, 0.00) 0%,
+      rgba(0, 14, 45, 0.10) 48%,
+      rgba(0, 14, 45, 0.18) 100%
     );
 }
 
@@ -228,19 +240,31 @@
 
   .pay-page-shell::before {
     background:
+      url("/public/icons/social/connect-map-bg.png")
+      center 78px / 780px auto
+      no-repeat;
+
+    -webkit-mask-image:
       linear-gradient(
         180deg,
-        rgba(8, 0, 45, 0.08) 0%,
-        rgba(8, 0, 45, 0.18) 45%,
-        #08002d 100%
-      ),
-      url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
-      radial-gradient(
-        circle at 50% 32%,
-        rgba(45, 212, 191, 0.16),
-        transparent 34%
-      ),
-      #08002d;
+        transparent 0%,
+        #000 8%,
+        #000 72%,
+        transparent 92%
+      );
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+
+    mask-image:
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        #000 8%,
+        #000 72%,
+        transparent 92%
+      );
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
   }
 
   .pay-guide-link-wrap {
