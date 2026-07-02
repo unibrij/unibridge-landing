@@ -82,7 +82,7 @@
   position: relative;
   min-height: 100svh;
   overflow: hidden;
-  background: #000e2d;
+  background: #08002d;
 }
 
 .pay-page-shell::before {
@@ -94,9 +94,9 @@
   background:
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.08) 0%,
-      rgba(0, 14, 45, 0.18) 45%,
-      #000e2d 100%
+      rgba(8, 0, 45, 0.08) 0%,
+      rgba(8, 0, 45, 0.18) 45%,
+      #08002d 100%
     ),
     url("/public/icons/social/connect-map-bg.png") center 78px / 1120px auto no-repeat,
     radial-gradient(
@@ -104,7 +104,7 @@
       rgba(45, 212, 191, 0.16),
       transparent 34%
     ),
-    #000e2d;
+    #08002d;
 }
 
 .pay-page-shell::after {
@@ -121,9 +121,9 @@
     ),
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.34) 58%,
-      #000e2d 100%
+      rgba(8, 0, 45, 0.00) 0%,
+      rgba(8, 0, 45, 0.34) 58%,
+      #08002d 100%
     );
 }
 
@@ -230,9 +230,9 @@
     background:
       linear-gradient(
         180deg,
-        rgba(0, 14, 45, 0.08) 0%,
-        rgba(0, 14, 45, 0.18) 45%,
-        #000e2d 100%
+        rgba(8, 0, 45, 0.08) 0%,
+        rgba(8, 0, 45, 0.18) 45%,
+        #08002d 100%
       ),
       url("/public/icons/social/connect-map-bg.png") center 78px / 780px auto no-repeat,
       radial-gradient(
@@ -240,7 +240,7 @@
         rgba(45, 212, 191, 0.16),
         transparent 34%
       ),
-      #000e2d;
+      #08002d;
   }
 
   .pay-guide-link-wrap {
