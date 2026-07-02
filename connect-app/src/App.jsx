@@ -420,7 +420,7 @@ export default function App() {
 
   return (
     <main className="connect-shell">
-      <header className="connect-brandbar">
+            <header className="connect-brandbar">
         <a
           href="/connect"
           className="connect-brandbar-logo-link"
@@ -431,6 +431,14 @@ export default function App() {
             className="connect-brandbar-logo"
             alt="UniBridge"
           />
+        </a>
+
+        <a
+          href="/"
+          className="connect-domain-pill"
+          aria-label="UniBridge website"
+        >
+          Unibrij.io
         </a>
       </header>
 
