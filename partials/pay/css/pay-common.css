@@ -88,21 +88,24 @@
 .pay-page-shell::before {
   content: "";
   position: fixed;
-  inset: 0;
+  top: 78px;
+  left: 0;
+  right: 0;
+  height: 560px;
   z-index: 0;
   pointer-events: none;
   background:
     url("/public/icons/social/connect-map-bg.png")
-    center 78px / 1120px auto
+    center top / 1120px auto
     no-repeat;
 
   -webkit-mask-image:
     linear-gradient(
       180deg,
       transparent 0%,
-      #000 8%,
-      #000 72%,
-      transparent 92%
+      #000 7%,
+      #000 76%,
+      transparent 100%
     );
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: 100% 100%;
@@ -111,9 +114,9 @@
     linear-gradient(
       180deg,
       transparent 0%,
-      #000 8%,
-      #000 72%,
-      transparent 92%
+      #000 7%,
+      #000 76%,
+      transparent 100%
     );
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
@@ -239,32 +242,12 @@
   }
 
   .pay-page-shell::before {
+    top: 78px;
+    height: 500px;
     background:
       url("/public/icons/social/connect-map-bg.png")
-      center 78px / 780px auto
+      center top / 780px auto
       no-repeat;
-
-    -webkit-mask-image:
-      linear-gradient(
-        180deg,
-        transparent 0%,
-        #000 8%,
-        #000 72%,
-        transparent 92%
-      );
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-
-    mask-image:
-      linear-gradient(
-        180deg,
-        transparent 0%,
-        #000 8%,
-        #000 72%,
-        transparent 92%
-      );
-    mask-repeat: no-repeat;
-    mask-size: 100% 100%;
   }
 
   .pay-guide-link-wrap {
