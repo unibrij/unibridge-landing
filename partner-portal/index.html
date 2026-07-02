@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>UniBridge Partner Portal</title>
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <main class="portal-shell">
+      <header class="portal-header">
+        <div>
+          <p class="eyebrow">UniBridge</p>
+          <h1>Partner Portal</h1>
+          <p class="subtitle">
+            Create your integration, test in sandbox, configure webhooks,
+            submit KYB, and request production access.
+          </p>
+        </div>
+
+        <a class="docs-link" href="/partner-docs/">
+          Developer docs
+        </a>
+      </header>
+
+      <section id="portal-root" class="portal-root">
+        <div class="loading-card">
+          Loading partner portal…
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./js/integrationPortal.js"></script>
+  </body>
+</html>
