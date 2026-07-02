@@ -61,7 +61,7 @@ body {
       rgba(45, 212, 191, 0.16),
       transparent 34%
     ),
-    #00081f;
+    #000E2D;
 }
 
 .connect-shell::after {
@@ -833,7 +833,7 @@ p {
         rgba(45, 212, 191, 0.16),
         transparent 34%
       ),
-      #00081f;
+      #000E2D;
   }
 
   .history-shell {
