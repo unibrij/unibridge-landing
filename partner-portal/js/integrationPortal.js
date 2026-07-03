@@ -5,6 +5,11 @@ import {
 } from "./integrationsApi.js";
 
 import {
+  getPartnerPortalSession,
+  isUnauthorizedSessionError
+} from "./session.js";
+
+import {
   PORTAL_ACTION,
   canRunPortalAction,
   createEmptyIntegrationPortalState,
@@ -20,6 +25,12 @@ const api =
 
 let state =
   createEmptyIntegrationPortalState();
+
+let session =
+  null;
+
+let locked =
+  false;
 
 function dispatch(event) {
   state =
@@ -81,7 +92,7 @@ function can(action) {
 }
 
 async function run(action, handler) {
-  if (!can(action)) {
+  if (locked || !can(action)) {
     return;
   }
 
@@ -322,6 +333,22 @@ async function copySecret() {
   }
 }
 
+function renderLocked() {
+  return `
+    <section class="portal-card">
+      <h2>Partner Portal locked</h2>
+      <p>
+        Please sign in with your partner account to continue.
+      </p>
+      <div class="actions">
+        <a class="docs-link" href="/partner-docs/">
+          Go to Partner Docs
+        </a>
+      </div>
+    </section>
+  `;
+}
+
 function renderError() {
   if (!state.error) {
     return "";
@@ -397,6 +424,13 @@ function renderSummary() {
               state.organization?.go_live_status ||
                 "not_requested"
             )
+          }
+        </span>
+        <span class="badge">
+          User: ${
+            session?.user?.email
+              ? htmlEscape(session.user.email)
+              : "Session active"
           }
         </span>
       </div>
@@ -615,6 +649,11 @@ function render() {
     return;
   }
 
+  if (locked) {
+    root.innerHTML = renderLocked();
+    return;
+  }
+
   if (!state.loaded && state.loading) {
     root.innerHTML = `
       <div class="loading-card">
@@ -661,12 +700,30 @@ function bindEvents() {
   });
 }
 
-function bootstrap() {
+async function bootstrapPortal() {
   if (!root) {
     return;
   }
 
-  loadPortal();
+  try {
+    session =
+      await getPartnerPortalSession();
+
+    locked = false;
+
+    await loadPortal();
+  } catch (error) {
+    if (isUnauthorizedSessionError(error)) {
+      locked = true;
+      render();
+      return;
+    }
+
+    dispatch({
+      type: "error",
+      error
+    });
+  }
 }
 
-bootstrap();
+bootstrapPortal();
