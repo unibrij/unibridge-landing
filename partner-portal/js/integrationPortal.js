@@ -5,11 +5,6 @@ import {
 } from "./integrationsApi.js";
 
 import {
-  getPartnerPortalSession,
-  isUnauthorizedSessionError
-} from "./session.js";
-
-import {
   PORTAL_ACTION,
   canRunPortalAction,
   createEmptyIntegrationPortalState,
@@ -25,12 +20,6 @@ const api =
 
 let state =
   createEmptyIntegrationPortalState();
-
-let session =
-  null;
-
-let locked =
-  false;
 
 function dispatch(event) {
   state =
@@ -83,16 +72,12 @@ function getSandboxEnvironmentId() {
   return state.environments.sandbox?.id || "";
 }
 
-function getProductionEnvironmentId() {
-  return state.environments.production?.id || "";
-}
-
 function can(action) {
   return canRunPortalAction(state, action);
 }
 
 async function run(action, handler) {
-  if (locked || !can(action)) {
+  if (!can(action)) {
     return;
   }
 
@@ -125,7 +110,9 @@ async function loadPortal() {
         application: null,
         environments: [],
         credentials: [],
-        webhooks: []
+        webhooks: [],
+        kyb: null,
+        production_status: null
       });
       return;
     }
@@ -143,7 +130,9 @@ async function loadPortal() {
         application: null,
         environments: [],
         credentials: [],
-        webhooks: []
+        webhooks: [],
+        kyb: null,
+        production_status: null
       });
       return;
     }
@@ -151,12 +140,16 @@ async function loadPortal() {
     const [
       environmentsResult,
       credentialsResult,
-      webhooksResult
+      webhooksResult,
+      kybStatusResult,
+      productionStatusResult
     ] =
       await Promise.all([
         api.listEnvironments(application.id),
         api.listCredentials(application.id),
-        api.listWebhooks(application.id)
+        api.listWebhooks(application.id),
+        api.getKybStatus(organization.id).catch(() => ({})),
+        api.getProductionStatus(organization.id).catch(() => ({}))
       ]);
 
     dispatch({
@@ -168,7 +161,11 @@ async function loadPortal() {
       credentials:
         credentialsResult.credentials || [],
       webhooks:
-        webhooksResult.webhooks || []
+        webhooksResult.webhooks || [],
+      kyb:
+        kybStatusResult.kyb || null,
+      production_status:
+        productionStatusResult.production_status || null
     });
   } catch (error) {
     dispatch({
@@ -273,38 +270,29 @@ async function createWebhook() {
   );
 }
 
-async function submitKyb() {
+async function startDiditKyb() {
   await run(
-    PORTAL_ACTION.submit_kyb,
+    PORTAL_ACTION.start_didit_kyb,
     async () => {
-      const organization =
-        await api.submitKyb({
+      const result =
+        await api.startDiditKyb({
           organization_id: state.organization.id
         });
 
       dispatch({
-        type: "kyb_updated",
-        organization
+        type: "kyb_started",
+        kyb: result.kyb,
+        organization: result.organization
       });
-    }
-  );
-}
 
-async function requestGoLive() {
-  await run(
-    PORTAL_ACTION.request_go_live,
-    async () => {
-      const result =
-        await api.requestGoLive({
-          organization_id: state.organization.id,
-          environment_id: getProductionEnvironmentId()
-        });
+      const verificationUrl =
+        result.verification_url ||
+        result.redirect_url ||
+        result.url;
 
-      dispatch({
-        type: "go_live_updated",
-        organization: result.organization,
-        environment: result.environment
-      });
+      if (verificationUrl) {
+        window.location.href = verificationUrl;
+      }
     }
   );
 }
@@ -331,22 +319,6 @@ async function copySecret() {
       state.one_time_secret
     );
   }
-}
-
-function renderLocked() {
-  return `
-    <section class="portal-card">
-      <h2>Partner Portal locked</h2>
-      <p>
-        Please sign in with your partner account to continue.
-      </p>
-      <div class="actions">
-        <a class="docs-link" href="/partner-docs/">
-          Go to Partner Docs
-        </a>
-      </div>
-    </section>
-  `;
 }
 
 function renderError() {
@@ -414,23 +386,18 @@ function renderSummary() {
           KYB: ${
             htmlEscape(
               state.organization?.kyb_status ||
+                state.kyb?.status ||
                 "not_started"
             )
           }
         </span>
         <span class="badge">
-          Go Live: ${
+          Production access: ${
             htmlEscape(
-              state.organization?.go_live_status ||
-                "not_requested"
+              state.production_status?.status ||
+                state.environments.production?.status ||
+                "pending"
             )
-          }
-        </span>
-        <span class="badge">
-          User: ${
-            session?.user?.email
-              ? htmlEscape(session.user.email)
-              : "Session active"
           }
         </span>
       </div>
@@ -453,7 +420,7 @@ function renderOrganizationForm() {
       <h2>Create organization</h2>
       <p>
         Start by creating the company profile that owns
-        applications, sandbox access, webhooks, KYB, and Go Live.
+        applications, sandbox access, webhooks, KYB, and production review.
       </p>
 
       <div class="portal-form">
@@ -532,7 +499,7 @@ function renderSandboxPanel() {
       <h2>Sandbox</h2>
       <p>
         Generate sandbox credentials and configure webhooks before
-        requesting production access.
+        production access is enabled.
       </p>
 
       <div class="status-line">
@@ -594,7 +561,8 @@ function renderCompliancePanel() {
     <section class="portal-card">
       <h2>Compliance</h2>
       <p>
-        Submit KYB, then request Go Live when production access is ready.
+        Complete KYB through Didit. Once approved, UniBridge will review and
+        enable production access.
       </p>
 
       <div class="status-line">
@@ -602,42 +570,29 @@ function renderCompliancePanel() {
           KYB: ${
             htmlEscape(
               state.organization.kyb_status ||
+                state.kyb?.status ||
                 "not_started"
             )
           }
         </span>
         <span class="badge">
-          Go Live: ${
+          Production access: ${
             htmlEscape(
-              state.organization.go_live_status ||
-                "not_requested"
+              state.production_status?.status ||
+                state.environments.production?.status ||
+                "pending"
             )
-          }
-        </span>
-        <span class="badge">
-          Production env: ${
-            state.environments.production
-              ? htmlEscape(state.environments.production.status || "locked")
-              : "missing"
           }
         </span>
       </div>
 
       <div class="actions" style="margin-top: 16px;">
         <button
-          id="submit-kyb"
+          id="start-didit-kyb"
           type="button"
-          ${state.loading || !can(PORTAL_ACTION.submit_kyb) ? "disabled" : ""}
+          ${state.loading || !can(PORTAL_ACTION.start_didit_kyb) ? "disabled" : ""}
         >
-          Submit KYB
-        </button>
-
-        <button
-          id="request-go-live"
-          type="button"
-          ${state.loading || !can(PORTAL_ACTION.request_go_live) ? "disabled" : ""}
-        >
-          Request Go Live
+          Start KYB
         </button>
       </div>
     </section>
@@ -646,11 +601,6 @@ function renderCompliancePanel() {
 
 function render() {
   if (!root) {
-    return;
-  }
-
-  if (locked) {
-    root.innerHTML = renderLocked();
     return;
   }
 
@@ -691,8 +641,7 @@ function bindEvents() {
   bind("create-application", createApplication);
   bind("issue-sandbox-credential", issueSandboxCredential);
   bind("create-webhook", createWebhook);
-  bind("submit-kyb", submitKyb);
-  bind("request-go-live", requestGoLive);
+  bind("start-didit-kyb", startDiditKyb);
   bind("copy-secret", copySecret);
 
   bind("clear-secret", () => {
@@ -700,30 +649,12 @@ function bindEvents() {
   });
 }
 
-async function bootstrapPortal() {
+function bootstrapPortal() {
   if (!root) {
     return;
   }
 
-  try {
-    session =
-      await getPartnerPortalSession();
-
-    locked = false;
-
-    await loadPortal();
-  } catch (error) {
-    if (isUnauthorizedSessionError(error)) {
-      locked = true;
-      render();
-      return;
-    }
-
-    dispatch({
-      type: "error",
-      error
-    });
-  }
+  loadPortal();
 }
 
 bootstrapPortal();
