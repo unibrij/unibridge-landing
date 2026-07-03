@@ -35,9 +35,39 @@
           "value": "no-store, no-cache, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/partner-portal",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/partner-portal/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/v2/integrations/:path*",
+      "destination": "https://unibridge-v2-1066944028362.us-central1.run.app/v2/integrations/:path*"
+    },
+    {
+      "source": "/partner-portal",
+      "destination": "/partner-portal/index.html"
+    },
+    {
+      "source": "/partner-portal/",
+      "destination": "/partner-portal/index.html"
+    },
     {
       "source": "/_next/:path*",
       "destination": "https://unibridge-ops.vercel.app/_next/:path*"
