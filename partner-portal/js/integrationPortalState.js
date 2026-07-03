@@ -8,7 +8,7 @@ export const PORTAL_STEP = {
   sandbox: "sandbox",
   webhooks: "webhooks",
   kyb: "kyb",
-  go_live: "go_live",
+  production_status: "production_status",
   production: "production"
 };
 
@@ -17,9 +17,7 @@ export const PORTAL_ACTION = {
   create_application: "create_application",
   issue_sandbox_credential: "issue_sandbox_credential",
   create_webhook: "create_webhook",
-  submit_kyb: "submit_kyb",
-  request_go_live: "request_go_live",
-  issue_production_credential: "issue_production_credential"
+  start_didit_kyb: "start_didit_kyb"
 };
 
 function normalizeString(value) {
@@ -67,6 +65,9 @@ export function createEmptyIntegrationPortalState() {
     credentials: [],
     webhooks: [],
 
+    kyb: null,
+    production_status: null,
+
     selected_environment_type: "sandbox",
 
     one_time_secret: null,
@@ -103,6 +104,12 @@ export function normalizeIntegrationPortalState(input = {}) {
 
     webhooks:
       asArray(input.webhooks),
+
+    kyb:
+      input.kyb || null,
+
+    production_status:
+      input.production_status || null,
 
     selected_environment_type:
       normalizeString(input.selected_environment_type) ||
@@ -158,12 +165,11 @@ export function getPortalStep(state = {}) {
   }
 
   if (
-    !isApproved(normalized.organization?.go_live_status) ||
     !isProductionEnabled(
       normalized.environments.production
     )
   ) {
-    return PORTAL_STEP.go_live;
+    return PORTAL_STEP.production_status;
   }
 
   return PORTAL_STEP.production;
@@ -196,26 +202,7 @@ export function derivePortalActions(state = {}) {
   }
 
   if (!isApproved(normalized.organization?.kyb_status)) {
-    actions.push(PORTAL_ACTION.submit_kyb);
-  }
-
-  if (
-    isApproved(normalized.organization?.kyb_status) &&
-    !isApproved(normalized.organization?.go_live_status)
-  ) {
-    actions.push(PORTAL_ACTION.request_go_live);
-  }
-
-  if (
-    isApproved(normalized.organization?.kyb_status) &&
-    isApproved(normalized.organization?.go_live_status) &&
-    isProductionEnabled(
-      normalized.environments.production
-    )
-  ) {
-    actions.push(
-      PORTAL_ACTION.issue_production_credential
-    );
+    actions.push(PORTAL_ACTION.start_didit_kyb);
   }
 
   return actions;
@@ -303,23 +290,36 @@ export function reduceIntegrationPortalState(
         error: null
       });
 
-    case "kyb_updated":
+    case "kyb_started":
       return normalizeIntegrationPortalState({
         ...current,
-        organization: event.organization,
+        kyb: event.kyb || current.kyb,
+        organization:
+          event.organization || current.organization,
         loading: false,
         loaded: true,
         error: null
       });
 
-    case "go_live_updated":
+    case "kyb_status_updated":
       return normalizeIntegrationPortalState({
         ...current,
-        organization: event.organization,
-        environments: {
-          ...current.environments,
-          production: event.environment
-        },
+        kyb: event.kyb || current.kyb,
+        organization:
+          event.organization || current.organization,
+        loading: false,
+        loaded: true,
+        error: null
+      });
+
+    case "production_status_updated":
+      return normalizeIntegrationPortalState({
+        ...current,
+        production_status:
+          event.production_status ||
+          current.production_status,
+        environments:
+          event.environments || current.environments,
         loading: false,
         loaded: true,
         error: null
