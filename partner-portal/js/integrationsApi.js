@@ -8,6 +8,16 @@ function normalizeBaseUrl(baseUrl = "") {
   return String(baseUrl || "").replace(/\/+$/, "");
 }
 
+function createRequestId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `req_${Date.now()}_${Math.random()
+    .toString(16)
+    .slice(2)}`;
+}
+
 async function parseJson(response) {
   return response.json().catch(() => ({}));
 }
@@ -47,6 +57,7 @@ async function request({
         credentials: "include",
         headers: {
           ...DEFAULT_HEADERS,
+          "X-Request-Id": createRequestId(),
           ...headers
         },
         body:
