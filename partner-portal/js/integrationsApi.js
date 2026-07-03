@@ -54,7 +54,6 @@ async function request({
       `${normalizeBaseUrl(baseUrl)}${path}`,
       {
         method,
-        credentials: "include",
         headers: {
           ...DEFAULT_HEADERS,
           "X-Request-Id": createRequestId(),
@@ -234,21 +233,28 @@ export function createIntegrationsApi({
       });
     },
 
-    submitKyb(input) {
+    startDiditKyb(input) {
       return request({
         ...options,
         method: "POST",
-        path: "/kyb/submit",
+        path: "/kyb/didit/start",
         body: input
       });
     },
 
-    requestGoLive(input) {
+    getKybStatus(organizationId) {
       return request({
         ...options,
-        method: "POST",
-        path: "/go-live/request",
-        body: input
+        path:
+          `/organizations/${organizationId}/kyb-status`
+      });
+    },
+
+    getProductionStatus(organizationId) {
+      return request({
+        ...options,
+        path:
+          `/organizations/${organizationId}/production-status`
       });
     }
   };
