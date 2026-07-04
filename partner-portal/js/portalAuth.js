@@ -5,11 +5,6 @@ import {
   pickFirst
 } from "./portalUtils.js";
 
-import {
-  readStoredOrganizationId,
-  storeOrganizationId
-} from "./portalStorage.js";
-
 export function readPortalTokenFromUrl() {
   const params =
     new URLSearchParams(window.location.search);
@@ -37,14 +32,16 @@ export function removePortalTokenFromUrl() {
 }
 
 export async function verifyPortalToken({
-  api,
-  onVerified
+  api
 } = {}) {
   const portalToken =
     readPortalTokenFromUrl();
 
   if (!portalToken) {
-    return false;
+    return {
+      handled: false,
+      organization: null
+    };
   }
 
   try {
@@ -62,13 +59,10 @@ export async function verifyPortalToken({
       );
     }
 
-    storeOrganizationId(organization.id);
-
-    if (typeof onVerified === "function") {
-      await onVerified(organization);
-    }
-
-    return true;
+    return {
+      handled: true,
+      organization
+    };
   } finally {
     removePortalTokenFromUrl();
   }
@@ -83,14 +77,9 @@ export async function requestPortalLink({
   });
 }
 
-export function getCurrentOrganizationId() {
-  return readStoredOrganizationId();
-}
-
 export default {
   readPortalTokenFromUrl,
   removePortalTokenFromUrl,
   verifyPortalToken,
-  requestPortalLink,
-  getCurrentOrganizationId
+  requestPortalLink
 };
