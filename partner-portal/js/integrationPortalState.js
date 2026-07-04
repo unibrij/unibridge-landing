@@ -224,13 +224,15 @@ export function reduceIntegrationPortalState(
       return {
         ...current,
         loading: true,
-        error: null
+        error: null,
+        one_time_secret: null
       };
 
     case "loaded":
       return normalizeIntegrationPortalState({
         ...current,
         ...event,
+        one_time_secret: null,
         loading: false,
         loaded: true,
         error: null
