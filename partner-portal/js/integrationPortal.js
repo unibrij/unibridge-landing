@@ -24,7 +24,44 @@ const api =
 let state =
   createEmptyIntegrationPortalState();
 
+function readOrganizationIdFromUrl() {
+  const params =
+    new URLSearchParams(window.location.search);
+
+  return (
+    params.get("organization_id") ||
+    params.get("org_id") ||
+    ""
+  );
+}
+
+function removeOrganizationIdFromUrl() {
+  const url =
+    new URL(window.location.href);
+
+  if (!url.searchParams.has("organization_id")) {
+    return;
+  }
+
+  url.searchParams.delete("organization_id");
+
+  window.history.replaceState(
+    {},
+    document.title,
+    `${url.pathname}${url.search}${url.hash}`
+  );
+}
+
 function readStoredOrganizationId() {
+  const organizationIdFromUrl =
+    readOrganizationIdFromUrl();
+
+  if (organizationIdFromUrl) {
+    storeOrganizationId(organizationIdFromUrl);
+    removeOrganizationIdFromUrl();
+    return organizationIdFromUrl;
+  }
+
   return localStorage.getItem(
     ORGANIZATION_ID_STORAGE_KEY
   ) || "";
