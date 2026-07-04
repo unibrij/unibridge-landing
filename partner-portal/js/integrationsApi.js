@@ -18,6 +18,25 @@ function createRequestId() {
     .slice(2)}`;
 }
 
+function buildQuery(params = {}) {
+  const searchParams =
+    new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    const normalized =
+      String(value || "").trim();
+
+    if (normalized) {
+      searchParams.set(key, normalized);
+    }
+  });
+
+  const query =
+    searchParams.toString();
+
+  return query ? `?${query}` : "";
+}
+
 async function parseJson(response) {
   return response.json().catch(() => ({}));
 }
@@ -89,10 +108,13 @@ export function createIntegrationsApi({
   };
 
   return {
-    listOrganizations() {
+    listOrganizations(organizationId = "") {
       return request({
         ...options,
-        path: "/organizations"
+        path:
+          `/organizations${buildQuery({
+            organization_id: organizationId
+          })}`
       });
     },
 
