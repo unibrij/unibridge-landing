@@ -228,19 +228,19 @@ async function createOrganization() {
 }
 
 async function createApplication() {
+  const integrationType =
+    getValue("application-integration-type");
+
   const payload = {
     organization_id: state.organization.id,
     name: getValue("application-name"),
-    integration_type:
-      getValue("application-integration-type"),
+    integration_type: integrationType,
     allowed_origins:
-      linesToArray(
-        getValue("application-allowed-origins")
-      ),
-    redirect_urls:
-      linesToArray(
-        getValue("application-redirect-urls")
-      )
+      integrationType === "embedded"
+        ? linesToArray(
+            getValue("application-allowed-origins")
+          )
+        : []
   };
 
   await run(
@@ -353,6 +353,26 @@ async function copySecret() {
       state.one_time_secret
     );
   }
+}
+
+function bindApplicationTypeChange() {
+  const select =
+    document.getElementById("application-integration-type");
+
+  const field =
+    document.getElementById("application-allowed-origins-field");
+
+  if (!select || !field) {
+    return;
+  }
+
+  const sync = () => {
+    field.hidden =
+      select.value !== "embedded";
+  };
+
+  select.addEventListener("change", sync);
+  sync();
 }
 
 function renderError() {
@@ -493,8 +513,7 @@ function renderApplicationForm() {
     <section class="portal-card">
       <h2>Create application</h2>
       <p>
-        Applications define allowed origins, redirect URLs,
-        and the integration type.
+        Choose how this application will integrate with UniBridge.
       </p>
 
       <div class="portal-form">
@@ -506,15 +525,12 @@ function renderApplicationForm() {
           <option value="embedded">Embedded</option>
         </select>
 
-        <textarea
-          id="application-allowed-origins"
-          placeholder="Allowed origins, one per line"
-        ></textarea>
-
-        <textarea
-          id="application-redirect-urls"
-          placeholder="Redirect URLs, one per line"
-        ></textarea>
+        <div id="application-allowed-origins-field" hidden>
+          <textarea
+            id="application-allowed-origins"
+            placeholder="Allowed origins, one per line"
+          ></textarea>
+        </div>
 
         <button
           id="create-application"
@@ -682,6 +698,7 @@ function bindEvents() {
   bind("create-webhook", createWebhook);
   bind("start-didit-kyb", startDiditKyb);
   bind("copy-secret", copySecret);
+  bindApplicationTypeChange();
 
   bind("clear-secret", () => {
     dispatch({ type: "clear_secret" });
