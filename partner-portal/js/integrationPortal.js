@@ -229,6 +229,9 @@ async function verifyPortalTokenOnBootstrap() {
 }
 
 async function continuePortalSession() {
+  const ownerEmail =
+    getValue("continue-owner-email");
+
   portalNotice = "";
   dispatch({ type: "loading" });
 
@@ -236,8 +239,7 @@ async function continuePortalSession() {
     const result =
       await requestPortalLink({
         api,
-        ownerEmail:
-          getValue("continue-owner-email")
+        ownerEmail
       });
 
     portalNotice =
