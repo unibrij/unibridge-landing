@@ -130,7 +130,7 @@ ${cleanMessage}
     const autoReplyHTML = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; padding: 20px;">
         <img
-          src="https://www.unibrij.io/unibrij-logo.png"
+          src="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
           alt="UniBridge Logo"
           style="width: 70px; margin-bottom: 20px;"
         />
