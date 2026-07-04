@@ -199,20 +199,21 @@ async function loadPortal() {
 }
 
 async function createOrganization() {
+  const payload = {
+    owner_email: getValue("organization-owner-email"),
+    name: getValue("organization-name"),
+    legal_name: getValue("organization-legal-name"),
+    country: getValue("organization-country"),
+    website: getValue("organization-website"),
+    business_model:
+      getValue("organization-business-model")
+  };
+
   await run(
     PORTAL_ACTION.create_organization,
     async () => {
       const result =
-        await api.createOrganization({
-          owner_email:
-            getValue("organization-owner-email"),
-          name: getValue("organization-name"),
-          legal_name: getValue("organization-legal-name"),
-          country: getValue("organization-country"),
-          website: getValue("organization-website"),
-          business_model:
-            getValue("organization-business-model")
-        });
+        await api.createOrganization(payload);
 
       storeOrganizationId(
         result.organization?.id
@@ -227,24 +228,26 @@ async function createOrganization() {
 }
 
 async function createApplication() {
+  const payload = {
+    organization_id: state.organization.id,
+    name: getValue("application-name"),
+    integration_type:
+      getValue("application-integration-type"),
+    allowed_origins:
+      linesToArray(
+        getValue("application-allowed-origins")
+      ),
+    redirect_urls:
+      linesToArray(
+        getValue("application-redirect-urls")
+      )
+  };
+
   await run(
     PORTAL_ACTION.create_application,
     async () => {
       const result =
-        await api.createApplication({
-          organization_id: state.organization.id,
-          name: getValue("application-name"),
-          integration_type:
-            getValue("application-integration-type"),
-          allowed_origins:
-            linesToArray(
-              getValue("application-allowed-origins")
-            ),
-          redirect_urls:
-            linesToArray(
-              getValue("application-redirect-urls")
-            )
-        });
+        await api.createApplication(payload);
 
       dispatch({
         type: "application_created",
@@ -277,18 +280,20 @@ async function issueSandboxCredential() {
 }
 
 async function createWebhook() {
+  const payload = {
+    organization_id: state.organization.id,
+    application_id: state.application.id,
+    environment_id: getSandboxEnvironmentId(),
+    url: getValue("webhook-url"),
+    events:
+      csvToArray(getValue("webhook-events"))
+  };
+
   await run(
     PORTAL_ACTION.create_webhook,
     async () => {
       const result =
-        await api.createWebhook({
-          organization_id: state.organization.id,
-          application_id: state.application.id,
-          environment_id: getSandboxEnvironmentId(),
-          url: getValue("webhook-url"),
-          events:
-            csvToArray(getValue("webhook-events"))
-        });
+        await api.createWebhook(payload);
 
       dispatch({
         type: "webhook_created",
