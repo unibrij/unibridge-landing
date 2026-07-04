@@ -39,11 +39,15 @@ function removeOrganizationIdFromUrl() {
   const url =
     new URL(window.location.href);
 
-  if (!url.searchParams.has("organization_id")) {
+  if (
+    !url.searchParams.has("organization_id") &&
+    !url.searchParams.has("org_id")
+  ) {
     return;
   }
 
   url.searchParams.delete("organization_id");
+  url.searchParams.delete("org_id");
 
   window.history.replaceState(
     {},
@@ -57,7 +61,6 @@ function readStoredOrganizationId() {
     readOrganizationIdFromUrl();
 
   if (organizationIdFromUrl) {
-    storeOrganizationId(organizationIdFromUrl);
     removeOrganizationIdFromUrl();
     return organizationIdFromUrl;
   }
