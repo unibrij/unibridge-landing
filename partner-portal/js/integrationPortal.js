@@ -12,6 +12,9 @@ import {
   reduceIntegrationPortalState
 } from "./integrationPortalState.js";
 
+const ORGANIZATION_ID_STORAGE_KEY =
+  "unibridge_partner_portal_organization_id";
+
 const root =
   document.getElementById("portal-root");
 
@@ -20,6 +23,21 @@ const api =
 
 let state =
   createEmptyIntegrationPortalState();
+
+function readStoredOrganizationId() {
+  return localStorage.getItem(
+    ORGANIZATION_ID_STORAGE_KEY
+  ) || "";
+}
+
+function storeOrganizationId(organizationId) {
+  if (organizationId) {
+    localStorage.setItem(
+      ORGANIZATION_ID_STORAGE_KEY,
+      organizationId
+    );
+  }
+}
 
 function dispatch(event) {
   state =
@@ -97,8 +115,11 @@ async function loadPortal() {
   dispatch({ type: "loading" });
 
   try {
+    const organizationId =
+      readStoredOrganizationId();
+
     const organizationsResult =
-      await api.listOrganizations();
+      await api.listOrganizations(organizationId);
 
     const organization =
       pickFirst(organizationsResult.organizations);
@@ -116,6 +137,8 @@ async function loadPortal() {
       });
       return;
     }
+
+    storeOrganizationId(organization.id);
 
     const applicationsResult =
       await api.listApplications(organization.id);
@@ -181,6 +204,8 @@ async function createOrganization() {
     async () => {
       const result =
         await api.createOrganization({
+          owner_email:
+            getValue("organization-owner-email"),
           name: getValue("organization-name"),
           legal_name: getValue("organization-legal-name"),
           country: getValue("organization-country"),
@@ -188,6 +213,10 @@ async function createOrganization() {
           business_model:
             getValue("organization-business-model")
         });
+
+      storeOrganizationId(
+        result.organization?.id
+      );
 
       dispatch({
         type: "organization_created",
@@ -424,6 +453,11 @@ function renderOrganizationForm() {
       </p>
 
       <div class="portal-form">
+        <input
+          id="organization-owner-email"
+          placeholder="Owner email"
+          type="email"
+        />
         <input id="organization-name" placeholder="Organization name" />
         <input id="organization-legal-name" placeholder="Legal name" />
         <input id="organization-country" placeholder="Country" />
