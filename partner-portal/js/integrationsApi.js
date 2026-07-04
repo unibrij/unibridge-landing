@@ -108,6 +108,24 @@ export function createIntegrationsApi({
   };
 
   return {
+    startPortalSession(input) {
+      return request({
+        ...options,
+        method: "POST",
+        path: "/portal-sessions/start",
+        body: input
+      });
+    },
+
+    verifyPortalSession(input) {
+      return request({
+        ...options,
+        method: "POST",
+        path: "/portal-sessions/verify",
+        body: input
+      });
+    },
+
     listOrganizations(organizationId = "") {
       return request({
         ...options,
