@@ -132,7 +132,7 @@ ${cleanMessage}
         <img
           src="https://www.unibrij.io/public/icons/social/unibridge-orbit-lockup-dark.png"
           alt="UniBridge Logo"
-          style="width: 70px; margin-bottom: 20px;"
+          style="width: 160px; max-width: 100%; margin-bottom: 24px;"
         />
 
         <h2 style="margin: 0 0 10px; color: #003366;">
