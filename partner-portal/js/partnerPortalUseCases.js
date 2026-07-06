@@ -43,6 +43,49 @@ export const PARTNER_USE_CASE_OPTIONS = [
   ]
 ];
 
+export const TARGET_DESTINATION_MARKET_OPTIONS = [
+  [
+    "",
+    "Target destination market"
+  ],
+
+  [
+    "BR",
+    "Brazil"
+  ],
+  [
+    "MX",
+    "Mexico"
+  ],
+  [
+    "CO",
+    "Colombia"
+  ],
+
+  [
+    "PH",
+    "Philippines"
+  ],
+  [
+    "IN",
+    "India"
+  ],
+
+  [
+    "NG",
+    "Nigeria"
+  ],
+  [
+    "KE",
+    "Kenya"
+  ],
+
+  [
+    "other",
+    "Other / request another market"
+  ]
+];
+
 export const MONTHLY_TRANSACTION_OPTIONS = [
   [
     "",
