@@ -51,38 +51,38 @@ export const TARGET_DESTINATION_MARKET_OPTIONS = [
 
   [
     "BR",
-    "Brazil"
+    "🇧🇷 Brazil"
   ],
   [
     "MX",
-    "Mexico"
+    "🇲🇽 Mexico"
   ],
   [
     "CO",
-    "Colombia"
+    "🇨🇴 Colombia"
   ],
 
   [
     "PH",
-    "Philippines"
+    "🇵🇭 Philippines"
   ],
   [
     "IN",
-    "India"
+    "🇮🇳 India"
   ],
 
   [
     "NG",
-    "Nigeria"
+    "🇳🇬 Nigeria"
   ],
   [
     "KE",
-    "Kenya"
+    "🇰🇪 Kenya"
   ],
 
   [
     "other",
-    "Other / request another market"
+    "🌍 Other / request another market"
   ]
 ];
 
@@ -137,78 +137,5 @@ export const MONTHLY_PROCESSING_VOLUME_OPTIONS = [
   [
     "1m_plus",
     "$1M+/month"
-  ]
-];
-
-export const AVERAGE_TRANSACTION_SIZE_OPTIONS = [
-  [
-    "",
-    "Average transaction size"
-  ],
-  [
-    "under_100",
-    "Under $100"
-  ],
-  [
-    "100_500",
-    "$100–$500"
-  ],
-  [
-    "500_2500",
-    "$500–$2,500"
-  ],
-  [
-    "2500_10000",
-    "$2,500–$10,000"
-  ],
-  [
-    "10000_plus",
-    "$10,000+"
-  ]
-];
-
-export const SETTLEMENT_PREFERENCE_OPTIONS = [
-  [
-    "",
-    "Settlement preference"
-  ],
-  [
-    "stablecoin",
-    "Stablecoin"
-  ],
-  [
-    "fiat",
-    "Fiat"
-  ],
-  [
-    "both",
-    "Both"
-  ],
-  [
-    "unknown",
-    "Unknown"
-  ]
-];
-
-export const WEBHOOK_READINESS_OPTIONS = [
-  [
-    "",
-    "Webhook readiness"
-  ],
-  [
-    "ready",
-    "Ready"
-  ],
-  [
-    "planned",
-    "Planned"
-  ],
-  [
-    "not_ready",
-    "Not ready"
-  ],
-  [
-    "not_required",
-    "Not required"
   ]
 ];
