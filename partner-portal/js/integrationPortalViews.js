@@ -11,8 +11,7 @@ import {
   PARTNER_USE_CASE_OPTIONS,
   TARGET_DESTINATION_MARKET_OPTIONS,
   MONTHLY_TRANSACTION_OPTIONS,
-  MONTHLY_PROCESSING_VOLUME_OPTIONS,
-  AVERAGE_TRANSACTION_SIZE_OPTIONS
+  MONTHLY_PROCESSING_VOLUME_OPTIONS
 } from "./partnerQuestionnaireOptions.js";
 
 import {
@@ -352,10 +351,6 @@ export function createIntegrationPortalViews({
             ${renderOptions(MONTHLY_PROCESSING_VOLUME_OPTIONS)}
           </select>
 
-          <select id="questionnaire-transaction-size">
-            ${renderOptions(AVERAGE_TRANSACTION_SIZE_OPTIONS)}
-          </select>
-
           <input
             id="questionnaire-contact-name"
             placeholder="Compliance contact name"
@@ -372,15 +367,17 @@ export function createIntegrationPortalViews({
             placeholder="Compliance contact role"
           />
 
-          <select id="questionnaire-contact-phone-country">
-            ${renderCountryCodeOptions(PARTNER_CONTACT_COUNTRY_CODE_OPTIONS)}
-          </select>
+          <div class="phone-field">
+            <select id="questionnaire-contact-phone-country">
+              ${renderCountryCodeOptions(PARTNER_CONTACT_COUNTRY_CODE_OPTIONS)}
+            </select>
 
-          <input
-            id="questionnaire-contact-phone"
-            placeholder="Phone number"
-            inputmode="tel"
-          />
+            <input
+              id="questionnaire-contact-phone"
+              placeholder="Phone number"
+              inputmode="tel"
+            />
+          </div>
 
           <button
             id="submit-questionnaire"
