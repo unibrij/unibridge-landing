@@ -7,6 +7,22 @@ import {
   PORTAL_ACTION
 } from "./integrationPortalState.js";
 
+import {
+  PARTNER_USE_CASE_OPTIONS,
+  TARGET_DESTINATION_MARKET_OPTIONS,
+  MONTHLY_TRANSACTION_OPTIONS,
+  MONTHLY_PROCESSING_VOLUME_OPTIONS,
+  AVERAGE_TRANSACTION_SIZE_OPTIONS
+} from "./partnerQuestionnaireOptions.js";
+
+import {
+  PARTNER_CONTACT_COUNTRY_CODE_OPTIONS
+} from "./partnerContactCountryCodes.js";
+
+import {
+  renderIntegrationGuidePanel
+} from "./partnerExecutionGuideView.js";
+
 export function createIntegrationPortalViews({
   htmlEscape,
   can
@@ -21,6 +37,38 @@ export function createIntegrationPortalViews({
     throw new Error(
       "can renderer dependency is required."
     );
+  }
+
+  function renderOptions(options = []) {
+    return options
+      .map(([value, label]) => `
+        <option value="${htmlEscape(value)}">
+          ${htmlEscape(label)}
+        </option>
+      `)
+      .join("");
+  }
+
+  function renderCountryCodeOptions(options = []) {
+    return options
+      .map(([countryCode, dialCode, countryName, flag]) => {
+        const value =
+          countryCode
+            ? `${countryCode}|${dialCode}`
+            : "";
+
+        const label =
+          countryCode
+            ? `${flag ? `${flag} ` : ""}${countryName}${dialCode ? ` (${dialCode})` : ""}`
+            : countryName;
+
+        return `
+          <option value="${htmlEscape(value)}">
+            ${htmlEscape(label)}
+          </option>
+        `;
+      })
+      .join("");
   }
 
   function renderError(state) {
@@ -289,55 +337,23 @@ export function createIntegrationPortalViews({
 
         <div class="portal-form two-column-form">
           <select id="questionnaire-use-case">
-            <option value="">Select use case</option>
-            <option value="pay_with_unibridge">Pay with UniBridge</option>
-            <option value="payouts">Payouts</option>
-            <option value="marketplace">Marketplace</option>
-            <option value="treasury">Treasury</option>
-            <option value="other">Other</option>
+            ${renderOptions(PARTNER_USE_CASE_OPTIONS)}
           </select>
 
-          <input
-            id="questionnaire-requested-corridors"
-            placeholder="Requested corridors, e.g. BR, PH"
-          />
-
-          <input
-            id="questionnaire-source-countries"
-            placeholder="Source countries, e.g. US, GB, EU"
-          />
-
-          <input
-            id="questionnaire-payout-methods"
-            placeholder="Payout methods, e.g. pix, bank_transfer"
-          />
-
-          <input
-            id="questionnaire-monthly-volume"
-            placeholder="Expected monthly volume"
-            type="number"
-          />
-
-          <input
-            id="questionnaire-transaction-size"
-            placeholder="Expected transaction size"
-            type="number"
-          />
-
-          <select id="questionnaire-settlement-preference">
-            <option value="">Settlement preference</option>
-            <option value="stablecoin">Stablecoin</option>
-            <option value="fiat">Fiat</option>
-            <option value="both">Both</option>
-            <option value="unknown">Unknown</option>
+          <select id="questionnaire-requested-corridors">
+            ${renderOptions(TARGET_DESTINATION_MARKET_OPTIONS)}
           </select>
 
-          <select id="questionnaire-webhook-readiness">
-            <option value="">Webhook readiness</option>
-            <option value="ready">Ready</option>
-            <option value="planned">Planned</option>
-            <option value="not_ready">Not ready</option>
-            <option value="not_required">Not required</option>
+          <select id="questionnaire-monthly-transactions">
+            ${renderOptions(MONTHLY_TRANSACTION_OPTIONS)}
+          </select>
+
+          <select id="questionnaire-monthly-volume">
+            ${renderOptions(MONTHLY_PROCESSING_VOLUME_OPTIONS)}
+          </select>
+
+          <select id="questionnaire-transaction-size">
+            ${renderOptions(AVERAGE_TRANSACTION_SIZE_OPTIONS)}
           </select>
 
           <input
@@ -356,9 +372,14 @@ export function createIntegrationPortalViews({
             placeholder="Compliance contact role"
           />
 
+          <select id="questionnaire-contact-phone-country">
+            ${renderCountryCodeOptions(PARTNER_CONTACT_COUNTRY_CODE_OPTIONS)}
+          </select>
+
           <input
             id="questionnaire-contact-phone"
-            placeholder="Compliance contact phone"
+            placeholder="Phone number"
+            inputmode="tel"
           />
 
           <button
@@ -570,136 +591,6 @@ export function createIntegrationPortalViews({
     `;
   }
 
-  function renderIntegrationGuidePanel(state) {
-    if (!state.application) {
-      return "";
-    }
-
-    const apiBaseUrl =
-      "https://unibridge-v2-1066944028362.us-central1.run.app";
-
-    return `
-      <section class="portal-card">
-        <h2>Integration guide</h2>
-        <p>
-          Use the Partner Execution API with your pilot API key.
-          The corridor is derived from receiver_country,
-          destination_country, or route context.
-        </p>
-
-        <h3>1. Register session</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/session/register \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "receiver_country": "BR",
-    "source_country": "US",
-    "source_currency": "USD",
-    "amount": 25,
-    "partner_reference": "demo-session-001"
-  }'</code></pre>
-
-        <p>Save the returned <code>session_id</code>.</p>
-
-        <h3>2. Resolve session</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/session/resolve \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "session_id": "SESSION_ID"
-  }'</code></pre>
-
-        <h3>3. Quote</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/session/quote \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "session_id": "SESSION_ID",
-    "amount": 25
-  }'</code></pre>
-
-        <p>Save the returned <code>route_id</code>.</p>
-
-        <h3>4. Create settlement</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/settlement/create \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "session_id": "SESSION_ID",
-    "route_id": "ROUTE_ID_FROM_QUOTE",
-    "destination": {
-      "pix": "receiver@example.com"
-    },
-    "redirect_url": "https://partner.example.com/return"
-  }'</code></pre>
-
-        <p>
-          Save the returned <code>settlement_id</code> and
-          <code>funding_session_id</code>.
-        </p>
-
-        <h3>5. Create funding</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/funding/create \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "settlement_id": "SETTLEMENT_ID",
-    "redirect_url": "https://partner.example.com/return"
-  }'</code></pre>
-
-        <h3>6. Create or refresh funding session</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/funding/session \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "settlement_id": "SETTLEMENT_ID",
-    "redirect_url": "https://partner.example.com/return"
-  }'</code></pre>
-
-        <p>
-          Save the returned <code>funding_session_id</code> if returned.
-        </p>
-
-        <h3>7. Check funding address state</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/funding/address-state \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "settlement_id": "SETTLEMENT_ID"
-  }'</code></pre>
-
-        <h3>8. Recover funding session</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/funding/recover \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "settlement_id": "SETTLEMENT_ID"
-  }'</code></pre>
-
-        <h3>9. Confirm settlement</h3>
-        <pre class="code-block"><code>curl -X POST ${apiBaseUrl}/v2/integrations/execution/settlement/confirm \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY" \\
-  -d '{
-    "settlement_id": "SETTLEMENT_ID"
-  }'</code></pre>
-
-        <h3>10. Check settlement status</h3>
-        <pre class="code-block"><code>curl "${apiBaseUrl}/v2/integrations/execution/settlement/status?settlement_id=SETTLEMENT_ID" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY"</code></pre>
-
-        <pre class="code-block"><code>curl "${apiBaseUrl}/v2/integrations/execution/settlement/status?session_id=SESSION_ID" \\
-  -H "Authorization: Bearer YOUR_PILOT_API_KEY"</code></pre>
-
-        <p>
-          Destination schema depends on the selected route.
-          For BR PIX, use:
-          <code>{ "pix": "receiver@example.com" }</code>.
-        </p>
-      </section>
-    `;
-  }
-
   function renderPortal({
     state,
     portalNotice
@@ -717,7 +608,7 @@ export function createIntegrationPortalViews({
       ${renderPilotAccessPanel(state)}
       ${renderApprovedCorridorsPanel(state)}
       ${renderApiKeysPanel(state)}
-      ${renderIntegrationGuidePanel(state)}
+      ${renderIntegrationGuidePanel({ state })}
     `;
   }
 
