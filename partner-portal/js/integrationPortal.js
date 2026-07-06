@@ -77,31 +77,20 @@ function linesToArray(value) {
     .filter(Boolean);
 }
 
-function csvToArray(value) {
-  return normalizeString(value)
-    .split(",")
-    .map(item => item.trim())
-    .filter(Boolean);
-}
-
-function optionalNumber(value) {
-  const normalized =
-    normalizeString(value);
-
-  if (!normalized) {
-    return null;
-  }
-
-  const parsed =
-    Number(normalized);
-
-  return Number.isFinite(parsed)
-    ? parsed
-    : null;
-}
-
 function getValue(id) {
   return document.getElementById(id)?.value || "";
+}
+
+function parsePhoneCountry(value) {
+  const [country, dialCode] =
+    normalizeString(value).split("|");
+
+  return {
+    country:
+      normalizeString(country),
+    dial_code:
+      normalizeString(dialCode)
+  };
 }
 
 function getPilotEnvironmentId() {
@@ -343,43 +332,57 @@ async function createApplication() {
 }
 
 async function submitQuestionnaire() {
+  const phoneCountry =
+    parsePhoneCountry(
+      getValue("questionnaire-contact-phone-country")
+    );
+
+  const targetDestinationMarket =
+    getValue("questionnaire-requested-corridors");
+
   const payload = {
     application_id: state.application.id,
     integration_type:
       state.application.integration_type || "api",
+
     use_case:
       getValue("questionnaire-use-case"),
+
     requested_corridors:
-      csvToArray(
-        getValue("questionnaire-requested-corridors")
-      ),
-    source_countries:
-      csvToArray(
-        getValue("questionnaire-source-countries")
-      ),
-    payout_methods:
-      csvToArray(
-        getValue("questionnaire-payout-methods")
-      ),
+      targetDestinationMarket
+        ? [targetDestinationMarket]
+        : [],
+
+    target_destination_markets:
+      targetDestinationMarket
+        ? [targetDestinationMarket]
+        : [],
+
+    expected_monthly_transactions:
+      getValue("questionnaire-monthly-transactions"),
+
     expected_monthly_volume:
-      optionalNumber(
-        getValue("questionnaire-monthly-volume")
-      ),
+      getValue("questionnaire-monthly-volume"),
+
     expected_transaction_size:
-      optionalNumber(
-        getValue("questionnaire-transaction-size")
-      ),
-    settlement_preference:
-      getValue("questionnaire-settlement-preference"),
-    webhook_readiness:
-      getValue("questionnaire-webhook-readiness"),
+      getValue("questionnaire-transaction-size"),
+
     compliance_contact: {
       name:
         getValue("questionnaire-contact-name"),
+
       email:
         getValue("questionnaire-contact-email"),
+
       role:
         getValue("questionnaire-contact-role"),
+
+      phone_country:
+        phoneCountry.country,
+
+      phone_country_code:
+        phoneCountry.dial_code,
+
       phone:
         getValue("questionnaire-contact-phone")
     }
@@ -536,6 +539,7 @@ function bindEvents() {
   bind("issue-pilot-credential", issuePilotCredential);
   bind("start-didit-kyb", startDiditKyb);
   bind("copy-secret", copySecret);
+
   bindApplicationTypeChange();
 
   bind("clear-secret", () => {
