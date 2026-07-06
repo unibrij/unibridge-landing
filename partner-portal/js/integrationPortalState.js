@@ -3,20 +3,22 @@
 const EMPTY_LIST = Object.freeze([]);
 
 export const PORTAL_STEP = {
+  dashboard: "dashboard",
   organization: "organization",
   application: "application",
-  sandbox: "sandbox",
-  webhooks: "webhooks",
+  questionnaire: "questionnaire",
   kyb: "kyb",
-  production_status: "production_status",
-  production: "production"
+  pilot_access: "pilot_access",
+  approved_corridors: "approved_corridors",
+  api_keys: "api_keys",
+  integration_guide: "integration_guide"
 };
 
 export const PORTAL_ACTION = {
   create_organization: "create_organization",
   create_application: "create_application",
-  issue_sandbox_credential: "issue_sandbox_credential",
-  create_webhook: "create_webhook",
+  submit_questionnaire: "submit_questionnaire",
+  issue_pilot_credential: "issue_pilot_credential",
   start_didit_kyb: "start_didit_kyb"
 };
 
@@ -32,9 +34,11 @@ function asArray(value) {
 
 function findEnvironment(environments = {}, type) {
   if (Array.isArray(environments)) {
-    return environments.find(
-      environment => environment?.type === type
-    ) || null;
+    return (
+      environments.find(
+        environment => environment?.type === type
+      ) || null
+    );
   }
 
   return environments?.[type] || null;
@@ -48,8 +52,44 @@ function isApproved(value) {
   return value === "approved";
 }
 
-function isProductionEnabled(environment = {}) {
-  return environment?.status === "production_enabled";
+function isSubmitted(value) {
+  return value === "submitted";
+}
+
+function isEnabled(environment = {}) {
+  return environment?.status === "enabled" ||
+    environment?.status === "pilot_enabled" ||
+    environment?.status === "active";
+}
+
+function getQuestionnaireStatus(organization = {}) {
+  return normalizeString(
+    organization?.onboarding_profile?.status ||
+      organization?.onboarding_status
+  );
+}
+
+function getApprovedCorridors(organization = {}) {
+  return asArray(
+    organization?.requested_corridors
+  ).filter(corridor => (
+    corridor?.approved_for_pilot === true ||
+    corridor?.status === "approved" ||
+    corridor?.pilot_status === "approved"
+  ));
+}
+
+function canIssuePilotCredential(normalized = {}) {
+  return (
+    hasId(normalized.environments?.pilot) &&
+    isSubmitted(
+      getQuestionnaireStatus(
+        normalized.organization
+      )
+    ) &&
+    isApproved(normalized.organization?.kyb_status) &&
+    isEnabled(normalized.environments?.pilot)
+  );
 }
 
 export function createEmptyIntegrationPortalState() {
@@ -58,7 +98,7 @@ export function createEmptyIntegrationPortalState() {
     application: null,
 
     environments: {
-      sandbox: null,
+      pilot: null,
       production: null
     },
 
@@ -66,9 +106,10 @@ export function createEmptyIntegrationPortalState() {
     webhooks: [],
 
     kyb: null,
+    pilot_access: null,
     production_status: null,
 
-    selected_environment_type: "sandbox",
+    selected_environment_type: "pilot",
 
     one_time_secret: null,
     error: null,
@@ -92,7 +133,8 @@ export function normalizeIntegrationPortalState(input = {}) {
       input.application || null,
 
     environments: {
-      sandbox:
+      pilot:
+        findEnvironment(environments, "pilot") ||
         findEnvironment(environments, "sandbox"),
 
       production:
@@ -108,12 +150,15 @@ export function normalizeIntegrationPortalState(input = {}) {
     kyb:
       input.kyb || null,
 
+    pilot_access:
+      input.pilot_access || null,
+
     production_status:
       input.production_status || null,
 
     selected_environment_type:
       normalizeString(input.selected_environment_type) ||
-      "sandbox",
+      "pilot",
 
     one_time_secret:
       input.one_time_secret || null,
@@ -140,6 +185,21 @@ export function getSelectedEnvironment(state = {}) {
   );
 }
 
+export function getPilotEnvironment(state = {}) {
+  return normalizeIntegrationPortalState(state)
+    .environments
+    .pilot;
+}
+
+export function getApprovedPilotCorridors(state = {}) {
+  const normalized =
+    normalizeIntegrationPortalState(state);
+
+  return getApprovedCorridors(
+    normalized.organization
+  );
+}
+
 export function getPortalStep(state = {}) {
   const normalized =
     normalizeIntegrationPortalState(state);
@@ -152,27 +212,29 @@ export function getPortalStep(state = {}) {
     return PORTAL_STEP.application;
   }
 
-  if (!hasId(normalized.environments.sandbox)) {
-    return PORTAL_STEP.sandbox;
-  }
-
-  if (!normalized.webhooks.length) {
-    return PORTAL_STEP.webhooks;
+  if (
+    !isSubmitted(
+      getQuestionnaireStatus(
+        normalized.organization
+      )
+    )
+  ) {
+    return PORTAL_STEP.questionnaire;
   }
 
   if (!isApproved(normalized.organization?.kyb_status)) {
     return PORTAL_STEP.kyb;
   }
 
-  if (
-    !isProductionEnabled(
-      normalized.environments.production
-    )
-  ) {
-    return PORTAL_STEP.production_status;
+  if (!isEnabled(normalized.environments.pilot)) {
+    return PORTAL_STEP.pilot_access;
   }
 
-  return PORTAL_STEP.production;
+  if (!getApprovedCorridors(normalized.organization).length) {
+    return PORTAL_STEP.approved_corridors;
+  }
+
+  return PORTAL_STEP.api_keys;
 }
 
 export function derivePortalActions(state = {}) {
@@ -191,18 +253,24 @@ export function derivePortalActions(state = {}) {
     return actions;
   }
 
-  if (hasId(normalized.environments.sandbox)) {
-    actions.push(
-      PORTAL_ACTION.issue_sandbox_credential
-    );
-  }
-
-  if (hasId(normalized.application)) {
-    actions.push(PORTAL_ACTION.create_webhook);
+  if (
+    !isSubmitted(
+      getQuestionnaireStatus(
+        normalized.organization
+      )
+    )
+  ) {
+    actions.push(PORTAL_ACTION.submit_questionnaire);
   }
 
   if (!isApproved(normalized.organization?.kyb_status)) {
     actions.push(PORTAL_ACTION.start_didit_kyb);
+  }
+
+  if (canIssuePilotCredential(normalized)) {
+    actions.push(
+      PORTAL_ACTION.issue_pilot_credential
+    );
   }
 
   return actions;
@@ -265,6 +333,18 @@ export function reduceIntegrationPortalState(
         error: null
       });
 
+    case "questionnaire_submitted":
+      return normalizeIntegrationPortalState({
+        ...current,
+        organization:
+          event.organization || current.organization,
+        pilot_access:
+          event.pilot_access || current.pilot_access,
+        loading: false,
+        loaded: true,
+        error: null
+      });
+
     case "credential_issued":
       return normalizeIntegrationPortalState({
         ...current,
@@ -273,20 +353,6 @@ export function reduceIntegrationPortalState(
           event.credential
         ],
         one_time_secret: event.secret || null,
-        loading: false,
-        loaded: true,
-        error: null
-      });
-
-    case "webhook_created":
-      return normalizeIntegrationPortalState({
-        ...current,
-        webhooks: [
-          ...current.webhooks,
-          event.webhook
-        ],
-        one_time_secret:
-          event.signing_secret || null,
         loading: false,
         loaded: true,
         error: null
@@ -314,14 +380,16 @@ export function reduceIntegrationPortalState(
         error: null
       });
 
-    case "production_status_updated":
+    case "pilot_access_updated":
       return normalizeIntegrationPortalState({
         ...current,
-        production_status:
-          event.production_status ||
-          current.production_status,
+        pilot_access:
+          event.pilot_access ||
+          current.pilot_access,
         environments:
           event.environments || current.environments,
+        organization:
+          event.organization || current.organization,
         loading: false,
         loaded: true,
         error: null
@@ -331,7 +399,7 @@ export function reduceIntegrationPortalState(
       return normalizeIntegrationPortalState({
         ...current,
         selected_environment_type:
-          event.environment_type
+          event.environment_type || "pilot"
       });
 
     case "clear_secret":
