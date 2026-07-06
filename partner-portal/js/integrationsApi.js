@@ -194,6 +194,19 @@ export function createIntegrationsApi({
       });
     },
 
+    submitQuestionnaire(
+      organizationId,
+      input
+    ) {
+      return request({
+        ...options,
+        method: "POST",
+        path:
+          `/organizations/${organizationId}/onboarding-questionnaire`,
+        body: input
+      });
+    },
+
     issueCredential(input) {
       return request({
         ...options,
