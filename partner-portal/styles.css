@@ -129,6 +129,12 @@ button:disabled {
   font-size: 22px;
 }
 
+.portal-card h3 {
+  margin-top: 22px;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
 .portal-card p {
   color: var(--muted);
   line-height: 1.6;
@@ -210,6 +216,105 @@ textarea::placeholder {
   gap: 10px;
 }
 
+.portal-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.metric-card,
+.dashboard-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 14px;
+}
+
+.metric-card span,
+.dashboard-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metric-card strong,
+.dashboard-card strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.two-column-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.two-column-form textarea,
+.two-column-form button {
+  grid-column: 1 / -1;
+}
+
+.summary-list,
+.corridor-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.corridor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.code-block {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.34);
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.code-block code {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
 @media (max-width: 720px) {
   .portal-header {
     display: grid;
@@ -217,5 +322,9 @@ textarea::placeholder {
 
   .docs-link {
     width: max-content;
+  }
+
+  .two-column-form {
+    grid-template-columns: 1fr;
   }
 }
