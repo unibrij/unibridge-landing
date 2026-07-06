@@ -364,9 +364,6 @@ async function submitQuestionnaire() {
     expected_monthly_volume:
       getValue("questionnaire-monthly-volume"),
 
-    expected_transaction_size:
-      getValue("questionnaire-transaction-size"),
-
     compliance_contact: {
       name:
         getValue("questionnaire-contact-name"),
