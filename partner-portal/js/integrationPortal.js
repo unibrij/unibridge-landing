@@ -34,7 +34,10 @@ const root =
   document.getElementById("portal-root");
 
 const api =
-  createIntegrationsApi();
+  createIntegrationsApi({
+    baseUrl:
+      "https://unibridge-v2-1066944028362.us-central1.run.app/v2/integrations"
+  });
 
 let state =
   createEmptyIntegrationPortalState();
