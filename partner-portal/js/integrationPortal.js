@@ -81,12 +81,28 @@ function csvToArray(value) {
     .filter(Boolean);
 }
 
+function optionalNumber(value) {
+  const normalized =
+    normalizeString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed =
+    Number(normalized);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
 function getValue(id) {
   return document.getElementById(id)?.value || "";
 }
 
-function getSandboxEnvironmentId() {
-  return state.environments.sandbox?.id || "";
+function getPilotEnvironmentId() {
+  return state.environments.pilot?.id || "";
 }
 
 async function run(action, handler) {
@@ -116,6 +132,7 @@ function dispatchEmptyLoaded() {
     credentials: [],
     webhooks: [],
     kyb: null,
+    pilot_access: null,
     production_status: null
   });
 }
@@ -155,6 +172,7 @@ async function loadPortal() {
         credentials: [],
         webhooks: [],
         kyb: null,
+        pilot_access: null,
         production_status: null
       });
       return;
@@ -163,16 +181,12 @@ async function loadPortal() {
     const [
       environmentsResult,
       credentialsResult,
-      webhooksResult,
-      kybStatusResult,
-      productionStatusResult
+      kybStatusResult
     ] =
       await Promise.all([
         api.listEnvironments(application.id),
         api.listCredentials(application.id),
-        api.listWebhooks(application.id),
-        api.getKybStatus(organization.id).catch(() => ({})),
-        api.getProductionStatus(organization.id).catch(() => ({}))
+        api.getKybStatus(organization.id).catch(() => ({}))
       ]);
 
     dispatch({
@@ -183,12 +197,12 @@ async function loadPortal() {
         environmentsResult.environments || [],
       credentials:
         credentialsResult.credentials || [],
-      webhooks:
-        webhooksResult.webhooks || [],
+      webhooks: [],
       kyb:
         kybStatusResult.kyb || null,
-      production_status:
-        productionStatusResult.production_status || null
+      pilot_access:
+        kybStatusResult.pilot_access || null,
+      production_status: null
     });
   } catch (error) {
     dispatch({
@@ -254,6 +268,7 @@ async function continuePortalSession() {
       credentials: state.credentials,
       webhooks: state.webhooks,
       kyb: state.kyb,
+      pilot_access: state.pilot_access,
       production_status: state.production_status
     });
   } catch (error) {
@@ -324,15 +339,76 @@ async function createApplication() {
   );
 }
 
-async function issueSandboxCredential() {
+async function submitQuestionnaire() {
+  const payload = {
+    application_id: state.application.id,
+    integration_type:
+      state.application.integration_type || "api",
+    use_case:
+      getValue("questionnaire-use-case"),
+    requested_corridors:
+      csvToArray(
+        getValue("questionnaire-requested-corridors")
+      ),
+    source_countries:
+      csvToArray(
+        getValue("questionnaire-source-countries")
+      ),
+    payout_methods:
+      csvToArray(
+        getValue("questionnaire-payout-methods")
+      ),
+    expected_monthly_volume:
+      optionalNumber(
+        getValue("questionnaire-monthly-volume")
+      ),
+    expected_transaction_size:
+      optionalNumber(
+        getValue("questionnaire-transaction-size")
+      ),
+    settlement_preference:
+      getValue("questionnaire-settlement-preference"),
+    webhook_readiness:
+      getValue("questionnaire-webhook-readiness"),
+    compliance_contact: {
+      name:
+        getValue("questionnaire-contact-name"),
+      email:
+        getValue("questionnaire-contact-email"),
+      role:
+        getValue("questionnaire-contact-role"),
+      phone:
+        getValue("questionnaire-contact-phone")
+    }
+  };
+
   await run(
-    PORTAL_ACTION.issue_sandbox_credential,
+    PORTAL_ACTION.submit_questionnaire,
+    async () => {
+      const result =
+        await api.submitQuestionnaire(
+          state.organization.id,
+          payload
+        );
+
+      dispatch({
+        type: "questionnaire_submitted",
+        organization: result.organization,
+        pilot_access: result.pilot_access
+      });
+    }
+  );
+}
+
+async function issuePilotCredential() {
+  await run(
+    PORTAL_ACTION.issue_pilot_credential,
     async () => {
       const result =
         await api.issueCredential({
           organization_id: state.organization.id,
           application_id: state.application.id,
-          environment_id: getSandboxEnvironmentId(),
+          environment_id: getPilotEnvironmentId(),
           type: "secret"
         });
 
@@ -340,31 +416,6 @@ async function issueSandboxCredential() {
         type: "credential_issued",
         credential: result.credential,
         secret: result.secret
-      });
-    }
-  );
-}
-
-async function createWebhook() {
-  const payload = {
-    organization_id: state.organization.id,
-    application_id: state.application.id,
-    environment_id: getSandboxEnvironmentId(),
-    url: getValue("webhook-url"),
-    events:
-      csvToArray(getValue("webhook-events"))
-  };
-
-  await run(
-    PORTAL_ACTION.create_webhook,
-    async () => {
-      const result =
-        await api.createWebhook(payload);
-
-      dispatch({
-        type: "webhook_created",
-        webhook: result.webhook,
-        signing_secret: result.signing_secret
       });
     }
   );
@@ -478,8 +529,8 @@ function bindEvents() {
   bind("continue-organization", continuePortalSession);
   bind("create-organization", createOrganization);
   bind("create-application", createApplication);
-  bind("issue-sandbox-credential", issueSandboxCredential);
-  bind("create-webhook", createWebhook);
+  bind("submit-questionnaire", submitQuestionnaire);
+  bind("issue-pilot-credential", issuePilotCredential);
   bind("start-didit-kyb", startDiditKyb);
   bind("copy-secret", copySecret);
   bindApplicationTypeChange();
