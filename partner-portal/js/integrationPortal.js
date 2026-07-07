@@ -44,6 +44,9 @@ let state =
 
 let portalNotice = "";
 
+let outsideDropdownClickBound =
+  false;
+
 function htmlEscape(value) {
   return normalizeString(value)
     .replaceAll("&", "&amp;")
@@ -483,6 +486,179 @@ async function copySecret() {
   }
 }
 
+function closeAllDropdowns(exceptShell = null) {
+  document
+    .querySelectorAll(".country-select-shell.is-open")
+    .forEach(shell => {
+      if (shell !== exceptShell) {
+        shell.classList.remove("is-open");
+      }
+    });
+}
+
+function bindSingleDropdown(shell) {
+  if (shell.dataset.bound === "true") {
+    return;
+  }
+
+  shell.dataset.bound =
+    "true";
+
+  const trigger =
+    shell.querySelector(".country-select-trigger");
+
+  const hiddenInput =
+    shell.querySelector("input[type='hidden']");
+
+  const valueNode =
+    shell.querySelector(".country-select-value");
+
+  const options =
+    shell.querySelectorAll("[data-dropdown-value]");
+
+  if (!trigger || !hiddenInput || !valueNode) {
+    return;
+  }
+
+  trigger.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const isOpen =
+      shell.classList.contains("is-open");
+
+    closeAllDropdowns(shell);
+
+    shell.classList.toggle("is-open", !isOpen);
+  });
+
+  options.forEach(option => {
+    option.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const nextValue =
+        option.dataset.dropdownValue || "";
+
+      const nextLabel =
+        option.dataset.dropdownLabel ||
+        option.textContent.trim();
+
+      hiddenInput.value =
+        nextValue;
+
+      valueNode.textContent =
+        nextLabel;
+
+      shell.classList.toggle(
+        "has-value",
+        Boolean(nextValue)
+      );
+
+      shell.classList.remove("is-open");
+    });
+  });
+}
+
+function bindMultiDropdown(shell) {
+  if (shell.dataset.bound === "true") {
+    return;
+  }
+
+  shell.dataset.bound =
+    "true";
+
+  const trigger =
+    shell.querySelector(".country-select-trigger");
+
+  const valueNode =
+    shell.querySelector(".country-select-value");
+
+  const menu =
+    shell.querySelector(".country-select-menu");
+
+  const checkboxes =
+    shell.querySelectorAll(
+      'input[type="checkbox"][data-dropdown-checkbox="true"]'
+    );
+
+  if (!trigger || !valueNode) {
+    return;
+  }
+
+  const syncLabel = () => {
+    const selected =
+      Array.from(checkboxes)
+        .filter(input => input.checked)
+        .map(input => input.dataset.dropdownLabel || input.value);
+
+    if (!selected.length) {
+      valueNode.textContent =
+        shell.dataset.placeholder ||
+        "Select options";
+
+      shell.classList.remove("has-value");
+      return;
+    }
+
+    valueNode.textContent =
+      selected.length === 1
+        ? selected[0]
+        : `${selected.length} selected`;
+
+    shell.classList.add("has-value");
+  };
+
+  trigger.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const isOpen =
+      shell.classList.contains("is-open");
+
+    closeAllDropdowns(shell);
+
+    shell.classList.toggle("is-open", !isOpen);
+  });
+
+  if (menu) {
+    menu.addEventListener("click", event => {
+      event.stopPropagation();
+    });
+  }
+
+  checkboxes.forEach(input => {
+    input.addEventListener("change", syncLabel);
+  });
+
+  syncLabel();
+}
+
+function bindDropdownOutsideClick() {
+  if (outsideDropdownClickBound) {
+    return;
+  }
+
+  outsideDropdownClickBound =
+    true;
+
+  document.addEventListener("click", () => {
+    closeAllDropdowns();
+  });
+}
+
+function bindDropdowns() {
+  document
+    .querySelectorAll("[data-dropdown='single']")
+    .forEach(bindSingleDropdown);
+
+  document
+    .querySelectorAll("[data-dropdown='multi']")
+    .forEach(bindMultiDropdown);
+
+  bindDropdownOutsideClick();
+}
+
 function bindApplicationTypeChange() {
   const select =
     document.getElementById("application-integration-type");
@@ -546,6 +722,7 @@ function bindEvents() {
   bind("copy-secret", copySecret);
 
   bindApplicationTypeChange();
+  bindDropdowns();
 
   bind("clear-secret", () => {
     dispatch({ type: "clear_secret" });
