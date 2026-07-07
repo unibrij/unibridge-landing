@@ -48,6 +48,22 @@ export function createIntegrationPortalViews({
       .join("");
   }
 
+  function renderCheckboxOptions(options = []) {
+    return options
+      .filter(([value]) => value)
+      .map(([value, label]) => `
+        <label class="checkbox-option">
+          <input
+            type="checkbox"
+            name="questionnaire-requested-corridors"
+            value="${htmlEscape(value)}"
+          />
+          <span>${htmlEscape(label)}</span>
+        </label>
+      `)
+      .join("");
+  }
+
   function renderCountryCodeOptions(options = []) {
     return options
       .map(([countryCode, dialCode, countryName, flag]) => {
@@ -339,9 +355,12 @@ export function createIntegrationPortalViews({
             ${renderOptions(PARTNER_USE_CASE_OPTIONS)}
           </select>
 
-          <select id="questionnaire-requested-corridors">
-            ${renderOptions(TARGET_DESTINATION_MARKET_OPTIONS)}
-          </select>
+          <div class="checkbox-list">
+            <div class="checkbox-list-title">
+              Target destination markets
+            </div>
+            ${renderCheckboxOptions(TARGET_DESTINATION_MARKET_OPTIONS)}
+          </div>
 
           <select id="questionnaire-monthly-transactions">
             ${renderOptions(MONTHLY_TRANSACTION_OPTIONS)}
