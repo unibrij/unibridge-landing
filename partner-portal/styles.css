@@ -164,6 +164,16 @@ select {
   outline: none;
 }
 
+select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+select option {
+  background: #0b1433;
+  color: #ffffff;
+}
+
 textarea {
   min-height: 92px;
   resize: vertical;
@@ -256,6 +266,48 @@ textarea::placeholder {
   grid-column: 1 / -1;
 }
 
+.phone-field {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(145px, 190px) 1fr;
+  gap: 10px;
+}
+
+.phone-field select,
+.phone-field input {
+  min-width: 0;
+}
+
+.checkbox-list {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 14px;
+}
+
+.checkbox-list-title {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkbox-option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox-option input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
 .summary-list,
 .corridor-grid {
   display: flex;
@@ -325,6 +377,10 @@ th {
   }
 
   .two-column-form {
+    grid-template-columns: 1fr;
+  }
+
+  .phone-field {
     grid-template-columns: 1fr;
   }
 }
