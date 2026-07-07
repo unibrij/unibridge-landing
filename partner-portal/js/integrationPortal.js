@@ -81,6 +81,16 @@ function getValue(id) {
   return document.getElementById(id)?.value || "";
 }
 
+function getCheckedValues(name) {
+  return Array.from(
+    document.querySelectorAll(
+      `input[name="${name}"]:checked`
+    )
+  )
+    .map(input => input.value)
+    .filter(Boolean);
+}
+
 function parsePhoneCountry(value) {
   const [country, dialCode] =
     normalizeString(value).split("|");
@@ -337,8 +347,10 @@ async function submitQuestionnaire() {
       getValue("questionnaire-contact-phone-country")
     );
 
-  const targetDestinationMarket =
-    getValue("questionnaire-requested-corridors");
+  const targetDestinationMarkets =
+    getCheckedValues(
+      "questionnaire-requested-corridors"
+    );
 
   const payload = {
     application_id: state.application.id,
@@ -349,14 +361,10 @@ async function submitQuestionnaire() {
       getValue("questionnaire-use-case"),
 
     requested_corridors:
-      targetDestinationMarket
-        ? [targetDestinationMarket]
-        : [],
+      targetDestinationMarkets,
 
     target_destination_markets:
-      targetDestinationMarket
-        ? [targetDestinationMarket]
-        : [],
+      targetDestinationMarkets,
 
     expected_monthly_transactions:
       getValue("questionnaire-monthly-transactions"),
