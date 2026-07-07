@@ -48,42 +48,147 @@ export function createIntegrationPortalViews({
       .join("");
   }
 
-  function renderCheckboxOptions(options = []) {
+  function renderDropdownOptions(options = []) {
     return options
       .filter(([value]) => value)
       .map(([value, label]) => `
-        <label class="checkbox-option">
-          <input
-            type="checkbox"
-            name="questionnaire-requested-corridors"
-            value="${htmlEscape(value)}"
-          />
-          <span>${htmlEscape(label)}</span>
-        </label>
+        <button
+          class="country-select-option"
+          type="button"
+          data-dropdown-value="${htmlEscape(value)}"
+          data-dropdown-label="${htmlEscape(label)}"
+        >
+          ${htmlEscape(label)}
+        </button>
       `)
       .join("");
   }
 
-  function renderCountryCodeOptions(options = []) {
+  function renderSingleDropdown({
+    id,
+    placeholder,
+    options
+  }) {
+    return `
+      <div
+        class="country-select-shell"
+        data-dropdown="single"
+        data-placeholder="${htmlEscape(placeholder)}"
+      >
+        <input id="${htmlEscape(id)}" type="hidden" />
+
+        <button
+          class="country-select-trigger"
+          type="button"
+        >
+          <span class="country-select-value">
+            ${htmlEscape(placeholder)}
+          </span>
+          <span class="country-select-chevron">⌄</span>
+        </button>
+
+        <div class="country-select-menu">
+          ${renderDropdownOptions(options)}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMultiDropdown({
+    placeholder,
+    options
+  }) {
+    return `
+      <div
+        class="country-select-shell"
+        data-dropdown="multi"
+        data-placeholder="${htmlEscape(placeholder)}"
+      >
+        <button
+          class="country-select-trigger"
+          type="button"
+        >
+          <span class="country-select-value">
+            ${htmlEscape(placeholder)}
+          </span>
+          <span class="country-select-chevron">⌄</span>
+        </button>
+
+        <div class="country-select-menu">
+          ${options
+            .filter(([value]) => value)
+            .map(([value, label]) => `
+              <label class="country-select-option checkbox-option">
+                <input
+                  type="checkbox"
+                  name="questionnaire-requested-corridors"
+                  value="${htmlEscape(value)}"
+                  data-dropdown-checkbox="true"
+                  data-dropdown-label="${htmlEscape(label)}"
+                />
+                <span>${htmlEscape(label)}</span>
+              </label>
+            `)
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPhoneCountryOptions(options = []) {
     return options
+      .filter(([countryCode]) => countryCode)
       .map(([countryCode, dialCode, countryName, flag]) => {
         const value =
-          countryCode
-            ? `${countryCode}|${dialCode}`
-            : "";
+          `${countryCode}|${dialCode}`;
 
         const label =
-          countryCode
-            ? `${flag ? `${flag} ` : ""}${countryName}${dialCode ? ` (${dialCode})` : ""}`
-            : countryName;
+          `${flag ? `${flag} ` : ""}${countryName}${dialCode ? ` (${dialCode})` : ""}`;
 
         return `
-          <option value="${htmlEscape(value)}">
+          <button
+            class="country-select-option"
+            type="button"
+            data-dropdown-value="${htmlEscape(value)}"
+            data-dropdown-label="${htmlEscape(label)}"
+          >
             ${htmlEscape(label)}
-          </option>
+          </button>
         `;
       })
       .join("");
+  }
+
+  function renderPhoneCountryDropdown() {
+    const placeholder =
+      "Country code";
+
+    return `
+      <div
+        class="country-select-shell"
+        data-dropdown="single"
+        data-placeholder="${htmlEscape(placeholder)}"
+      >
+        <input
+          id="questionnaire-contact-phone-country"
+          type="hidden"
+        />
+
+        <button
+          class="country-select-trigger"
+          type="button"
+        >
+          <span class="country-select-value">
+            ${htmlEscape(placeholder)}
+          </span>
+          <span class="country-select-chevron">⌄</span>
+        </button>
+
+        <div class="country-select-menu">
+          ${renderPhoneCountryOptions(PARTNER_CONTACT_COUNTRY_CODE_OPTIONS)}
+        </div>
+      </div>
+    `;
   }
 
   function renderError(state) {
@@ -351,24 +456,28 @@ export function createIntegrationPortalViews({
         </p>
 
         <div class="portal-form two-column-form">
-          <select id="questionnaire-use-case">
-            ${renderOptions(PARTNER_USE_CASE_OPTIONS)}
-          </select>
+          ${renderSingleDropdown({
+            id: "questionnaire-use-case",
+            placeholder: "Select use case",
+            options: PARTNER_USE_CASE_OPTIONS
+          })}
 
-          <div class="checkbox-list">
-            <div class="checkbox-list-title">
-              Target destination markets
-            </div>
-            ${renderCheckboxOptions(TARGET_DESTINATION_MARKET_OPTIONS)}
-          </div>
+          ${renderMultiDropdown({
+            placeholder: "Target destination markets",
+            options: TARGET_DESTINATION_MARKET_OPTIONS
+          })}
 
-          <select id="questionnaire-monthly-transactions">
-            ${renderOptions(MONTHLY_TRANSACTION_OPTIONS)}
-          </select>
+          ${renderSingleDropdown({
+            id: "questionnaire-monthly-transactions",
+            placeholder: "Monthly transactions",
+            options: MONTHLY_TRANSACTION_OPTIONS
+          })}
 
-          <select id="questionnaire-monthly-volume">
-            ${renderOptions(MONTHLY_PROCESSING_VOLUME_OPTIONS)}
-          </select>
+          ${renderSingleDropdown({
+            id: "questionnaire-monthly-volume",
+            placeholder: "Monthly processing volume",
+            options: MONTHLY_PROCESSING_VOLUME_OPTIONS
+          })}
 
           <input
             id="questionnaire-contact-name"
@@ -387,9 +496,7 @@ export function createIntegrationPortalViews({
           />
 
           <div class="phone-field">
-            <select id="questionnaire-contact-phone-country">
-              ${renderCountryCodeOptions(PARTNER_CONTACT_COUNTRY_CODE_OPTIONS)}
-            </select>
+            ${renderPhoneCountryDropdown()}
 
             <input
               id="questionnaire-contact-phone"
