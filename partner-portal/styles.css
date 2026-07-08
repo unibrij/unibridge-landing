@@ -109,6 +109,12 @@ button:disabled {
   display: block;
 }
 
+.portal-topbar-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
 .portal-logo-mark {
   width: 38px;
   height: 38px;
@@ -1191,6 +1197,11 @@ select {
     height: auto;
     flex-wrap: wrap;
     padding: 14px;
+  }
+
+  .overview-progress-stepper {
+  grid-template-columns: repeat(6, 132px);
+  scroll-snap-type: x mandatory;
   }
 
   .portal-brand-logo {
