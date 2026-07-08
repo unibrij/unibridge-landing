@@ -57,10 +57,15 @@ export function createPortalLayoutView({
     return `
       <header class="portal-topbar">
         <div class="portal-topbar-brand">
-          <div class="portal-logo-mark">U</div>
+          <img
+            class="portal-brand-logo"
+            src="/public/icons/social/unibridge-orbit-lockup-dark.png"
+            alt="UniBridge"
+          />
+
           <div class="portal-brand-text">
-            <strong>UniBridge</strong>
-            <span>Partner Portal</span>
+            <strong>Partner Portal</strong>
+            <span>UniBridge</span>
           </div>
         </div>
 
@@ -141,7 +146,7 @@ export function createPortalLayoutView({
           <div class="portal-help-card">
             <strong>Need help?</strong>
             <p>
-              Review the integration guide or contact UniBridge support.
+              Review the integration guide if your setup is blocked.
             </p>
             <a href="#developer-docs">Open docs</a>
           </div>
