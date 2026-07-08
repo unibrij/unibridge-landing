@@ -368,12 +368,13 @@ button:disabled {
   margin-right: auto;
 }
 
-.portal-overview-page > .overview-bottom-grid {
-  max-width: none;
+.overview-bottom-bleed {
   margin-left: -30px;
   margin-right: -30px;
-  padding-left: 30px;
-  padding-right: 30px;
+}
+
+.overview-bottom-bleed > .overview-bottom-grid {
+  max-width: none;
 }
 
 /* Page + cards */
