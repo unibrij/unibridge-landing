@@ -33,10 +33,9 @@ export function createPortalOverviewView({
   const JOURNEY_STEPS = [
     ["questionnaire", "Questionnaire"],
     ["kyb", "KYB"],
-    ["pilot", "Pilot"],
+    ["pilot", "Pilot Access"],
     ["api_keys", "API Keys"],
-    ["go_live", "Go Live"],
-    ["production", "Production"]
+    ["go_live", "Go Live"]
   ];
 
   function getKybStatus(state) {
@@ -76,21 +75,14 @@ export function createPortalOverviewView({
     const normalized =
       String(step || "").toLowerCase();
 
-    if (normalized.includes("production")) {
-      return {
-        title: "Production enabled",
-        description:
-          "Your integration is ready for live traffic.",
-        cta: "View pilot status",
-        href: "#pilot"
-      };
-    }
-
-    if (normalized.includes("go")) {
+    if (
+      normalized.includes("production") ||
+      normalized.includes("go")
+    ) {
       return {
         title: "Go Live review",
         description:
-          "Production access is reviewed after pilot validation and KYB approval.",
+          "Live access is reviewed after pilot validation and KYB approval.",
         cta: "Review pilot access",
         href: "#pilot"
       };
@@ -108,7 +100,7 @@ export function createPortalOverviewView({
 
     if (normalized.includes("pilot")) {
       return {
-        title: "Pilot review",
+        title: "Pilot access review",
         description:
           "UniBridge is reviewing pilot access, approved corridors, and limits.",
         cta: "View pilot access",
@@ -120,7 +112,7 @@ export function createPortalOverviewView({
       return {
         title: "KYB review",
         description:
-          "Submit KYB to unlock pilot API key issuance and continue toward production.",
+          "Submit KYB to unlock pilot API key issuance and continue toward go-live.",
         cta: "Open KYB",
         href: "#kyb"
       };
@@ -151,11 +143,10 @@ export function createPortalOverviewView({
     const normalized =
       String(step || "").toLowerCase();
 
-    if (normalized.includes("production")) {
-      return 5;
-    }
-
-    if (normalized.includes("go")) {
+    if (
+      normalized.includes("production") ||
+      normalized.includes("go")
+    ) {
       return 4;
     }
 
