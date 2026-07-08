@@ -353,28 +353,6 @@ button:disabled {
   margin: 0 auto;
 }
 
-/* Footer */
-
-.portal-footer {
-  min-height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding: 18px 30px;
-  margin-left: var(--sidebar-width);
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.portal-footer a {
-  color: var(--navy);
-  font-weight: 850;
-}
-
 /* Page + cards */
 
 .portal-page-header {
