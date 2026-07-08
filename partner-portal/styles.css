@@ -102,6 +102,13 @@ button:disabled {
   gap: 12px;
 }
 
+.portal-brand-logo {
+  width: 160px;
+  max-height: 42px;
+  object-fit: contain;
+  display: block;
+}
+
 .portal-logo-mark {
   width: 38px;
   height: 38px;
