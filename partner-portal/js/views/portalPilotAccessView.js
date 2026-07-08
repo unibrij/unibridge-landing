@@ -24,7 +24,7 @@ export function createPortalPilotAccessView({
 
   const {
     text,
-    humanize,
+    displayStatus,
     renderBadge,
     renderCard,
     renderMetricCard,
@@ -75,7 +75,7 @@ export function createPortalPilotAccessView({
         ${renderMetricCard({
           icon: "◇",
           label: "Pilot status",
-          value: humanize(status),
+          value: displayStatus(status),
           badge: renderBadge(status),
           detail: getPilotEnvironmentId(state)
         })}
@@ -123,7 +123,7 @@ export function createPortalPilotAccessView({
 
           <div>
             <span>Type</span>
-            <strong>${text(environment?.type || "pilot")}</strong>
+            <strong>${text(displayStatus(environment?.type || "pilot"))}</strong>
           </div>
         </div>
       `
