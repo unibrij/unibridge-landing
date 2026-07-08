@@ -500,9 +500,11 @@ export function createPortalOverviewView({
           ${renderRecentActivity(state)}
         </div>
 
-        <div class="overview-bottom-grid">
-          ${renderActiveOperations(state)}
-          ${renderQuickStart()}
+        <div class="overview-bottom-bleed">
+          <div class="overview-bottom-grid">
+            ${renderActiveOperations(state)}
+            ${renderQuickStart()}
+          </div>
         </div>
       </div>
     `;
