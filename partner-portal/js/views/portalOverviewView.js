@@ -19,6 +19,7 @@ export function createPortalOverviewView({
     text,
     classToken,
     humanize,
+    displayStatus,
     renderBadge,
     renderCard,
     renderMetricCard,
@@ -32,7 +33,7 @@ export function createPortalOverviewView({
   const JOURNEY_STEPS = [
     ["questionnaire", "Questionnaire"],
     ["kyb", "KYB"],
-    ["pilot", "Pilot Access"],
+    ["pilot", "Pilot"],
     ["api_keys", "API Keys"],
     ["go_live", "Go Live"],
     ["production", "Production"]
@@ -80,7 +81,7 @@ export function createPortalOverviewView({
         title: "Production enabled",
         description:
           "Your integration is ready for live traffic.",
-        cta: "View production status",
+        cta: "View pilot status",
         href: "#pilot"
       };
     }
@@ -90,7 +91,7 @@ export function createPortalOverviewView({
         title: "Go Live review",
         description:
           "Production access is reviewed after pilot validation and KYB approval.",
-        cta: "Review go-live requirements",
+        cta: "Review pilot access",
         href: "#pilot"
       };
     }
@@ -128,7 +129,7 @@ export function createPortalOverviewView({
     return {
       title: "Complete onboarding",
       description:
-        "Submit your onboarding questionnaire so UniBridge can review your use case.",
+        "Submit your onboarding questionnaire so UniBridge can review your use case and requested corridors.",
       cta: "Open onboarding",
       href: "#onboarding"
     };
@@ -178,7 +179,7 @@ export function createPortalOverviewView({
       getCurrentJourneyIndex(getPortalStep(state));
 
     return `
-      <section class="overview-stepper" aria-label="Integration progress">
+      <section class="overview-stepper overview-progress-stepper" aria-label="Integration progress">
         ${JOURNEY_STEPS.map(([id, label], index) => {
           const stepState =
             getStepState(index, currentIndex);
@@ -195,8 +196,11 @@ export function createPortalOverviewView({
                     : index + 1
                 }
               </div>
-              <strong>${text(label)}</strong>
-              <span>${text(humanize(stepState))}</span>
+
+              <div class="overview-step-copy">
+                <strong>${text(label)}</strong>
+                <span>${text(humanize(stepState))}</span>
+              </div>
             </div>
           `;
         }).join("")}
@@ -213,17 +217,25 @@ export function createPortalOverviewView({
 
     return `
       <section class="overview-hero-card">
-        <div>
+        <div class="overview-hero-content">
           <span class="portal-eyebrow">Current step</span>
           <h2>${text(copy.title)}</h2>
           <p>${text(copy.description)}</p>
+
+          <div class="overview-hero-actions">
+            <a class="portal-primary-link" href="${text(copy.href)}">
+              ${text(copy.cta)}
+            </a>
+            ${renderBadge(step)}
+          </div>
         </div>
 
-        <div class="overview-hero-side">
-          ${renderBadge(step)}
-          <a class="portal-primary-link" href="${text(copy.href)}">
-            ${text(copy.cta)}
-          </a>
+        <div class="overview-hero-visual" aria-hidden="true">
+          <div class="overview-orbit-card">
+            <span></span>
+            <strong>Partner API</strong>
+            <small>Pilot access · KYB · Corridors</small>
+          </div>
         </div>
       </section>
     `;
@@ -233,12 +245,11 @@ export function createPortalOverviewView({
     return renderCard({
       title: "Need help?",
       description:
-        "Use the developer docs for API examples or contact support if your review is blocked.",
+        "Use the developer docs for API examples and integration guidance.",
       className: "overview-help-card",
       body: `
         <div class="overview-help-actions">
           <a href="#developer-docs">Developer Docs</a>
-          <a href="#support">Contact Support</a>
         </div>
       `
     });
@@ -256,7 +267,7 @@ export function createPortalOverviewView({
         ${renderMetricCard({
           icon: "◇",
           label: "Pilot status",
-          value: humanize(getPilotStatus(state)),
+          value: displayStatus(getPilotStatus(state)),
           detail: pilotEnvironment?.id || "Pilot environment pending",
           badge: renderBadge(getPilotStatus(state))
         })}
@@ -309,6 +320,7 @@ export function createPortalOverviewView({
     return renderCard({
       title: "Integration journey",
       description: "A high-level timeline of your partner setup.",
+      className: "overview-journey-card",
       body: `
         <div class="portal-timeline">
           ${renderTimelineItem({
@@ -329,13 +341,13 @@ export function createPortalOverviewView({
 
           ${renderTimelineItem({
             title: "KYB submitted",
-            description: `Current KYB status: ${humanize(kybStatus)}.`,
+            description: `Current KYB status: ${displayStatus(kybStatus)}.`,
             status: kybStatus
           })}
 
           ${renderTimelineItem({
             title: "Pilot enabled",
-            description: `Pilot status: ${humanize(pilotStatus)}.`,
+            description: `Pilot status: ${displayStatus(pilotStatus)}.`,
             status: pilotStatus
           })}
 
@@ -361,6 +373,7 @@ export function createPortalOverviewView({
       return renderCard({
         title: "Recent activity",
         description: "Latest portal events and operational changes.",
+        className: "overview-activity-card",
         body: `
           <div class="portal-empty-state compact">
             <div class="portal-empty-icon">≡</div>
@@ -374,6 +387,7 @@ export function createPortalOverviewView({
     return renderCard({
       title: "Recent activity",
       description: "Latest portal events and operational changes.",
+      className: "overview-activity-card",
       body: `
         <div class="overview-activity-list">
           ${auditEvents.map(event => `
@@ -478,26 +492,26 @@ export function createPortalOverviewView({
           eyebrow: "Overview",
           title: `Welcome back, ${getOrganizationName(state)}`,
           description:
-            "Here’s what’s happening with your integration."
+            "Track your onboarding, KYB, pilot access, corridors, and API readiness."
         })}
-
-        ${renderStepper(state)}
 
         <div class="overview-top-grid">
           ${renderHero(state)}
           ${renderHelpCard()}
         </div>
 
-        ${renderMetrics(state)}
+        ${renderStepper(state)}
 
-        <div class="overview-two-column-grid">
-          ${renderJourneyTimeline(state)}
-          ${renderRecentActivity(state)}
-        </div>
+        ${renderMetrics(state)}
 
         <div class="overview-bottom-grid">
           ${renderActiveOperations(state)}
           ${renderQuickStart()}
+        </div>
+
+        <div class="overview-two-column-grid">
+          ${renderJourneyTimeline(state)}
+          ${renderRecentActivity(state)}
         </div>
       </div>
     `;
