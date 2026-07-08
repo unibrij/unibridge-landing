@@ -23,7 +23,11 @@ export function createPortalLayoutView({
     ["pilot", "Pilot Access", "◇"],
     ["corridors", "Corridors", "⌁"],
     ["api-keys", "API Keys", "⚿"],
-    ["developer-docs", "Developer Docs", "</>"]
+    ["environments", "Environments", "▣"],
+    ["limits", "Limits", "▤"],
+    ["audit-log", "Audit Log", "≡"],
+    ["developer-docs", "Developer Docs", "</>"],
+    ["support", "Support", "?"]
   ];
 
   function getInitials(value) {
@@ -63,14 +67,16 @@ export function createPortalLayoutView({
             alt="UniBridge"
           />
 
+          <span class="portal-topbar-divider" aria-hidden="true"></span>
+
           <div class="portal-brand-text">
             <strong>Partner Portal</strong>
-            <span>UniBridge</span>
           </div>
         </div>
 
         <nav class="portal-topbar-nav" aria-label="Partner navigation">
-          <a href="#developer-docs">Developer Docs</a>
+          <a href="#developer-docs">▣ Docs</a>
+          <a href="#support">♧ Support</a>
         </nav>
 
         <div class="portal-topbar-actions">
@@ -124,17 +130,9 @@ export function createPortalLayoutView({
     state,
     activeSection = "overview"
   }) {
-    const organizationName =
-      getOrganizationName(state);
-
-    const organizationId =
-      state.organization?.id || "not_created";
-
     return `
       <aside class="portal-sidebar">
         <div class="portal-sidebar-section">
-          <span class="portal-sidebar-label">Console</span>
-
           <nav class="portal-sidebar-nav" aria-label="Partner portal sections">
             ${NAV_ITEMS
               .map(item => renderSidebarItem(item, activeSection))
@@ -146,16 +144,16 @@ export function createPortalLayoutView({
           <div class="portal-help-card">
             <strong>Need help?</strong>
             <p>
-              Review the integration guide if your setup is blocked.
+              Our support team is here for you.
             </p>
-            <a href="#developer-docs">Open docs</a>
+            <a href="#support">Contact Support</a>
           </div>
 
           <div class="portal-status-card">
             <span class="portal-status-dot"></span>
             <div>
-              <strong>${text(organizationName)}</strong>
-              <small>${text(organizationId)}</small>
+              <strong>Portal status</strong>
+              <small>All systems operational</small>
             </div>
           </div>
         </div>
