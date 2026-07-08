@@ -24,9 +24,14 @@ export function createPortalSharedView({
       .replace(/[^a-z0-9_-]/g, "");
   }
 
+  function normalizePartnerStatus(value) {
+    return String(value || "")
+      .replace(/sandbox/gi, "pilot");
+  }
+
   function humanize(value, fallback = "Not available") {
     const normalized =
-      String(value || "").trim();
+      normalizePartnerStatus(value).trim();
 
     if (!normalized) {
       return fallback;
@@ -39,9 +44,13 @@ export function createPortalSharedView({
       .replace(/\b\w/g, character => character.toUpperCase());
   }
 
+  function displayStatus(value, fallback = "Not available") {
+    return humanize(value, fallback);
+  }
+
   function statusTone(status) {
     const normalized =
-      String(status || "").toLowerCase();
+      normalizePartnerStatus(status).toLowerCase();
 
     if (
       normalized.includes("approved") ||
@@ -87,7 +96,7 @@ export function createPortalSharedView({
 
     return `
       <span class="portal-badge portal-badge-${classToken(badgeTone)} ${classToken(className, "")}">
-        ${text(humanize(label))}
+        ${text(displayStatus(label))}
       </span>
     `;
   }
@@ -178,7 +187,7 @@ export function createPortalSharedView({
         <strong>${text(value)}</strong>
         ${
           detail
-            ? `<p>${text(detail)}</p>`
+            ? `<p>${text(normalizePartnerStatus(detail))}</p>`
             : ""
         }
       </div>
@@ -244,12 +253,12 @@ export function createPortalSharedView({
           <strong>${text(title)}</strong>
           ${
             description
-              ? `<p>${text(description)}</p>`
+              ? `<p>${text(normalizePartnerStatus(description))}</p>`
               : ""
           }
           ${
             meta
-              ? `<small>${text(meta)}</small>`
+              ? `<small>${text(normalizePartnerStatus(meta))}</small>`
               : ""
           }
         </div>
@@ -331,7 +340,9 @@ export function createPortalSharedView({
   return {
     text,
     classToken,
+    normalizePartnerStatus,
     humanize,
+    displayStatus,
     statusTone,
     renderBadge,
     renderIconBadge,
