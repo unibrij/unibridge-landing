@@ -47,6 +47,9 @@ let portalNotice = "";
 let outsideDropdownClickBound =
   false;
 
+let hashChangeBound =
+  false;
+
 function htmlEscape(value) {
   return normalizeString(value)
     .replaceAll("&", "&amp;")
@@ -107,7 +110,24 @@ function parsePhoneCountry(value) {
 }
 
 function getPilotEnvironmentId() {
-  return state.environments.pilot?.id || "";
+  const environments =
+    Array.isArray(state.environments)
+      ? state.environments
+      : [];
+
+  const pilotEnvironment =
+    environments.find(environment =>
+      String(environment?.type || "")
+        .toLowerCase()
+        .includes("pilot")
+    ) ||
+    environments.find(environment =>
+      String(environment?.id || "")
+        .toLowerCase()
+        .includes("pilot")
+    );
+
+  return pilotEnvironment?.id || "";
 }
 
 async function run(action, handler) {
@@ -679,6 +699,36 @@ function bindApplicationTypeChange() {
   sync();
 }
 
+function bindPortalNavigation() {
+  document
+    .querySelectorAll("[data-portal-section-link]")
+    .forEach(link => {
+      if (link.dataset.navBound === "true") {
+        return;
+      }
+
+      link.dataset.navBound =
+        "true";
+
+      link.addEventListener("click", () => {
+        window.setTimeout(render, 0);
+      });
+    });
+}
+
+function bindHashChange() {
+  if (hashChangeBound) {
+    return;
+  }
+
+  hashChangeBound =
+    true;
+
+  window.addEventListener("hashchange", () => {
+    render();
+  });
+}
+
 function render() {
   if (!root) {
     return;
@@ -723,6 +773,8 @@ function bindEvents() {
 
   bindApplicationTypeChange();
   bindDropdowns();
+  bindPortalNavigation();
+  bindHashChange();
 
   bind("clear-secret", () => {
     dispatch({ type: "clear_secret" });
