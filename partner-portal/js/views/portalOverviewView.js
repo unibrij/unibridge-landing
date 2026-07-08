@@ -495,23 +495,23 @@ export function createPortalOverviewView({
             "Track your onboarding, KYB, pilot access, corridors, and API readiness."
         })}
 
+        ${renderStepper(state)}
+
         <div class="overview-top-grid">
           ${renderHero(state)}
           ${renderHelpCard()}
         </div>
 
-        ${renderStepper(state)}
-
         ${renderMetrics(state)}
-
-        <div class="overview-bottom-grid">
-          ${renderActiveOperations(state)}
-          ${renderQuickStart()}
-        </div>
 
         <div class="overview-two-column-grid">
           ${renderJourneyTimeline(state)}
           ${renderRecentActivity(state)}
+        </div>
+
+        <div class="overview-bottom-grid">
+          ${renderActiveOperations(state)}
+          ${renderQuickStart()}
         </div>
       </div>
     `;
