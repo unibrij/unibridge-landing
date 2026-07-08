@@ -353,19 +353,6 @@ button:disabled {
   margin: 0 auto;
 }
 
-.portal-overview-page {
-  max-width: none;
-  margin: 0;
-  padding: 0 30px;
-}
-
-.portal-overview-page .overview-bottom-grid {
-  margin-left: -30px;
-  margin-right: -30px;
-  padding-left: 30px;
-  padding-right: 30px;
-}
-
 /* Footer */
 
 .portal-footer {
