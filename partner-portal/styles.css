@@ -353,6 +353,27 @@ button:disabled {
   margin: 0 auto;
 }
 
+.portal-overview-page {
+  max-width: none;
+  margin: 0;
+}
+
+.portal-overview-page > .portal-page-header,
+.portal-overview-page > .overview-progress-stepper,
+.portal-overview-page > .overview-top-grid,
+.portal-overview-page > .overview-metric-grid,
+.portal-overview-page > .overview-two-column-grid {
+  max-width: var(--content-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.portal-overview-page > .overview-bottom-grid {
+  max-width: none;
+  margin-left: calc(-1 * 30px);
+  margin-right: calc(-1 * 30px);
+}
+
 /* Page + cards */
 
 .portal-page-header {
