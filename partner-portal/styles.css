@@ -375,6 +375,8 @@ button:disabled {
 
 .overview-bottom-bleed > .overview-bottom-grid {
   max-width: none;
+  margin-bottom: 0;
+  padding: 0 30px;
 }
 
 /* Page + cards */
