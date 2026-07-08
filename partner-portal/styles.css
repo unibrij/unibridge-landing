@@ -370,8 +370,10 @@ button:disabled {
 
 .portal-overview-page > .overview-bottom-grid {
   max-width: none;
-  margin-left: calc(-1 * 30px);
-  margin-right: calc(-1 * 30px);
+  margin-left: -30px;
+  margin-right: -30px;
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 /* Page + cards */
