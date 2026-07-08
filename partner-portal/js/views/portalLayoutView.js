@@ -23,11 +23,7 @@ export function createPortalLayoutView({
     ["pilot", "Pilot Access", "◇"],
     ["corridors", "Corridors", "⌁"],
     ["api-keys", "API Keys", "⚿"],
-    ["environments", "Environments", "▣"],
-    ["limits", "Limits", "▤"],
-    ["audit-log", "Audit Log", "≡"],
-    ["developer-docs", "Developer Docs", "</>"],
-    ["support", "Support", "?"]
+    ["developer-docs", "Developer Docs", "</>"]
   ];
 
   function getInitials(value) {
@@ -70,7 +66,6 @@ export function createPortalLayoutView({
 
         <nav class="portal-topbar-nav" aria-label="Partner navigation">
           <a href="#developer-docs">Developer Docs</a>
-          <a href="#support">Support</a>
         </nav>
 
         <div class="portal-topbar-actions">
@@ -148,7 +143,7 @@ export function createPortalLayoutView({
             <p>
               Review the integration guide or contact UniBridge support.
             </p>
-            <a href="#support">Contact support</a>
+            <a href="#developer-docs">Open docs</a>
           </div>
 
           <div class="portal-status-card">
@@ -181,7 +176,7 @@ export function createPortalLayoutView({
             activeSection: safeActiveSection
           })}
 
-          <main class="portal-main-content" id="${safeActiveSection}">
+          <main class="portal-main-content">
             ${content}
           </main>
         </div>
