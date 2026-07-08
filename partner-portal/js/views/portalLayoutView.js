@@ -11,7 +11,9 @@ export function createPortalLayoutView({
 
   const {
     text,
-    classToken
+    classToken,
+    getOrganizationName,
+    getApplicationName
   } = shared;
 
   const NAV_ITEMS = [
@@ -28,11 +30,74 @@ export function createPortalLayoutView({
     ["support", "Support", "?"]
   ];
 
-  function safeSectionId(value, fallback = "overview") {
-    const normalized =
-      classToken(value, fallback);
+  function getInitials(value) {
+    const words =
+      String(value || "Partner")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
 
-    return normalized || fallback;
+    return words
+      .slice(0, 2)
+      .map(word => word[0])
+      .join("")
+      .toUpperCase() || "P";
+  }
+
+  function safeSectionId(value, fallback = "overview") {
+    return classToken(value, fallback) || fallback;
+  }
+
+  function renderTopbar(state) {
+    const organizationName =
+      getOrganizationName(state);
+
+    const applicationName =
+      getApplicationName(state);
+
+    return `
+      <header class="portal-topbar">
+        <div class="portal-topbar-brand">
+          <img
+            class="portal-brand-logo"
+            src="/public/icons/social/unibridge-orbit-lockup-dark.png"
+            alt="UniBridge"
+          />
+
+          <span class="portal-topbar-divider" aria-hidden="true"></span>
+
+          <div class="portal-brand-text">
+            <strong>Partner Portal</strong>
+          </div>
+        </div>
+
+        <nav class="portal-topbar-nav" aria-label="Partner navigation">
+          <a href="#developer-docs">▣ Docs</a>
+          <a href="#support">♧ Support</a>
+        </nav>
+
+        <div class="portal-topbar-actions">
+          <button
+            id="refresh-portal"
+            class="portal-icon-button"
+            type="button"
+            title="Refresh portal"
+            aria-label="Refresh portal"
+          >
+            ↻
+          </button>
+
+          <div class="portal-org-switcher">
+            <span>${text(organizationName)}</span>
+            <small>${text(applicationName)}</small>
+          </div>
+
+          <div class="portal-avatar" aria-hidden="true">
+            ${text(getInitials(organizationName))}
+          </div>
+        </div>
+      </header>
+    `;
   }
 
   function renderSidebarItem([
@@ -93,6 +158,7 @@ export function createPortalLayoutView({
   }
 
   function renderShell({
+    state,
     activeSection = "overview",
     content = ""
   }) {
@@ -101,6 +167,8 @@ export function createPortalLayoutView({
 
     return `
       <div class="portal-console" data-active-section="${safeActiveSection}">
+        ${renderTopbar(state)}
+
         <div class="portal-console-body">
           ${renderSidebar({
             activeSection: safeActiveSection
@@ -116,6 +184,7 @@ export function createPortalLayoutView({
 
   return {
     renderShell,
+    renderTopbar,
     renderSidebar
   };
 }
