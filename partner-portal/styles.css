@@ -827,6 +827,13 @@ button:disabled {
   letter-spacing: -0.04em;
 }
 
+.portal-metric-card strong.metric-status {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 .portal-metric-card p {
   margin: 10px 0 0;
   color: var(--muted);
