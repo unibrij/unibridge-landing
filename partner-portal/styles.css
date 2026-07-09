@@ -137,14 +137,14 @@ button:disabled {
 }
 
 .portal-brand-text strong {
-  color: var(--text);
+  color: #ffffff;
   font-size: 16px;
   font-weight: 850;
   letter-spacing: -0.02em;
 }
 
 .portal-brand-text span {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
   font-weight: 700;
 }
