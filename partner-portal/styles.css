@@ -272,6 +272,23 @@ button:disabled {
   font-weight: 900;
 }
 
+.portal-sidebar-icon svg,
+.portal-topbar-icon svg,
+.portal-icon-button svg {
+  width: 21px;
+  height: 21px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.portal-topbar-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
 .portal-sidebar-footer {
   display: grid;
   gap: 16px;
