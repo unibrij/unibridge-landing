@@ -97,7 +97,10 @@ button:disabled {
 }
 
 .portal-topbar,
-.portal-topbar a {
+.portal-topbar a,
+.portal-brand-text strong,
+.portal-brand-text span,
+.portal-topbar-nav a {
   color: #ffffff;
 }
 
@@ -124,7 +127,7 @@ button:disabled {
 .portal-topbar-divider {
   width: 1px;
   height: 28px;
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .portal-brand-text {
@@ -157,7 +160,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--text);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 800;
 }
@@ -169,10 +172,10 @@ button:disabled {
 .portal-icon-button {
   width: 38px;
   height: 38px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
-  background: var(--card);
-  color: var(--navy);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
   font-weight: 900;
 }
 
