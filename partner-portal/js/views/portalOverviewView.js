@@ -488,10 +488,9 @@ export function createPortalOverviewView({
 
         ${renderStepper(state)}
 
-        <div class="overview-top-grid">
-          ${renderHero(state)}
-          ${renderHelpCard()}
-        </div>
+        <div class="overview-top-grid overview-top-grid-single">
+  ${renderHero(state)}
+</div>
 
         ${renderMetrics(state)}
 
