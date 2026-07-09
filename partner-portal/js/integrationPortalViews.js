@@ -10,7 +10,7 @@ import {
 
 import {
   createPortalOverviewView
-} from "./views/portalOverviewView.js";
+} from "./views/portalOverviewView.js?v=6";
 
 import {
   createPortalOnboardingView
