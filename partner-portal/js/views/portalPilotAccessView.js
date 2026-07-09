@@ -6,6 +6,10 @@ import {
   PORTAL_ACTION
 } from "../integrationPortalState.js";
 
+import {
+  createPortalMetricSummaryView
+} from "./portalMetricSummaryView.js";
+
 export function createPortalPilotAccessView({
   shared,
   can
@@ -27,11 +31,16 @@ export function createPortalPilotAccessView({
     displayStatus,
     renderBadge,
     renderCard,
-    renderMetricCard,
     renderPageHeader,
-    renderEmptyState,
-    formatCount
+    renderEmptyState
   } = shared;
+
+  const metricSummaryView =
+    createPortalMetricSummaryView({
+      shared,
+      getApprovedPilotCorridors,
+      getPilotEnvironment
+    });
 
   function getPilotStatus(state) {
     const environment =
@@ -41,16 +50,6 @@ export function createPortalPilotAccessView({
       environment?.status ||
       state.pilot_access?.status ||
       "pending"
-    );
-  }
-
-  function getPilotEnvironmentId(state) {
-    const environment =
-      getPilotEnvironment(state);
-
-    return (
-      environment?.id ||
-      "not_available"
     );
   }
 
@@ -64,39 +63,7 @@ export function createPortalPilotAccessView({
   }
 
   function renderSummary(state) {
-    const status =
-      getPilotStatus(state);
-
-    const corridors =
-      getApprovedPilotCorridors(state);
-
-    return `
-      <section class="pilot-summary-grid">
-        ${renderMetricCard({
-          icon: "◇",
-          label: "Pilot status",
-          value: displayStatus(status),
-          badge: renderBadge(status),
-          detail: getPilotEnvironmentId(state)
-        })}
-
-        ${renderMetricCard({
-          icon: "⌁",
-          label: "Approved corridors",
-          value: formatCount(corridors.length),
-          detail: corridors.length
-            ? "Ready for pilot testing"
-            : "No approved corridors"
-        })}
-
-        ${renderMetricCard({
-          icon: "▣",
-          label: "Environment",
-          value: getPilotEnvironmentId(state),
-          detail: "Pilot environment"
-        })}
-      </section>
-    `;
+    return metricSummaryView.renderPilotMetrics(state);
   }
 
   function renderEnvironmentCard(state) {
