@@ -60,7 +60,7 @@ export function createPortalLayoutView({
         <div class="portal-topbar-brand">
           <img
             class="portal-brand-logo"
-            src="/public/icons/social/unibridge-orbit-lockup-dark.png"
+            src="/public/icons/social/unibridge-orbit-lockup-white.png"
             alt="UniBridge"
           />
 
