@@ -721,7 +721,7 @@ button:disabled {
 
 .overview-hero-illustration {
   width: 100%;
-  max-width: 360px;
+  max-width: 285px;
   height: auto;
   display: block;
   object-fit: contain;
