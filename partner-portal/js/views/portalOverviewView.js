@@ -44,7 +44,7 @@ export function createPortalOverviewView({
     ["kyb", "KYB"],
     ["pilot", "Pilot Access"],
     ["api_keys", "API Keys"],
-    ["go_live", "Go Live"]
+    ["production", "Production"]
   ];
 
   function getKybStatus(state) {
@@ -157,7 +157,9 @@ export function createPortalOverviewView({
 
   function renderStepper(state) {
     const currentIndex =
-      getCurrentJourneyIndex(getPortalStep(state));
+      getCredentialCount(state) > 0
+    ? 4
+    : getCurrentJourneyIndex(getPortalStep(state));
 
     return `
       <section class="overview-stepper overview-progress-stepper" aria-label="Integration progress">
