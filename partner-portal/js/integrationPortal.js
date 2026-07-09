@@ -10,6 +10,7 @@ import {
 } from "./portalAuth.js";
 
 import {
+  clearStoredOrganizationId,
   readStoredOrganizationId,
   storeOrganizationId
 } from "./portalStorage.js";
@@ -102,10 +103,8 @@ function parsePhoneCountry(value) {
     normalizeString(value).split("|");
 
   return {
-    country:
-      normalizeString(country),
-    dial_code:
-      normalizeString(dialCode)
+    country: normalizeString(country),
+    dial_code: normalizeString(dialCode)
   };
 }
 
@@ -218,15 +217,11 @@ async function loadPortal() {
       type: "loaded",
       organization,
       application,
-      environments:
-        environmentsResult.environments || [],
-      credentials:
-        credentialsResult.credentials || [],
+      environments: environmentsResult.environments || [],
+      credentials: credentialsResult.credentials || [],
       webhooks: [],
-      kyb:
-        kybStatusResult.kyb || null,
-      pilot_access:
-        kybStatusResult.pilot_access || null,
+      kyb: kybStatusResult.kyb || null,
+      pilot_access: kybStatusResult.pilot_access || null,
       production_status: null
     });
   } catch (error) {
@@ -311,8 +306,7 @@ async function createOrganization() {
     legal_name: getValue("organization-legal-name"),
     country: getValue("organization-country"),
     website: getValue("organization-website"),
-    business_model:
-      getValue("organization-business-model")
+    business_model: getValue("organization-business-model")
   };
 
   await run(
@@ -321,9 +315,7 @@ async function createOrganization() {
       const result =
         await api.createOrganization(payload);
 
-      storeOrganizationId(
-        result.organization?.id
-      );
+      storeOrganizationId(result.organization?.id);
 
       dispatch({
         type: "organization_created",
@@ -379,40 +371,23 @@ async function submitQuestionnaire() {
     application_id: state.application.id,
     integration_type:
       state.application.integration_type || "api",
-
     use_case:
       getValue("questionnaire-use-case"),
-
     requested_corridors:
       targetDestinationMarkets,
-
     target_destination_markets:
       targetDestinationMarkets,
-
     expected_monthly_transactions:
       getValue("questionnaire-monthly-transactions"),
-
     expected_monthly_volume:
       getValue("questionnaire-monthly-volume"),
-
     compliance_contact: {
-      name:
-        getValue("questionnaire-contact-name"),
-
-      email:
-        getValue("questionnaire-contact-email"),
-
-      role:
-        getValue("questionnaire-contact-role"),
-
-      phone_country:
-        phoneCountry.country,
-
-      phone_country_code:
-        phoneCountry.dial_code,
-
-      phone:
-        getValue("questionnaire-contact-phone")
+      name: getValue("questionnaire-contact-name"),
+      email: getValue("questionnaire-contact-email"),
+      role: getValue("questionnaire-contact-role"),
+      phone_country: phoneCountry.country,
+      phone_country_code: phoneCountry.dial_code,
+      phone: getValue("questionnaire-contact-phone")
     }
   };
 
@@ -514,6 +489,84 @@ function closeAllDropdowns(exceptShell = null) {
         shell.classList.remove("is-open");
       }
     });
+}
+
+function closeProfileMenu() {
+  const menu =
+    document.getElementById("portal-profile-menu");
+
+  const trigger =
+    document.getElementById("portal-profile-menu-trigger");
+
+  if (menu) {
+    menu.hidden = true;
+  }
+
+  if (trigger) {
+    trigger.setAttribute("aria-expanded", "false");
+  }
+}
+
+function toggleProfileMenu(event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const menu =
+    document.getElementById("portal-profile-menu");
+
+  const trigger =
+    document.getElementById("portal-profile-menu-trigger");
+
+  if (!menu || !trigger) {
+    return;
+  }
+
+  const shouldOpen =
+    menu.hidden;
+
+  closeAllDropdowns();
+  closeProfileMenu();
+
+  menu.hidden =
+    !shouldOpen;
+
+  trigger.setAttribute(
+    "aria-expanded",
+    String(shouldOpen)
+  );
+}
+
+function signOutPortal() {
+  clearStoredOrganizationId();
+
+  portalNotice = "";
+
+  if (window.location.hash) {
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+  }
+
+  state =
+    createEmptyIntegrationPortalState();
+
+  dispatchEmptyLoaded();
+}
+
+function bindProfileMenu() {
+  bind("portal-profile-menu-trigger", toggleProfileMenu);
+  bind("portal-sign-out", signOutPortal);
+
+  const menu =
+    document.getElementById("portal-profile-menu");
+
+  if (menu) {
+    menu.addEventListener("click", event => {
+      event.stopPropagation();
+    });
+  }
 }
 
 function bindSingleDropdown(shell) {
@@ -664,6 +717,7 @@ function bindDropdownOutsideClick() {
 
   document.addEventListener("click", () => {
     closeAllDropdowns();
+    closeProfileMenu();
   });
 }
 
@@ -770,6 +824,7 @@ function bindEvents() {
   bind("issue-pilot-credential", issuePilotCredential);
   bind("start-didit-kyb", startDiditKyb);
   bind("copy-secret", copySecret);
+  bindProfileMenu();
 
   bindApplicationTypeChange();
   bindDropdowns();
