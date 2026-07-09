@@ -611,6 +611,14 @@ button:disabled {
   margin-bottom: 20px;
 }
 
+.overview-top-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.overview-top-grid-single .overview-hero-card {
+  grid-template-columns: minmax(0, 0.75fr) minmax(360px, 1.25fr);
+}
+
 .overview-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
