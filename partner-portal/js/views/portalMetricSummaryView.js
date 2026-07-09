@@ -85,15 +85,23 @@ export function createPortalMetricSummaryView({
     );
   }
 
+  function isStatusValue(value) {
+    return !Number.isFinite(Number(value));
+  }
+
   function metricCard({
     label,
     value,
-    detail = ""
+    detail = "",
+    valueClass = ""
   }) {
+    const safeValueClass =
+      valueClass || (isStatusValue(value) ? "metric-status" : "");
+
     return `
       <article class="portal-metric-card">
         <span class="portal-metric-label">${text(label)}</span>
-        <strong>${text(value)}</strong>
+        <strong class="${text(safeValueClass)}">${text(value)}</strong>
         ${detail ? `<p>${text(detail)}</p>` : ""}
       </article>
     `;
@@ -195,7 +203,8 @@ export function createPortalMetricSummaryView({
         ${metricCard({
           label: "Production access",
           value: displayStatus(getProductionStatus(state)),
-          detail: "Production corridor access is reviewed during go-live"
+          detail: "Production corridor access is reviewed during go-live",
+          valueClass: "metric-status"
         })}
       </section>
     `;
@@ -219,7 +228,8 @@ export function createPortalMetricSummaryView({
         ${metricCard({
           label: "Secrets",
           value: "Hidden",
-          detail: "Secrets are only shown once when issued"
+          detail: "Secrets are only shown once when issued",
+          valueClass: "metric-status"
         })}
       </section>
     `;
@@ -243,7 +253,8 @@ export function createPortalMetricSummaryView({
         ${metricCard({
           label: "Default access",
           value: "Pilot",
-          detail: "Production is reviewed separately"
+          detail: "Production is reviewed separately",
+          valueClass: "metric-status"
         })}
       </section>
     `;
@@ -260,19 +271,22 @@ export function createPortalMetricSummaryView({
         ${metricCard({
           label: "Daily transactions",
           value: limits.daily_transactions || "Not configured",
-          detail: "Pilot limit"
+          detail: "Pilot limit",
+          valueClass: "metric-status"
         })}
 
         ${metricCard({
           label: "Monthly transactions",
           value: limits.monthly_transactions || "Not configured",
-          detail: "Pilot limit"
+          detail: "Pilot limit",
+          valueClass: "metric-status"
         })}
 
         ${metricCard({
           label: "Monthly volume",
           value: limits.monthly_volume || "Not configured",
-          detail: "Pilot limit"
+          detail: "Pilot limit",
+          valueClass: "metric-status"
         })}
       </section>
     `;
