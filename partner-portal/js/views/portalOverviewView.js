@@ -6,6 +6,10 @@ import {
   getPilotEnvironment
 } from "../integrationPortalState.js";
 
+import {
+  createPortalMetricSummaryView
+} from "./portalMetricSummaryView.js";
+
 export function createPortalOverviewView({
   shared
 } = {}) {
@@ -22,13 +26,18 @@ export function createPortalOverviewView({
     displayStatus,
     renderBadge,
     renderCard,
-    renderMetricCard,
     renderPageHeader,
     renderTimelineItem,
     renderTable,
-    getOrganizationName,
-    formatCount
+    getOrganizationName
   } = shared;
+
+  const metricSummaryView =
+    createPortalMetricSummaryView({
+      shared,
+      getApprovedPilotCorridors,
+      getPilotEnvironment
+    });
 
   const JOURNEY_STEPS = [
     ["questionnaire", "Questionnaire"],
@@ -46,29 +55,10 @@ export function createPortalOverviewView({
     );
   }
 
-  function getPilotStatus(state) {
-    const pilotEnvironment =
-      getPilotEnvironment(state);
-
-    return (
-      pilotEnvironment?.status ||
-      state.pilot_access?.status ||
-      "pending"
-    );
-  }
-
   function getCredentialCount(state) {
     return Array.isArray(state.credentials)
       ? state.credentials.length
       : 0;
-  }
-
-  function getEnvironmentCount(state) {
-    return Array.isArray(state.environments)
-      ? state.environments.length
-      : state.application
-        ? 1
-        : 0;
   }
 
   function getCurrentStepCopy(step) {
@@ -232,68 +222,6 @@ export function createPortalOverviewView({
     `;
   }
 
-  function renderHelpCard() {
-    return renderCard({
-      title: "Need help?",
-      description:
-        "Use the developer docs for API examples and integration guidance.",
-      className: "overview-help-card",
-      body: `
-        <div class="overview-help-actions">
-          <a href="#developer-docs">Developer Docs</a>
-        </div>
-      `
-    });
-  }
-
-  function renderMetrics(state) {
-    const approvedCorridors =
-      getApprovedPilotCorridors(state);
-
-    const pilotEnvironment =
-      getPilotEnvironment(state);
-
-    return `
-      <section class="overview-metric-grid">
-        <article class="portal-metric-card">
-  <span class="portal-metric-label">Pilot status</span>
-
-  <div class="portal-metric-status-row">
-    <span class="portal-badge portal-badge-success">
-      ${text(displayStatus(getPilotStatus(state)))}
-    </span>
-
-    <p>${text(pilotEnvironment?.id || "Pilot environment pending")}</p>
-  </div>
-</article>
-
-        <article class="portal-metric-card">
-          <span class="portal-metric-label">Approved corridors</span>
-          <strong>${text(formatCount(approvedCorridors.length))}</strong>
-          <p>
-            ${text(
-              approvedCorridors.length
-                ? "Ready for pilot testing"
-                : "Waiting for corridor approval"
-            )}
-          </p>
-        </article>
-
-        <article class="portal-metric-card">
-          <span class="portal-metric-label">API keys</span>
-          <strong>${text(formatCount(getCredentialCount(state)))}</strong>
-          <p>Secrets are never shown again</p>
-        </article>
-
-        <article class="portal-metric-card">
-          <span class="portal-metric-label">Environments</span>
-          <strong>${text(formatCount(getEnvironmentCount(state)))}</strong>
-          <p>${text(pilotEnvironment?.id || "No environment available yet")}</p>
-        </article>
-      </section>
-    `;
-  }
-
   function renderJourneyTimeline(state) {
     const hasOrganization =
       Boolean(state.organization);
@@ -307,8 +235,15 @@ export function createPortalOverviewView({
     const kybStatus =
       getKybStatus(state);
 
+    const pilotEnvironment =
+      getPilotEnvironment(state);
+
     const pilotStatus =
-      getPilotStatus(state);
+      (
+        pilotEnvironment?.status ||
+        state.pilot_access?.status ||
+        "pending"
+      );
 
     const hasKeys =
       getCredentialCount(state) > 0;
@@ -497,7 +432,7 @@ export function createPortalOverviewView({
           ${renderHero(state)}
         </div>
 
-        ${renderMetrics(state)}
+        ${metricSummaryView.renderOverviewMetrics(state)}
 
         <div class="overview-two-column-grid">
           ${renderJourneyTimeline(state)}
