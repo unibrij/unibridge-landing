@@ -118,8 +118,8 @@ button:disabled {
 }
 
 .portal-brand-logo {
-  width: 170px;
-  max-height: 44px;
+  width: 185px;
+  max-height: 48px;
   object-fit: contain;
   display: block;
 }
@@ -721,7 +721,7 @@ button:disabled {
 
 .overview-hero-illustration {
   width: 100%;
-  max-width: 285px;
+  max-width: 270px;
   height: auto;
   display: block;
   object-fit: contain;
