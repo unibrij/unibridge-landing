@@ -537,17 +537,16 @@ function toggleProfileMenu(event) {
 }
 
 function signOutPortal() {
+  closeProfileMenu();
   clearStoredOrganizationId();
 
   portalNotice = "";
 
-  if (window.location.hash) {
-    window.history.replaceState(
-      {},
-      document.title,
-      window.location.pathname
-    );
-  }
+  window.history.replaceState(
+    {},
+    document.title,
+    `${window.location.pathname}#onboarding`
+  );
 
   state =
     createEmptyIntegrationPortalState();
