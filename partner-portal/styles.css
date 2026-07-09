@@ -716,10 +716,7 @@ button:disabled {
   display: grid;
   place-items: center;
   border-radius: 24px;
-  background:
-    radial-gradient(circle at 70% 40%, rgba(0, 212, 170, 0.22), transparent 5rem),
-    radial-gradient(circle at 50% 50%, rgba(0, 51, 102, 0.06), transparent 12rem),
-    #eef9fb;
+  background: transparent;
 }
 
 .overview-hero-illustration {
