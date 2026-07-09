@@ -1,8 +1,13 @@
 // partner-portal/js/views/portalCorridorsView.js
 
 import {
-  getApprovedPilotCorridors
+  getApprovedPilotCorridors,
+  getPilotEnvironment
 } from "../integrationPortalState.js";
+
+import {
+  createPortalMetricSummaryView
+} from "./portalMetricSummaryView.js";
 
 export function createPortalCorridorsView({
   shared
@@ -20,9 +25,15 @@ export function createPortalCorridorsView({
     renderCard,
     renderPageHeader,
     renderEmptyState,
-    renderTable,
-    formatCount
+    renderTable
   } = shared;
+
+  const metricSummaryView =
+    createPortalMetricSummaryView({
+      shared,
+      getApprovedPilotCorridors,
+      getPilotEnvironment
+    });
 
   function getRequestedCorridors(state) {
     return Array.isArray(state.organization?.requested_corridors)
@@ -51,33 +62,7 @@ export function createPortalCorridorsView({
   }
 
   function renderCorridorSummary(state) {
-    const approved =
-      getApprovedPilotCorridors(state);
-
-    const requested =
-      getRequestedCorridors(state);
-
-    return `
-      <section class="corridors-summary-grid">
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">Approved for pilot</span>
-          <strong>${text(formatCount(approved.length))}</strong>
-          <p>Corridors available for pilot API keys.</p>
-        </div>
-
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">Requested corridors</span>
-          <strong>${text(formatCount(requested.length))}</strong>
-          <p>Corridors submitted through onboarding.</p>
-        </div>
-
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">Production access</span>
-          <strong>Not enabled</strong>
-          <p>Production corridor access is reviewed during go-live.</p>
-        </div>
-      </section>
-    `;
+    return metricSummaryView.renderCorridorMetrics(state);
   }
 
   function renderApprovedCorridors(state) {
