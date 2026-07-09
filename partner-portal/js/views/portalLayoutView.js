@@ -60,6 +60,9 @@ export function createPortalLayoutView({ shared } = {}) {
     const organizationName = getOrganizationName(state);
     const applicationName = getApplicationName(state);
 
+    const hasOrganization =
+      Boolean(state.organization);
+
     return `
       <header class="portal-topbar">
         <div class="portal-topbar-brand">
@@ -81,6 +84,7 @@ export function createPortalLayoutView({ shared } = {}) {
             <span class="portal-topbar-icon" aria-hidden="true">${icon.book}</span>
             Docs
           </a>
+
           <a href="#support">
             <span class="portal-topbar-icon" aria-hidden="true">${icon.headset}</span>
             Support
@@ -103,41 +107,47 @@ export function createPortalLayoutView({ shared } = {}) {
             <small>${text(applicationName)}</small>
           </div>
 
-          <div class="portal-profile-menu">
-  <button
-    id="portal-profile-menu-trigger"
-    class="portal-avatar"
-    type="button"
-    aria-label="Open account menu"
-    aria-haspopup="menu"
-    aria-expanded="false"
-  >
-    ${text(getInitials(organizationName))}
-  </button>
+          ${
+            hasOrganization
+              ? `
+                <div class="portal-profile-menu">
+                  <button
+                    id="portal-profile-menu-trigger"
+                    class="portal-avatar"
+                    type="button"
+                    aria-label="Open account menu"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                  >
+                    ${text(getInitials(organizationName))}
+                  </button>
 
-  <div
-    id="portal-profile-menu"
-    class="portal-profile-dropdown"
-    role="menu"
-    hidden
-  >
-    <div class="portal-profile-dropdown-header">
-      <strong>${text(organizationName)}</strong>
-      <small>${text(applicationName)}</small>
-    </div>
+                  <div
+                    id="portal-profile-menu"
+                    class="portal-profile-dropdown"
+                    role="menu"
+                    hidden
+                  >
+                    <div class="portal-profile-dropdown-header">
+                      <strong>${text(organizationName)}</strong>
+                      <small>${text(applicationName)}</small>
+                    </div>
 
-    <div class="portal-profile-dropdown-divider"></div>
+                    <div class="portal-profile-dropdown-divider"></div>
 
-    <button
-      id="portal-sign-out"
-      class="portal-profile-dropdown-item danger"
-      type="button"
-      role="menuitem"
-    >
-      Sign out
-    </button>
-  </div>
-</div>
+                    <button
+                      id="portal-sign-out"
+                      class="portal-profile-dropdown-item danger"
+                      type="button"
+                      role="menuitem"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
+              `
+              : ""
+          }
         </div>
       </header>
     `;
