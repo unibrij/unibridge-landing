@@ -222,11 +222,11 @@ export function createPortalOverviewView({
         </div>
 
         <div class="overview-hero-visual" aria-hidden="true">
-          <div class="overview-orbit-card">
-            <span></span>
-            <strong>Partner API</strong>
-            <small>Pilot access · KYB · Corridors</small>
-          </div>
+          <img
+            class="overview-hero-illustration"
+            src="/icons/social/pilot-review-illustration.png"
+            alt=""
+          />
         </div>
       </section>
     `;
@@ -489,8 +489,8 @@ export function createPortalOverviewView({
         ${renderStepper(state)}
 
         <div class="overview-top-grid overview-top-grid-single">
-  ${renderHero(state)}
-</div>
+          ${renderHero(state)}
+        </div>
 
         ${renderMetrics(state)}
 
