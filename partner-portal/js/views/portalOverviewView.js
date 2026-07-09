@@ -224,7 +224,7 @@ export function createPortalOverviewView({
         <div class="overview-hero-visual" aria-hidden="true">
           <img
             class="overview-hero-illustration"
-            src="/icons/social/pilot-review-illustration.png"
+            src="/public/icons/social/pilot-review-illustration.png"
             alt=""
           />
         </div>
