@@ -256,10 +256,14 @@ export function createPortalOverviewView({
     return `
       <section class="overview-metric-grid">
         <article class="portal-metric-card">
-          <span class="portal-metric-label">Pilot status</span>
-          <strong>${text(displayStatus(getPilotStatus(state)))}</strong>
-          <p>${text(pilotEnvironment?.id || "Pilot environment pending")}</p>
-        </article>
+  <span class="portal-badge portal-badge-success">
+    ${text(displayStatus(getPilotStatus(state)))}
+  </span>
+
+  <span class="portal-metric-label">Pilot status</span>
+
+  <p>${text(pilotEnvironment?.id || "Pilot environment pending")}</p>
+</article>
 
         <article class="portal-metric-card">
           <span class="portal-metric-label">Approved corridors</span>
