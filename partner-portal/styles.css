@@ -1242,3 +1242,33 @@ select {
   border-color: rgba(239, 68, 68, 0.25);
   background: #fff;
 }
+
+.pay-lite-footer {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 18px 30px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pay-lite-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pay-lite-footer a {
+  color: var(--navy);
+  font-weight: 850;
+}
+
+.pay-lite-footer .aria-hidden {
+  color: var(--border);
+}
+
