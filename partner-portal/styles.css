@@ -216,7 +216,6 @@ button:disabled {
 }
 
 .portal-sidebar {
-  min-height: calc(100vh - var(--topbar-height));
   height: auto;
   align-self: start;
   display: flex;
