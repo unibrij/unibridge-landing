@@ -722,6 +722,14 @@ button:disabled {
     #eef9fb;
 }
 
+.overview-hero-illustration {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
 .overview-orbit-card {
   width: 230px;
   display: grid;
