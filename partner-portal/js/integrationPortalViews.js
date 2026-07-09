@@ -1,6 +1,11 @@
 // partner-portal/js/integrationPortalViews.js
 
 import {
+  getApprovedPilotCorridors,
+  getPilotEnvironment
+} from "./integrationPortalState.js";
+
+import {
   createPortalSharedView
 } from "./views/portalSharedView.js";
 
@@ -10,7 +15,7 @@ import {
 
 import {
   createPortalOverviewView
-} from "./views/portalOverviewView.js?v=6";
+} from "./views/portalOverviewView.js";
 
 import {
   createPortalOnboardingView
@@ -36,6 +41,10 @@ import {
   createPortalDeveloperDocsView
 } from "./views/portalDeveloperDocsView.js";
 
+import {
+  createPortalMetricSummaryView
+} from "./views/portalMetricSummaryView.js";
+
 export function createIntegrationPortalViews({
   htmlEscape,
   can
@@ -60,6 +69,13 @@ export function createIntegrationPortalViews({
   const layout =
     createPortalLayoutView({
       shared
+    });
+
+  const metricSummaryView =
+    createPortalMetricSummaryView({
+      shared,
+      getApprovedPilotCorridors,
+      getPilotEnvironment
     });
 
   const overviewView =
@@ -106,22 +122,14 @@ export function createIntegrationPortalViews({
     humanize,
     renderBadge,
     renderCard,
-    renderMetricCard,
     renderPageHeader,
     renderEmptyState,
-    renderTable,
-    formatCount
+    renderTable
   } = shared;
 
   function getEnvironments(state) {
     return Array.isArray(state.environments)
       ? state.environments
-      : [];
-  }
-
-  function getCredentials(state) {
-    return Array.isArray(state.credentials)
-      ? state.credentials
       : [];
   }
 
@@ -134,12 +142,6 @@ export function createIntegrationPortalViews({
   function renderEnvironments(state) {
     const environments =
       getEnvironments(state);
-
-    const active =
-      environments.filter(environment =>
-        String(environment?.status || "active")
-          .toLowerCase() === "active"
-      );
 
     const rows =
       environments.map(environment => [
@@ -158,28 +160,7 @@ export function createIntegrationPortalViews({
             "Review environments assigned to this application."
         })}
 
-        <section class="api-keys-summary-grid">
-          ${renderMetricCard({
-            icon: "▣",
-            label: "Environments",
-            value: formatCount(environments.length),
-            detail: "Total environments"
-          })}
-
-          ${renderMetricCard({
-            icon: "◇",
-            label: "Active",
-            value: formatCount(active.length),
-            detail: "Ready for testing"
-          })}
-
-          ${renderMetricCard({
-            icon: "⌁",
-            label: "Default access",
-            value: "Pilot",
-            detail: "Production is reviewed separately"
-          })}
-        </section>
+        ${metricSummaryView.renderEnvironmentMetrics(state)}
 
         ${renderCard({
           title: "Environment list",
@@ -213,28 +194,10 @@ export function createIntegrationPortalViews({
             "Review the current limits configured for your pilot environment."
         })}
 
-        <section class="api-keys-summary-grid">
-          ${renderMetricCard({
-            icon: "▤",
-            label: "Daily transactions",
-            value: pilotLimits.daily_transactions ?? "Not configured",
-            detail: "Pilot limit"
-          })}
-
-          ${renderMetricCard({
-            icon: "▤",
-            label: "Monthly transactions",
-            value: pilotLimits.monthly_transactions ?? "Not configured",
-            detail: "Pilot limit"
-          })}
-
-          ${renderMetricCard({
-            icon: "▤",
-            label: "Monthly volume",
-            value: pilotLimits.monthly_volume ?? "Not configured",
-            detail: "Pilot limit"
-          })}
-        </section>
+        ${metricSummaryView.renderLimitMetrics({
+          ...state,
+          pilot_limits: pilotLimits
+        })}
 
         ${renderCard({
           title: "Limit policy",
