@@ -175,14 +175,24 @@ export function createPortalSharedView({
     value,
     detail = "",
     badge = "",
-    icon = "·"
+    icon = ""
   }) {
     return `
       <div class="portal-metric-card">
-        <div class="portal-metric-top">
-          <span class="portal-metric-icon">${text(icon)}</span>
-          ${badge}
-        </div>
+        ${
+          icon || badge
+            ? `
+              <div class="portal-metric-top">
+                ${
+                  icon
+                    ? `<span class="portal-metric-icon">${text(icon)}</span>`
+                    : ""
+                }
+                ${badge}
+              </div>
+            `
+            : ""
+        }
         <span class="portal-metric-label">${text(label)}</span>
         <strong>${text(value)}</strong>
         ${
