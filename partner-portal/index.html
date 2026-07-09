@@ -9,7 +9,7 @@
 
     <title>UniBridge Partner Portal</title>
 
-    <link rel="stylesheet" href="./styles.css?v=5" />
+    <link rel="stylesheet" href="./styles.css?v=6" />
   </head>
 
   <body>
@@ -23,15 +23,14 @@
 
     <div id="pay-lite-footer-slot"></div>
 
-<script>
-  fetch("/partials/pay/footer.html?v=6")
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById("pay-lite-footer-slot").innerHTML = html;
-    });
-</script>
+    <script>
+      fetch("/partials/pay/footer.html?v=6")
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById("pay-lite-footer-slot").innerHTML = html;
+        });
+    </script>
 
-    <script src="/partials/js/includes.js?v=5"></script>
-    <script type="module" src="./js/integrationPortal.js?v=5"></script>
+    <script type="module" src="./js/integrationPortal.js?v=6"></script>
   </body>
 </html>
