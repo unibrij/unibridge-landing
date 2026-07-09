@@ -255,36 +255,35 @@ export function createPortalOverviewView({
 
     return `
       <section class="overview-metric-grid">
-        ${renderMetricCard({
-          icon: "◇",
-          label: "Pilot status",
-          value: displayStatus(getPilotStatus(state)),
-          detail: pilotEnvironment?.id || "Pilot environment pending",
-          badge: renderBadge(getPilotStatus(state))
-        })}
+        <article class="portal-metric-card">
+          <span class="portal-metric-label">Pilot status</span>
+          <strong>${text(displayStatus(getPilotStatus(state)))}</strong>
+          <p>${text(pilotEnvironment?.id || "Pilot environment pending")}</p>
+        </article>
 
-        ${renderMetricCard({
-          icon: "⌁",
-          label: "Approved corridors",
-          value: formatCount(approvedCorridors.length),
-          detail: approvedCorridors.length
-            ? "Ready for pilot testing"
-            : "Waiting for corridor approval"
-        })}
+        <article class="portal-metric-card">
+          <span class="portal-metric-label">Approved corridors</span>
+          <strong>${text(formatCount(approvedCorridors.length))}</strong>
+          <p>
+            ${text(
+              approvedCorridors.length
+                ? "Ready for pilot testing"
+                : "Waiting for corridor approval"
+            )}
+          </p>
+        </article>
 
-        ${renderMetricCard({
-          icon: "⚿",
-          label: "API keys",
-          value: formatCount(getCredentialCount(state)),
-          detail: "Secrets are never shown again"
-        })}
+        <article class="portal-metric-card">
+          <span class="portal-metric-label">API keys</span>
+          <strong>${text(formatCount(getCredentialCount(state)))}</strong>
+          <p>Secrets are never shown again</p>
+        </article>
 
-        ${renderMetricCard({
-          icon: "▣",
-          label: "Environments",
-          value: formatCount(getEnvironmentCount(state)),
-          detail: pilotEnvironment?.id || "No environment available yet"
-        })}
+        <article class="portal-metric-card">
+          <span class="portal-metric-label">Environments</span>
+          <strong>${text(formatCount(getEnvironmentCount(state)))}</strong>
+          <p>${text(pilotEnvironment?.id || "No environment available yet")}</p>
+        </article>
       </section>
     `;
   }
