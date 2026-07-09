@@ -1,8 +1,14 @@
 // partner-portal/js/views/portalApiKeysView.js
 
 import {
+  getApprovedPilotCorridors,
+  getPilotEnvironment,
   PORTAL_ACTION
 } from "../integrationPortalState.js";
+
+import {
+  createPortalMetricSummaryView
+} from "./portalMetricSummaryView.js";
 
 export function createPortalApiKeysView({
   shared,
@@ -26,9 +32,15 @@ export function createPortalApiKeysView({
     renderCard,
     renderPageHeader,
     renderEmptyState,
-    renderTable,
-    formatCount
+    renderTable
   } = shared;
+
+  const metricSummaryView =
+    createPortalMetricSummaryView({
+      shared,
+      getApprovedPilotCorridors,
+      getPilotEnvironment
+    });
 
   function getCredentials(state) {
     return Array.isArray(state.credentials)
@@ -37,35 +49,7 @@ export function createPortalApiKeysView({
   }
 
   function renderSummary(state) {
-    const credentials =
-      getCredentials(state);
-
-    const active =
-      credentials.filter(credential =>
-        (credential.status || "active") === "active"
-      );
-
-    return `
-      <section class="api-keys-summary-grid">
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">API keys</span>
-          <strong>${text(formatCount(credentials.length))}</strong>
-          <p>Total issued credentials.</p>
-        </div>
-
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">Active</span>
-          <strong>${text(formatCount(active.length))}</strong>
-          <p>Ready for authenticated requests.</p>
-        </div>
-
-        <div class="portal-metric-card">
-          <span class="portal-metric-label">Secrets</span>
-          <strong>Hidden</strong>
-          <p>Secrets are only shown once when issued.</p>
-        </div>
-      </section>
-    `;
+    return metricSummaryView.renderApiKeyMetrics(state);
   }
 
   function renderActions(state) {
