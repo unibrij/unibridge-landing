@@ -2342,95 +2342,67 @@
       </div>
     </section>
 
-    <section class="contact-section" id="contact">
-      <div class="container">
-        <div class="contact-container">
-          <div class="contact-info fade-in">
-            <h2 id="contact-title">Validate your payout route.</h2>
+    <section class="partner-cta-section" id="partner-access">
+  <div class="container">
+    <div class="partner-cta-card fade-in">
+      <div class="partner-cta-content">
+        <p class="partner-cta-eyebrow">Get started</p>
 
-            <p class="pilot-subcopy">
-              Run a controlled route with execution tracking and payout evidence before adding broader coverage.
-            </p>
-          </div>
+        <h2>Ready to validate your first payout route?</h2>
 
-          <div class="contact-form fade-in">
-            <form id="contactForm" method="POST" action="/api/contact">
-              <input type="hidden" name="subject" value="New Request" />
-              <input type="hidden" name="_t" value="Y2VqVHUaWJyaWouaW8=" />
-              <input type="hidden" name="_sub" value="New Technical Review Request - UniBridge" />
+        <p class="partner-cta-copy">
+          Create your partner workspace, complete onboarding,
+          receive pilot credentials, and validate execution
+          before moving to production.
+        </p>
 
-              <div class="form-group">
-                <label for="name">Full name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  class="form-control"
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
+        <a href="/partner-portal" class="partner-cta-button">
+          Partner Access
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 448 512"
+            width="16"
+            height="16"
+          >
+            <path
+              fill="currentColor"
+              d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h306.7L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+            ></path>
+          </svg>
+        </a>
 
-              <div class="form-group">
-                <label for="email">Work Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  class="form-control"
-                  placeholder="yourname@company.com"
-                  required
-                />
-              </div>
+        <div class="partner-cta-secure">
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="17"
+            height="17"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+          </svg>
 
-              <div class="form-group">
-                <label for="company">Company / Project</label>
-                <input
-                  type="text"
-                  id="company"
-                  name="company"
-                  class="form-control"
-                  placeholder="e.g. Wallet, remittance, payroll, marketplace"
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="message">Integration Goal / Use Case</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  class="form-control"
-                  rows="4"
-                  placeholder="Describe the payout flow, current provider stack, or execution issue."
-                  required
-                ></textarea>
-              </div>
-
-              <input
-                type="text"
-                name="website"
-                tabindex="-1"
-                autocomplete="off"
-                style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
-              />
-
-              <div
-                class="cf-turnstile"
-                data-sitekey="0x4AAAAAADA4gaxEeVbe3X6F"
-                data-theme="light"
-              ></div>
-
-              <button type="submit" class="submit-button">
-                Partner Access
-              </button>
-            </form>
-          </div>
+          <span>Secure Partner Portal</span>
         </div>
       </div>
-    </section>
+
+      <div class="partner-cta-pattern" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
   </main>
 
-  <div id="site-footer"></div>
+<div id="site-footer"></div>
 
   <script>
     function showToast(message) {
