@@ -124,10 +124,11 @@
       margin: 0 0 22px;
       max-width: 520px;
       color: #003366;
-      font-size: clamp(2.45rem, 5vw, 4.15rem);
-      line-height: 1.04;
-      font-weight: 680;
-      letter-spacing: -0.055em;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(2rem, 3.4vw, 3rem);
+      line-height: 1.18;
+      font-weight: 650;
+      letter-spacing: -0.034em;
     }
 
     .contact-copy > p {
@@ -350,8 +351,10 @@
       }
 
       .contact-copy h1 {
-        font-size: 2.12rem;
-        line-height: 1.1;
+        font-size: 1.68rem !important;
+        line-height: 1.16 !important;
+        letter-spacing: -0.04em !important;
+        font-weight: 650 !important;
         margin-bottom: 18px;
       }
 
@@ -418,12 +421,20 @@
             <div class="contact-points" aria-label="Contact information">
               <div class="contact-point">
                 <div class="contact-point-icon" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
                     <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
                     <path d="M8 9h8"></path>
                     <path d="M8 13h5"></path>
                   </svg>
                 </div>
+
                 <div>
                   <h3>How we can help</h3>
                   <p>Partnerships, platform access, technical questions, support, security, and media requests.</p>
@@ -432,11 +443,19 @@
 
               <div class="contact-point">
                 <div class="contact-point-icon" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                 </div>
+
                 <div>
                   <h3>Response time</h3>
                   <p>We typically respond within 1 business day.</p>
@@ -445,11 +464,19 @@
 
               <div class="contact-point">
                 <div class="contact-point-icon" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     <path d="M9 12l2 2 4-4"></path>
                   </svg>
                 </div>
+
                 <div>
                   <h3>Your data is safe</h3>
                   <p>All messages are handled securely and used only to respond to your request.</p>
@@ -460,6 +487,7 @@
 
           <div class="contact-form fade-in">
             <h2 class="form-title">Send us a message</h2>
+
             <form id="contactForm" method="POST" action="/api/contact">
               <input type="hidden" name="subject" value="New Request" />
               <input type="hidden" name="_t" value="Y2VqVHUaWJyaWouaW8=" />
@@ -541,7 +569,10 @@
   <script>
     function showToast(message) {
       const toast = document.getElementById("toast");
-      if (!toast) return;
+
+      if (!toast) {
+        return;
+      }
 
       toast.textContent = message;
       toast.classList.add("show");
@@ -555,14 +586,14 @@
       const contactForm = document.getElementById("contactForm");
 
       if (contactForm) {
-        contactForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
+        contactForm.addEventListener("submit", async function (event) {
+          event.preventDefault();
 
           const formData = new FormData(this);
           const data = Object.fromEntries(formData.entries());
 
           try {
-            const res = await fetch("/api/contact", {
+            const response = await fetch("/api/contact", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -570,7 +601,7 @@
               body: JSON.stringify(data)
             });
 
-            const json = await res.json();
+            const json = await response.json();
 
             if (json.success) {
               showToast("Thank you. Your message has been sent.");
@@ -580,9 +611,11 @@
                 window.turnstile.reset();
               }
             } else {
-              showToast("Error: " + (json.message || "Please try again."));
+              showToast(
+                "Error: " + (json.message || "Please try again.")
+              );
             }
-          } catch (err) {
+          } catch (error) {
             showToast("Something went wrong. Please try again.");
           }
         });
@@ -590,20 +623,27 @@
 
       const fadeElements = document.querySelectorAll(".fade-in");
 
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = 1;
-            entry.target.style.transform = "translateY(0)";
-          }
-        });
-      }, { threshold: 0.1 });
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = 1;
+              entry.target.style.transform = "translateY(0)";
+            }
+          });
+        },
+        {
+          threshold: 0.1
+        }
+      );
 
-      fadeElements.forEach(el => {
-        el.style.opacity = 0;
-        el.style.transform = "translateY(20px)";
-        el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-        observer.observe(el);
+      fadeElements.forEach((element) => {
+        element.style.opacity = 0;
+        element.style.transform = "translateY(20px)";
+        element.style.transition =
+          "opacity 0.6s ease, transform 0.6s ease";
+
+        observer.observe(element);
       });
     });
   </script>
