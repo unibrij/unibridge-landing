@@ -15,17 +15,51 @@
     content="Pay with Visa or Mastercard through a payment partner to fund a UniBridge payout route."
   />
 
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
+  <link
+    rel="icon"
+    type="image/png"
+    href="/favicon.png"
+  />
 
-  <meta name="theme-color" content="#000E2D" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="UniBridge" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=1" />
+  <link
+    rel="apple-touch-icon"
+    href="/connect/icons/app/ub-app-icon-512.png"
+  />
 
-  <link rel="stylesheet" href="/surface/styles.surface.20260611.css" />
-  <link rel="stylesheet" href="/partials/pay/css/pay-country-select.css?v=2" />
+  <meta
+    name="theme-color"
+    content="#000E2D"
+  />
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  />
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="UniBridge"
+  />
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=1"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/surface/styles.surface.20260611.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-country-select.css?v=2"
+  />
 
   <style>
     .sr-only {
@@ -48,6 +82,28 @@
       overflow: hidden !important;
       pointer-events: none !important;
     }
+
+    .summary-box .primary-summary-row {
+      align-items: flex-start;
+    }
+
+    .summary-box .primary-summary-row strong,
+    .summary-box .primary-summary-row span {
+      font-size: 1rem;
+    }
+
+    .summary-box .primary-summary-row span {
+      font-weight: 700;
+    }
+
+    .summary-box .summary-note-row {
+      align-items: flex-start;
+    }
+
+    .summary-box .summary-note-row span {
+      max-width: 65%;
+      text-align: right;
+    }
   </style>
 </head>
 
@@ -55,12 +111,21 @@
   <main class="page pay-page-shell">
     <div id="pay-brand"></div>
 
-    <section class="hero" aria-labelledby="cardPaymentTitle">
-      <h1 id="cardPaymentTitle" class="sr-only">
+    <section
+      class="hero"
+      aria-labelledby="cardPaymentTitle"
+    >
+      <h1
+        id="cardPaymentTitle"
+        class="sr-only"
+      >
         Fund your payout by card
       </h1>
 
-      <p class="eyebrow" aria-hidden="true">
+      <p
+        class="eyebrow"
+        aria-hidden="true"
+      >
         Card payment funding
       </p>
     </section>
@@ -70,32 +135,175 @@
         class="steps"
         aria-label="Card payment steps"
       >
-        <div id="step1" class="step active">Route</div>
-        <div id="step2" class="step">Details</div>
-        <div id="step3" class="step">Payment</div>
-        <div id="step4" class="step">Processing</div>
-        <div id="step5" class="step">Done</div>
+        <div
+          id="step1"
+          class="step active"
+        >
+          Route
+        </div>
+
+        <div
+          id="step2"
+          class="step"
+        >
+          Details
+        </div>
+
+        <div
+          id="step3"
+          class="step"
+        >
+          Payment
+        </div>
+
+        <div
+          id="step4"
+          class="step"
+        >
+          Processing
+        </div>
+
+        <div
+          id="step5"
+          class="step"
+        >
+          Done
+        </div>
       </section>
 
-      <section id="entryBox" class="entry-box">
+      <section
+        id="entryBox"
+        class="entry-box"
+      >
         <div class="entry-header">
-          <h2>Start your payout</h2>
+          <h2>
+            Start your payout
+          </h2>
+
           <p>
-            Confirm the amount and destination, then continue to the available card payment option.
+            Confirm the amount and destination, then continue
+            to the available card payment option.
           </p>
         </div>
 
-        <section id="summary" class="summary-box hidden">
-          <div><strong>Amount</strong>: <span id="sumAmount"></span></div>
-          <div><strong>Country</strong>: <span id="sumCountry"></span></div>
-          <div id="executorFeeRow" style="display:none;">
-            <strong>Execution fee</strong>: <span id="sumExecutorFee"></span>
+        <!--
+        --------------------------------------------------
+        Pricing summary
+        --------------------------------------------------
+
+        The summary is populated exclusively by
+        surface/ui-helpers.js.
+
+        No financial calculation is performed in this HTML.
+
+        Every data row starts hidden and is displayed only
+        when the renderer has either a value or an explicit
+        availability message.
+        --------------------------------------------------
+        -->
+
+        <section
+          id="summary"
+          class="summary-box hidden"
+          aria-label="Payout pricing summary"
+        >
+          <div
+            id="recipientAmountRow"
+            class="primary-summary-row hidden"
+          >
+            <strong>
+              Recipient receives
+            </strong>
+
+            <span
+              id="sumRecipientAmount"
+              aria-live="polite"
+            ></span>
+          </div>
+
+          <div
+            id="customerPaymentRow"
+            class="hidden"
+          >
+            <strong id="customerPaymentLabel">
+              Card payment
+            </strong>
+
+            <span id="sumCustomerPayment"></span>
+          </div>
+
+          <div
+            id="settlementAmountRow"
+            class="hidden"
+          >
+            <strong>
+              Settlement amount
+            </strong>
+
+            <span id="sumSettlementAmount"></span>
+          </div>
+
+          <div
+            id="fxRateRow"
+            class="hidden"
+          >
+            <strong>
+              Exchange rate
+            </strong>
+
+            <span id="sumFxRate"></span>
+          </div>
+
+          <div
+            id="executorFeeRow"
+            class="hidden"
+          >
+            <strong>
+              Execution fee
+            </strong>
+
+            <span id="sumExecutorFee"></span>
+          </div>
+
+          <div
+            id="unibridgeFeeRow"
+            class="hidden"
+          >
+            <strong>
+              UniBridge fee
+            </strong>
+
+            <span id="sumUnibridgeFee"></span>
+          </div>
+
+          <div
+            id="recipientAmountStatusRow"
+            class="summary-note-row hidden"
+          >
+            <strong>
+              Pricing
+            </strong>
+
+            <span id="sumRecipientAmountStatus"></span>
+          </div>
+
+          <div
+            id="destinationSummaryRow"
+            class="hidden"
+          >
+            <strong>
+              Destination
+            </strong>
+
+            <span id="sumCountry"></span>
           </div>
         </section>
 
         <div class="form-grid route-grid">
           <label class="field amount-field">
-            <span>You pay</span>
+            <span>
+              You pay
+            </span>
 
             <div class="amount-input-wrap">
               <input
@@ -117,14 +325,17 @@
             </div>
 
             <small class="field-hint">
-              Fees and final amount are shown before confirmation.
+              Fees and final amount are shown before
+              confirmation.
             </small>
           </label>
 
           <div id="amountLimitHint"></div>
 
           <label class="field">
-            <span>Source country</span>
+            <span>
+              Source country
+            </span>
 
             <select
               id="source_country"
@@ -134,7 +345,9 @@
           </label>
 
           <label class="field">
-            <span>Destination country</span>
+            <span>
+              Destination country
+            </span>
 
             <select
               id="country"
@@ -152,24 +365,43 @@
           Use this payout route
         </button>
 
-        <section id="pixBox" class="hidden">
+        <section
+          id="pixBox"
+          class="hidden"
+        >
           <div class="entry-header compact">
-            <h2>Destination details</h2>
+            <h2>
+              Destination details
+            </h2>
+
             <p>
-              Enter the payout details required for this route.
+              Enter the payout details required for this
+              route.
             </p>
           </div>
 
           <div class="form-grid">
             <label class="field">
-              <span>PIX key</span>
-              <input id="pix" placeholder="Enter PIX key" />
+              <span>
+                PIX key
+              </span>
+
+              <input
+                id="pix"
+                placeholder="Enter PIX key"
+              />
             </label>
 
             <div id="taxBox">
               <label class="field">
-                <span>Tax ID</span>
-                <input id="taxId" placeholder="CPF / CNPJ" />
+                <span>
+                  Tax ID
+                </span>
+
+                <input
+                  id="taxId"
+                  placeholder="CPF / CNPJ"
+                />
               </label>
             </div>
           </div>
@@ -188,20 +420,43 @@
           </div>
         </section>
 
-        <section id="coinsPhBox" class="hidden">
+        <section
+          id="coinsPhBox"
+          class="hidden"
+        >
           <div class="entry-header compact">
-            <h2>Recipient institution</h2>
+            <h2>
+              Recipient institution
+            </h2>
+
             <p>
               Select the receiving bank or wallet.
             </p>
           </div>
 
-          <input id="coinsPhBank" type="hidden" value="" />
-          <input id="coinsPhChannelName" type="hidden" value="" />
-          <input id="coinsPhChannelSubject" type="hidden" value="" />
+          <input
+            id="coinsPhBank"
+            type="hidden"
+            value=""
+          />
+
+          <input
+            id="coinsPhChannelName"
+            type="hidden"
+            value=""
+          />
+
+          <input
+            id="coinsPhChannelSubject"
+            type="hidden"
+            value=""
+          />
 
           <label class="field">
-            <span>Bank or wallet</span>
+            <span>
+              Bank or wallet
+            </span>
+
             <input
               id="coinsPhBankSearch"
               type="text"
@@ -235,7 +490,10 @@
             class="form-grid hidden"
           >
             <label class="field">
-              <span>Recipient full legal name</span>
+              <span>
+                Recipient full legal name
+              </span>
+
               <input
                 id="coinsPhRecipientName"
                 type="text"
@@ -244,7 +502,10 @@
             </label>
 
             <label class="field">
-              <span>Recipient account or wallet number</span>
+              <span>
+                Recipient account or wallet number
+              </span>
+
               <input
                 id="coinsPhRecipientAccount"
                 type="text"
@@ -265,14 +526,20 @@
           </button>
 
           <div
-            class="muted"
             id="coinsPhHint"
+            class="muted"
           ></div>
         </section>
 
-        <section id="authBox" class="hidden">
+        <section
+          id="authBox"
+          class="hidden"
+        >
           <div class="entry-header compact">
-            <h2 id="authTitle">Authentication</h2>
+            <h2 id="authTitle">
+              Authentication
+            </h2>
+
             <p id="authHint">
               Complete the required authentication step.
             </p>
@@ -280,7 +547,10 @@
 
           <div class="form-grid">
             <label class="field">
-              <span>Email</span>
+              <span>
+                Email
+              </span>
+
               <input
                 id="authEmail"
                 type="email"
@@ -289,11 +559,14 @@
             </label>
 
             <label
-              class="field"
               id="authOtpLabel"
+              class="field"
               style="display:none;"
             >
-              <span>OTP</span>
+              <span>
+                OTP
+              </span>
+
               <input
                 id="authOtp"
                 type="text"
@@ -320,8 +593,12 @@
         ></section>
 
         <div class="disclaimer">
-          <strong>Non-custodial flow.</strong>
-          UniBridge coordinates the payout path and tracks execution without holding customer funds.
+          <strong>
+            Non-custodial flow.
+          </strong>
+
+          UniBridge coordinates the payout path and tracks
+          execution without holding customer funds.
         </div>
       </section>
     </section>
@@ -342,108 +619,189 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/clover/stripe.js"></script>
   <script src="https://crypto-js.stripe.com/crypto-onramp-outer.js"></script>
+
   <script src="/surface/js/api.js"></script>
   <script src="/surface/js/nextAction.js"></script>
   <script src="/surface/js/settlementViewState.js"></script>
   <script src="/surface/js/status.js"></script>
   <script src="/surface/js/rampFlow.js"></script>
-  <script type="module" src="/surface/app.js"></script>
+
+  <script
+    type="module"
+    src="/surface/app.js"
+  ></script>
 
   <script>
     function setStep(n) {
-      for (let i = 1; i <= 5; i += 1) {
-        document.getElementById("step" + i)?.classList.remove("active");
+      for (
+        let i = 1;
+        i <= 5;
+        i += 1
+      ) {
+        document
+          .getElementById(
+            "step" + i
+          )
+          ?.classList
+          .remove(
+            "active"
+          );
       }
 
-      document.getElementById("step" + n)?.classList.add("active");
+      document
+        .getElementById(
+          "step" + n
+        )
+        ?.classList
+        .add(
+          "active"
+        );
     }
 
-    function showElement(element) {
+    function showElement(
+      element
+    ) {
       if (!element) {
         return;
       }
 
-      element.classList.remove("hidden");
-      element.style.display = "";
+      element.classList.remove(
+        "hidden"
+      );
+
+      element.style.display =
+        "";
     }
 
-    function hideElement(element) {
+    function hideElement(
+      element
+    ) {
       if (!element) {
         return;
       }
 
-      element.classList.add("hidden");
-      element.style.display = "none";
+      element.classList.add(
+        "hidden"
+      );
+
+      element.style.display =
+        "none";
     }
 
     const summaryBox =
-      document.getElementById("summary");
+      document.getElementById(
+        "summary"
+      );
 
     const pixBox =
-      document.getElementById("pixBox");
+      document.getElementById(
+        "pixBox"
+      );
 
     const taxBox =
-      document.getElementById("taxBox");
+      document.getElementById(
+        "taxBox"
+      );
 
     const authBox =
-      document.getElementById("authBox");
+      document.getElementById(
+        "authBox"
+      );
 
     const coinsPhBox =
-      document.getElementById("coinsPhBox");
+      document.getElementById(
+        "coinsPhBox"
+      );
 
     const coinsPhRecipientFields =
-      document.getElementById("coinsPhRecipientFields");
+      document.getElementById(
+        "coinsPhRecipientFields"
+      );
 
     function getSelectedDestinationCountry() {
-      return document.getElementById("country")?.value || "BR";
+      return (
+        document
+          .getElementById(
+            "country"
+          )
+          ?.value ||
+        "BR"
+      );
     }
 
     function showSummary() {
-      showElement(summaryBox);
+      showElement(
+        summaryBox
+      );
     }
 
     function hideSummary() {
-      hideElement(summaryBox);
+      hideElement(
+        summaryBox
+      );
     }
 
     function showPixBox() {
-      showElement(pixBox);
+      showElement(
+        pixBox
+      );
     }
 
     function hidePixBox() {
-      hideElement(pixBox);
+      hideElement(
+        pixBox
+      );
     }
 
     function showTaxBox() {
-      showElement(taxBox);
+      showElement(
+        taxBox
+      );
     }
 
     function hideTaxBox() {
-      hideElement(taxBox);
+      hideElement(
+        taxBox
+      );
     }
 
     function showAuthBox() {
-      showElement(authBox);
+      showElement(
+        authBox
+      );
     }
 
     function hideAuthBox() {
-      hideElement(authBox);
+      hideElement(
+        authBox
+      );
     }
 
     function showCoinsPhBox() {
-      showElement(coinsPhBox);
+      showElement(
+        coinsPhBox
+      );
     }
 
     function hideCoinsPhBox() {
-      hideElement(coinsPhBox);
+      hideElement(
+        coinsPhBox
+      );
 
-      if (coinsPhRecipientFields) {
-        hideElement(coinsPhRecipientFields);
+      if (
+        coinsPhRecipientFields
+      ) {
+        hideElement(
+          coinsPhRecipientFields
+        );
       }
     }
 
     function showDestinationBox() {
-      if (getSelectedDestinationCountry() === "PH") {
+      if (
+        getSelectedDestinationCountry() ===
+        "PH"
+      ) {
         hidePixBox();
         hideTaxBox();
         showCoinsPhBox();
@@ -467,59 +825,98 @@
       setStep(1);
     }
 
-    window.resetUiToStart = resetUiToStart;
-    window.showDestinationBox = showDestinationBox;
-    window.hideDestinationBoxes = hideDestinationBoxes;
-    window.showCoinsPhBox = showCoinsPhBox;
-    window.hideCoinsPhBox = hideCoinsPhBox;
+    window.resetUiToStart =
+      resetUiToStart;
 
-    window.addEventListener("unibridge:quote", () => {
-      showSummary();
-      showDestinationBox();
-      hideAuthBox();
-      setStep(2);
-    });
+    window.showDestinationBox =
+      showDestinationBox;
 
-    window.addEventListener("unibridge:payment", () => {
-      showSummary();
-      showDestinationBox();
-      hideAuthBox();
-      setStep(3);
-    });
+    window.hideDestinationBoxes =
+      hideDestinationBoxes;
 
-    window.addEventListener("unibridge:funding", () => {
-      showSummary();
-      hideDestinationBoxes();
-      hideAuthBox();
-      setStep(4);
-    });
+    window.showCoinsPhBox =
+      showCoinsPhBox;
 
-    window.addEventListener("unibridge:auth", () => {
-      showSummary();
-      hideDestinationBoxes();
-      showAuthBox();
-      setStep(3);
-    });
+    window.hideCoinsPhBox =
+      hideCoinsPhBox;
 
-    window.addEventListener("unibridge:done", () => {
-      showSummary();
-      hideDestinationBoxes();
-      hideAuthBox();
-      setStep(5);
-    });
+    window.addEventListener(
+      "unibridge:quote",
+      () => {
+        showSummary();
+        showDestinationBox();
+        hideAuthBox();
+        setStep(2);
+      }
+    );
 
-    document.addEventListener("DOMContentLoaded", () => {
-      resetUiToStart();
+    window.addEventListener(
+      "unibridge:payment",
+      () => {
+        showSummary();
+        showDestinationBox();
+        hideAuthBox();
+        setStep(3);
+      }
+    );
 
-      const countrySelect =
-        document.getElementById("country");
+    window.addEventListener(
+      "unibridge:funding",
+      () => {
+        showSummary();
+        hideDestinationBoxes();
+        hideAuthBox();
+        setStep(4);
+      }
+    );
 
-      countrySelect?.addEventListener("change", () => {
-        if (!summaryBox?.classList.contains("hidden")) {
-          showDestinationBox();
-        }
-      });
-    });
+    window.addEventListener(
+      "unibridge:auth",
+      () => {
+        showSummary();
+        hideDestinationBoxes();
+        showAuthBox();
+        setStep(3);
+      }
+    );
+
+    window.addEventListener(
+      "unibridge:done",
+      () => {
+        showSummary();
+        hideDestinationBoxes();
+        hideAuthBox();
+        setStep(5);
+      }
+    );
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
+        resetUiToStart();
+
+        const countrySelect =
+          document.getElementById(
+            "country"
+          );
+
+        countrySelect
+          ?.addEventListener(
+            "change",
+            () => {
+              if (
+                !summaryBox
+                  ?.classList
+                  .contains(
+                    "hidden"
+                  )
+              ) {
+                showDestinationBox();
+              }
+            }
+          );
+      }
+    );
   </script>
 </body>
 </html>
