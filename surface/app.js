@@ -474,31 +474,93 @@ async function startFlow() {
     );
 
     currentRouteQuote = {
-      requested_amount:
-        quote.requested_amount ?? amount,
+  requested_amount:
+    quote.requested_amount ??
+    amount,
 
-      payout_amount:
-        selectedRoute.payout_amount ?? null,
+  amount_semantics:
+    selectedRoute.amount_semantics ??
+    null,
 
-      funding_amount:
-        selectedRoute.funding_amount ?? null,
+  funding_amount:
+    selectedRoute.funding_amount ??
+    null,
 
-      executor_fee:
-        selectedRoute.executor_fee ?? 0
-    };
+  settlement_currency:
+    selectedRoute.settlement_currency ??
+    null,
 
-    renderExecutionQuote({
-      requestedAmount:
-        currentRouteQuote.requested_amount,
+  payout_amount:
+    selectedRoute.payout_amount ??
+    null,
 
-      countryLabel:
-        getCountryLabel(),
+  recipient_currency:
+    selectedRoute.recipient_currency ??
+    null,
 
-      executorFee:
-        currentRouteQuote.executor_fee,
+  recipient_amount_type:
+    selectedRoute.recipient_amount_type ??
+    null,
 
-      setStatus
-    });
+  payout_amount_status:
+    selectedRoute.payout_amount_status ??
+    null,
+
+  executor_fee:
+    selectedRoute.executor_fee ??
+    null,
+
+  unibridge_fee:
+    selectedRoute.unibridge_fee ??
+    null,
+
+  fx_rate:
+    selectedRoute.fx_rate ??
+    null
+};
+
+renderExecutionQuote({
+  requestedAmount:
+    currentRouteQuote.requested_amount,
+
+  customerPaymentCurrency:
+    getValue("amountCurrency")
+      ?.textContent
+      ?.trim() ||
+    "USD",
+
+  fundingAmount:
+    currentRouteQuote.funding_amount,
+
+  settlementCurrency:
+    currentRouteQuote.settlement_currency,
+
+  payoutAmount:
+    currentRouteQuote.payout_amount,
+
+  recipientCurrency:
+    currentRouteQuote.recipient_currency,
+
+  recipientAmountType:
+    currentRouteQuote.recipient_amount_type,
+
+  payoutAmountStatus:
+    currentRouteQuote.payout_amount_status,
+
+  executorFee:
+    currentRouteQuote.executor_fee,
+
+  unibridgeFee:
+    currentRouteQuote.unibridge_fee,
+
+  fxRate:
+    currentRouteQuote.fx_rate,
+
+  countryLabel:
+    getCountryLabel(),
+
+  setStatus
+});
 
     emit("unibridge:quote");
 
