@@ -313,6 +313,32 @@ option {
   overflow-wrap: anywhere;
 }
 
+.summary-box .primary-summary-row {
+  align-items: flex-start;
+  border-color: rgba(94, 234, 212, 0.26);
+  background: rgba(20, 184, 166, 0.11);
+}
+
+.summary-box .primary-summary-row strong,
+.summary-box .primary-summary-row span {
+  font-size: 1rem;
+}
+
+.summary-box .primary-summary-row span {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.summary-box .summary-note-row {
+  align-items: flex-start;
+}
+
+.summary-box .summary-note-row span {
+  max-width: 65%;
+  text-align: right;
+  font-weight: 650;
+}
+
 /* Buttons */
 
 button:not(.country-select-trigger):not(.country-select-option),
