@@ -20,9 +20,20 @@ import {
   normalizeBackendRoutes
 } from "./routes";
 
-import { getConnectRoutes } from "./api";
-import { readStoredFlow, clearStoredFlow } from "./flow/flowStorage";
-import { readPayoutIntentFromUrl, buildEmptyForm } from "./flow/routes";
+import {
+  getConnectRoutes,
+  previewConnectRoute
+} from "./api";
+
+import {
+  readStoredFlow,
+  clearStoredFlow
+} from "./flow/flowStorage";
+
+import {
+  readPayoutIntentFromUrl,
+  buildEmptyForm
+} from "./flow/routes";
 
 import useConnectSession from "./hooks/useConnectSession";
 import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
@@ -32,6 +43,7 @@ import PayoutForm from "./components/PayoutForm";
 import HistoryPage from "./components/HistoryPage";
 import PayoutReviewManager from "./components/PayoutReviewManager";
 import RouteActions from "./components/RouteActions";
+
 import { trackConnectEvent } from "./analytics/trackConnectEvent";
 
 function getSettlementId(settlement) {
@@ -43,70 +55,169 @@ function getSettlementId(settlement) {
   );
 }
 
-function hasRoute(routes = [], routeId) {
-  return routes.some(route =>
-    route.id === routeId ||
-    route.route_id === routeId
+function hasRoute(
+  routes = [],
+  routeId
+) {
+  return routes.some(
+    route =>
+      route.id === routeId ||
+      route.route_id === routeId
   );
 }
 
 export default function App() {
   useAppKit();
 
-  const pageViewTrackedRef = useRef(false);
-  const walletConnectedTrackedRef = useRef(false);
-  const routeCreatedTrackedRef = useRef(false);
+  const pageViewTrackedRef =
+    useRef(false);
 
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [canInstallPwa, setCanInstallPwa] = useState(false);
-  const [isStandalonePwa, setIsStandalonePwa] = useState(false);
+  const walletConnectedTrackedRef =
+    useRef(false);
 
-  const { address, chainId, isConnected } = useAccount();
-  const { data: walletClient } = useWalletClient();
-  const { switchChainAsync } = useSwitchChain();
+  const routeCreatedTrackedRef =
+    useRef(false);
 
-  const storedFlow = readStoredFlow();
-  const returnedPayoutIntentId = readPayoutIntentFromUrl();
+  const [
+    installPrompt,
+    setInstallPrompt
+  ] = useState(null);
 
-  const [routes, setRoutes] = useState(ROUTES);
+  const [
+    canInstallPwa,
+    setCanInstallPwa
+  ] = useState(false);
 
-  const [selectedRouteId, setSelectedRouteId] = useState(
-    storedFlow?.route_id || ROUTES[0]?.id || "br_pix"
+  const [
+    isStandalonePwa,
+    setIsStandalonePwa
+  ] = useState(false);
+
+  const {
+    address,
+    chainId,
+    isConnected
+  } = useAccount();
+
+  const {
+    data: walletClient
+  } = useWalletClient();
+
+  const {
+    switchChainAsync
+  } = useSwitchChain();
+
+  const storedFlow =
+    readStoredFlow();
+
+  const returnedPayoutIntentId =
+    readPayoutIntentFromUrl();
+
+  const [
+    routes,
+    setRoutes
+  ] = useState(ROUTES);
+
+  const [
+    selectedRouteId,
+    setSelectedRouteId
+  ] = useState(
+    storedFlow?.route_id ||
+      ROUTES[0]?.id ||
+      "br_pix"
   );
 
-  const selectedRoute = useMemo(
-    () => getRouteById(selectedRouteId, routes),
-    [routes, selectedRouteId]
-  );
+  const selectedRoute =
+    useMemo(
+      () =>
+        getRouteById(
+          selectedRouteId,
+          routes
+        ),
+      [
+        routes,
+        selectedRouteId
+      ]
+    );
 
-  const [payoutIntentId, setPayoutIntentId] = useState(
+  const [
+    payoutIntentId,
+    setPayoutIntentId
+  ] = useState(
     returnedPayoutIntentId ||
       storedFlow?.payout_intent_id ||
       null
   );
 
-  const [settlement, setSettlement] = useState(null);
-  const [fundingTxHash, setFundingTxHash] = useState(null);
-  const [isBusy, setIsBusy] = useState(false);
+  const [
+    settlement,
+    setSettlement
+  ] = useState(null);
 
-  const [debug, setDebug] = useState(
+  const [
+    fundingTxHash,
+    setFundingTxHash
+  ] = useState(null);
+
+  const [
+    isBusy,
+    setIsBusy
+  ] = useState(false);
+
+  const [
+    pricingPreview,
+    setPricingPreview
+  ] = useState(null);
+
+  const [
+    pricingPreviewStatus,
+    setPricingPreviewStatus
+  ] = useState("idle");
+
+  const [
+    pricingPreviewError,
+    setPricingPreviewError
+  ] = useState(null);
+
+  const [
+    debug,
+    setDebug
+  ] = useState(
     returnedPayoutIntentId
       ? "Loading payout route..."
       : "Waiting for wallet connection..."
   );
 
-  const [form, setForm] = useState(() => ({
-    amount: storedFlow?.form?.amount || "",
-    asset: storedFlow?.form?.asset || selectedRoute.assets[0],
+  const [
+    form,
+    setForm
+  ] = useState(() => ({
+    amount:
+      storedFlow?.form?.amount ||
+      "",
+
+    asset:
+      storedFlow?.form?.asset ||
+      selectedRoute.assets[0],
+
     beneficiary:
-      storedFlow?.form?.beneficiary ||
-      buildEmptyForm(selectedRoute).beneficiary
+      storedFlow
+        ?.form
+        ?.beneficiary ||
+      buildEmptyForm(
+        selectedRoute
+      ).beneficiary
   }));
 
-  const isReturnedFlow = Boolean(returnedPayoutIntentId);
+  const isReturnedFlow =
+    Boolean(
+      returnedPayoutIntentId
+    );
 
   const isHistoryPage =
-    new URLSearchParams(window.location.search).get("view") === "history";
+    new URLSearchParams(
+      window.location.search
+    ).get("view") === "history";
 
   useEffect(() => {
     let cancelled = false;
@@ -121,23 +232,44 @@ export default function App() {
         }
 
         const normalized =
-          normalizeBackendRoutes(backendRoutes);
+          normalizeBackendRoutes(
+            backendRoutes
+          );
 
-        setRoutes(normalized);
+        setRoutes(
+          normalized
+        );
 
-        if (!hasRoute(normalized, selectedRouteId)) {
+        if (
+          !hasRoute(
+            normalized,
+            selectedRouteId
+          )
+        ) {
           const nextRoute =
-            normalized[0] || ROUTES[0];
+            normalized[0] ||
+            ROUTES[0];
 
-          setSelectedRouteId(nextRoute.id);
+          setSelectedRouteId(
+            nextRoute.id
+          );
 
-          if (!storedFlow?.form && !returnedPayoutIntentId) {
-            setForm(buildEmptyForm(nextRoute));
+          if (
+            !storedFlow?.form &&
+            !returnedPayoutIntentId
+          ) {
+            setForm(
+              buildEmptyForm(
+                nextRoute
+              )
+            );
           }
         }
       } catch {
         if (!cancelled) {
-          setRoutes(ROUTES);
+          setRoutes(
+            ROUTES
+          );
         }
       }
     }
@@ -155,15 +287,30 @@ export default function App() {
 
   useEffect(() => {
     const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true;
+      window
+        .matchMedia(
+          "(display-mode: standalone)"
+        )
+        .matches ||
+      window.navigator
+        .standalone === true;
 
-    setIsStandalonePwa(standalone);
+    setIsStandalonePwa(
+      standalone
+    );
 
-    function handleBeforeInstallPrompt(event) {
+    function handleBeforeInstallPrompt(
+      event
+    ) {
       event.preventDefault();
-      setInstallPrompt(event);
-      setCanInstallPwa(true);
+
+      setInstallPrompt(
+        event
+      );
+
+      setCanInstallPwa(
+        true
+      );
     }
 
     window.addEventListener(
@@ -180,35 +327,81 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (isHistoryPage) return;
-    if (pageViewTrackedRef.current) return;
+    if (isHistoryPage) {
+      return;
+    }
 
-    pageViewTrackedRef.current = true;
+    if (
+      pageViewTrackedRef.current
+    ) {
+      return;
+    }
 
-    trackConnectEvent("page_view", {
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        returned_flow: isReturnedFlow
+    pageViewTrackedRef.current =
+      true;
+
+    trackConnectEvent(
+      "page_view",
+      {
+        route_id:
+          selectedRouteId,
+
+        asset:
+          form.asset,
+
+        metadata: {
+          returned_flow:
+            isReturnedFlow
+        }
       }
-    });
-  }, [form.asset, isHistoryPage, isReturnedFlow, selectedRouteId]);
+    );
+  }, [
+    form.asset,
+    isHistoryPage,
+    isReturnedFlow,
+    selectedRouteId
+  ]);
 
   useEffect(() => {
-    if (isHistoryPage) return;
-    if (!isConnected || !address) return;
-    if (walletConnectedTrackedRef.current) return;
+    if (isHistoryPage) {
+      return;
+    }
 
-    walletConnectedTrackedRef.current = true;
+    if (
+      !isConnected ||
+      !address
+    ) {
+      return;
+    }
 
-    trackConnectEvent("wallet_connected", {
-      wallet_address: address,
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        chain_id: chainId
+    if (
+      walletConnectedTrackedRef
+        .current
+    ) {
+      return;
+    }
+
+    walletConnectedTrackedRef
+      .current = true;
+
+    trackConnectEvent(
+      "wallet_connected",
+      {
+        wallet_address:
+          address,
+
+        route_id:
+          selectedRouteId,
+
+        asset:
+          form.asset,
+
+        metadata: {
+          chain_id:
+            chainId
+        }
       }
-    });
+    );
   }, [
     address,
     chainId,
@@ -219,24 +412,48 @@ export default function App() {
   ]);
 
   useEffect(() => {
-    if (isHistoryPage) return;
-    if (!settlement) return;
-    if (routeCreatedTrackedRef.current) return;
+    if (isHistoryPage) {
+      return;
+    }
 
-    routeCreatedTrackedRef.current = true;
+    if (!settlement) {
+      return;
+    }
 
-    trackConnectEvent("route_created", {
-      wallet_address: address,
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        settlement_id:
-          settlement?.settlement_id ||
-          settlement?.id ||
-          null,
-        payout_intent_id: payoutIntentId
+    if (
+      routeCreatedTrackedRef
+        .current
+    ) {
+      return;
+    }
+
+    routeCreatedTrackedRef
+      .current = true;
+
+    trackConnectEvent(
+      "route_created",
+      {
+        wallet_address:
+          address,
+
+        route_id:
+          selectedRouteId,
+
+        asset:
+          form.asset,
+
+        metadata: {
+          settlement_id:
+            settlement
+              ?.settlement_id ||
+            settlement?.id ||
+            null,
+
+          payout_intent_id:
+            payoutIntentId
+        }
       }
-    });
+    );
   }, [
     address,
     form.asset,
@@ -246,16 +463,31 @@ export default function App() {
     settlement
   ]);
 
-  const writeDebug = useCallback((label, value = {}) => {
-    setDebug(`${label}\n${JSON.stringify(value, null, 2)}`);
-  }, []);
+  const writeDebug =
+    useCallback(
+      (
+        label,
+        value = {}
+      ) => {
+        setDebug(
+          `${label}\n${JSON.stringify(
+            value,
+            null,
+            2
+          )}`
+        );
+      },
+      []
+    );
 
-  const { connectSessionId, resetConnectSession } =
-    useConnectSession({
-      isConnected,
-      address,
-      writeDebug
-    });
+  const {
+    connectSessionId,
+    resetConnectSession
+  } = useConnectSession({
+    isConnected,
+    address,
+    writeDebug
+  });
 
   useReturnedPayoutIntent({
     returnedPayoutIntentId,
@@ -267,160 +499,436 @@ export default function App() {
     writeDebug
   });
 
-  const { handleSend, walletConfirmationPending } =
-    useRouteFlow({
-      isConnected,
-      address,
-      chainId,
-      walletClient,
-      switchChainAsync,
-      connectSessionId,
-      selectedRoute,
-      form,
-      payoutIntentId,
-      setPayoutIntentId,
-      settlement,
-      setSettlement,
-      setFundingTxHash,
-      setIsBusy,
-      isReturnedFlow,
-      writeDebug
-    });
+  useEffect(() => {
+    let cancelled = false;
 
-  const trackedHandleSend = useCallback(async () => {
-    await trackConnectEvent("route_started", {
-      wallet_address: address,
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        amount: form.amount,
-        payout_intent_id: payoutIntentId
-      }
-    });
+    const amount =
+      String(
+        form.amount ??
+        ""
+      ).trim();
 
-    return handleSend();
-  }, [
-    address,
-    form.amount,
-    form.asset,
-    handleSend,
-    payoutIntentId,
-    selectedRouteId
-  ]);
+    const numericAmount =
+      Number(amount);
 
-  const handleInstallPwa = useCallback(async () => {
-    await trackConnectEvent("add_to_home_screen_clicked", {
-      wallet_address: address,
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        has_install_prompt: Boolean(installPrompt)
-      }
-    });
+    const canLoadPreview =
+      !isHistoryPage &&
+      !isReturnedFlow &&
+      isConnected &&
+      Boolean(address) &&
+      Boolean(connectSessionId) &&
+      Boolean(selectedRoute) &&
+      Boolean(form.asset) &&
+      amount !== "" &&
+      Number.isFinite(
+        numericAmount
+      ) &&
+      numericAmount > 0;
 
-    if (!installPrompt) {
-      writeDebug(
-        "Save UniBridge",
-        {
-          instruction:
-            "Use your browser menu and choose Add to Home Screen."
-        }
+    if (!canLoadPreview) {
+      setPricingPreview(
+        null
       );
-      return;
+
+      setPricingPreviewStatus(
+        "idle"
+      );
+
+      setPricingPreviewError(
+        null
+      );
+
+      return undefined;
     }
 
-    installPrompt.prompt();
+    setPricingPreview(
+      null
+    );
 
-    const choice = await installPrompt.userChoice;
+    setPricingPreviewStatus(
+      "loading"
+    );
 
-    setInstallPrompt(null);
-    setCanInstallPwa(false);
+    setPricingPreviewError(
+      null
+    );
 
-    writeDebug("Home screen install prompt completed.", {
-      outcome: choice?.outcome || null
-    });
+    const timeoutId =
+      window.setTimeout(
+        async () => {
+          try {
+            const response =
+              await previewConnectRoute({
+                connectSessionId,
+                walletAddress:
+                  address,
+                route:
+                  selectedRoute,
+                amount,
+                asset:
+                  form.asset
+              });
+
+            if (cancelled) {
+              return;
+            }
+
+            setPricingPreview(
+              response
+                .pricing_preview
+            );
+
+            setPricingPreviewStatus(
+              "ready"
+            );
+          } catch (error) {
+            if (cancelled) {
+              return;
+            }
+
+            setPricingPreview(
+              null
+            );
+
+            setPricingPreviewStatus(
+              "error"
+            );
+
+            setPricingPreviewError(
+              error?.message ||
+              "connect_pricing_preview_failed"
+            );
+          }
+        },
+        300
+      );
+
+    return () => {
+      cancelled = true;
+
+      window.clearTimeout(
+        timeoutId
+      );
+    };
   }, [
     address,
+    connectSessionId,
+    form.amount,
     form.asset,
-    installPrompt,
-    selectedRouteId,
-    writeDebug
+    isConnected,
+    isHistoryPage,
+    isReturnedFlow,
+    selectedRoute
   ]);
 
-  const handleUseRouteAgain = useCallback(async () => {
-    await trackConnectEvent("use_route_again_clicked", {
-      wallet_address: address,
-      route_id: selectedRouteId,
-      asset: form.asset,
-      metadata: {
-        previous_settlement_id: getSettlementId(settlement)
-      }
-    });
-
-    setPayoutIntentId(null);
-    setSettlement(null);
-    setFundingTxHash(null);
-    setIsBusy(false);
-
-    routeCreatedTrackedRef.current = false;
-
-    resetConnectSession();
-
-    setForm(current => ({
-      ...current,
-      amount: "",
-      asset: current.asset || selectedRoute.assets[0],
-      beneficiary:
-        current.beneficiary ||
-        buildEmptyForm(selectedRoute).beneficiary
-    }));
-
-    clearStoredFlow();
-    writeDebug("Ready to start another payout.");
-  }, [
+  const {
+    handleSend,
+    walletConfirmationPending
+  } = useRouteFlow({
+    isConnected,
     address,
-    form.asset,
-    resetConnectSession,
+    chainId,
+    walletClient,
+    switchChainAsync,
+    connectSessionId,
     selectedRoute,
-    selectedRouteId,
+    form,
+    pricingPreview,
+    payoutIntentId,
+    setPayoutIntentId,
     settlement,
+    setSettlement,
+    setFundingTxHash,
+    setIsBusy,
+    isReturnedFlow,
     writeDebug
-  ]);
+  });
 
-  function updateBeneficiaryField(name, value) {
-    setForm(current => ({
-      ...current,
-      beneficiary: {
-        ...current.beneficiary,
-        [name]: value
-      }
-    }));
+  const trackedHandleSend =
+    useCallback(
+      async () => {
+        await trackConnectEvent(
+          "route_started",
+          {
+            wallet_address:
+              address,
+
+            route_id:
+              selectedRouteId,
+
+            asset:
+              form.asset,
+
+            metadata: {
+              amount:
+                form.amount,
+
+              payout_intent_id:
+                payoutIntentId
+            }
+          }
+        );
+
+        return handleSend();
+      },
+      [
+        address,
+        form.amount,
+        form.asset,
+        handleSend,
+        payoutIntentId,
+        selectedRouteId
+      ]
+    );
+
+  const handleInstallPwa =
+    useCallback(
+      async () => {
+        await trackConnectEvent(
+          "add_to_home_screen_clicked",
+          {
+            wallet_address:
+              address,
+
+            route_id:
+              selectedRouteId,
+
+            asset:
+              form.asset,
+
+            metadata: {
+              has_install_prompt:
+                Boolean(
+                  installPrompt
+                )
+            }
+          }
+        );
+
+        if (!installPrompt) {
+          writeDebug(
+            "Save UniBridge",
+            {
+              instruction:
+                "Use your browser menu and choose Add to Home Screen."
+            }
+          );
+
+          return;
+        }
+
+        installPrompt.prompt();
+
+        const choice =
+          await installPrompt
+            .userChoice;
+
+        setInstallPrompt(
+          null
+        );
+
+        setCanInstallPwa(
+          false
+        );
+
+        writeDebug(
+          "Home screen install prompt completed.",
+          {
+            outcome:
+              choice?.outcome ||
+              null
+          }
+        );
+      },
+      [
+        address,
+        form.asset,
+        installPrompt,
+        selectedRouteId,
+        writeDebug
+      ]
+    );
+
+  const handleUseRouteAgain =
+    useCallback(
+      async () => {
+        await trackConnectEvent(
+          "use_route_again_clicked",
+          {
+            wallet_address:
+              address,
+
+            route_id:
+              selectedRouteId,
+
+            asset:
+              form.asset,
+
+            metadata: {
+              previous_settlement_id:
+                getSettlementId(
+                  settlement
+                )
+            }
+          }
+        );
+
+        setPayoutIntentId(
+          null
+        );
+
+        setSettlement(
+          null
+        );
+
+        setFundingTxHash(
+          null
+        );
+
+        setIsBusy(
+          false
+        );
+
+        setPricingPreview(
+          null
+        );
+
+        setPricingPreviewStatus(
+          "idle"
+        );
+
+        setPricingPreviewError(
+          null
+        );
+
+        routeCreatedTrackedRef
+          .current = false;
+
+        resetConnectSession();
+
+        setForm(
+          current => ({
+            ...current,
+
+            amount:
+              "",
+
+            asset:
+              current.asset ||
+              selectedRoute
+                .assets[0],
+
+            beneficiary:
+              current
+                .beneficiary ||
+              buildEmptyForm(
+                selectedRoute
+              ).beneficiary
+          })
+        );
+
+        clearStoredFlow();
+
+        writeDebug(
+          "Ready to start another payout."
+        );
+      },
+      [
+        address,
+        form.asset,
+        resetConnectSession,
+        selectedRoute,
+        selectedRouteId,
+        settlement,
+        writeDebug
+      ]
+    );
+
+  function updateBeneficiaryField(
+    name,
+    value
+  ) {
+    setForm(
+      current => ({
+        ...current,
+
+        beneficiary: {
+          ...current
+            .beneficiary,
+
+          [name]:
+            value
+        }
+      })
+    );
   }
 
-  function changeRoute(routeId) {
+  function changeRoute(
+    routeId
+  ) {
     const route =
-      getRouteById(routeId, routes);
+      getRouteById(
+        routeId,
+        routes
+      );
 
-    setSelectedRouteId(route.id);
-    setPayoutIntentId(null);
-    setSettlement(null);
-    setFundingTxHash(null);
+    setSelectedRouteId(
+      route.id
+    );
 
-    routeCreatedTrackedRef.current = false;
+    setPayoutIntentId(
+      null
+    );
+
+    setSettlement(
+      null
+    );
+
+    setFundingTxHash(
+      null
+    );
+
+    setPricingPreview(
+      null
+    );
+
+    setPricingPreviewStatus(
+      "idle"
+    );
+
+    setPricingPreviewError(
+      null
+    );
+
+    routeCreatedTrackedRef
+      .current = false;
 
     resetConnectSession();
-    setForm(buildEmptyForm(route));
+
+    setForm(
+      buildEmptyForm(
+        route
+      )
+    );
+
     clearStoredFlow();
-    writeDebug("Ready to start a new payout.");
+
+    writeDebug(
+      "Ready to start a new payout."
+    );
   }
 
   if (isHistoryPage) {
-    return <HistoryPage walletAddress={address} />;
+    return (
+      <HistoryPage
+        walletAddress={address}
+      />
+    );
   }
 
   return (
     <main className="connect-shell">
-            <header className="connect-brandbar">
+      <header className="connect-brandbar">
         <a
           href="/connect"
           className="connect-brandbar-logo-link"
@@ -454,73 +962,152 @@ export default function App() {
         <div
           className="wallet-connect-row"
           onClick={() => {
-            trackConnectEvent("wallet_connect_started", {
-              route_id: selectedRouteId,
-              asset: form.asset
-            });
+            trackConnectEvent(
+              "wallet_connect_started",
+              {
+                route_id:
+                  selectedRouteId,
+
+                asset:
+                  form.asset
+              }
+            );
           }}
         >
           <appkit-button />
         </div>
       )}
 
-      {(isConnected || isReturnedFlow) && (
+      {(isConnected ||
+        isReturnedFlow) && (
         <>
           <PayoutForm
-            selectedRouteId={selectedRouteId}
-            selectedRoute={selectedRoute}
+            selectedRouteId={
+              selectedRouteId
+            }
+            selectedRoute={
+              selectedRoute
+            }
             form={form}
             setForm={setForm}
             isBusy={isBusy}
-            isReturnedFlow={isReturnedFlow}
-            settlement={settlement}
-            fundingTxHash={fundingTxHash}
-            walletConfirmationPending={walletConfirmationPending}
-            payoutIntentId={payoutIntentId}
+            isReturnedFlow={
+              isReturnedFlow
+            }
+            settlement={
+              settlement
+            }
+            fundingTxHash={
+              fundingTxHash
+            }
+            walletConfirmationPending={
+              walletConfirmationPending
+            }
+            payoutIntentId={
+              payoutIntentId
+            }
+            pricingPreview={
+              pricingPreview
+            }
+            executionPricing={
+              settlement?.pricing ??
+              null
+            }
+            pricingPreviewStatus={
+              pricingPreviewStatus
+            }
+            pricingPreviewError={
+              pricingPreviewError
+            }
             debug={debug}
-            handleSend={trackedHandleSend}
-            changeRoute={changeRoute}
-            updateBeneficiaryField={updateBeneficiaryField}
+            handleSend={
+              trackedHandleSend
+            }
+            changeRoute={
+              changeRoute
+            }
+            updateBeneficiaryField={
+              updateBeneficiaryField
+            }
             routes={routes}
           />
 
           <RouteActions
-            settlement={settlement}
-            address={address}
-            selectedRouteId={selectedRouteId}
-            selectedRoute={selectedRoute}
+            settlement={
+              settlement
+            }
+            address={
+              address
+            }
+            selectedRouteId={
+              selectedRouteId
+            }
+            selectedRoute={
+              selectedRoute
+            }
             form={form}
-            onUseAgain={handleUseRouteAgain}
+            onUseAgain={
+              handleUseRouteAgain
+            }
           />
 
           <PayoutReviewManager
-            settlement={settlement}
-            payoutIntentId={payoutIntentId}
-            routeId={selectedRouteId}
-            amount={form.amount}
-            asset={form.asset}
-            walletAddress={address}
+            settlement={
+              settlement
+            }
+            payoutIntentId={
+              payoutIntentId
+            }
+            routeId={
+              selectedRouteId
+            }
+            amount={
+              form.amount
+            }
+            asset={
+              form.asset
+            }
+            walletAddress={
+              address
+            }
           />
 
-          {settlement && !isStandalonePwa && canInstallPwa && (
-            <button
-              type="button"
-              className="install-pwa-button"
-              onClick={handleInstallPwa}
-            >
-              Save UniBridge
-            </button>
-          )}
+          {settlement &&
+            !isStandalonePwa &&
+            canInstallPwa && (
+              <button
+                type="button"
+                className="install-pwa-button"
+                onClick={
+                  handleInstallPwa
+                }
+              >
+                Save UniBridge
+              </button>
+            )}
         </>
       )}
 
       <footer className="connect-lite-footer">
-        <span>© 2026 UniBridge Technologies Ltd.</span>
+        <span>
+          © 2026 UniBridge Technologies Ltd.
+        </span>
 
-        <nav className="connect-lite-footer-links" aria-label="Footer links">
-          <a href="/privacy.html">Privacy</a>
-          <span aria-hidden="true">|</span>
-          <a href="/legal.html">Terms</a>
+        <nav
+          className="connect-lite-footer-links"
+          aria-label="Footer links"
+        >
+          <a href="/privacy.html">
+            Privacy
+          </a>
+
+          <span aria-hidden="true">
+            |
+          </span>
+
+          <a href="/legal.html">
+            Terms
+          </a>
         </nav>
       </footer>
     </main>
