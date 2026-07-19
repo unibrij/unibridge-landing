@@ -1,6 +1,7 @@
 // connect-app/src/hooks/useRouteFlow.js
 
 import {
+  useEffect,
   useRef,
   useState
 } from "react";
@@ -62,7 +63,9 @@ function normalizeStatus(status = "") {
 function isCompletedStatus(status = "") {
   return [
     "payout_completed"
-  ].includes(normalizeStatus(status));
+  ].includes(
+    normalizeStatus(status)
+  );
 }
 
 function isTerminalFailureStatus(status = "") {
@@ -75,7 +78,9 @@ function isTerminalFailureStatus(status = "") {
     "rejected",
     "payout_failed",
     "execution_failed"
-  ].includes(normalizeStatus(status));
+  ].includes(
+    normalizeStatus(status)
+  );
 }
 
 function getSettlementId(settlement) {
@@ -90,22 +95,44 @@ function getSettlementId(settlement) {
 function pickSettlementLike(intent) {
   return {
     ...intent,
+
     settlement_id:
       intent?.settlement_id ||
       null,
+
     status:
       intent?.public_route_status ||
       intent?.live_settlement_status ||
       intent?.settlement_status ||
       intent?.status ||
       null,
+
     live_settlement_status:
       intent?.live_settlement_status ||
       null,
+
     public_route_status:
       intent?.public_route_status ||
       null
   };
+}
+
+function getPayoutIntentId(result) {
+  return (
+    result?.payout_intent_id ||
+    result?.payout_intent?.payout_intent_id ||
+    result?.payout_intent?.id ||
+    result?.id ||
+    null
+  );
+}
+
+function normalizePricingPreview(pricingPreview) {
+  return (
+    pricingPreview?.pricing_preview ??
+    pricingPreview ??
+    null
+  );
 }
 
 export function useRouteFlow({
@@ -118,6 +145,7 @@ export function useRouteFlow({
   connectSessionId,
   selectedRoute,
   form,
+  pricingPreview,
 
   payoutIntentId,
   setPayoutIntentId,
@@ -134,31 +162,218 @@ export function useRouteFlow({
     setWalletConfirmationPending
   ] = useState(false);
 
-  const statusPollTokenRef = useRef(null);
+  const statusPollTokenRef =
+    useRef(null);
 
-  async function continueAfterKyc(intentId = payoutIntentId) {
-    if (!intentId) {
-      writeDebug("Missing payout intent");
-      return;
+  const payoutIntentIdRef =
+    useRef(
+      payoutIntentId ||
+      null
+    );
+
+  useEffect(() => {
+    payoutIntentIdRef.current =
+      payoutIntentId ||
+      null;
+  }, [
+    payoutIntentId
+  ]);
+
+  function requireFlowContext() {
+    if (!connectSessionId) {
+      throw new Error(
+        "connect_session_required"
+      );
     }
 
-    setIsBusy(true);
+    if (!selectedRoute) {
+      throw new Error(
+        "connect_route_required"
+      );
+    }
 
-    writeDebug("Preparing funding...", {
-      payout_intent_id: intentId
+    if (!address) {
+      throw new Error(
+        "wallet_address_required"
+      );
+    }
+
+    validateRouteForm({
+      form,
+      route:
+        selectedRoute
     });
+  }
 
-    const result =
+  async function createSettlementForIntent(
+    intentId
+  ) {
+    if (!intentId) {
+      throw new Error(
+        "payout_intent_id_required"
+      );
+    }
+
+    writeDebug(
+      "Preparing settlement...",
+      {
+        payout_intent_id:
+          intentId
+      }
+    );
+
+    const settlementResult =
       await createSettlement({
-        payoutIntentId: intentId
+        payoutIntentId:
+          intentId
       });
 
-    setSettlement(result);
-    setFundingTxHash(null);
-    setWalletConfirmationPending(false);
-    clearStoredFlow();
+    setSettlement(
+      settlementResult
+    );
 
-    writeDebug("Funding route ready. Send from wallet.", result);
+    setFundingTxHash(
+      null
+    );
+
+    setWalletConfirmationPending(
+      false
+    );
+
+    /*
+     * Do not clear stored flow here.
+     * The user has not signed or submitted funding yet.
+     */
+
+    writeDebug(
+      "Funding route ready. Send from wallet.",
+      settlementResult
+    );
+
+    return settlementResult;
+  }
+
+  async function createIntentAndSettlement() {
+    requireFlowContext();
+
+    writeDebug(
+      "Creating payout intent...",
+      {
+        connect_session_id:
+          connectSessionId,
+
+        route_id:
+          selectedRoute.id ||
+          null
+      }
+    );
+
+    const intentResult =
+      await createPayoutIntent({
+        connectSessionId,
+
+        walletAddress:
+          address,
+
+        route:
+          selectedRoute,
+
+        form
+      });
+
+    const intentId =
+      getPayoutIntentId(
+        intentResult
+      );
+
+    if (!intentId) {
+      throw new Error(
+        "payout_intent_id_missing"
+      );
+    }
+
+    payoutIntentIdRef.current =
+      intentId;
+
+    setPayoutIntentId(
+      intentId
+    );
+
+    storeFlowSnapshot({
+      connect_session_id:
+        connectSessionId,
+
+      payout_intent_id:
+        intentId,
+
+      route_id:
+        selectedRoute.id,
+
+      form,
+
+      pricing_preview:
+        normalizePricingPreview(
+          pricingPreview
+        )
+    });
+
+    writeDebug(
+      "Payout intent created.",
+      {
+        payout_intent_id:
+          intentId
+      }
+    );
+
+    const settlementResult =
+      await createSettlementForIntent(
+        intentId
+      );
+
+    return {
+      intentId,
+
+      intent:
+        intentResult,
+
+      settlement:
+        settlementResult
+    };
+  }
+
+  async function continueAfterKyc(
+    suppliedIntentId
+  ) {
+    setIsBusy(true);
+
+    const existingIntentId =
+      suppliedIntentId ||
+      payoutIntentIdRef.current ||
+      payoutIntentId ||
+      null;
+
+    /*
+     * Legacy or resumed flow:
+     * a payout intent already exists.
+     */
+    if (existingIntentId) {
+      return createSettlementForIntent(
+        existingIntentId
+      );
+    }
+
+    /*
+     * New flow:
+     * KYC completed before payout-intent creation.
+     */
+    writeDebug(
+      "Verification completed. Creating payout intent..."
+    );
+
+    const result =
+      await createIntentAndSettlement();
+
+    return result.settlement;
   }
 
   async function pollSettlementAfterFunding({
@@ -168,208 +383,439 @@ export function useRouteFlow({
     amount
   }) {
     if (!intentId) {
-      writeDebug("Wallet submitted. Waiting for route update.", {
-        tx_hash: txHash,
-        reason: "missing_payout_intent_id"
-      });
+      writeDebug(
+        "Wallet submitted. Waiting for route update.",
+        {
+          tx_hash:
+            txHash,
+
+          reason:
+            "missing_payout_intent_id"
+        }
+      );
+
       return;
     }
 
     const pollToken =
       `${intentId}:${txHash}:${Date.now()}`;
 
-    statusPollTokenRef.current = pollToken;
+    statusPollTokenRef.current =
+      pollToken;
 
-    writeDebug("Wallet submitted. Checking route status...", {
-      payout_intent_id: intentId,
-      tx_hash: txHash,
-      polling_interval_ms: STATUS_POLL_INTERVAL_MS,
-      max_attempts: STATUS_POLL_MAX_ATTEMPTS
-    });
+    writeDebug(
+      "Wallet submitted. Checking route status...",
+      {
+        payout_intent_id:
+          intentId,
+
+        tx_hash:
+          txHash,
+
+        polling_interval_ms:
+          STATUS_POLL_INTERVAL_MS,
+
+        max_attempts:
+          STATUS_POLL_MAX_ATTEMPTS
+      }
+    );
 
     for (
       let attempt = 1;
       attempt <= STATUS_POLL_MAX_ATTEMPTS;
       attempt += 1
     ) {
-      if (statusPollTokenRef.current !== pollToken) {
+      if (
+        statusPollTokenRef.current !==
+        pollToken
+      ) {
         return;
       }
 
-      await sleep(STATUS_POLL_INTERVAL_MS);
+      await sleep(
+        STATUS_POLL_INTERVAL_MS
+      );
 
       try {
         const intent =
           await getPayoutIntent({
-            payoutIntentId: intentId
+            payoutIntentId:
+              intentId
           });
 
         const refreshed =
-          pickSettlementLike(intent);
+          pickSettlementLike(
+            intent
+          );
 
-        if (statusPollTokenRef.current !== pollToken) {
+        if (
+          statusPollTokenRef.current !==
+          pollToken
+        ) {
           return;
         }
 
-        setSettlement(refreshed);
+        setSettlement(
+          refreshed
+        );
 
-        if (isCompletedStatus(refreshed?.status)) {
+        if (
+          isCompletedStatus(
+            refreshed?.status
+          )
+        ) {
           saveRouteHistoryItem({
-            id: getSettlementId(refreshed),
-            route_id: getSettlementId(refreshed),
-            payout_intent_id: intentId,
-            corridor: selectedRoute?.label || selectedRoute?.id || "—",
-            amount: form.amount || amount || "",
-            asset: form.asset || asset || "",
-            status: refreshed?.status || "payout_completed"
+            id:
+              getSettlementId(
+                refreshed
+              ),
+
+            route_id:
+              getSettlementId(
+                refreshed
+              ),
+
+            payout_intent_id:
+              intentId,
+
+            corridor:
+              selectedRoute?.label ||
+              selectedRoute?.id ||
+              "—",
+
+            amount:
+              form.amount ||
+              amount ||
+              "",
+
+            asset:
+              form.asset ||
+              asset ||
+              "",
+
+            status:
+              refreshed?.status ||
+              "payout_completed"
           });
 
-          writeDebug("Payout completed.", {
-            payout_intent_id: intentId,
-            settlement_id: getSettlementId(refreshed),
-            tx_hash: txHash,
-            status: refreshed?.status,
-            live_settlement_status:
-              refreshed?.live_settlement_status || null,
-            public_route_status:
-              refreshed?.public_route_status || null
-          });
+          writeDebug(
+            "Payout completed.",
+            {
+              payout_intent_id:
+                intentId,
+
+              settlement_id:
+                getSettlementId(
+                  refreshed
+                ),
+
+              tx_hash:
+                txHash,
+
+              status:
+                refreshed?.status,
+
+              live_settlement_status:
+                refreshed
+                  ?.live_settlement_status ||
+                null,
+
+              public_route_status:
+                refreshed
+                  ?.public_route_status ||
+                null
+            }
+          );
 
           return;
         }
 
-        if (isTerminalFailureStatus(refreshed?.status)) {
-          writeDebug("Payout did not complete.", {
-            payout_intent_id: intentId,
-            settlement_id: getSettlementId(refreshed),
-            tx_hash: txHash,
-            status: refreshed?.status,
-            live_settlement_status:
-              refreshed?.live_settlement_status || null,
-            public_route_status:
-              refreshed?.public_route_status || null
-          });
+        if (
+          isTerminalFailureStatus(
+            refreshed?.status
+          )
+        ) {
+          writeDebug(
+            "Payout did not complete.",
+            {
+              payout_intent_id:
+                intentId,
+
+              settlement_id:
+                getSettlementId(
+                  refreshed
+                ),
+
+              tx_hash:
+                txHash,
+
+              status:
+                refreshed?.status,
+
+              live_settlement_status:
+                refreshed
+                  ?.live_settlement_status ||
+                null,
+
+              public_route_status:
+                refreshed
+                  ?.public_route_status ||
+                null
+            }
+          );
 
           return;
         }
       } catch (err) {
-        writeDebug("Route status check failed", {
-          payout_intent_id: intentId,
-          tx_hash: txHash,
-          attempt,
-          message: err.message
-        });
+        writeDebug(
+          "Route status check failed",
+          {
+            payout_intent_id:
+              intentId,
+
+            tx_hash:
+              txHash,
+
+            attempt,
+
+            message:
+              err.message
+          }
+        );
       }
     }
 
-    writeDebug("Wallet submitted. Route completion still pending.", {
-      payout_intent_id: intentId,
-      tx_hash: txHash,
-      status: "still_waiting"
-    });
+    writeDebug(
+      "Wallet submitted. Route completion still pending.",
+      {
+        payout_intent_id:
+          intentId,
+
+        tx_hash:
+          txHash,
+
+        status:
+          "still_waiting"
+      }
+    );
   }
 
   async function startNewFlow() {
     if (!isConnected) {
-      writeDebug("Connect your wallet first.");
+      writeDebug(
+        "Connect your wallet first."
+      );
+
       return;
     }
 
-    if (chainId && Number(chainId) !== REQUIRED_CHAIN_ID) {
-      writeDebug("Wallet network notice", {
-        message:
-          "This route uses Polygon. Your wallet may be asked to switch networks before funding.",
-        expected_chain_id: REQUIRED_CHAIN_ID,
-        current_chain_id: chainId
-      });
+    if (!address) {
+      writeDebug(
+        "Wallet address missing."
+      );
+
+      return;
     }
 
     if (!connectSessionId) {
-      writeDebug("Connect session is still preparing. Try again in a moment.");
+      writeDebug(
+        "Connect session is still preparing. Try again in a moment."
+      );
+
+      return;
+    }
+
+    if (!selectedRoute) {
+      writeDebug(
+        "Select a payout route first."
+      );
+
+      return;
+    }
+
+    const normalizedPricingPreview =
+      normalizePricingPreview(
+        pricingPreview
+      );
+
+    /*
+     * Pricing Preview must already exist
+     * before the user presses Continue.
+     */
+    if (!normalizedPricingPreview) {
+      writeDebug(
+        "Pricing preview is required before continuing.",
+        {
+          connect_session_id:
+            connectSessionId,
+
+          route_id:
+            selectedRoute.id ||
+            null
+        }
+      );
+
       return;
     }
 
     validateRouteForm({
       form,
-      route: selectedRoute
+      route:
+        selectedRoute
     });
 
-    setIsBusy(true);
-    setSettlement(null);
-    setFundingTxHash(null);
-    setWalletConfirmationPending(false);
+    if (
+      chainId &&
+      Number(chainId) !==
+        REQUIRED_CHAIN_ID
+    ) {
+      writeDebug(
+        "Wallet network notice",
+        {
+          message:
+            "This route uses Polygon. Your wallet may be asked to switch networks before funding.",
 
-    statusPollTokenRef.current = null;
+          expected_chain_id:
+            REQUIRED_CHAIN_ID,
 
-    writeDebug("Preparing payout route...");
-
-    const intent =
-      await createPayoutIntent({
-        connectSessionId,
-        walletAddress: address,
-        route: selectedRoute,
-        form
-      });
-
-    setPayoutIntentId(intent.payout_intent_id);
-
-    storeFlowSnapshot({
-      payout_intent_id: intent.payout_intent_id,
-      route_id: selectedRoute.id,
-      form
-    });
-
-    if (isKycAlreadyPassed(intent)) {
-      writeDebug("Verification already completed. Preparing funding...", {
-        payout_intent_id: intent.payout_intent_id,
-        kyc_status: intent.kyc_status || null,
-        verification_status: intent.verification_status || null,
-        next_step: intent.next_step || null
-      });
-
-      await continueAfterKyc(intent.payout_intent_id);
-      return;
+          current_chain_id:
+            chainId
+        }
+      );
     }
 
-    writeDebug("Starting verification...", {
-      payout_intent_id: intent.payout_intent_id
+    setIsBusy(
+      true
+    );
+
+    setSettlement(
+      null
+    );
+
+    payoutIntentIdRef.current =
+      null;
+
+    setPayoutIntentId(
+      null
+    );
+
+    setFundingTxHash(
+      null
+    );
+
+    setWalletConfirmationPending(
+      false
+    );
+
+    statusPollTokenRef.current =
+      null;
+
+    /*
+     * Save the pre-KYC flow.
+     * No payout intent exists at this stage.
+     */
+    storeFlowSnapshot({
+      connect_session_id:
+        connectSessionId,
+
+      payout_intent_id:
+        null,
+
+      route_id:
+        selectedRoute.id,
+
+      form,
+
+      pricing_preview:
+        normalizedPricingPreview
     });
+
+    writeDebug(
+      "Starting verification...",
+      {
+        connect_session_id:
+          connectSessionId,
+
+        route_id:
+          selectedRoute.id ||
+          null
+      }
+    );
 
     try {
       const kyc =
         await startKyc({
-          payoutIntentId: intent.payout_intent_id
+          connectSessionId
         });
 
-      if (kyc.skipped || isKycAlreadyPassed(kyc)) {
-        writeDebug("Verification already completed. Preparing funding...", {
-          payout_intent_id: intent.payout_intent_id,
-          kyc_status: kyc.kyc_status || null,
-          verification_status: kyc.verification_status || null,
-          next_step: kyc.next_step || null
-        });
+      if (
+        kyc?.skipped ||
+        isKycAlreadyPassed(
+          kyc
+        )
+      ) {
+        writeDebug(
+          "Verification already completed.",
+          {
+            connect_session_id:
+              connectSessionId,
 
-        await continueAfterKyc(intent.payout_intent_id);
+            kyc_status:
+              kyc?.kyc_status ||
+              null,
+
+            verification_status:
+              kyc?.verification_status ||
+              null,
+
+            next_step:
+              kyc?.next_step ||
+              null
+          }
+        );
+
+        await continueAfterKyc(
+          null
+        );
+
         return;
       }
 
-      if (!kyc.url) {
-        writeDebug("No KYC URL returned. Preparing funding...", {
-          payout_intent_id: intent.payout_intent_id
-        });
-
-        await continueAfterKyc(intent.payout_intent_id);
-        return;
+      if (!kyc?.url) {
+        throw new Error(
+          "kyc_url_missing"
+        );
       }
 
-      window.location.href = kyc.url;
+      writeDebug(
+        "Opening verification...",
+        {
+          connect_session_id:
+            connectSessionId
+        }
+      );
+
+      window.location.assign(
+        kyc.url
+      );
     } catch (err) {
-      if (isMissingKycUrlError(err)) {
-        writeDebug("Verification already completed. Preparing funding...", {
-          payout_intent_id: intent.payout_intent_id
-        });
+      if (
+        isMissingKycUrlError(
+          err
+        )
+      ) {
+        writeDebug(
+          "Verification already completed.",
+          {
+            connect_session_id:
+              connectSessionId
+          }
+        );
 
-        await continueAfterKyc(intent.payout_intent_id);
+        await continueAfterKyc(
+          null
+        );
+
         return;
       }
 
@@ -378,45 +824,72 @@ export function useRouteFlow({
   }
 
   async function ensurePolygonNetwork() {
-    if (!chainId || Number(chainId) === REQUIRED_CHAIN_ID) {
+    if (
+      !chainId ||
+      Number(chainId) ===
+        REQUIRED_CHAIN_ID
+    ) {
       return true;
     }
 
     if (!switchChainAsync) {
-      writeDebug("Wallet network switch unavailable", {
-        message:
-          "Your wallet is on the wrong network and automatic switching is unavailable.",
-        expected_chain_id: REQUIRED_CHAIN_ID,
-        current_chain_id: chainId
-      });
+      writeDebug(
+        "Wallet network switch unavailable",
+        {
+          message:
+            "Your wallet is on the wrong network and automatic switching is unavailable.",
+
+          expected_chain_id:
+            REQUIRED_CHAIN_ID,
+
+          current_chain_id:
+            chainId
+        }
+      );
 
       return false;
     }
 
     try {
-      writeDebug("Switching wallet network to Polygon...", {
-        expected_chain_id: REQUIRED_CHAIN_ID,
-        current_chain_id: chainId
-      });
+      writeDebug(
+        "Switching wallet network to Polygon...",
+        {
+          expected_chain_id:
+            REQUIRED_CHAIN_ID,
+
+          current_chain_id:
+            chainId
+        }
+      );
 
       await switchChainAsync({
-        chainId: REQUIRED_CHAIN_ID
+        chainId:
+          REQUIRED_CHAIN_ID
       });
 
       writeDebug(
         "Wallet network switched. Press Send funding again.",
         {
-          expected_chain_id: REQUIRED_CHAIN_ID
+          expected_chain_id:
+            REQUIRED_CHAIN_ID
         }
       );
 
       return false;
     } catch (err) {
-      writeDebug("Wallet network switch failed", {
-        message: err.message,
-        expected_chain_id: REQUIRED_CHAIN_ID,
-        current_chain_id: chainId
-      });
+      writeDebug(
+        "Wallet network switch failed",
+        {
+          message:
+            err.message,
+
+          expected_chain_id:
+            REQUIRED_CHAIN_ID,
+
+          current_chain_id:
+            chainId
+        }
+      );
 
       return false;
     }
@@ -424,17 +897,26 @@ export function useRouteFlow({
 
   async function sendFundingTransaction() {
     if (!settlement?.funding) {
-      writeDebug("Missing funding instructions");
+      writeDebug(
+        "Missing funding instructions"
+      );
+
       return;
     }
 
     if (!walletClient) {
-      writeDebug("Wallet not ready");
+      writeDebug(
+        "Wallet not ready"
+      );
+
       return;
     }
 
     if (!address) {
-      writeDebug("Wallet address missing");
+      writeDebug(
+        "Wallet address missing"
+      );
+
       return;
     }
 
@@ -445,93 +927,203 @@ export function useRouteFlow({
       return;
     }
 
-    const funding = settlement.funding;
+    const funding =
+      settlement.funding;
 
-    const asset = pickFundingAsset(funding);
-    const amount = pickFundingAmount(funding);
-    const depositAddress = pickFundingDepositAddress(funding);
+    const asset =
+      pickFundingAsset(
+        funding
+      );
 
-    const token = POLYGON_TOKENS[asset];
+    const amount =
+      pickFundingAmount(
+        funding
+      );
+
+    const depositAddress =
+      pickFundingDepositAddress(
+        funding
+      );
+
+    const token =
+      POLYGON_TOKENS[
+        asset
+      ];
 
     if (!token) {
-      writeDebug("Unsupported funding token", {
-        asset,
-        supported_assets: Object.keys(POLYGON_TOKENS)
-      });
+      writeDebug(
+        "Unsupported funding token",
+        {
+          asset,
+
+          supported_assets:
+            Object.keys(
+              POLYGON_TOKENS
+            )
+        }
+      );
+
       return;
     }
 
     if (!depositAddress) {
-      writeDebug("Missing deposit address");
+      writeDebug(
+        "Missing deposit address"
+      );
+
       return;
     }
 
-    if (!amount || Number(amount) <= 0) {
-      writeDebug("Invalid funding amount", {
-        amount
-      });
+    if (
+      !amount ||
+      Number(amount) <= 0
+    ) {
+      writeDebug(
+        "Invalid funding amount",
+        {
+          amount
+        }
+      );
+
       return;
     }
 
-    setIsBusy(true);
-    setWalletConfirmationPending(true);
+    setIsBusy(
+      true
+    );
+
+    setWalletConfirmationPending(
+      true
+    );
 
     try {
       const transferData =
         encodeFunctionData({
-          abi: ERC20_TRANSFER_ABI,
-          functionName: "transfer",
+          abi:
+            ERC20_TRANSFER_ABI,
+
+          functionName:
+            "transfer",
+
           args: [
             depositAddress,
-            parseUnits(String(amount), token.decimals)
+
+            parseUnits(
+              String(amount),
+              token.decimals
+            )
           ]
         });
 
-      writeDebug("Opening wallet transfer...", {
-        mode: "send_transaction_encoded_transfer",
-        status: "wallet_confirmation_pending",
-        asset,
-        amount,
-        deposit_address: depositAddress,
-        token_contract: token.address,
-        gas_limit: "100000"
-      });
+      writeDebug(
+        "Opening wallet transfer...",
+        {
+          mode:
+            "send_transaction_encoded_transfer",
+
+          status:
+            "wallet_confirmation_pending",
+
+          asset,
+          amount,
+
+          deposit_address:
+            depositAddress,
+
+          token_contract:
+            token.address,
+
+          gas_limit:
+            "100000"
+        }
+      );
 
       const hash =
         await walletClient.sendTransaction({
-          account: address,
-          to: token.address,
-          data: transferData,
-          gas: 100000n
+          account:
+            address,
+
+          to:
+            token.address,
+
+          data:
+            transferData,
+
+          gas:
+            100000n
         });
 
-      setFundingTxHash(hash);
-      setWalletConfirmationPending(false);
+      setFundingTxHash(
+        hash
+      );
 
-      writeDebug("Wallet transaction submitted.", {
-        tx_hash: hash,
-        status: "wallet_submitted",
-        mode: "send_transaction_encoded_transfer",
-        asset,
-        amount,
-        deposit_address: depositAddress,
-        token_contract: token.address
-      });
+      setWalletConfirmationPending(
+        false
+      );
 
-      pollSettlementAfterFunding({
-        intentId: payoutIntentId,
-        txHash: hash,
+      /*
+       * The wallet successfully submitted the funding transaction.
+       * The stored redirect/recovery flow is no longer required.
+       */
+      clearStoredFlow();
+
+      writeDebug(
+        "Wallet transaction submitted.",
+        {
+          tx_hash:
+            hash,
+
+          status:
+            "wallet_submitted",
+
+          mode:
+            "send_transaction_encoded_transfer",
+
+          asset,
+          amount,
+
+          deposit_address:
+            depositAddress,
+
+          token_contract:
+            token.address
+        }
+      );
+
+      const activeIntentId =
+        payoutIntentIdRef.current ||
+        payoutIntentId ||
+        null;
+
+      /*
+       * Poll without blocking the UI busy state.
+       */
+      void pollSettlementAfterFunding({
+        intentId:
+          activeIntentId,
+
+        txHash:
+          hash,
+
         asset,
         amount
       });
     } catch (err) {
-      setWalletConfirmationPending(false);
+      setWalletConfirmationPending(
+        false
+      );
 
-      writeDebug("Funding transaction failed", {
-        message: err.message
-      });
+      writeDebug(
+        "Funding transaction failed",
+        {
+          message:
+            err.message
+        }
+      );
     } finally {
-      setIsBusy(false);
+      setIsBusy(
+        false
+      );
     }
   }
 
@@ -543,18 +1135,47 @@ export function useRouteFlow({
       }
 
       if (isReturnedFlow) {
-        await continueAfterKyc();
-      } else {
-        await startNewFlow();
-      }
-    } catch (err) {
-      setWalletConfirmationPending(false);
+        if (
+          !connectSessionId ||
+          !selectedRoute
+        ) {
+          writeDebug(
+            "Returned flow is still restoring.",
+            {
+              connect_session_id:
+                connectSessionId ||
+                null,
 
-      writeDebug("Send failed", {
-        message: err.message
-      });
+              route_id:
+                selectedRoute?.id ||
+                null
+            }
+          );
+
+          return;
+        }
+
+        await continueAfterKyc();
+        return;
+      }
+
+      await startNewFlow();
+    } catch (err) {
+      setWalletConfirmationPending(
+        false
+      );
+
+      writeDebug(
+        "Send failed",
+        {
+          message:
+            err.message
+        }
+      );
     } finally {
-      setIsBusy(false);
+      setIsBusy(
+        false
+      );
     }
   }
 
