@@ -135,7 +135,12 @@ export default function PayoutForm({
               asset,
 
             label:
-              asset
+              asset,
+
+            asset,
+
+            showAssetIcon:
+              true
           })
         ),
       [
