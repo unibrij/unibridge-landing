@@ -342,6 +342,11 @@ export default function PayoutForm({
     executionPricing ??
     pricingPreview;
 
+  const amountAssetDisabled =
+    isBusy ||
+    isReturnedFlow ||
+    routeUnavailable;
+
   return (
     <section className="payout-form">
       <label>
@@ -365,60 +370,71 @@ export default function PayoutForm({
         />
       </label>
 
-      <label>
+      <label className="amount-asset-field">
         Amount
 
-        <input
-          type="number"
-          min="1"
-          placeholder="100"
-          value={
-            form.amount
+        <div
+          className={
+            `amount-asset-control${
+              amountAssetDisabled
+                ? " is-disabled"
+                : ""
+            }`
           }
-          disabled={
-            isBusy ||
-            isReturnedFlow ||
-            routeUnavailable
-          }
-          onChange={
-            event =>
-              setForm({
-                ...form,
+        >
+          <input
+            className="amount-asset-input"
+            type="number"
+            min="1"
+            inputMode="decimal"
+            placeholder="100"
+            value={
+              form.amount
+            }
+            disabled={
+              amountAssetDisabled
+            }
+            aria-label="Payout amount"
+            onChange={
+              event =>
+                setForm(
+                  current => ({
+                    ...current,
 
-                amount:
-                  event
-                    .target
-                    .value
-              })
-          }
-        />
-      </label>
+                    amount:
+                      event
+                        .target
+                        .value
+                  })
+                )
+            }
+          />
 
-      <label>
-        Asset
+          <div className="amount-asset-selector">
+            <Select
+              value={
+                selectedAsset
+              }
+              options={
+                assetOptions
+              }
+              disabled={
+                amountAssetDisabled
+              }
+              ariaLabel="Select funding asset"
+              onChange={
+                asset =>
+                  setForm(
+                    current => ({
+                      ...current,
 
-        <Select
-          value={
-            selectedAsset
-          }
-          options={
-            assetOptions
-          }
-          disabled={
-            isBusy ||
-            isReturnedFlow ||
-            routeUnavailable
-          }
-          ariaLabel="Select funding asset"
-          onChange={
-            asset =>
-              setForm({
-                ...form,
-
-                asset
-              })
-          }
-        />
+                      asset
+                    })
+                  )
+              }
+            />
+          </div>
+        </div>
       </label>
 
       {beneficiaryFields.map(
