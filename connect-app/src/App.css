@@ -350,8 +350,9 @@ min-height: 42px;
 .amount-asset-selector {
   position: relative;
   z-index: 20;
-  min-width: 0;
-  height: 100%;
+  width: 112px;
+  min-width: 112px;
+  height: 40px;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -362,10 +363,10 @@ min-height: 42px;
 
 .amount-asset-selector .connect-select-trigger {
   width: 100%;
-  min-height: 42px;
-  height: 42px;
+  min-height: 40px;
+  height: 40px;
   margin: 0;
-  padding: 10px 11px;
+  padding: 0 10px;
   border: 0;
   border-radius: 0 13px 13px 0;
   background: transparent;
@@ -379,8 +380,12 @@ min-height: 42px;
 }
 
 .amount-asset-selector .connect-select-menu {
-  min-width: 112px;
+  left: auto;
+  right: 0;
+  width: 140px;
+  min-width: 140px;
 }
+
 .payout-form button:not(.connect-select-trigger):not(.connect-select-option) {
   width: 100%;
   margin-top: 4px;
