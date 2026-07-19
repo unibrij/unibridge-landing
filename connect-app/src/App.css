@@ -281,6 +281,101 @@ p {
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
+/* --------------------------------------------------
+   Amount + asset combined field
+-------------------------------------------------- */
+
+.amount-asset-control {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+  align-items: center;
+  width: 100%;
+  min-height: 72px;
+  margin-top: 0;
+  overflow: visible;
+  border: 1px solid rgba(67, 227, 210, 0.42);
+  border-radius: 22px;
+  background: rgba(8, 34, 67, 0.72);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.amount-asset-control:focus-within {
+  border-color: rgba(67, 227, 210, 0.9);
+  box-shadow:
+    0 0 0 3px rgba(67, 227, 210, 0.1);
+}
+
+.amount-asset-control.is-disabled {
+  opacity: 0.65;
+}
+
+.payout-form .amount-asset-input {
+  width: 100%;
+  min-width: 0;
+  height: 70px;
+  margin: 0;
+  padding: 0 14px 0 20px;
+  border: 0;
+  border-radius: 22px 0 0 22px;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+}
+
+.payout-form .amount-asset-input:focus {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+.amount-asset-input::-webkit-inner-spin-button,
+.amount-asset-input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.amount-asset-input {
+  appearance: textfield;
+}
+
+.amount-asset-selector {
+  position: relative;
+  z-index: 20;
+  min-width: 118px;
+  padding-right: 8px;
+}
+
+.amount-asset-selector .connect-select-shell {
+  width: 100%;
+}
+
+.amount-asset-selector .connect-select-trigger {
+  min-height: 54px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 15px;
+  background: rgba(18, 66, 91, 0.76);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.amount-asset-selector .connect-select-trigger:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.amount-asset-selector .connect-select-menu {
+  min-width: 120px;
+}
+
 .payout-form button:not(.connect-select-trigger):not(.connect-select-option) {
   width: 100%;
   margin-top: 4px;
@@ -1168,5 +1263,17 @@ p {
     gap: 10px;
     margin-top: 36px;
     padding-bottom: 10px;
+  }
+  .amount-asset-control {
+    min-height: 66px;
+  }
+
+  .payout-form .amount-asset-input {
+    height: 64px;
+    padding-left: 18px;
+  }
+
+  .amount-asset-selector {
+    min-width: 108px;
   }
 }
