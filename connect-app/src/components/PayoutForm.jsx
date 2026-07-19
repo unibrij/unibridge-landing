@@ -29,9 +29,14 @@ import {
 
 const SHOW_DEBUG =
   import.meta.env.DEV ||
-  new URLSearchParams(window.location.search).get("debug") === "1";
+  new URLSearchParams(
+    window.location.search
+  ).get("debug") === "1";
 
-function hasOwn(value = {}, key) {
+function hasOwn(
+  value = {},
+  key
+) {
   return Object.prototype.hasOwnProperty.call(
     value,
     key
@@ -50,6 +55,7 @@ export default function PayoutForm({
   walletConfirmationPending,
   payoutIntentId,
   pricingPreview,
+  executionPricing,
   pricingPreviewStatus,
   pricingPreviewError,
   debug,
@@ -58,52 +64,83 @@ export default function PayoutForm({
   updateBeneficiaryField,
   routes
 }) {
-  const [dynamicOptionSources, setDynamicOptionSources] =
-    useState({});
+  const [
+    dynamicOptionSources,
+    setDynamicOptionSources
+  ] = useState({});
 
   const routeUnavailable =
-    isComingSoonRoute(selectedRoute);
+    isComingSoonRoute(
+      selectedRoute
+    );
 
   const routeAssets =
-    getRouteAssets(selectedRoute);
+    getRouteAssets(
+      selectedRoute
+    );
 
   const beneficiaryFields =
-    getBeneficiaryFields(selectedRoute);
+    getBeneficiaryFields(
+      selectedRoute
+    );
 
   const selectedAsset =
-    routeAssets.includes(form.asset)
+    routeAssets.includes(
+      form.asset
+    )
       ? form.asset
-      : routeAssets[0] || "USDT";
+      : routeAssets[0] ||
+        "USDT";
 
   const selectedNetwork =
-    selectedRoute?.network || "polygon";
+    selectedRoute?.network ||
+    "polygon";
 
   const routeOptions =
     useMemo(
       () =>
-        normalizeArray(routes)
+        normalizeArray(
+          routes
+        )
           .map(route => ({
             value:
-              route.id || route.route_id,
+              route.id ||
+              route.route_id,
 
             label:
-              getRouteDisplayLabel(route),
+              getRouteDisplayLabel(
+                route
+              ),
 
             disabled:
-              isComingSoonRoute(route)
+              isComingSoonRoute(
+                route
+              )
           }))
-          .filter(option => option.value),
-      [routes]
+          .filter(
+            option =>
+              option.value
+          ),
+      [
+        routes
+      ]
     );
 
   const assetOptions =
     useMemo(
       () =>
-        routeAssets.map(asset => ({
-          value: asset,
-          label: asset
-        })),
-      [routeAssets]
+        routeAssets.map(
+          asset => ({
+            value:
+              asset,
+
+            label:
+              asset
+          })
+        ),
+      [
+        routeAssets
+      ]
     );
 
   const dynamicSources =
@@ -112,77 +149,130 @@ export default function PayoutForm({
         Array.from(
           new Set(
             beneficiaryFields
-              .map(field => field?.source)
-              .filter(source => DYNAMIC_OPTION_ENDPOINTS[source])
+              .map(
+                field =>
+                  field?.source
+              )
+              .filter(
+                source =>
+                  DYNAMIC_OPTION_ENDPOINTS[
+                    source
+                  ]
+              )
           )
         ),
-      [beneficiaryFields]
+      [
+        beneficiaryFields
+      ]
     );
 
   useEffect(() => {
-    if (dynamicSources.length === 0) return;
+    if (
+      dynamicSources.length ===
+      0
+    ) {
+      return;
+    }
 
-    let cancelled = false;
+    let cancelled =
+      false;
 
     async function loadDynamicSources() {
       const missingSources =
-        dynamicSources.filter(source =>
-          !hasOwn(dynamicOptionSources, source)
+        dynamicSources.filter(
+          source =>
+            !hasOwn(
+              dynamicOptionSources,
+              source
+            )
         );
 
-      if (missingSources.length === 0) {
+      if (
+        missingSources.length ===
+        0
+      ) {
         return;
       }
 
       await Promise.all(
-        missingSources.map(async source => {
-          const endpoint =
-            DYNAMIC_OPTION_ENDPOINTS[source];
+        missingSources.map(
+          async source => {
+            const endpoint =
+              DYNAMIC_OPTION_ENDPOINTS[
+                source
+              ];
 
-          try {
-            const response =
-              await fetch(endpoint);
+            try {
+              const response =
+                await fetch(
+                  endpoint
+                );
 
-            if (!response.ok) {
-              throw new Error(`options_${source}_failed`);
+              if (
+                !response.ok
+              ) {
+                throw new Error(
+                  `options_${source}_failed`
+                );
+              }
+
+              const payload =
+                await response.json();
+
+              const options =
+                normalizeDynamicOptions(
+                  payload
+                );
+
+              if (
+                cancelled
+              ) {
+                return;
+              }
+
+              setDynamicOptionSources(
+                current => ({
+                  ...current,
+
+                  [source]:
+                    options
+                })
+              );
+            } catch (err) {
+              console.warn(
+                "CONNECT_DYNAMIC_OPTIONS_FAILED",
+                source,
+                err?.message ||
+                  String(
+                    err
+                  )
+              );
+
+              if (
+                cancelled
+              ) {
+                return;
+              }
+
+              setDynamicOptionSources(
+                current => ({
+                  ...current,
+
+                  [source]:
+                    []
+                })
+              );
             }
-
-            const payload =
-              await response.json();
-
-            const options =
-              normalizeDynamicOptions(payload);
-
-            if (cancelled) return;
-
-            setDynamicOptionSources(current => ({
-              ...current,
-              [source]:
-                options
-            }));
-          } catch (err) {
-            console.warn(
-              "CONNECT_DYNAMIC_OPTIONS_FAILED",
-              source,
-              err?.message || String(err)
-            );
-
-            if (cancelled) return;
-
-            setDynamicOptionSources(current => ({
-              ...current,
-              [source]:
-                []
-            }));
           }
-        })
+        )
       );
     }
 
     loadDynamicSources();
 
     return () => {
-      cancelled = true;
+      cancelled =
+        true;
     };
   }, [
     dynamicSources,
@@ -190,13 +280,27 @@ export default function PayoutForm({
   ]);
 
   useEffect(() => {
-    if (!selectedAsset) return;
-    if (form.asset === selectedAsset) return;
+    if (
+      !selectedAsset
+    ) {
+      return;
+    }
 
-    setForm(current => ({
-      ...current,
-      asset: selectedAsset
-    }));
+    if (
+      form.asset ===
+      selectedAsset
+    ) {
+      return;
+    }
+
+    setForm(
+      current => ({
+        ...current,
+
+        asset:
+          selectedAsset
+      })
+    );
   }, [
     form.asset,
     selectedAsset,
@@ -226,10 +330,17 @@ export default function PayoutForm({
   const pricingUnavailable =
     pricingRequired &&
     (
-      pricingPreviewStatus === "loading" ||
-      Boolean(pricingPreviewError) ||
+      pricingPreviewStatus ===
+        "loading" ||
+      Boolean(
+        pricingPreviewError
+      ) ||
       !pricingPreview
     );
+
+  const displayedPricing =
+    executionPricing ??
+    pricingPreview;
 
   return (
     <section className="payout-form">
@@ -237,31 +348,48 @@ export default function PayoutForm({
         Route
 
         <Select
-          value={selectedRouteId}
-          options={routeOptions}
-          disabled={isBusy || isReturnedFlow}
+          value={
+            selectedRouteId
+          }
+          options={
+            routeOptions
+          }
+          disabled={
+            isBusy ||
+            isReturnedFlow
+          }
           ariaLabel="Select payout route"
-          onChange={changeRoute}
+          onChange={
+            changeRoute
+          }
         />
       </label>
 
       <label>
         Amount
+
         <input
           type="number"
           min="1"
           placeholder="100"
-          value={form.amount}
+          value={
+            form.amount
+          }
           disabled={
             isBusy ||
             isReturnedFlow ||
             routeUnavailable
           }
-          onChange={e =>
-            setForm({
-              ...form,
-              amount: e.target.value
-            })
+          onChange={
+            event =>
+              setForm({
+                ...form,
+
+                amount:
+                  event
+                    .target
+                    .value
+              })
           }
         />
       </label>
@@ -270,91 +398,144 @@ export default function PayoutForm({
         Asset
 
         <Select
-          value={selectedAsset}
-          options={assetOptions}
+          value={
+            selectedAsset
+          }
+          options={
+            assetOptions
+          }
           disabled={
             isBusy ||
             isReturnedFlow ||
             routeUnavailable
           }
           ariaLabel="Select funding asset"
-          onChange={asset =>
-            setForm({
-              ...form,
-              asset
-            })
+          onChange={
+            asset =>
+              setForm({
+                ...form,
+
+                asset
+              })
           }
         />
       </label>
 
-      {beneficiaryFields.map(field => {
-        const fieldName =
-          field.name;
+      {beneficiaryFields.map(
+        field => {
+          const fieldName =
+            field.name;
 
-        if (
-          field.type === "select" &&
-          field.source
-        ) {
-          const options =
-            filterFieldOptions({
-              field,
-              options:
-                dynamicOptionSources[field.source],
-              selectedRoute
-            });
+          if (
+            field.type ===
+              "select" &&
+            field.source
+          ) {
+            const options =
+              filterFieldOptions({
+                field,
+
+                options:
+                  dynamicOptionSources[
+                    field
+                      .source
+                  ],
+
+                selectedRoute
+              });
+
+            return (
+              <label
+                key={
+                  fieldName
+                }
+              >
+                {field.label}
+
+                <SearchableSelect
+                  value={
+                    form
+                      .beneficiary
+                      ?.[
+                        fieldName
+                      ] ||
+                    ""
+                  }
+                  options={
+                    options
+                  }
+                  disabled={
+                    isBusy ||
+                    isReturnedFlow ||
+                    routeUnavailable
+                  }
+                  ariaLabel={`Search ${field.label}`}
+                  placeholder="Search bank or wallet"
+                  onChange={
+                    value =>
+                      updateBeneficiaryField(
+                        fieldName,
+                        value
+                      )
+                  }
+                />
+              </label>
+            );
+          }
 
           return (
-            <label key={fieldName}>
+            <label
+              key={
+                fieldName
+              }
+            >
               {field.label}
 
-              <SearchableSelect
-                value={form.beneficiary?.[fieldName] || ""}
-                options={options}
+              <input
+                type={
+                  field.type ||
+                  "text"
+                }
+                placeholder={
+                  field.placeholder
+                }
+                required={
+                  field.required
+                }
                 disabled={
                   isBusy ||
                   isReturnedFlow ||
                   routeUnavailable
                 }
-                ariaLabel={`Search ${field.label}`}
-                placeholder="Search bank or wallet"
-                onChange={value =>
-                  updateBeneficiaryField(
-                    fieldName,
-                    value
-                  )
+                value={
+                  form
+                    .beneficiary
+                    ?.[
+                      fieldName
+                    ] ||
+                  ""
+                }
+                onChange={
+                  event =>
+                    updateBeneficiaryField(
+                      fieldName,
+                      event
+                        .target
+                        .value
+                    )
                 }
               />
             </label>
           );
         }
-
-        return (
-          <label key={fieldName}>
-            {field.label}
-            <input
-              type={field.type || "text"}
-              placeholder={field.placeholder}
-              required={field.required}
-              disabled={
-                isBusy ||
-                isReturnedFlow ||
-                routeUnavailable
-              }
-              value={form.beneficiary?.[fieldName] || ""}
-              onChange={e =>
-                updateBeneficiaryField(
-                  fieldName,
-                  e.target.value
-                )
-              }
-            />
-          </label>
-        );
-      })}
+      )}
 
       {routeUnavailable ? (
         <div className="wallet-pending-card">
-          <strong>Coming soon</strong>
+          <strong>
+            Coming soon
+          </strong>
+
           <span>
             This payout corridor is not available yet.
           </span>
@@ -363,27 +544,46 @@ export default function PayoutForm({
 
       {!routeUnavailable ? (
         <PricingPreview
-          pricingPreview={pricingPreview}
-          status={pricingPreviewStatus}
-          error={pricingPreviewError}
+          pricingPreview={
+            displayedPricing
+          }
+          status={
+            executionPricing
+              ? "ready"
+              : pricingPreviewStatus
+          }
+          error={
+            executionPricing
+              ? null
+              : pricingPreviewError
+          }
         />
       ) : null}
 
       <button
         type="button"
-        onClick={handleSend}
+        onClick={
+          handleSend
+        }
         disabled={
           routeUnavailable ||
           pricingUnavailable ||
-          (isBusy && !walletConfirmationPending)
+          (
+            isBusy &&
+            !walletConfirmationPending
+          )
         }
       >
         {buttonLabel}
       </button>
 
-      {walletConfirmationPending && !fundingTxHash ? (
+      {walletConfirmationPending &&
+      !fundingTxHash ? (
         <div className="wallet-pending-card">
-          <strong>Wallet confirmation pending</strong>
+          <strong>
+            Wallet confirmation pending
+          </strong>
+
           <span>
             Return to your wallet and confirm the transaction.
           </span>
@@ -391,22 +591,38 @@ export default function PayoutForm({
       ) : null}
 
       <RouteInfo
-        selectedNetwork={selectedNetwork}
-        selectedAsset={selectedAsset}
-        payoutIntentId={payoutIntentId}
-        fundingTxHash={fundingTxHash}
-        displayStatus={displayStatus}
+        selectedNetwork={
+          selectedNetwork
+        }
+        selectedAsset={
+          selectedAsset
+        }
+        payoutIntentId={
+          payoutIntentId
+        }
+        fundingTxHash={
+          fundingTxHash
+        }
+        displayStatus={
+          displayStatus
+        }
       />
 
       {SHOW_DEBUG ? (
         <>
           {settlement?.funding ? (
             <pre className="connect-debug">
-              {JSON.stringify(settlement.funding, null, 2)}
+              {JSON.stringify(
+                settlement.funding,
+                null,
+                2
+              )}
             </pre>
           ) : null}
 
-          <pre className="connect-debug">{debug}</pre>
+          <pre className="connect-debug">
+            {debug}
+          </pre>
         </>
       ) : null}
     </section>
