@@ -9,6 +9,7 @@ import {
 import Select from "./payout-form/Select.jsx";
 import SearchableSelect from "./payout-form/SearchableSelect.jsx";
 import RouteInfo from "./payout-form/RouteInfo.jsx";
+import PricingPreview from "./PricingPreview.jsx";
 
 import {
   DYNAMIC_OPTION_ENDPOINTS,
@@ -48,6 +49,9 @@ export default function PayoutForm({
   fundingTxHash,
   walletConfirmationPending,
   payoutIntentId,
+  pricingPreview,
+  pricingPreviewStatus,
+  pricingPreviewError,
   debug,
   handleSend,
   changeRoute,
@@ -215,6 +219,18 @@ export default function PayoutForm({
       routeUnavailable
     });
 
+  const pricingRequired =
+    !isReturnedFlow &&
+    !settlement;
+
+  const pricingUnavailable =
+    pricingRequired &&
+    (
+      pricingPreviewStatus === "loading" ||
+      Boolean(pricingPreviewError) ||
+      !pricingPreview
+    );
+
   return (
     <section className="payout-form">
       <label>
@@ -345,11 +361,20 @@ export default function PayoutForm({
         </div>
       ) : null}
 
+      {!routeUnavailable ? (
+        <PricingPreview
+          pricingPreview={pricingPreview}
+          status={pricingPreviewStatus}
+          error={pricingPreviewError}
+        />
+      ) : null}
+
       <button
         type="button"
         onClick={handleSend}
         disabled={
           routeUnavailable ||
+          pricingUnavailable ||
           (isBusy && !walletConfirmationPending)
         }
       >
