@@ -293,7 +293,8 @@ p {
     112px;
   align-items: center;
   width: 100%;
-  min-height: 42px;
+  height: 42px;
+min-height: 42px;
   overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 13px;
@@ -316,9 +317,10 @@ p {
 .payout-form .amount-asset-input {
   width: 100%;
   min-width: 0;
-  height: 42px;
+  height: 40px;
+  min-height: 40px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 0 12px;
   border: 0;
   border-radius: 13px 0 0 13px;
   outline: 0;
@@ -868,6 +870,36 @@ p {
   color: #ffffff;
 }
 
+.connect-select-option-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.connect-select-option-content > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connect-select-asset-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  flex: 0 0 20px;
+}
+
+.connect-select-value {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* --------------------------------------------------
    History
 -------------------------------------------------- */
@@ -1266,17 +1298,5 @@ p {
     gap: 10px;
     margin-top: 36px;
     padding-bottom: 10px;
-  }
-  .amount-asset-control {
-    min-height: 66px;
-  }
-
-  .payout-form .amount-asset-input {
-    height: 64px;
-    padding-left: 18px;
-  }
-
-  .amount-asset-selector {
-    min-width: 108px;
   }
 }
