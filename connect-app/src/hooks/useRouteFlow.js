@@ -456,7 +456,34 @@ export function useRouteFlow({
         }
 
         setSettlement(
-          refreshed
+          current => ({
+            ...current,
+
+            settlement_id:
+              refreshed.settlement_id ??
+              current?.settlement_id ??
+              null,
+
+            status:
+              refreshed.status ??
+              current?.status ??
+              null,
+
+            settlement_status:
+              refreshed.settlement_status ??
+              current?.settlement_status ??
+              null,
+
+            live_settlement_status:
+              refreshed.live_settlement_status ??
+              current?.live_settlement_status ??
+              null,
+
+            public_route_status:
+              refreshed.public_route_status ??
+              current?.public_route_status ??
+              null
+          })
         );
 
         if (
