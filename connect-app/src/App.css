@@ -281,6 +281,7 @@ p {
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
+
 /* --------------------------------------------------
    Amount + asset combined field
 -------------------------------------------------- */
@@ -289,24 +290,23 @@ p {
   display: grid;
   grid-template-columns:
     minmax(0, 1fr)
-    auto;
+    112px;
   align-items: center;
   width: 100%;
-  min-height: 72px;
-  margin-top: 0;
+  min-height: 42px;
   overflow: visible;
-  border: 1px solid rgba(67, 227, 210, 0.42);
-  border-radius: 22px;
-  background: rgba(8, 34, 67, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.075);
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease;
 }
 
 .amount-asset-control:focus-within {
-  border-color: rgba(67, 227, 210, 0.9);
+  border-color: rgba(45, 212, 191, 0.55);
   box-shadow:
-    0 0 0 3px rgba(67, 227, 210, 0.1);
+    0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
 .amount-asset-control.is-disabled {
@@ -316,11 +316,11 @@ p {
 .payout-form .amount-asset-input {
   width: 100%;
   min-width: 0;
-  height: 70px;
+  height: 42px;
   margin: 0;
-  padding: 0 14px 0 20px;
+  padding: 10px 12px;
   border: 0;
-  border-radius: 22px 0 0 22px;
+  border-radius: 13px 0 0 13px;
   outline: 0;
   box-shadow: none;
   background: transparent;
@@ -348,21 +348,25 @@ p {
 .amount-asset-selector {
   position: relative;
   z-index: 20;
-  min-width: 118px;
-  padding-right: 8px;
+  min-width: 0;
+  height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .amount-asset-selector .connect-select-shell {
   width: 100%;
+  height: 100%;
 }
 
 .amount-asset-selector .connect-select-trigger {
-  min-height: 54px;
+  width: 100%;
+  min-height: 42px;
+  height: 42px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 10px 11px;
   border: 0;
-  border-radius: 15px;
-  background: rgba(18, 66, 91, 0.76);
+  border-radius: 0 13px 13px 0;
+  background: transparent;
   box-shadow: none;
   font-weight: 700;
 }
@@ -373,9 +377,8 @@ p {
 }
 
 .amount-asset-selector .connect-select-menu {
-  min-width: 120px;
+  min-width: 112px;
 }
-
 .payout-form button:not(.connect-select-trigger):not(.connect-select-option) {
   width: 100%;
   margin-top: 4px;
