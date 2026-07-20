@@ -1,17 +1,67 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" /><meta
-name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
-/>
+  <meta charset="utf-8" />
 
-  <title>UniBridge — Bank Transfer Funding</title>  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />  <meta name="theme-color" content="#000E2D" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="UniBridge" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=9" />
-  <link rel="stylesheet" href="/fiat/bank-transfer/styles.css?v=10" />
-  <link rel="stylesheet" href="/fiat/bank-transfer/app/assets/fiat-auth.css" />  <style>
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
+
+  <title>UniBridge — Bank Transfer Funding</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="/favicon.png"
+  />
+
+  <link
+    rel="apple-touch-icon"
+    href="/connect/icons/app/ub-app-icon-512.png"
+  />
+
+  <meta
+    name="theme-color"
+    content="#000E2D"
+  />
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  />
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="UniBridge"
+  />
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=9"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/fiat/bank-transfer/styles.css?v=10"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/fiat/bank-transfer/app/assets/fiat-auth.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/shared/pricing/pricing.css"
+  />
+
+  <style>
     .sr-only {
       position: absolute;
       width: 1px;
@@ -23,311 +73,380 @@ content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,vie
       white-space: nowrap;
       border: 0;
     }
-  </style></head><body>
+  </style>
+</head>
+
+<body>
   <main class="page pay-page-shell">
-    <div id="pay-brand"></div><section class="hero" aria-labelledby="bankTransferTitle">
-  <h1 id="bankTransferTitle" class="sr-only">
-    Pay by bank transfer
-  </h1>
+    <div id="pay-brand"></div>
 
-  <p class="eyebrow" aria-hidden="true">
-    Bank transfer funding
-  </p>
-</section>
+    <section
+      class="hero"
+      aria-labelledby="bankTransferTitle"
+    >
+      <h1
+        id="bankTransferTitle"
+        class="sr-only"
+      >
+        Pay by bank transfer
+      </h1>
 
-<section class="card">
-  <section id="fiatReactRoot"></section>
-
-  <section id="entryBox" class="entry-box">
-    <div class="entry-header">
-      <h2>Create bank-transfer route</h2>
-      <p>
-        Select the funding source, payout destination, and amount for this bank-transfer route.
+      <p
+        class="eyebrow"
+        aria-hidden="true"
+      >
+        Bank transfer funding
       </p>
-    </div>
+    </section>
 
-    <div class="form-grid">
-      <label class="field">
-        <span>Source country</span>
+    <section class="card">
+      <section id="fiatReactRoot"></section>
 
-        <select
-          id="sourceCountry"
-          data-country-select="source"
-          required
-        ></select>
-      </label>
+      <section
+        id="entryBox"
+        class="entry-box"
+      >
+        <div class="entry-header">
+          <h2>Create bank-transfer route</h2>
 
-      <label class="field">
-        <span>Destination country</span>
+          <p>
+            Select the funding source, payout destination, and amount for this bank-transfer route.
+          </p>
+        </div>
 
-        <select
-          id="receiverCountry"
-          data-country-select="destination"
-          required
-        ></select>
-      </label>
+        <div class="form-grid">
+          <label class="field">
+            <span>Source country</span>
 
-      <label class="field amount-field">
-        <span>You pay</span>
+            <select
+              id="sourceCountry"
+              data-country-select="source"
+              required
+            ></select>
+          </label>
 
-        <div class="amount-input-wrap">
-          <input
-            id="amount"
-            type="number"
-            min="1"
-            step="0.01"
-            value="5"
-            required
-            aria-label="Amount"
-          />
+          <label class="field">
+            <span>Destination country</span>
 
-          <span
-            id="amountCurrency"
-            class="amount-currency"
-            aria-hidden="true"
+            <select
+              id="receiverCountry"
+              data-country-select="destination"
+              required
+            ></select>
+          </label>
+
+          <label class="field amount-field">
+            <span>You pay</span>
+
+            <div class="amount-input-wrap">
+              <input
+                id="amount"
+                type="number"
+                min="1"
+                step="0.01"
+                value="5"
+                required
+                aria-label="Amount"
+              />
+
+              <span
+                id="amountCurrency"
+                class="amount-currency"
+                aria-hidden="true"
+              >
+                USD
+              </span>
+            </div>
+
+            <small class="field-hint">
+              Fees and final amount are shown before confirmation.
+            </small>
+          </label>
+        </div>
+
+        <section
+          id="contextSummary"
+          class="summary-box"
+        >
+          Enter bank-transfer details to get available routes.
+        </section>
+
+        <div class="form-grid route-grid">
+          <label class="field">
+            <span>Destination route</span>
+
+            <select
+              id="routeId"
+              disabled
+            >
+              <option value="">
+                Get quote first
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <div
+          id="destinationFields"
+          class="form-grid"
+        ></div>
+
+        <section
+          id="customerProfileBox"
+          class="profile-box hidden"
+        >
+          <div class="entry-header compact">
+            <h2>Complete funding profile</h2>
+
+            <p>
+              These details are used only to create your bank-transfer funding profile.
+            </p>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Phone number</span>
+
+              <input
+                id="customerPhone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="+5541996608113"
+              />
+            </label>
+
+            <label class="field">
+              <span>Street address</span>
+
+              <input
+                id="customerStreetLine1"
+                type="text"
+                autocomplete="address-line1"
+                placeholder="Rua Teste 123"
+              />
+            </label>
+
+            <label class="field">
+              <span>City</span>
+
+              <input
+                id="customerCity"
+                type="text"
+                autocomplete="address-level2"
+                placeholder="Curitiba"
+              />
+            </label>
+
+            <label class="field">
+              <span>State / Province</span>
+
+              <input
+                id="customerState"
+                type="text"
+                autocomplete="address-level1"
+                placeholder="PR"
+              />
+            </label>
+
+            <label class="field">
+              <span>Postal code</span>
+
+              <input
+                id="customerPostalCode"
+                type="text"
+                autocomplete="postal-code"
+                inputmode="numeric"
+                placeholder="80000000"
+              />
+            </label>
+
+            <label class="field">
+              <span>Country</span>
+
+              <input
+                id="customerCountry"
+                type="text"
+                autocomplete="country"
+                placeholder="BRA"
+                value="BRA"
+              />
+            </label>
+          </div>
+        </section>
+
+        <div
+          id="quoteBox"
+          class="quote-box hidden"
+        ></div>
+
+        <div class="actions">
+          <button
+            id="quoteAction"
+            class="button secondary"
+            type="button"
           >
-            USD
-          </span>
+            Get quote
+          </button>
+
+          <button
+            id="createSettlementAction"
+            class="button primary"
+            type="button"
+            disabled
+          >
+            Create payout route
+          </button>
         </div>
+      </section>
 
-        <small class="field-hint">
-          Fees and final amount are shown before confirmation.
-        </small>
-      </label>
-    </div>
+      <section
+        id="fundingBox"
+        class="hidden"
+      >
+        <section
+          class="steps"
+          aria-label="Funding steps"
+        >
+          <div
+            class="step"
+            data-step="kyc"
+          >
+            <span class="step-dot"></span>
 
-    <section id="contextSummary" class="summary-box">
-      Enter bank-transfer details to get available routes.
+            <div>
+              <strong>Verify identity</strong>
+
+              <p>
+                Sign in securely and complete identity verification if required.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="tos"
+          >
+            <span class="step-dot"></span>
+
+            <div>
+              <strong>Accept terms</strong>
+
+              <p>
+                Accept Bridge terms for bank-transfer funding.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="customer"
+          >
+            <span class="step-dot"></span>
+
+            <div>
+              <strong>Create funding profile</strong>
+
+              <p>
+                Prepare the verified Bridge customer profile.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="instructions"
+          >
+            <span class="step-dot"></span>
+
+            <div>
+              <strong>Get bank instructions</strong>
+
+              <p>
+                Generate ACH, SEPA, or Faster Payments instructions.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="waiting"
+          >
+            <span class="step-dot"></span>
+
+            <div>
+              <strong>Wait for funding</strong>
+
+              <p>
+                UniBridge continues once funding is confirmed.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="statusBox"
+          class="status-box"
+          aria-live="polite"
+        >
+          Preparing bank-transfer flow…
+        </section>
+
+        <section
+          id="instructionsBox"
+          class="instructions hidden"
+        ></section>
+
+        <footer class="actions">
+          <button
+            id="primaryAction"
+            class="button primary"
+            type="button"
+          >
+            Start bank transfer setup
+          </button>
+
+          <button
+            id="refreshStatus"
+            class="button secondary"
+            type="button"
+          >
+            Refresh status
+          </button>
+
+          <button
+            id="newTransferAction"
+            class="button secondary"
+            type="button"
+          >
+            Start new transfer
+          </button>
+        </footer>
+      </section>
     </section>
-
-    <div class="form-grid route-grid">
-      <label class="field">
-        <span>Destination route</span>
-
-        <select id="routeId" disabled>
-          <option value="">Get quote first</option>
-        </select>
-      </label>
-    </div>
 
     <div
-      id="destinationFields"
-      class="form-grid"
+      id="pay-guide"
+      hidden
+      aria-hidden="true"
+      style="display: none !important;"
     ></div>
 
-    <section
-      id="customerProfileBox"
-      class="profile-box hidden"
-    >
-      <div class="entry-header compact">
-        <h2>Complete funding profile</h2>
-        <p>
-          These details are used only to create your bank-transfer funding profile.
-        </p>
-      </div>
+    <div id="pay-footer"></div>
+  </main>
 
-      <div class="form-grid">
-        <label class="field">
-          <span>Phone number</span>
+  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
 
-          <input
-            id="customerPhone"
-            type="tel"
-            autocomplete="tel"
-            inputmode="tel"
-            placeholder="+5541996608113"
-          />
-        </label>
+  <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
-        <label class="field">
-          <span>Street address</span>
-
-          <input
-            id="customerStreetLine1"
-            type="text"
-            autocomplete="address-line1"
-            placeholder="Rua Teste 123"
-          />
-        </label>
-
-        <label class="field">
-          <span>City</span>
-
-          <input
-            id="customerCity"
-            type="text"
-            autocomplete="address-level2"
-            placeholder="Curitiba"
-          />
-        </label>
-
-        <label class="field">
-          <span>State / Province</span>
-
-          <input
-            id="customerState"
-            type="text"
-            autocomplete="address-level1"
-            placeholder="PR"
-          />
-        </label>
-
-        <label class="field">
-          <span>Postal code</span>
-
-          <input
-            id="customerPostalCode"
-            type="text"
-            autocomplete="postal-code"
-            inputmode="numeric"
-            placeholder="80000000"
-          />
-        </label>
-
-        <label class="field">
-          <span>Country</span>
-
-          <input
-            id="customerCountry"
-            type="text"
-            autocomplete="country"
-            placeholder="BRA"
-            value="BRA"
-          />
-        </label>
-      </div>
-    </section>
-
-    <div
-      id="quoteBox"
-      class="quote-box hidden"
-    ></div>
-
-    <div class="actions">
-      <button
-        id="quoteAction"
-        class="button secondary"
-        type="button"
-      >
-        Get quote
-      </button>
-
-      <button
-        id="createSettlementAction"
-        class="button primary"
-        type="button"
-        disabled
-      >
-        Create payout route
-      </button>
-    </div>
-  </section>
-
-  <section
-    id="fundingBox"
-    class="hidden"
-  >
-    <section
-      class="steps"
-      aria-label="Funding steps"
-    >
-      <div class="step" data-step="kyc">
-        <span class="step-dot"></span>
-        <div>
-          <strong>Verify identity</strong>
-          <p>Sign in securely and complete identity verification if required.</p>
-        </div>
-      </div>
-
-      <div class="step" data-step="tos">
-        <span class="step-dot"></span>
-        <div>
-          <strong>Accept terms</strong>
-          <p>Accept Bridge terms for bank-transfer funding.</p>
-        </div>
-      </div>
-
-      <div class="step" data-step="customer">
-        <span class="step-dot"></span>
-        <div>
-          <strong>Create funding profile</strong>
-          <p>Prepare the verified Bridge customer profile.</p>
-        </div>
-      </div>
-
-      <div class="step" data-step="instructions">
-        <span class="step-dot"></span>
-        <div>
-          <strong>Get bank instructions</strong>
-          <p>Generate ACH, SEPA, or Faster Payments instructions.</p>
-        </div>
-      </div>
-
-      <div class="step" data-step="waiting">
-        <span class="step-dot"></span>
-        <div>
-          <strong>Wait for funding</strong>
-          <p>UniBridge continues once funding is confirmed.</p>
-        </div>
-      </div>
-    </section>
-
-    <section
-      id="statusBox"
-      class="status-box"
-      aria-live="polite"
-    >
-      Preparing bank-transfer flow…
-    </section>
-
-    <section
-      id="instructionsBox"
-      class="instructions hidden"
-    ></section>
-
-    <footer class="actions">
-      <button
-        id="primaryAction"
-        class="button primary"
-        type="button"
-      >
-        Start bank transfer setup
-      </button>
-
-      <button
-        id="refreshStatus"
-        class="button secondary"
-        type="button"
-      >
-        Refresh status
-      </button>
-
-      <button
-        id="newTransferAction"
-        class="button secondary"
-        type="button"
-      >
-        Start new transfer
-      </button>
-    </footer>
-  </section>
-</section>
-
-<div
-  id="pay-guide"
-  hidden
-  aria-hidden="true"
-  style="display: none !important;"
-></div>
-
-<div id="pay-footer"></div>
-
-  </main>  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
-  <script src="/partials/pay/js/pay-countries.js?v=3"></script>  <script
+  <script
     type="module"
     src="/fiat/bank-transfer/app/assets/fiat-auth.js"
-  ></script>  <script
+  ></script>
+
+  <script
     type="module"
     src="/fiat/bank-transfer/js/bankTransferFlow.js"
-  ></script></body>
+  ></script>
+</body>
 </html>
