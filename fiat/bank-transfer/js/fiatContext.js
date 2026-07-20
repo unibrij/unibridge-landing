@@ -196,6 +196,9 @@ export function readFiatContext() {
     source_rail:
       rail.source_rail,
 
+    source_currency:
+      rail.source_currency,
+
     receiver_country:
       receiverCountry,
 
@@ -229,7 +232,7 @@ export function renderContextSummary() {
 
         <div class="summary-item">
           <span>Amount</span>
-          <strong>${escapeHtml(context.amount)}</strong>
+          <strong>${escapeHtml(context.amount)} ${escapeHtml(context.source_currency)}</strong>
         </div>
       </div>
     `;
