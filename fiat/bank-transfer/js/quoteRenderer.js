@@ -1,85 +1,105 @@
 // fiat/bank-transfer/js/quoteRenderer.js
 
+import {
+  clearPricing,
+  createPricingViewModel,
+  renderPricing
+} from "../../../shared/pricing/index.js";
+
 function normalizeString(value) {
-  return String(value || "").trim();
+  return String(
+    value ??
+    ""
+  ).trim();
 }
 
-function escapeHtml(value) {
-  return normalizeString(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function buildSourceLabel(form = {}) {
+  return [
+    normalizeString(
+      form.source_country
+    ),
+
+    normalizeString(
+      form.source_rail
+    )
+  ]
+    .filter(Boolean)
+    .join(" / ");
 }
 
-export function renderQuoteValue(value) {
-  if (value === null || value === undefined || value === "") {
-    return "—";
-  }
-
-  return String(value);
+function buildDestinationLabel(
+  form = {},
+  selectedRoute = {}
+) {
+  return (
+    normalizeString(
+      selectedRoute.label
+    ) ||
+    normalizeString(
+      form.receiver_country
+    )
+  );
 }
 
-export function renderQuote(container, {
-  form,
-  quote,
-  selectedRoute
-} = {}) {
+export function renderQuote(
+  container,
+  {
+    form,
+    quote,
+    selectedRoute
+  } = {}
+) {
   if (!container) {
     return;
   }
 
-  const source =
-    `${form.source_country} / ${form.source_rail}`;
-
-  const destination =
-    selectedRoute
-      ? selectedRoute.label
-      : form.receiver_country;
-
-  const fundingAmount =
-    renderQuoteValue(
-      selectedRoute?.funding_amount ||
-      quote?.requested_amount ||
-      form.amount
+  if (
+    !form ||
+    !quote ||
+    !selectedRoute
+  ) {
+    clearPricing(
+      container
     );
 
-  const payoutAmount =
-    renderQuoteValue(
-      selectedRoute?.payout_amount ||
-      quote?.payout_amount ||
-      form.amount
+    container.classList.add(
+      "hidden"
     );
 
-  container.innerHTML = `
-    <div class="quote-header">
-      <strong>Quote ready</strong>
-      <span>Select a payout route and enter destination details.</span>
-    </div>
+    return;
+  }
 
-    <div class="quote-grid">
-      <div>
-        <span>Source</span>
-        <strong>${escapeHtml(source)}</strong>
-      </div>
+  const viewModel =
+    createPricingViewModel({
+      quote,
 
-      <div>
-        <span>Destination</span>
-        <strong>${escapeHtml(destination)}</strong>
-      </div>
+      route:
+        selectedRoute,
 
-      <div>
-        <span>Funding amount</span>
-        <strong>${escapeHtml(fundingAmount)}</strong>
-      </div>
+      customerPaymentAmount:
+        form.amount,
 
-      <div>
-        <span>Estimated payout</span>
-        <strong>${escapeHtml(payoutAmount)}</strong>
-      </div>
-    </div>
-  `;
+      customerPaymentCurrency:
+        form.source_currency,
 
-  container.classList.remove("hidden");
+      sourceLabel:
+        buildSourceLabel(
+          form
+        ),
+
+      destinationLabel:
+        buildDestinationLabel(
+          form,
+          selectedRoute
+        )
+    });
+
+  renderPricing(
+    container,
+    viewModel
+  );
+
+  container.classList.remove(
+    "hidden"
+  );
 }
