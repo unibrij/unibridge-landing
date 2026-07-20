@@ -91,6 +91,7 @@
 
     <div class="test-controls">
       <button
+        type="button"
         class="test-button"
         data-test="canonical"
       >
@@ -98,6 +99,7 @@
       </button>
 
       <button
+        type="button"
         class="test-button"
         data-test="legacy"
       >
@@ -105,6 +107,7 @@
       </button>
 
       <button
+        type="button"
         class="test-button"
         data-test="indicative"
       >
@@ -112,6 +115,7 @@
       </button>
 
       <button
+        type="button"
         class="test-button"
         data-test="unavailable"
       >
@@ -119,6 +123,7 @@
       </button>
 
       <button
+        type="button"
         class="test-button"
         data-test="empty-fees"
       >
@@ -126,6 +131,23 @@
       </button>
 
       <button
+        type="button"
+        class="test-button"
+        data-test="payout-semantics"
+      >
+        Payout semantics
+      </button>
+
+      <button
+        type="button"
+        class="test-button"
+        data-test="explicit-payment"
+      >
+        Explicit payment override
+      </button>
+
+      <button
+        type="button"
         class="test-button"
         data-test="clear"
       >
@@ -426,6 +448,126 @@
 
         sourceLabel:
           "USDC on Polygon"
+      },
+
+      "payout-semantics": {
+        quote: {
+          requested_amount:
+            "540"
+        },
+
+        route: {
+          label:
+            "Brazil PIX",
+
+          pricing_result: {
+            quote: {
+              requested: {
+                amount:
+                  "540",
+
+                currency:
+                  "BRL",
+
+                semantics:
+                  "payout_amount"
+              },
+
+              settlement: {
+                amount:
+                  "100",
+
+                currency:
+                  "USDC"
+              },
+
+              recipient: {
+                amount:
+                  "540",
+
+                currency:
+                  "BRL",
+
+                type:
+                  "locked"
+              },
+
+              fx_rate:
+                "5.4",
+
+              fees: []
+            }
+          }
+        },
+
+        customerPaymentAmount:
+          "100",
+
+        customerPaymentCurrency:
+          "USDC",
+
+        sourceLabel:
+          "Wallet"
+      },
+
+      "explicit-payment": {
+        quote: {
+          requested_amount:
+            "120"
+        },
+
+        route: {
+          label:
+            "Brazil PIX",
+
+          pricing_result: {
+            quote: {
+              requested: {
+                amount:
+                  "120",
+
+                currency:
+                  "USDC",
+
+                semantics:
+                  "funding_amount"
+              },
+
+              settlement: {
+                amount:
+                  "120",
+
+                currency:
+                  "USDC"
+              },
+
+              recipient: {
+                amount:
+                  "648",
+
+                currency:
+                  "BRL",
+
+                type:
+                  "locked"
+              },
+
+              fx_rate:
+                "5.4",
+
+              fees: []
+            }
+          }
+        },
+
+        customerPaymentAmount:
+          "100",
+
+        customerPaymentCurrency:
+          "USDC",
+
+        sourceLabel:
+          "Wallet"
       }
     };
 
@@ -434,6 +576,17 @@
     ) {
       const scenario =
         scenarios[scenarioName];
+
+      if (!scenario) {
+        clearPricing(
+          container
+        );
+
+        output.textContent =
+          `Unknown scenario: ${scenarioName}`;
+
+        return;
+      }
 
       const viewModel =
         createPricingViewModel(
