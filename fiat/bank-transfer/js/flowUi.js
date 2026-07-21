@@ -10,7 +10,9 @@ const quoteButton =
   document.getElementById("quoteAction");
 
 const createSettlementButton =
-  document.getElementById("createSettlementAction");
+  document.getElementById(
+    "createSettlementAction"
+  );
 
 const primaryButton =
   document.getElementById("primaryAction");
@@ -19,7 +21,9 @@ const refreshButton =
   document.getElementById("refreshStatus");
 
 const newTransferButton =
-  document.getElementById("newTransferAction");
+  document.getElementById(
+    "newTransferAction"
+  );
 
 function getEl(id) {
   return document.getElementById(id);
@@ -47,6 +51,12 @@ function resetQuoteStageUi() {
   const quoteBox =
     getEl("quoteBox");
 
+  const contextSummary =
+    getEl("contextSummary");
+
+  const customerProfileBox =
+    getEl("customerProfileBox");
+
   if (routeSelect) {
     routeSelect.disabled =
       true;
@@ -67,7 +77,21 @@ function resetQuoteStageUi() {
   getRouteFieldContainer()
     ?.classList.add("hidden");
 
-  quoteBox?.classList.add(
+  if (quoteBox) {
+    quoteBox.innerHTML =
+      "";
+
+    quoteBox.classList.add(
+      "hidden"
+    );
+  }
+
+  if (contextSummary) {
+    contextSummary.textContent =
+      "Get a new quote to see available routes.";
+  }
+
+  customerProfileBox?.classList.add(
     "hidden"
   );
 }
@@ -264,7 +288,8 @@ export function attachBankTransferEvents({
     startNewTransfer
   );
 
-  let entryEventsReady = false;
+  let entryEventsReady =
+    false;
 
   window.setTimeout(() => {
     entryEventsReady =
@@ -278,13 +303,17 @@ export function attachBankTransferEvents({
 
     resetQuoteStageUi();
 
-    if (typeof handleEntryChanged === "function") {
+    if (
+      typeof handleEntryChanged ===
+      "function"
+    ) {
       handleEntryChanged();
     }
 
     setEntryButtonsForQuoteIdle({
       hasFiatContext:
-        typeof hasFiatContext === "function"
+        typeof hasFiatContext ===
+        "function"
           ? hasFiatContext()
           : true
     });
