@@ -16,7 +16,9 @@ function createElement(
   textContent = null
 ) {
   const element =
-    document.createElement(tagName);
+    document.createElement(
+      tagName
+    );
 
   if (className) {
     element.className =
@@ -34,62 +36,11 @@ function createElement(
   return element;
 }
 
-function renderHeader(
-  container,
-  header
-) {
-  if (!header) {
-    return;
-  }
-
-  const title =
-    String(
-      header.title ??
-      ""
-    ).trim();
-
-  const subtitle =
-    String(
-      header.subtitle ??
-      ""
-    ).trim();
-
-  if (
-    !title &&
-    !subtitle
-  ) {
-    return;
-  }
-
-  const headerElement =
-    createElement(
-      "div",
-      "pricing-header"
-    );
-
-  if (title) {
-    headerElement.appendChild(
-      createElement(
-        "h3",
-        "pricing-title",
-        title
-      )
-    );
-  }
-
-  if (subtitle) {
-    headerElement.appendChild(
-      createElement(
-        "p",
-        "pricing-subtitle",
-        subtitle
-      )
-    );
-  }
-
-  container.appendChild(
-    headerElement
-  );
+function normalizeText(value) {
+  return String(
+    value ??
+    ""
+  ).trim();
 }
 
 function renderMeta(
@@ -97,16 +48,14 @@ function renderMeta(
   meta
 ) {
   const sourceLabel =
-    String(
-      meta?.sourceLabel ??
-      ""
-    ).trim();
+    normalizeText(
+      meta?.sourceLabel
+    );
 
   const destinationLabel =
-    String(
-      meta?.destinationLabel ??
-      ""
-    ).trim();
+    normalizeText(
+      meta?.destinationLabel
+    );
 
   if (
     !sourceLabel &&
@@ -159,10 +108,131 @@ function renderMeta(
   );
 }
 
+function createRowElement(row) {
+  if (!row) {
+    return null;
+  }
+
+  const label =
+    normalizeText(
+      row.label
+    );
+
+  const value =
+    normalizeText(
+      row.value
+    );
+
+  if (!value) {
+    return null;
+  }
+
+  const emphasis =
+    normalizeText(
+      row.emphasis
+    );
+
+  const classNames = [
+    "pricing-row"
+  ];
+
+  if (emphasis) {
+    classNames.push(
+      `pricing-row-${emphasis}`
+    );
+  }
+
+  const rowElement =
+    createElement(
+      "div",
+      classNames.join(" ")
+    );
+
+  if (row.key) {
+    rowElement.dataset.pricingRow =
+      String(row.key);
+  }
+
+  rowElement.appendChild(
+    createElement(
+      "span",
+      "pricing-row-label",
+      label
+    )
+  );
+
+  rowElement.appendChild(
+    createElement(
+      "span",
+      "pricing-row-value",
+      value
+    )
+  );
+
+  return rowElement;
+}
+
 function renderRows(
   container,
-  rows
+  rows,
+  className
 ) {
+  if (
+    !Array.isArray(rows) ||
+    rows.length === 0
+  ) {
+    return false;
+  }
+
+  const rowsElement =
+    createElement(
+      "div",
+      className
+    );
+
+  for (const row of rows) {
+    const rowElement =
+      createRowElement(row);
+
+    if (rowElement) {
+      rowsElement.appendChild(
+        rowElement
+      );
+    }
+  }
+
+  if (
+    !rowsElement
+      .childElementCount
+  ) {
+    return false;
+  }
+
+  container.appendChild(
+    rowsElement
+  );
+
+  return true;
+}
+
+function renderSummaryRows(
+  container,
+  summaryRows
+) {
+  return renderRows(
+    container,
+    summaryRows,
+    "pricing-summary-rows"
+  );
+}
+
+function renderDetails(
+  container,
+  details
+) {
+  const rows =
+    details?.rows;
+
   if (
     !Array.isArray(rows) ||
     rows.length === 0
@@ -170,88 +240,51 @@ function renderRows(
     return;
   }
 
-  const rowsElement =
+  const detailsElement =
     createElement(
-      "div",
-      "pricing-rows"
+      "details",
+      "pricing-details"
     );
 
-  for (const row of rows) {
-    if (!row) {
-      continue;
-    }
+  const label =
+    normalizeText(
+      details.label
+    );
 
-    const label =
-      String(
-        row.label ??
-        ""
-      ).trim();
-
-    const value =
-      String(
-        row.value ??
-        ""
-      ).trim();
-
-    if (!value) {
-      continue;
-    }
-
-    const rowElement =
+  if (label) {
+    detailsElement.appendChild(
       createElement(
-        "div",
-        [
-          "pricing-row",
-          row.primary
-            ? "pricing-row-primary"
-            : ""
-        ]
-          .filter(Boolean)
-          .join(" ")
-      );
-
-    if (row.key) {
-      rowElement.dataset.pricingRow =
-        String(row.key);
-    }
-
-    rowElement.appendChild(
-      createElement(
-        "span",
-        "pricing-row-label",
+        "summary",
+        "pricing-details-summary",
         label
       )
     );
-
-    rowElement.appendChild(
-      createElement(
-        "span",
-        "pricing-row-value",
-        value
-      )
-    );
-
-    rowsElement.appendChild(
-      rowElement
-    );
   }
 
-  if (rowsElement.childElementCount) {
-    container.appendChild(
-      rowsElement
+  const hasRows =
+    renderRows(
+      detailsElement,
+      rows,
+      "pricing-details-rows"
     );
+
+  if (!hasRows) {
+    return;
   }
+
+  container.appendChild(
+    detailsElement
+  );
 }
 
-function renderStatus(
+function renderNote(
   container,
-  status
+  note
 ) {
   const value =
-    String(
-      status?.value ??
-      ""
-    ).trim();
+    normalizeText(
+      note?.value
+    );
 
   if (!value) {
     return;
@@ -260,7 +293,7 @@ function renderStatus(
   container.appendChild(
     createElement(
       "div",
-      "pricing-status",
+      "pricing-note",
       value
     )
   );
@@ -289,24 +322,24 @@ export function renderPricing(
       "pricing-card"
     );
 
-  renderHeader(
-    card,
-    viewModel.header
-  );
-
   renderMeta(
     card,
     viewModel.meta
   );
 
-  renderRows(
+  renderSummaryRows(
     card,
-    viewModel.rows
+    viewModel.summaryRows
   );
 
-  renderStatus(
+  renderDetails(
     card,
-    viewModel.status
+    viewModel.details
+  );
+
+  renderNote(
+    card,
+    viewModel.note
   );
 
   if (!card.childElementCount) {
@@ -314,7 +347,10 @@ export function renderPricing(
     return;
   }
 
-  container.appendChild(card);
+  container.appendChild(
+    card
+  );
+
   container.hidden = false;
 }
 
