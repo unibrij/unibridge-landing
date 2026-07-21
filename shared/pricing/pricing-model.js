@@ -18,17 +18,20 @@ import {
 
 const DEFAULT_LABELS =
   Object.freeze({
-    title:
-      "Quote ready",
-
-    subtitle:
-      "Review the estimated transaction details.",
+    customerPayment:
+      "You send",
 
     recipientAmount:
-      "Recipient receives",
+      "Recipient gets",
 
-    customerPayment:
-      "You pay",
+    totalFees:
+      "Total fees",
+
+    noFees:
+      "No fees",
+
+    pricingDetails:
+      "Pricing details",
 
     settlementAmount:
       "Settlement amount",
@@ -37,7 +40,7 @@ const DEFAULT_LABELS =
       "Exchange rate",
 
     providerFee:
-      "Provider fee",
+      "Execution fee",
 
     unibridgeFee:
       "UniBridge fee",
@@ -45,17 +48,29 @@ const DEFAULT_LABELS =
     partnerFee:
       "Partner fee",
 
+    payoutRailFee:
+      "Payout rail fee",
+
+    networkFee:
+      "Network fee",
+
+    spreadFee:
+      "Exchange spread",
+
+    otherFee:
+      "Other fee",
+
     estimatedStatus:
-      "Estimated — confirmed after funding",
+      "The recipient amount is indicative and may change before execution.",
 
     lockedStatus:
-      "Rate locked",
+      "The exchange rate is locked.",
 
     finalStatus:
-      "Final amount",
+      "The recipient amount is final.",
 
     unavailableStatus:
-      "Available after funding"
+      "The recipient amount will be available after funding."
   });
 
 const FEE_TYPES =
@@ -67,7 +82,43 @@ const FEE_TYPES =
       "unibridge",
 
     partner:
-      "partner"
+      "partner",
+
+    payoutRail:
+      "payout_rail",
+
+    network:
+      "network",
+
+    spread:
+      "spread",
+
+    other:
+      "other"
+  });
+
+const FEE_LABEL_KEYS =
+  Object.freeze({
+    [FEE_TYPES.provider]:
+      "providerFee",
+
+    [FEE_TYPES.unibridge]:
+      "unibridgeFee",
+
+    [FEE_TYPES.partner]:
+      "partnerFee",
+
+    [FEE_TYPES.payoutRail]:
+      "payoutRailFee",
+
+    [FEE_TYPES.network]:
+      "networkFee",
+
+    [FEE_TYPES.spread]:
+      "spreadFee",
+
+    [FEE_TYPES.other]:
+      "otherFee"
   });
 
 function resolveLabels(labels) {
@@ -85,7 +136,9 @@ function resolveLabels(labels) {
   ) {
     if (hasValue(labels[key])) {
       resolved[key] =
-        normalizeString(labels[key]);
+        normalizeString(
+          labels[key]
+        );
     }
   }
 
@@ -137,7 +190,8 @@ function resolveCustomerPayment({
     );
 
   if (
-    semantics !== "funding_amount"
+    semantics !==
+    "funding_amount"
   ) {
     return null;
   }
@@ -176,9 +230,13 @@ function resolveRecipientStatus({
       "confirmed_after_funding"
   ) {
     return {
-      showAmount: false,
-      approximate: false,
-      value:
+      showAmount:
+        false,
+
+      approximate:
+        false,
+
+      note:
         labels.unavailableStatus
     };
   }
@@ -189,35 +247,52 @@ function resolveRecipientStatus({
       "estimated_before_funding"
   ) {
     return {
-      showAmount: true,
-      approximate: true,
-      value:
+      showAmount:
+        true,
+
+      approximate:
+        true,
+
+      note:
         labels.estimatedStatus
     };
   }
 
   if (type === "locked") {
     return {
-      showAmount: true,
-      approximate: false,
-      value:
+      showAmount:
+        true,
+
+      approximate:
+        false,
+
+      note:
         labels.lockedStatus
     };
   }
 
   if (type === "final") {
     return {
-      showAmount: true,
-      approximate: false,
-      value:
+      showAmount:
+        true,
+
+      approximate:
+        false,
+
+      note:
         labels.finalStatus
     };
   }
 
   return {
-    showAmount: true,
-    approximate: false,
-    value: ""
+    showAmount:
+      true,
+
+    approximate:
+      false,
+
+    note:
+      null
   };
 }
 
@@ -225,7 +300,7 @@ function createRow(
   key,
   label,
   value,
-  primary = false
+  emphasis = null
 ) {
   if (!hasValue(value)) {
     return null;
@@ -233,10 +308,14 @@ function createRow(
 
   return {
     key,
-    label,
+
+    label:
+      normalizeString(label),
+
     value:
       normalizeString(value),
-    primary
+
+    emphasis
   };
 }
 
@@ -245,14 +324,14 @@ function appendRow(
   key,
   label,
   value,
-  primary = false
+  emphasis = null
 ) {
   const row =
     createRow(
       key,
       label,
       value,
-      primary
+      emphasis
     );
 
   if (row) {
@@ -260,23 +339,335 @@ function appendRow(
   }
 }
 
-function appendFeeRows({
-  rows,
-  fees,
-  key,
-  label
-}) {
-  for (const fee of fees) {
-    appendRow(
-      rows,
-      `${key}_${fee.currency.toLowerCase()}`,
-      label,
-      formatAmount(
-        fee.amount,
-        fee.currency
+function normalizeDecimal(value) {
+  const normalized =
+    normalizeString(value);
+
+  const match =
+    normalized.match(
+      /^(\d+)(?:\.(\d+))?$/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    integer:
+      match[1].replace(
+        /^0+(?=\d)/,
+        ""
+      ),
+
+    fraction:
+      match[2] ??
+      ""
+  };
+}
+
+function addDecimalValues(
+  leftValue,
+  rightValue
+) {
+  const left =
+    normalizeDecimal(
+      leftValue
+    );
+
+  const right =
+    normalizeDecimal(
+      rightValue
+    );
+
+  if (!left || !right) {
+    return null;
+  }
+
+  const fractionLength =
+    Math.max(
+      left.fraction.length,
+      right.fraction.length
+    );
+
+  const leftDigits =
+    [
+      left.integer,
+      left.fraction.padEnd(
+        fractionLength,
+        "0"
       )
+    ].join("");
+
+  const rightDigits =
+    [
+      right.integer,
+      right.fraction.padEnd(
+        fractionLength,
+        "0"
+      )
+    ].join("");
+
+  const totalDigits =
+    (
+      BigInt(
+        leftDigits ||
+        "0"
+      ) +
+      BigInt(
+        rightDigits ||
+        "0"
+      )
+    ).toString();
+
+  if (fractionLength === 0) {
+    return totalDigits;
+  }
+
+  const paddedTotal =
+    totalDigits.padStart(
+      fractionLength + 1,
+      "0"
+    );
+
+  const integer =
+    paddedTotal.slice(
+      0,
+      -fractionLength
+    );
+
+  const fraction =
+    paddedTotal
+      .slice(
+        -fractionLength
+      )
+      .replace(
+        /0+$/,
+        ""
+      );
+
+  return fraction
+    ? `${integer}.${fraction}`
+    : integer;
+}
+
+function summarizeFees(fees) {
+  const totals =
+    new Map();
+
+  for (const fee of fees) {
+    const currency =
+      normalizeUpper(
+        fee.currency
+      );
+
+    if (
+      !currency ||
+      !hasValue(fee.amount)
+    ) {
+      continue;
+    }
+
+    const currentTotal =
+      totals.get(currency) ??
+      "0";
+
+    const nextTotal =
+      addDecimalValues(
+        currentTotal,
+        fee.amount
+      );
+
+    if (nextTotal === null) {
+      continue;
+    }
+
+    totals.set(
+      currency,
+      nextTotal
     );
   }
+
+  return Array
+    .from(
+      totals.entries()
+    )
+    .map(
+      ([
+        currency,
+        amount
+      ]) =>
+        formatAmount(
+          amount,
+          currency
+        )
+    )
+    .filter(hasValue)
+    .join(" + ");
+}
+
+function resolveFeeLabel(
+  type,
+  labels
+) {
+  const normalizedType =
+    normalizeLower(type);
+
+  const labelKey =
+    FEE_LABEL_KEYS[
+      normalizedType
+    ] ??
+    FEE_LABEL_KEYS.other;
+
+  return labels[labelKey];
+}
+
+function createFeeRows({
+  route,
+  canonicalFees,
+  labels,
+  recipientCurrency,
+  settlementCurrency
+}) {
+  const definitions = [
+    {
+      type:
+        FEE_TYPES.provider,
+
+      amountField:
+        "executor_fee",
+
+      currencyField:
+        "executor_fee_currency",
+
+      fallbackCurrency:
+        recipientCurrency
+    },
+
+    {
+      type:
+        FEE_TYPES.unibridge,
+
+      amountField:
+        "unibridge_fee",
+
+      currencyField:
+        "unibridge_fee_currency",
+
+      fallbackCurrency:
+        settlementCurrency
+    },
+
+    {
+      type:
+        FEE_TYPES.partner,
+
+      amountField:
+        "partner_fee",
+
+      currencyField:
+        "partner_fee_currency",
+
+      fallbackCurrency:
+        null
+    },
+
+    {
+      type:
+        FEE_TYPES.payoutRail,
+
+      fallbackCurrency:
+        recipientCurrency
+    },
+
+    {
+      type:
+        FEE_TYPES.network,
+
+      fallbackCurrency:
+        settlementCurrency
+    },
+
+    {
+      type:
+        FEE_TYPES.spread,
+
+      fallbackCurrency:
+        settlementCurrency
+    },
+
+    {
+      type:
+        FEE_TYPES.other,
+
+      fallbackCurrency:
+        null
+    }
+  ];
+
+  const fees = [];
+
+  for (
+    const definition of
+    definitions
+  ) {
+    const groups =
+      resolveFeeGroups({
+        route,
+
+        canonicalFees,
+
+        type:
+          definition.type,
+
+        amountField:
+          definition.amountField,
+
+        currencyField:
+          definition.currencyField,
+
+        fallbackCurrency:
+          definition.fallbackCurrency
+      });
+
+    for (const fee of groups) {
+      fees.push({
+        key: [
+          "fee",
+          definition.type,
+          normalizeLower(
+            fee.currency
+          )
+        ]
+          .filter(Boolean)
+          .join("_"),
+
+        type:
+          definition.type,
+
+        label:
+          resolveFeeLabel(
+            definition.type,
+            labels
+          ),
+
+        amount:
+          fee.amount,
+
+        currency:
+          normalizeUpper(
+            fee.currency
+          ),
+
+        value:
+          formatAmount(
+            fee.amount,
+            fee.currency
+          )
+      });
+    }
+  }
+
+  return fees;
 }
 
 export function createPricingViewModel({
@@ -305,7 +696,9 @@ export function createPricingViewModel({
     resolveLabels(labels);
 
   const canonicalQuote =
-    resolveCanonicalQuote(safeRoute);
+    resolveCanonicalQuote(
+      safeRoute
+    );
 
   const settlementAmount =
     canonicalQuote
@@ -318,7 +711,8 @@ export function createPricingViewModel({
       canonicalQuote
         ?.settlement
         ?.currency ??
-      safeRoute.settlement_currency
+      safeRoute
+        .settlement_currency
     );
 
   const recipientAmount =
@@ -332,7 +726,8 @@ export function createPricingViewModel({
       canonicalQuote
         ?.recipient
         ?.currency ??
-      safeRoute.recipient_currency
+      safeRoute
+        .recipient_currency
     );
 
   const recipientType =
@@ -340,7 +735,8 @@ export function createPricingViewModel({
       canonicalQuote
         ?.recipient
         ?.type ??
-      safeRoute.recipient_amount_type
+      safeRoute
+        .recipient_amount_type
     );
 
   const recipientStatus =
@@ -372,25 +768,30 @@ export function createPricingViewModel({
       customerPaymentCurrency
     });
 
-  const rows = [];
-
-  if (recipientStatus.showAmount) {
-    appendRow(
-      rows,
-      "recipient_amount",
-      text.recipientAmount,
-      formatAmount(
-        recipientAmount,
-        recipientCurrency,
-        recipientStatus.approximate
-      ),
-      true
+  const canonicalFees =
+    resolveCanonicalFees(
+      safeRoute
     );
-  }
+
+  const fees =
+    createFeeRows({
+      route:
+        safeRoute,
+
+      canonicalFees,
+
+      labels:
+        text,
+
+      recipientCurrency,
+      settlementCurrency
+    });
+
+  const summaryRows = [];
 
   if (customerPayment) {
     appendRow(
-      rows,
+      summaryRows,
       "customer_payment",
       text.customerPayment,
       formatAmount(
@@ -400,8 +801,51 @@ export function createPricingViewModel({
     );
   }
 
+  if (recipientStatus.showAmount) {
+    appendRow(
+      summaryRows,
+      "recipient_amount",
+      text.recipientAmount,
+      formatAmount(
+        recipientAmount,
+        recipientCurrency,
+        recipientStatus.approximate
+      ),
+      "recipient"
+    );
+  }
+
+  const totalFees =
+    summarizeFees(fees);
+
   appendRow(
-    rows,
+    summaryRows,
+    "total_fees",
+    text.totalFees,
+    hasValue(totalFees)
+      ? totalFees
+      : text.noFees
+  );
+
+  const detailRows = [];
+
+  appendRow(
+    detailRows,
+    "fx_rate",
+    text.fxRate,
+    formatFxRate({
+      fxRate:
+        canonicalQuote
+          ?.fx_rate ??
+        safeRoute.fx_rate,
+
+      settlementCurrency,
+      recipientCurrency
+    })
+  );
+
+  appendRow(
+    detailRows,
     "settlement_amount",
     text.settlementAmount,
     formatAmount(
@@ -410,135 +854,45 @@ export function createPricingViewModel({
     )
   );
 
-  appendRow(
-    rows,
-    "fx_rate",
-    text.fxRate,
-    formatFxRate({
-      fxRate:
-        canonicalQuote?.fx_rate ??
-        safeRoute.fx_rate,
-
-      settlementCurrency,
-      recipientCurrency
-    })
-  );
-
-  const canonicalFees =
-    resolveCanonicalFees(safeRoute);
-
-  appendFeeRows({
-    rows,
-
-    fees:
-      resolveFeeGroups({
-        route:
-          safeRoute,
-
-        canonicalFees,
-
-        type:
-          FEE_TYPES.provider,
-
-        amountField:
-          "executor_fee",
-
-        currencyField:
-          "executor_fee_currency",
-
-        fallbackCurrency:
-          recipientCurrency
-      }),
-
-    key:
-      "provider_fee",
-
-    label:
-      text.providerFee
-  });
-
-  appendFeeRows({
-    rows,
-
-    fees:
-      resolveFeeGroups({
-        route:
-          safeRoute,
-
-        canonicalFees,
-
-        type:
-          FEE_TYPES.unibridge,
-
-        amountField:
-          "unibridge_fee",
-
-        currencyField:
-          "unibridge_fee_currency",
-
-        fallbackCurrency:
-          settlementCurrency
-      }),
-
-    key:
-      "unibridge_fee",
-
-    label:
-      text.unibridgeFee
-  });
-
-  appendFeeRows({
-    rows,
-
-    fees:
-      resolveFeeGroups({
-        route:
-          safeRoute,
-
-        canonicalFees,
-
-        type:
-          FEE_TYPES.partner,
-
-        amountField:
-          "partner_fee",
-
-        currencyField:
-          "partner_fee_currency"
-      }),
-
-    key:
-      "partner_fee",
-
-    label:
-      text.partnerFee
-  });
+  for (const fee of fees) {
+    appendRow(
+      detailRows,
+      fee.key,
+      fee.label,
+      fee.value
+    );
+  }
 
   return {
-    header: {
-      title:
-        text.title,
+    summaryRows,
 
-      subtitle:
-        text.subtitle
-    },
+    details:
+      detailRows.length
+        ? {
+            label:
+              text.pricingDetails,
 
-    rows,
+            rows:
+              detailRows
+          }
+        : null,
 
-    status:
+    note:
       hasValue(
-        recipientStatus.value
+        recipientStatus.note
       )
         ? {
             value:
-              recipientStatus.value
+              recipientStatus.note
           }
         : null,
 
     meta: {
       sourceLabel:
         hasValue(sourceLabel)
-          ? normalizeString(sourceLabel)
+          ? normalizeString(
+              sourceLabel
+            )
           : null,
 
       destinationLabel:
@@ -547,7 +901,9 @@ export function createPricingViewModel({
               destinationLabel
             )
           : (
-              hasValue(safeRoute.label)
+              hasValue(
+                safeRoute.label
+              )
                 ? normalizeString(
                     safeRoute.label
                   )
