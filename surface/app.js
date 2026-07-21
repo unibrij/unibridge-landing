@@ -14,8 +14,9 @@ import {
 } from "./kyc-payload.js";
 
 import {
-  renderExecutionQuote
-} from "./ui-helpers.js";
+  createPricingViewModel,
+  renderPricing
+} from "/shared/pricing/index.js";
 
 import {
   createCoinsPhPicker
@@ -50,8 +51,12 @@ import {
   createDestinationPayloadBuilders
 } from "./destination-payload.js";
 
-const tg = window.Telegram?.WebApp;
-if (tg) tg.expand();
+const tg =
+  window.Telegram?.WebApp;
+
+if (tg) {
+  tg.expand();
+}
 
 /* =========================
    STATE
@@ -77,11 +82,25 @@ let coinsPhPicker = null;
    UI
 ========================= */
 
-const sendBtn = document.getElementById("sendBtn");
-const continueBtn = document.getElementById("continueBtn");
-const coinsPhContinueBtn = document.getElementById("coinsPhContinueBtn");
-const signBtn = document.getElementById("signBtn");
-const statusBox = document.getElementById("status");
+const sendBtn =
+  document.getElementById("sendBtn");
+
+const continueBtn =
+  document.getElementById("continueBtn");
+
+const coinsPhContinueBtn =
+  document.getElementById(
+    "coinsPhContinueBtn"
+  );
+
+const signBtn =
+  document.getElementById("signBtn");
+
+const statusBox =
+  document.getElementById("status");
+
+const quoteBox =
+  document.getElementById("quoteBox");
 
 if (signBtn) {
   signBtn.disabled = true;
@@ -96,11 +115,15 @@ if (coinsPhContinueBtn) {
    SHORTCUTS
 ========================= */
 
-const { apiGet, apiPost } = window.UnibridgeApi;
+const {
+  apiGet,
+  apiPost
+} = window.UnibridgeApi;
 
 const {
   resetStatusMemory,
-  setStatus: setStatusInternal,
+  setStatus:
+    setStatusInternal,
   handleSettlementStatus
 } = window.UnibridgeStatus;
 
@@ -118,11 +141,20 @@ const {
 ========================= */
 
 function emit(name) {
-  window.dispatchEvent(new Event(name));
+  window.dispatchEvent(
+    new Event(name)
+  );
 }
 
-function setStatus(msg, type) {
-  setStatusInternal(statusBox, msg, type);
+function setStatus(
+  msg,
+  type
+) {
+  setStatusInternal(
+    statusBox,
+    msg,
+    type
+  );
 }
 
 function getValue(id) {
@@ -169,17 +201,83 @@ function resetUiToStart() {
   window.resetUiToStart?.();
 }
 
-function setCurrentFundingProvider(value) {
+function setCurrentFundingProvider(
+  value
+) {
   if (!value) {
     return;
   }
 
-  currentFundingProvider = value;
+  currentFundingProvider =
+    value;
+}
+
+function getCustomerPaymentCurrency() {
+  return (
+    getValue("amountCurrency")
+      ?.textContent
+      ?.trim() ||
+    "USD"
+  );
+}
+
+function resetPricingUi() {
+  if (!quoteBox) {
+    return;
+  }
+
+  quoteBox.replaceChildren();
+
+  quoteBox.classList.add(
+    "hidden"
+  );
+}
+
+function renderRoutePricing({
+  quote,
+  route,
+  amount
+} = {}) {
+  if (!quoteBox) {
+    throw new Error(
+      "missing_quote_box"
+    );
+  }
+
+  const model =
+    createPricingViewModel({
+      quote,
+      route,
+
+      customerPaymentAmount:
+        amount,
+
+      customerPaymentCurrency:
+        getCustomerPaymentCurrency(),
+
+      sourceLabel:
+        getSourceCountryCode(),
+
+      destinationLabel:
+        getCountryLabel()
+    });
+
+  renderPricing({
+    container:
+      quoteBox,
+
+    model
+  });
+
+  quoteBox.classList.remove(
+    "hidden"
+  );
 }
 
 function refreshAmountLimitUi() {
   const activeContinueBtn =
-    getActiveContinueButton() || continueBtn;
+    getActiveContinueButton() ||
+    continueBtn;
 
   const result =
     applyAmountLimitUi({
@@ -187,7 +285,9 @@ function refreshAmountLimitUi() {
         getValue("amount"),
 
       messageEl:
-        document.getElementById("amountLimitHint"),
+        document.getElementById(
+          "amountLimitHint"
+        ),
 
       continueBtn:
         activeContinueBtn,
@@ -210,25 +310,34 @@ function refreshAmountLimitUi() {
   --------------------------------------------------
   */
 
-  if (sendBtn && !settlementId) {
-    sendBtn.disabled = !result.ok;
+  if (
+    sendBtn &&
+    !settlementId
+  ) {
+    sendBtn.disabled =
+      !result.ok;
   }
 
   return result;
 }
 
-function setAmountInputDisabled(disabled) {
+function setAmountInputDisabled(
+  disabled
+) {
   const amountInput =
     getValue("amount");
 
   if (amountInput) {
-    amountInput.disabled = Boolean(disabled);
+    amountInput.disabled =
+      Boolean(disabled);
   }
 }
 
 function resetQuoteState() {
   currentRouteQuote = null;
   currentFundingProvider = null;
+
+  resetPricingUi();
 
   coinsPhPicker?.reset();
 }
@@ -243,21 +352,29 @@ function resetFlowForRouteInputChange() {
     refreshAmountLimitUi();
 
   if (sendBtn) {
-    sendBtn.disabled = !limitCheck.ok;
+    sendBtn.disabled =
+      !limitCheck.ok;
   }
 
-  setContinueButtonsDisabled(true);
+  setContinueButtonsDisabled(
+    true
+  );
 }
 
 /* =========================
    STORAGE
 ========================= */
 
-function persistState(extra = {}) {
+function persistState(
+  extra = {}
+) {
   const id =
-    extra.id || settlementId;
+    extra.id ||
+    settlementId;
 
-  if (!id) return;
+  if (!id) {
+    return;
+  }
 
   persistSurfaceSettlement({
     id,
@@ -270,19 +387,24 @@ function persistState(extra = {}) {
 }
 
 function persistSettlement(id) {
-  if (!id) return;
+  if (!id) {
+    return;
+  }
 
-  settlementId = id;
+  settlementId =
+    id;
 
   persistState({
     id,
+
     payment_started:
       false
   });
 }
 
 function markPaymentStarted() {
-  paymentStarted = true;
+  paymentStarted =
+    true;
 
   persistState({
     payment_started:
@@ -308,19 +430,26 @@ function clearState() {
   clearPersistedSurfaceSettlement();
 
   resetQuoteState();
-  setAmountInputDisabled(false);
+
+  setAmountInputDisabled(
+    false
+  );
 
   if (signBtn) {
     signBtn.disabled = true;
   }
 
-  setContinueButtonsDisabled(true);
+  setContinueButtonsDisabled(
+    true
+  );
 
   if (sendBtn) {
     sendBtn.disabled = false;
   }
 
-  setContinueButtonMode("prepare_payment");
+  setContinueButtonMode(
+    "prepare_payment"
+  );
 }
 
 /* =========================
@@ -342,16 +471,23 @@ function buildKycPayload() {
 ========================= */
 
 async function refreshSettlementState() {
-  if (!settlementId) return null;
+  if (!settlementId) {
+    return null;
+  }
 
   const status =
-    await apiGet("settlement/status", {
-      settlement_id:
-        settlementId
-    });
+    await apiGet(
+      "settlement/status",
+      {
+        settlement_id:
+          settlementId
+      }
+    );
 
   setCurrentFundingProvider(
-    getFundingSelectedProvider(status)
+    getFundingSelectedProvider(
+      status
+    )
   );
 
   handleSettlementStatus({
@@ -380,9 +516,12 @@ coinsPhPicker =
 
     isPhilippinesDestination,
 
-    setContinueDisabled(value) {
+    setContinueDisabled(
+      value
+    ) {
       if (coinsPhContinueBtn) {
-        coinsPhContinueBtn.disabled = Boolean(value);
+        coinsPhContinueBtn.disabled =
+          Boolean(value);
       }
     }
   });
@@ -398,68 +537,103 @@ setupSurfacePwaInstall({
 ========================= */
 
 async function startFlow() {
-  if (processing) return;
+  if (processing) {
+    return;
+  }
 
   try {
     clearState();
     resetUiToStart();
     resetStatusMemory();
 
-    processing = true;
+    processing =
+      true;
 
     if (sendBtn) {
       sendBtn.disabled = true;
     }
 
-    setContinueButtonsDisabled(true);
+    setContinueButtonsDisabled(
+      true
+    );
 
     if (signBtn) {
       signBtn.disabled = true;
     }
 
-    setStatus("Registering...");
+    setStatus(
+      "Registering..."
+    );
 
     const amount =
-      Number(getValue("amount")?.value);
+      Number(
+        getValue("amount")
+          ?.value
+      );
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      throw new Error("invalid_amount");
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      throw new Error(
+        "invalid_amount"
+      );
     }
 
     const limitCheck =
       refreshAmountLimitUi();
 
-    if (limitCheck && !limitCheck.ok) {
-      throw new Error(limitCheck.message);
+    if (
+      limitCheck &&
+      !limitCheck.ok
+    ) {
+      throw new Error(
+        limitCheck.message
+      );
     }
 
     const reg =
-      await apiPost("session/register", {
-        source_country:
-          getValue("source_country")?.value,
+      await apiPost(
+        "session/register",
+        {
+          source_country:
+            getValue(
+              "source_country"
+            )?.value,
 
-        receiver_country:
-          getValue("country")?.value
-      });
+          receiver_country:
+            getValue(
+              "country"
+            )?.value
+        }
+      );
 
     sessionId =
       reg.session_id;
 
-    await apiPost("session/resolve", {
-      session_id:
-        sessionId
-    });
+    await apiPost(
+      "session/resolve",
+      {
+        session_id:
+          sessionId
+      }
+    );
 
     const quote =
-      await apiPost("session/quote", {
-        session_id:
-          sessionId,
+      await apiPost(
+        "session/quote",
+        {
+          session_id:
+            sessionId,
 
-        amount
-      });
+          amount
+        }
+      );
 
     if (!quote.routes?.length) {
-      throw new Error("no_routes");
+      throw new Error(
+        "no_routes"
+      );
     }
 
     const selectedRoute =
@@ -470,106 +644,50 @@ async function startFlow() {
       selectedRoute.id;
 
     setCurrentFundingProvider(
-      getRouteSelectedProvider(selectedRoute)
+      getRouteSelectedProvider(
+        selectedRoute
+      )
     );
 
+    /*
+    --------------------------------------------------
+    Preserve the complete quote and route contracts.
+
+    The shared pricing model reads both compatibility
+    fields and canonical pricing_result.quote / fees.
+    --------------------------------------------------
+    */
+
     currentRouteQuote = {
-  requested_amount:
-    quote.requested_amount ??
-    amount,
+      quote,
+      route:
+        selectedRoute
+    };
 
-  amount_semantics:
-    selectedRoute.amount_semantics ??
-    null,
+    renderRoutePricing({
+      quote,
+      route:
+        selectedRoute,
+      amount
+    });
 
-  funding_amount:
-    selectedRoute.funding_amount ??
-    null,
+    emit(
+      "unibridge:quote"
+    );
 
-  settlement_currency:
-    selectedRoute.settlement_currency ??
-    null,
+    setContinueButtonMode(
+      "prepare_payment"
+    );
 
-  payout_amount:
-    selectedRoute.payout_amount ??
-    null,
-
-  recipient_currency:
-    selectedRoute.recipient_currency ??
-    null,
-
-  recipient_amount_type:
-    selectedRoute.recipient_amount_type ??
-    null,
-
-  payout_amount_status:
-    selectedRoute.payout_amount_status ??
-    null,
-
-  executor_fee:
-    selectedRoute.executor_fee ??
-    null,
-
-  unibridge_fee:
-    selectedRoute.unibridge_fee ??
-    null,
-
-  fx_rate:
-    selectedRoute.fx_rate ??
-    null
-};
-
-renderExecutionQuote({
-  requestedAmount:
-    currentRouteQuote.requested_amount,
-
-  customerPaymentCurrency:
-    getValue("amountCurrency")
-      ?.textContent
-      ?.trim() ||
-    "USD",
-
-  fundingAmount:
-    currentRouteQuote.funding_amount,
-
-  settlementCurrency:
-    currentRouteQuote.settlement_currency,
-
-  payoutAmount:
-    currentRouteQuote.payout_amount,
-
-  recipientCurrency:
-    currentRouteQuote.recipient_currency,
-
-  recipientAmountType:
-    currentRouteQuote.recipient_amount_type,
-
-  payoutAmountStatus:
-    currentRouteQuote.payout_amount_status,
-
-  executorFee:
-    currentRouteQuote.executor_fee,
-
-  unibridgeFee:
-    currentRouteQuote.unibridge_fee,
-
-  fxRate:
-    currentRouteQuote.fx_rate,
-
-  countryLabel:
-    getCountryLabel(),
-
-  setStatus
-});
-
-    emit("unibridge:quote");
-
-    setContinueButtonMode("prepare_payment");
     refreshAmountLimitUi();
 
-    if (isPhilippinesDestination()) {
+    if (
+      isPhilippinesDestination()
+    ) {
       await coinsPhPicker.load();
-      coinsPhPicker.updateContinueState();
+
+      coinsPhPicker
+        .updateContinueState();
 
       setStatus(
         "Select recipient institution."
@@ -579,12 +697,18 @@ renderExecutionQuote({
     }
 
     if (continueBtn) {
-      continueBtn.disabled = false;
+      continueBtn.disabled =
+        false;
     }
 
-    setStatus("Enter PIX key");
+    setStatus(
+      "Enter PIX key"
+    );
   } catch (e) {
-    setStatus(e, "error");
+    setStatus(
+      e,
+      "error"
+    );
 
     const limitCheck =
       refreshAmountLimitUi();
@@ -592,20 +716,34 @@ renderExecutionQuote({
     const activeBtn =
       getActiveContinueButton();
 
-    if (activeBtn && (!limitCheck || limitCheck.ok)) {
-      if (isPhilippinesDestination()) {
-        coinsPhPicker?.updateContinueState();
+    if (
+      activeBtn &&
+      (
+        !limitCheck ||
+        limitCheck.ok
+      )
+    ) {
+      if (
+        isPhilippinesDestination()
+      ) {
+        coinsPhPicker
+          ?.updateContinueState();
       } else {
-        activeBtn.disabled = false;
+        activeBtn.disabled =
+          false;
       }
     }
   } finally {
-    processing = false;
+    processing =
+      false;
 
     refreshAmountLimitUi();
 
-    if (isPhilippinesDestination()) {
-      coinsPhPicker?.updateContinueState();
+    if (
+      isPhilippinesDestination()
+    ) {
+      coinsPhPicker
+        ?.updateContinueState();
     }
   }
 }
@@ -615,30 +753,46 @@ renderExecutionQuote({
 ========================= */
 
 async function continueFlow() {
-  if (processing) return;
+  if (processing) {
+    return;
+  }
 
   const activeContinueBtn =
-    getActiveContinueButton() || continueBtn;
+    getActiveContinueButton() ||
+    continueBtn;
 
   try {
     const limitCheck =
       refreshAmountLimitUi();
 
-    if (limitCheck && !limitCheck.ok) {
-      throw new Error(limitCheck.message);
+    if (
+      limitCheck &&
+      !limitCheck.ok
+    ) {
+      throw new Error(
+        limitCheck.message
+      );
     }
 
     if (pendingWidgetUrl) {
       markPaymentStarted();
-      setAmountInputDisabled(true);
-      window.location.href = pendingWidgetUrl;
+
+      setAmountInputDisabled(
+        true
+      );
+
+      window.location.href =
+        pendingWidgetUrl;
+
       return;
     }
 
-    processing = true;
+    processing =
+      true;
 
     if (activeContinueBtn) {
-      activeContinueBtn.disabled = true;
+      activeContinueBtn.disabled =
+        true;
     }
 
     if (!sessionId) {
@@ -646,39 +800,54 @@ async function continueFlow() {
         getSessionIdFromUrl();
 
       if (sessionIdFromUrl) {
-        sessionId = sessionIdFromUrl;
+        sessionId =
+          sessionIdFromUrl;
       }
     }
 
     if (!settlementId) {
-      if (!sessionId || !routeId) {
-        throw new Error("missing_session_or_route");
+      if (
+        !sessionId ||
+        !routeId
+      ) {
+        throw new Error(
+          "missing_session_or_route"
+        );
       }
 
       const destination =
         buildDestinationPayload();
 
       const redirect_url =
-        buildFundingReturnUrl(sessionId);
+        buildFundingReturnUrl(
+          sessionId
+        );
 
       if (!redirect_url) {
-        throw new Error("missing_redirect_url");
+        throw new Error(
+          "missing_redirect_url"
+        );
       }
 
       const create =
-        await apiPost("settlement/create", {
-          session_id:
-            sessionId,
+        await apiPost(
+          "settlement/create",
+          {
+            session_id:
+              sessionId,
 
-          route_id:
-            routeId,
+            route_id:
+              routeId,
 
-          destination,
-          redirect_url
-        });
+            destination,
+            redirect_url
+          }
+        );
 
       setCurrentFundingProvider(
-        getFundingSelectedProvider(create)
+        getFundingSelectedProvider(
+          create
+        )
       );
 
       persistSettlement(
@@ -697,15 +866,23 @@ async function continueFlow() {
       return;
     }
 
-    if (!currentNextAction && !pendingWidgetUrl) {
+    if (
+      !currentNextAction &&
+      !pendingWidgetUrl
+    ) {
       const funding =
-        await apiPost("funding/session", {
-          settlement_id:
-            settlementId
-        });
+        await apiPost(
+          "funding/session",
+          {
+            settlement_id:
+              settlementId
+          }
+        );
 
       setCurrentFundingProvider(
-        getFundingSelectedProvider(funding)
+        getFundingSelectedProvider(
+          funding
+        )
       );
 
       currentNextAction =
@@ -714,28 +891,46 @@ async function continueFlow() {
         );
 
       pendingWidgetUrl =
-        extractWidgetUrlFromFunding(funding);
+        extractWidgetUrlFromFunding(
+          funding
+        );
     }
 
     const action =
-      normalizeNextAction(currentNextAction);
+      normalizeNextAction(
+        currentNextAction
+      );
 
-    if (action?.type === "redirect") {
+    if (
+      action?.type ===
+      "redirect"
+    ) {
       const redirectUrl =
-        action.url || pendingWidgetUrl;
+        action.url ||
+        pendingWidgetUrl;
 
       if (!redirectUrl) {
-        throw new Error("missing_redirect_url");
+        throw new Error(
+          "missing_redirect_url"
+        );
       }
 
       pendingWidgetUrl =
         redirectUrl;
 
-      emit("unibridge:quote");
-      emit("unibridge:payment");
+      emit(
+        "unibridge:quote"
+      );
+
+      emit(
+        "unibridge:payment"
+      );
 
       markPaymentStarted();
-      setAmountInputDisabled(true);
+
+      setAmountInputDisabled(
+        true
+      );
 
       window.location.href =
         redirectUrl;
@@ -743,9 +938,17 @@ async function continueFlow() {
       return;
     }
 
-    if (action?.type === "await_confirmation") {
-      emit("unibridge:quote");
-      emit("unibridge:payment");
+    if (
+      action?.type ===
+      "await_confirmation"
+    ) {
+      emit(
+        "unibridge:quote"
+      );
+
+      emit(
+        "unibridge:payment"
+      );
 
       setStatus(
         action.label ||
@@ -753,70 +956,102 @@ async function continueFlow() {
       );
 
       if (activeContinueBtn) {
-        activeContinueBtn.disabled = false;
+        activeContinueBtn.disabled =
+          false;
       }
 
       return;
     }
 
-    if (action?.type === "step") {
-      await window.UnibridgeRampFlow.processStepNextActions({
-        emit,
-        buildKycPayload,
-        setStatus,
+    if (
+      action?.type ===
+      "step"
+    ) {
+      await window.UnibridgeRampFlow
+        .processStepNextActions({
+          emit,
+          buildKycPayload,
+          setStatus,
 
-        setContinueDisabled(value) {
-          if (activeContinueBtn) {
-            activeContinueBtn.disabled = value;
+          setContinueDisabled(
+            value
+          ) {
+            if (activeContinueBtn) {
+              activeContinueBtn.disabled =
+                value;
+            }
+          },
+
+          setContinueMode(
+            mode
+          ) {
+            setContinueButtonMode(
+              mode
+            );
+          },
+
+          getSettlementId() {
+            return settlementId;
+          },
+
+          getCurrentNextAction() {
+            return currentNextAction;
+          },
+
+          setCurrentNextAction(
+            value
+          ) {
+            currentNextAction =
+              value;
+          },
+
+          getPendingWidgetUrl() {
+            return pendingWidgetUrl;
+          },
+
+          setPendingWidgetUrl(
+            value
+          ) {
+            pendingWidgetUrl =
+              value ||
+              null;
+
+            if (pendingWidgetUrl) {
+              setContinueButtonMode(
+                "open_payment"
+              );
+            }
+          },
+
+          getNextActionProcessing() {
+            return nextActionProcessing;
+          },
+
+          setNextActionProcessing(
+            value
+          ) {
+            nextActionProcessing =
+              value;
           }
-        },
-
-        setContinueMode(mode) {
-          setContinueButtonMode(mode);
-        },
-
-        getSettlementId() {
-          return settlementId;
-        },
-
-        getCurrentNextAction() {
-          return currentNextAction;
-        },
-
-        setCurrentNextAction(value) {
-          currentNextAction = value;
-        },
-
-        getPendingWidgetUrl() {
-          return pendingWidgetUrl;
-        },
-
-        setPendingWidgetUrl(value) {
-          pendingWidgetUrl = value || null;
-
-          if (pendingWidgetUrl) {
-            setContinueButtonMode("open_payment");
-          }
-        },
-
-        getNextActionProcessing() {
-          return nextActionProcessing;
-        },
-
-        setNextActionProcessing(value) {
-          nextActionProcessing = value;
-        }
-      });
+        });
 
       return;
     }
 
     if (pendingWidgetUrl) {
-      emit("unibridge:quote");
-      emit("unibridge:payment");
+      emit(
+        "unibridge:quote"
+      );
+
+      emit(
+        "unibridge:payment"
+      );
 
       markPaymentStarted();
-      setAmountInputDisabled(true);
+
+      setAmountInputDisabled(
+        true
+      );
 
       window.location.href =
         pendingWidgetUrl;
@@ -824,22 +1059,38 @@ async function continueFlow() {
       return;
     }
 
-    throw new Error("no_funding_flow");
+    throw new Error(
+      "no_funding_flow"
+    );
   } catch (e) {
-    setStatus(e, "error");
+    setStatus(
+      e,
+      "error"
+    );
 
     const limitCheck =
       refreshAmountLimitUi();
 
-    if (activeContinueBtn && (!limitCheck || limitCheck.ok)) {
-      if (isPhilippinesDestination()) {
-        coinsPhPicker?.updateContinueState();
+    if (
+      activeContinueBtn &&
+      (
+        !limitCheck ||
+        limitCheck.ok
+      )
+    ) {
+      if (
+        isPhilippinesDestination()
+      ) {
+        coinsPhPicker
+          ?.updateContinueState();
       } else {
-        activeContinueBtn.disabled = false;
+        activeContinueBtn.disabled =
+          false;
       }
     }
   } finally {
-    processing = false;
+    processing =
+      false;
   }
 }
 
@@ -848,23 +1099,37 @@ async function continueFlow() {
 ========================= */
 
 async function resumeFlowFromState() {
-  if (!settlementId || processing) return;
+  if (
+    !settlementId ||
+    processing
+  ) {
+    return;
+  }
 
   try {
     const status =
-      await apiGet("settlement/status", {
-        settlement_id:
-          settlementId
-      });
+      await apiGet(
+        "settlement/status",
+        {
+          settlement_id:
+            settlementId
+        }
+      );
 
     setCurrentFundingProvider(
-      getFundingSelectedProvider(status)
+      getFundingSelectedProvider(
+        status
+      )
     );
 
     const activeContinueBtn =
-      getActiveContinueButton() || continueBtn;
+      getActiveContinueButton() ||
+      continueBtn;
 
-    if (status?.status === "waiting_ramp_payment") {
+    if (
+      status?.status ===
+      "waiting_ramp_payment"
+    ) {
       /*
       --------------------------------------------------
       Waiting ramp payment is not resumed on Surface.
@@ -880,14 +1145,19 @@ async function resumeFlowFromState() {
       resetUiToStart();
       resetStatusMemory();
       setStatus("");
+
       refreshAmountLimitUi();
 
       return;
     }
 
-    setAmountInputDisabled(true);
+    setAmountInputDisabled(
+      true
+    );
 
-    emit("unibridge:quote");
+    emit(
+      "unibridge:quote"
+    );
 
     handleSettlementStatus({
       status,
@@ -901,7 +1171,10 @@ async function resumeFlowFromState() {
       clearState
     });
   } catch (e) {
-    setStatus(e, "error");
+    setStatus(
+      e,
+      "error"
+    );
   }
 }
 
@@ -909,76 +1182,112 @@ async function resumeFlowFromState() {
    LOAD / RESUME
 ========================= */
 
-window.addEventListener("load", async () => {
-  const sessionIdFromUrl =
-    getSessionIdFromUrl();
+window.addEventListener(
+  "load",
+  async () => {
+    const sessionIdFromUrl =
+      getSessionIdFromUrl();
 
-  const fundingReturn =
-    isFundingReturn();
+    const fundingReturn =
+      isFundingReturn();
 
-  /*
-  --------------------------------------------------
-  Ramp return means the user came back without a
-  completed payment. Successful payment completion is
-  handled by backend provider webhooks / watchers, not
-  by returning to the Surface page.
-  --------------------------------------------------
-  */
+    /*
+    --------------------------------------------------
+    Ramp return means the user came back without a
+    completed payment. Successful payment completion is
+    handled by backend provider webhooks / watchers, not
+    by returning to the Surface page.
+    --------------------------------------------------
+    */
 
-  if (sessionIdFromUrl && fundingReturn) {
-    cleanupFundingReturnUrl();
+    if (
+      sessionIdFromUrl &&
+      fundingReturn
+    ) {
+      cleanupFundingReturnUrl();
 
-    clearState();
-    resetUiToStart();
-    resetStatusMemory();
-    setStatus("");
-    refreshAmountLimitUi();
+      clearState();
+      resetUiToStart();
+      resetStatusMemory();
+      setStatus("");
 
-    return;
+      refreshAmountLimitUi();
+
+      return;
+    }
+
+    if (sessionIdFromUrl) {
+      sessionId =
+        sessionIdFromUrl;
+    }
+
+    const saved =
+      getPersistedSurfaceSettlement();
+
+    if (!saved) {
+      clearState();
+      resetUiToStart();
+
+      refreshAmountLimitUi();
+
+      return;
+    }
+
+    settlementId =
+      saved.id;
+
+    paymentStarted =
+      Boolean(
+        saved.payment_started
+      );
+
+    if (!paymentStarted) {
+      clearState();
+      resetUiToStart();
+
+      refreshAmountLimitUi();
+
+      return;
+    }
+
+    await resumeFlowFromState();
   }
+);
 
-  if (sessionIdFromUrl) {
-    sessionId =
-      sessionIdFromUrl;
+window.addEventListener(
+  "focus",
+  async () => {
+    if (
+      !settlementId ||
+      !paymentStarted
+    ) {
+      return;
+    }
+
+    await resumeFlowFromState();
   }
+);
 
-  const saved =
-    getPersistedSurfaceSettlement();
+document.addEventListener(
+  "visibilitychange",
+  async () => {
+    if (
+      document.visibilityState !==
+      "visible"
+    ) {
+      return;
+    }
 
-  if (!saved) {
-    clearState();
-    resetUiToStart();
-    refreshAmountLimitUi();
-    return;
+    if (
+      !settlementId ||
+      !paymentStarted
+    ) {
+      return;
+    }
+
+    await resumeFlowFromState();
   }
-
-  settlementId =
-    saved.id;
-
-  paymentStarted =
-    Boolean(saved.payment_started);
-
-  if (!paymentStarted) {
-    clearState();
-    resetUiToStart();
-    refreshAmountLimitUi();
-    return;
-  }
-
-  await resumeFlowFromState();
-});
-
-window.addEventListener("focus", async () => {
-  if (!settlementId || !paymentStarted) return;
-  await resumeFlowFromState();
-});
-
-document.addEventListener("visibilitychange", async () => {
-  if (document.visibilityState !== "visible") return;
-  if (!settlementId || !paymentStarted) return;
-
-  await resumeFlowFromState();
-});
+);
 
 /* =========================
    FIELD EVENTS
@@ -994,35 +1303,48 @@ const countryInput =
   getValue("country");
 
 if (amountInput) {
-  amountInput.addEventListener("input", () => {
-    if (
-      sessionId ||
-      routeId ||
-      settlementId ||
-      currentRouteQuote
-    ) {
-      resetFlowForRouteInputChange();
-      return;
+  amountInput.addEventListener(
+    "input",
+    () => {
+      if (
+        sessionId ||
+        routeId ||
+        settlementId ||
+        currentRouteQuote
+      ) {
+        resetFlowForRouteInputChange();
+
+        return;
+      }
+
+      refreshAmountLimitUi();
     }
+  );
 
-    refreshAmountLimitUi();
-  });
-
-  amountInput.addEventListener("blur", () => {
-    refreshAmountLimitUi();
-  });
+  amountInput.addEventListener(
+    "blur",
+    () => {
+      refreshAmountLimitUi();
+    }
+  );
 }
 
 if (sourceCountryInput) {
-  sourceCountryInput.addEventListener("change", () => {
-    resetFlowForRouteInputChange();
-  });
+  sourceCountryInput.addEventListener(
+    "change",
+    () => {
+      resetFlowForRouteInputChange();
+    }
+  );
 }
 
 if (countryInput) {
-  countryInput.addEventListener("change", () => {
-    resetFlowForRouteInputChange();
-  });
+  countryInput.addEventListener(
+    "change",
+    () => {
+      resetFlowForRouteInputChange();
+    }
+  );
 }
 
 /* =========================
@@ -1030,13 +1352,16 @@ if (countryInput) {
 ========================= */
 
 if (sendBtn) {
-  sendBtn.onclick = startFlow;
+  sendBtn.onclick =
+    startFlow;
 }
 
 if (continueBtn) {
-  continueBtn.onclick = continueFlow;
+  continueBtn.onclick =
+    continueFlow;
 }
 
 if (coinsPhContinueBtn) {
-  coinsPhContinueBtn.onclick = continueFlow;
+  coinsPhContinueBtn.onclick =
+    continueFlow;
 }
