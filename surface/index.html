@@ -58,6 +58,11 @@
 
   <link
     rel="stylesheet"
+    href="/shared/pricing/pricing.css"
+  />
+
+  <link
+    rel="stylesheet"
     href="/partials/pay/css/pay-country-select.css?v=2"
   />
 
@@ -164,119 +169,6 @@
           </p>
         </div>
 
-        <!--
-        --------------------------------------------------
-        Pricing summary
-        --------------------------------------------------
-
-        The summary is populated exclusively by
-        surface/ui-helpers.js.
-
-        No financial calculation is performed in this HTML.
-
-        Every data row starts hidden and is displayed only
-        when the renderer has either a value or an explicit
-        availability message.
-        --------------------------------------------------
-        -->
-
-        <section
-          id="summary"
-          class="summary-box hidden"
-          aria-label="Payout pricing summary"
-        >
-          <div
-            id="recipientAmountRow"
-            class="primary-summary-row hidden"
-          >
-            <strong>
-              Recipient receives
-            </strong>
-
-            <span
-              id="sumRecipientAmount"
-              aria-live="polite"
-            ></span>
-          </div>
-
-          <div
-            id="customerPaymentRow"
-            class="hidden"
-          >
-            <strong id="customerPaymentLabel">
-              Card payment
-            </strong>
-
-            <span id="sumCustomerPayment"></span>
-          </div>
-
-          <div
-            id="settlementAmountRow"
-            class="hidden"
-          >
-            <strong>
-              Settlement amount
-            </strong>
-
-            <span id="sumSettlementAmount"></span>
-          </div>
-
-          <div
-            id="fxRateRow"
-            class="hidden"
-          >
-            <strong>
-              Exchange rate
-            </strong>
-
-            <span id="sumFxRate"></span>
-          </div>
-
-          <div
-            id="executorFeeRow"
-            class="hidden"
-          >
-            <strong>
-              Execution fee
-            </strong>
-
-            <span id="sumExecutorFee"></span>
-          </div>
-
-          <div
-            id="unibridgeFeeRow"
-            class="hidden"
-          >
-            <strong>
-              UniBridge fee
-            </strong>
-
-            <span id="sumUnibridgeFee"></span>
-          </div>
-
-          <div
-            id="recipientAmountStatusRow"
-            class="summary-note-row hidden"
-          >
-            <strong>
-              Pricing
-            </strong>
-
-            <span id="sumRecipientAmountStatus"></span>
-          </div>
-
-          <div
-            id="destinationSummaryRow"
-            class="hidden"
-          >
-            <strong>
-              Destination
-            </strong>
-
-            <span id="sumCountry"></span>
-          </div>
-        </section>
-
         <div class="form-grid route-grid">
           <label class="field amount-field">
             <span>
@@ -340,8 +232,29 @@
           type="button"
           class="button primary"
         >
-          Use this payout route
+          Get quote
         </button>
+
+        <!--
+        --------------------------------------------------
+        Shared pricing view
+
+        Pricing content is rendered exclusively through:
+
+        /shared/pricing/index.js
+        /shared/pricing/pricing.css
+
+        No financial calculation or local pricing markup is
+        maintained in this HTML.
+        --------------------------------------------------
+        -->
+
+        <section
+          id="quoteBox"
+          class="quote-box hidden"
+          aria-label="Payout pricing summary"
+          aria-live="polite"
+        ></section>
 
         <section
           id="pixBox"
@@ -666,9 +579,9 @@
         "none";
     }
 
-    const summaryBox =
+    const quoteBox =
       document.getElementById(
-        "summary"
+        "quoteBox"
       );
 
     const pixBox =
@@ -707,15 +620,22 @@
       );
     }
 
-    function showSummary() {
+    function showQuote() {
+      if (
+        !quoteBox ||
+        !quoteBox.childElementCount
+      ) {
+        return;
+      }
+
       showElement(
-        summaryBox
+        quoteBox
       );
     }
 
-    function hideSummary() {
+    function hideQuote() {
       hideElement(
-        summaryBox
+        quoteBox
       );
     }
 
@@ -783,6 +703,7 @@
         hidePixBox();
         hideTaxBox();
         showCoinsPhBox();
+
         return;
       }
 
@@ -797,7 +718,7 @@
     }
 
     function resetUiToStart() {
-      hideSummary();
+      hideQuote();
       hideDestinationBoxes();
       hideAuthBox();
       setStep(1);
@@ -821,7 +742,7 @@
     window.addEventListener(
       "unibridge:quote",
       () => {
-        showSummary();
+        showQuote();
         showDestinationBox();
         hideAuthBox();
         setStep(2);
@@ -831,7 +752,7 @@
     window.addEventListener(
       "unibridge:payment",
       () => {
-        showSummary();
+        showQuote();
         showDestinationBox();
         hideAuthBox();
         setStep(3);
@@ -841,7 +762,7 @@
     window.addEventListener(
       "unibridge:funding",
       () => {
-        showSummary();
+        showQuote();
         hideDestinationBoxes();
         hideAuthBox();
         setStep(4);
@@ -851,7 +772,7 @@
     window.addEventListener(
       "unibridge:auth",
       () => {
-        showSummary();
+        showQuote();
         hideDestinationBoxes();
         showAuthBox();
         setStep(3);
@@ -861,7 +782,7 @@
     window.addEventListener(
       "unibridge:done",
       () => {
-        showSummary();
+        showQuote();
         hideDestinationBoxes();
         hideAuthBox();
         setStep(5);
@@ -883,11 +804,11 @@
             "change",
             () => {
               if (
-                !summaryBox
-                  ?.classList
-                  .contains(
-                    "hidden"
-                  )
+                quoteBox &&
+                quoteBox.childElementCount > 0 &&
+                !quoteBox.classList.contains(
+                  "hidden"
+                )
               ) {
                 showDestinationBox();
               }
