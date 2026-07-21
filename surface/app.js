@@ -262,12 +262,10 @@ function renderRoutePricing({
         getCountryLabel()
     });
 
-  renderPricing({
-    container:
-      quoteBox,
-
+  renderPricing(
+    quoteBox,
     model
-  });
+  );
 
   quoteBox.classList.remove(
     "hidden"
