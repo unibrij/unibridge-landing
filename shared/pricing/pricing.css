@@ -177,6 +177,144 @@
   line-height: 1.45;
 }
 
+/* --------------------------------------------------
+   Pricing error
+-------------------------------------------------- */
+
+.pricing-error-card {
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid
+    rgba(251, 191, 36, 0.38);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 191, 36, 0.08),
+      rgba(251, 191, 36, 0.035)
+    );
+  color: #ffffff;
+  text-align: left;
+  overflow: hidden;
+}
+
+.pricing-error-content {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.pricing-error-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid
+    rgba(251, 191, 36, 0.36);
+  border-radius: 50%;
+  background:
+    rgba(251, 191, 36, 0.13);
+  color: #fcd34d;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pricing-error-copy {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.pricing-error-title {
+  display: block;
+  color:
+    rgba(255, 255, 255, 0.94);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.pricing-error-message {
+  margin: 4px 0 0;
+  color:
+    rgba(255, 255, 255, 0.56);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.pricing-error-retry {
+  width: 100%;
+  min-height: 40px;
+  box-sizing: border-box;
+  border: 1px solid
+    rgba(94, 234, 212, 0.3);
+  border-radius: 12px;
+  background:
+    rgba(20, 184, 166, 0.13);
+  color: #99f6e4;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 100ms ease;
+}
+
+.pricing-error-retry:hover {
+  border-color:
+    rgba(94, 234, 212, 0.48);
+  background:
+    rgba(20, 184, 166, 0.2);
+  color: #ccfbf1;
+}
+
+.pricing-error-retry:active {
+  transform:
+    translateY(1px);
+}
+
+.pricing-error-retry:focus-visible {
+  outline: 2px solid
+    rgba(94, 234, 212, 0.72);
+  outline-offset: 2px;
+}
+
+.pricing-error-retry:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pricing-error-retry svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @media (
   max-width: 430px
 ) {
@@ -209,5 +347,25 @@
 
   .pricing-note {
     padding: 9px 11px;
+  }
+
+  .pricing-error-card {
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .pricing-error-content {
+    gap: 10px;
+  }
+
+  .pricing-error-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: 16px;
+  }
+
+  .pricing-error-retry {
+    min-height: 39px;
   }
 }
