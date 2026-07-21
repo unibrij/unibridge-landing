@@ -36,6 +36,49 @@ function createElement(
   return element;
 }
 
+function createRetryIcon() {
+  const namespace =
+    "http://www.w3.org/2000/svg";
+
+  const svg =
+    document.createElementNS(
+      namespace,
+      "svg"
+    );
+
+  svg.setAttribute(
+    "viewBox",
+    "0 0 24 24"
+  );
+
+  svg.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  svg.setAttribute(
+    "focusable",
+    "false"
+  );
+
+  const path =
+    document.createElementNS(
+      namespace,
+      "path"
+    );
+
+  path.setAttribute(
+    "d",
+    "M20 11a8 8 0 1 0 2 5.3M20 4v7h-7"
+  );
+
+  svg.appendChild(
+    path
+  );
+
+  return svg;
+}
+
 function normalizeText(value) {
   return String(
     value ??
@@ -192,7 +235,9 @@ function renderRows(
 
   for (const row of rows) {
     const rowElement =
-      createRowElement(row);
+      createRowElement(
+        row
+      );
 
     if (rowElement) {
       rowsElement.appendChild(
@@ -341,6 +386,172 @@ export function renderPricing(
     card,
     viewModel.note
   );
+
+  if (!card.childElementCount) {
+    container.hidden = true;
+    return;
+  }
+
+  container.appendChild(
+    card
+  );
+
+  container.hidden = false;
+}
+
+export function renderPricingError(
+  container,
+  {
+    title =
+      "Live pricing is temporarily unavailable.",
+
+    message =
+      "Please try again in a moment.",
+
+    retryLabel =
+      "Try again",
+
+    onRetry =
+      null
+  } = {}
+) {
+  if (!isDomContainer(container)) {
+    throw new TypeError(
+      "Pricing container must be a DOM element."
+    );
+  }
+
+  container.replaceChildren();
+
+  const normalizedTitle =
+    normalizeText(
+      title
+    );
+
+  const normalizedMessage =
+    normalizeText(
+      message
+    );
+
+  const normalizedRetryLabel =
+    normalizeText(
+      retryLabel
+    );
+
+  const card =
+    createElement(
+      "section",
+      "pricing-error-card"
+    );
+
+  card.setAttribute(
+    "role",
+    "status"
+  );
+
+  card.setAttribute(
+    "aria-live",
+    "polite"
+  );
+
+  card.setAttribute(
+    "aria-atomic",
+    "true"
+  );
+
+  const content =
+    createElement(
+      "div",
+      "pricing-error-content"
+    );
+
+  const icon =
+    createElement(
+      "span",
+      "pricing-error-icon",
+      "!"
+    );
+
+  icon.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  const copy =
+    createElement(
+      "div",
+      "pricing-error-copy"
+    );
+
+  if (normalizedTitle) {
+    copy.appendChild(
+      createElement(
+        "strong",
+        "pricing-error-title",
+        normalizedTitle
+      )
+    );
+  }
+
+  if (normalizedMessage) {
+    copy.appendChild(
+      createElement(
+        "p",
+        "pricing-error-message",
+        normalizedMessage
+      )
+    );
+  }
+
+  if (copy.childElementCount) {
+    content.appendChild(
+      icon
+    );
+
+    content.appendChild(
+      copy
+    );
+
+    card.appendChild(
+      content
+    );
+  }
+
+  if (
+    typeof onRetry ===
+      "function" &&
+    normalizedRetryLabel
+  ) {
+    const retryButton =
+      createElement(
+        "button",
+        "pricing-error-retry"
+      );
+
+    retryButton.type =
+      "button";
+
+    retryButton.appendChild(
+      createRetryIcon()
+    );
+
+    retryButton.appendChild(
+      createElement(
+        "span",
+        null,
+        normalizedRetryLabel
+      )
+    );
+
+    retryButton.addEventListener(
+      "click",
+      onRetry
+    );
+
+    card.appendChild(
+      retryButton
+    );
+  }
 
   if (!card.childElementCount) {
     container.hidden = true;
