@@ -13,7 +13,7 @@ Calls:
 - POST /v2/pay-agent/handoff
 - GET  /v2/pay-agent/status/:agent_plan_id
 - GET  /v2/pay-agent/handoff/:agent_plan_id
-- GET  /api/proxy?partner=fiat_bank_transfer&endpoint=surface/options/coinsph/ph-payout-channels
+- GET  /api/proxy?partner=fiat_bank_transfer&endpoint=options/coinsph/ph-payout-channels
 
 Does not:
 - Build normalized_intent client-side.
@@ -307,7 +307,7 @@ window.UnibridgePayAgentApi = (() => {
   async function getCoinsPhPayoutChannels() {
     const endpoint =
       encodeURIComponent(
-        "surface/options/coinsph/ph-payout-channels"
+        "options/coinsph/ph-payout-channels"
       );
 
     return localApiGet(
