@@ -7,7 +7,7 @@ import {
 export const DYNAMIC_OPTION_ENDPOINTS = {
   coinsph_ph_payout_channels:
     `/api/proxy?endpoint=${encodeURIComponent(
-      "surface/options/coinsph/ph-payout-channels"
+      "options/coinsph/ph-payout-channels"
     )}`
 };
 
