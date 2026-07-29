@@ -1,10 +1,10 @@
 // unibridge-landing/surface/coinsph/coinsph-options.js
 
 export const COINSPH_PAYOUT_CHANNELS_ENDPOINT =
-  "surface/options/coinsph/ph-payout-channels";
+  "options/coinsph/ph-payout-channels";
 
 export const COINSPH_PAYOUT_CHANNELS_FETCH_URL =
-  "/surface/options/coinsph/ph-payout-channels";
+  "/options/coinsph/ph-payout-channels";
 
 export function normalizeText(value) {
   return String(value || "").trim();
