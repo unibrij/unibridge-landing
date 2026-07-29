@@ -5,7 +5,7 @@ import {
 } from "../../../../shared/coinsph/coinsph-options.js";
 
 const COINSPH_PAYOUT_CHANNELS_ENDPOINT =
-  "surface/options/coinsph/ph-payout-channels";
+  "options/coinsph/ph-payout-channels";
 
 function buildProxyUrl(endpoint) {
   return (
