@@ -54,21 +54,6 @@ const COMING_SOON_ROUTES = [
     comingSoon: true,
     status: "coming_soon",
     beneficiaryFields: []
-  },
-  {
-    id: "ng_mobile_money_coming_soon",
-    route_id: "ng_mobile_money_coming_soon",
-    label: "Nigeria Mobile Money — Coming soon",
-    country: "NG",
-    rail: "MOBILE_MONEY",
-    payout_rail: "mobile_money",
-    network: "polygon",
-    asset: "USDC",
-    assets: ["USDC"],
-    disabled: true,
-    comingSoon: true,
-    status: "coming_soon",
-    beneficiaryFields: []
   }
 ];
 
