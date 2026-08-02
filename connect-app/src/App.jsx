@@ -12,7 +12,9 @@ import {
   useWalletClient,
   useSwitchChain
 } from "wagmi";
-import { useAppKit } from "@reown/appkit/react";
+import {
+  useAppKit
+} from "@reown/appkit/react";
 
 import {
   ROUTES,
@@ -44,9 +46,13 @@ import HistoryPage from "./components/HistoryPage";
 import PayoutReviewManager from "./components/PayoutReviewManager";
 import RouteActions from "./components/RouteActions";
 
-import { trackConnectEvent } from "./analytics/trackConnectEvent";
+import {
+  trackConnectEvent
+} from "./analytics/trackConnectEvent";
 
-function getSettlementId(settlement) {
+function getSettlementId(
+  settlement
+) {
   return (
     settlement?.settlement_id ||
     settlement?.id ||
@@ -108,7 +114,11 @@ export default function App() {
   } = useSwitchChain();
 
   const storedFlow =
-    readStoredFlow();
+    useMemo(
+      () =>
+        readStoredFlow(),
+      []
+    );
 
   const returnedPayoutIntentId =
     readPayoutIntentFromUrl();
@@ -220,7 +230,8 @@ export default function App() {
     ).get("view") === "history";
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled =
+      false;
 
     async function loadRoutes() {
       try {
@@ -265,7 +276,8 @@ export default function App() {
             );
           }
         }
-      } catch {
+      }
+      catch {
         if (!cancelled) {
           setRoutes(
             ROUTES
@@ -277,12 +289,12 @@ export default function App() {
     loadRoutes();
 
     return () => {
-      cancelled = true;
+      cancelled =
+        true;
     };
   }, [
     returnedPayoutIntentId,
-    selectedRouteId,
-    storedFlow?.form
+    storedFlow
   ]);
 
   useEffect(() => {
@@ -500,7 +512,8 @@ export default function App() {
   });
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled =
+      false;
 
     const amount =
       String(
@@ -509,16 +522,26 @@ export default function App() {
       ).trim();
 
     const numericAmount =
-      Number(amount);
+      Number(
+        amount
+      );
 
     const canLoadPreview =
       !isHistoryPage &&
       !isReturnedFlow &&
       isConnected &&
-      Boolean(address) &&
-      Boolean(connectSessionId) &&
-      Boolean(selectedRoute) &&
-      Boolean(form.asset) &&
+      Boolean(
+        address
+      ) &&
+      Boolean(
+        connectSessionId
+      ) &&
+      Boolean(
+        selectedRoute
+      ) &&
+      Boolean(
+        form.asset
+      ) &&
       amount !== "" &&
       Number.isFinite(
         numericAmount
@@ -560,11 +583,15 @@ export default function App() {
             const response =
               await previewConnectRoute({
                 connectSessionId,
+
                 walletAddress:
                   address,
+
                 route:
                   selectedRoute,
+
                 amount,
+
                 asset:
                   form.asset
               });
@@ -581,7 +608,10 @@ export default function App() {
             setPricingPreviewStatus(
               "ready"
             );
-          } catch (error) {
+          }
+          catch (
+            error
+          ) {
             if (cancelled) {
               return;
             }
@@ -604,7 +634,8 @@ export default function App() {
       );
 
     return () => {
-      cancelled = true;
+      cancelled =
+        true;
 
       window.clearTimeout(
         timeoutId
@@ -921,7 +952,9 @@ export default function App() {
   if (isHistoryPage) {
     return (
       <HistoryPage
-        walletAddress={address}
+        walletAddress={
+          address
+        }
       />
     );
   }
@@ -988,9 +1021,15 @@ export default function App() {
             selectedRoute={
               selectedRoute
             }
-            form={form}
-            setForm={setForm}
-            isBusy={isBusy}
+            form={
+              form
+            }
+            setForm={
+              setForm
+            }
+            isBusy={
+              isBusy
+            }
             isReturnedFlow={
               isReturnedFlow
             }
@@ -1019,7 +1058,9 @@ export default function App() {
             pricingPreviewError={
               pricingPreviewError
             }
-            debug={debug}
+            debug={
+              debug
+            }
             handleSend={
               trackedHandleSend
             }
@@ -1029,7 +1070,9 @@ export default function App() {
             updateBeneficiaryField={
               updateBeneficiaryField
             }
-            routes={routes}
+            routes={
+              routes
+            }
           />
 
           <RouteActions
@@ -1045,7 +1088,9 @@ export default function App() {
             selectedRoute={
               selectedRoute
             }
-            form={form}
+            form={
+              form
+            }
             onUseAgain={
               handleUseRouteAgain
             }
