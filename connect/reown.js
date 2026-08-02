@@ -1,11 +1,6 @@
 // unibridge-landing/connect/reown.js
 
-import {
-  Buffer
-} from 'https://esm.sh/buffer'
-
-globalThis.Buffer =
-  globalThis.Buffer || Buffer
+import 'https://esm.sh/@reown/appkit-polyfills@1.8.23'
 
 const [
   appKitModule,
@@ -13,10 +8,10 @@ const [
   networksModule,
   siwxModule
 ] = await Promise.all([
-  import('https://esm.sh/@reown/appkit'),
-  import('https://esm.sh/@reown/appkit-adapter-ethers'),
-  import('https://esm.sh/@reown/appkit/networks'),
-  import('https://esm.sh/@reown/appkit-siwx')
+  import('https://esm.sh/@reown/appkit@1.8.23'),
+  import('https://esm.sh/@reown/appkit-adapter-ethers@1.8.23'),
+  import('https://esm.sh/@reown/appkit@1.8.23/networks'),
+  import('https://esm.sh/@reown/appkit-siwx@1.8.23')
 ])
 
 const {
