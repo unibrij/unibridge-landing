@@ -45,30 +45,50 @@ import {
   saveRouteHistoryItem
 } from "../history/routeHistory";
 
-const STATUS_POLL_INTERVAL_MS = 4000;
-const STATUS_POLL_MAX_ATTEMPTS = 24;
+const STATUS_POLL_INTERVAL_MS =
+  4000;
 
-function sleep(ms) {
-  return new Promise(resolve => {
-    window.setTimeout(resolve, ms);
-  });
+const STATUS_POLL_MAX_ATTEMPTS =
+  24;
+
+function sleep(
+  ms
+) {
+  return new Promise(
+    resolve => {
+      window.setTimeout(
+        resolve,
+        ms
+      );
+    }
+  );
 }
 
-function normalizeStatus(status = "") {
-  return String(status || "")
+function normalizeStatus(
+  status = ""
+) {
+  return String(
+    status || ""
+  )
     .trim()
     .toLowerCase();
 }
 
-function isCompletedStatus(status = "") {
+function isCompletedStatus(
+  status = ""
+) {
   return [
     "payout_completed"
   ].includes(
-    normalizeStatus(status)
+    normalizeStatus(
+      status
+    )
   );
 }
 
-function isTerminalFailureStatus(status = "") {
+function isTerminalFailureStatus(
+  status = ""
+) {
   return [
     "failed",
     "failure",
@@ -79,11 +99,15 @@ function isTerminalFailureStatus(status = "") {
     "payout_failed",
     "execution_failed"
   ].includes(
-    normalizeStatus(status)
+    normalizeStatus(
+      status
+    )
   );
 }
 
-function getSettlementId(settlement) {
+function getSettlementId(
+  settlement
+) {
   return (
     settlement?.settlement_id ||
     settlement?.id ||
@@ -92,7 +116,9 @@ function getSettlementId(settlement) {
   );
 }
 
-function pickSettlementLike(intent) {
+function pickSettlementLike(
+  intent
+) {
   return {
     ...intent,
 
@@ -117,19 +143,28 @@ function pickSettlementLike(intent) {
   };
 }
 
-function getPayoutIntentId(result) {
+function getPayoutIntentId(
+  result
+) {
   return (
     result?.payout_intent_id ||
-    result?.payout_intent?.payout_intent_id ||
-    result?.payout_intent?.id ||
+    result
+      ?.payout_intent
+      ?.payout_intent_id ||
+    result
+      ?.payout_intent
+      ?.id ||
     result?.id ||
     null
   );
 }
 
-function normalizePricingPreview(pricingPreview) {
+function normalizePricingPreview(
+  pricingPreview
+) {
   return (
-    pricingPreview?.pricing_preview ??
+    pricingPreview
+      ?.pricing_preview ??
     pricingPreview ??
     null
   );
@@ -143,6 +178,7 @@ export function useRouteFlow({
   switchChainAsync,
 
   connectSessionId,
+  connectSessionSecret,
   selectedRoute,
   form,
   pricingPreview,
@@ -160,10 +196,14 @@ export function useRouteFlow({
   const [
     walletConfirmationPending,
     setWalletConfirmationPending
-  ] = useState(false);
+  ] = useState(
+    false
+  );
 
   const statusPollTokenRef =
-    useRef(null);
+    useRef(
+      null
+    );
 
   const payoutIntentIdRef =
     useRef(
@@ -186,6 +226,12 @@ export function useRouteFlow({
       );
     }
 
+    if (!connectSessionSecret) {
+      throw new Error(
+        "connect_session_secret_required"
+      );
+    }
+
     if (!selectedRoute) {
       throw new Error(
         "connect_route_required"
@@ -200,6 +246,7 @@ export function useRouteFlow({
 
     validateRouteForm({
       form,
+
       route:
         selectedRoute
     });
@@ -271,6 +318,7 @@ export function useRouteFlow({
     const intentResult =
       await createPayoutIntent({
         connectSessionId,
+        connectSessionSecret,
 
         walletAddress:
           address,
@@ -344,7 +392,9 @@ export function useRouteFlow({
   async function continueAfterKyc(
     suppliedIntentId
   ) {
-    setIsBusy(true);
+    setIsBusy(
+      true
+    );
 
     const existingIntentId =
       suppliedIntentId ||
@@ -422,7 +472,8 @@ export function useRouteFlow({
 
     for (
       let attempt = 1;
-      attempt <= STATUS_POLL_MAX_ATTEMPTS;
+      attempt <=
+        STATUS_POLL_MAX_ATTEMPTS;
       attempt += 1
     ) {
       if (
@@ -460,8 +511,10 @@ export function useRouteFlow({
             ...current,
 
             settlement_id:
-              refreshed.settlement_id ??
-              current?.settlement_id ??
+              refreshed
+                .settlement_id ??
+              current
+                ?.settlement_id ??
               null,
 
             status:
@@ -470,18 +523,24 @@ export function useRouteFlow({
               null,
 
             settlement_status:
-              refreshed.settlement_status ??
-              current?.settlement_status ??
+              refreshed
+                .settlement_status ??
+              current
+                ?.settlement_status ??
               null,
 
             live_settlement_status:
-              refreshed.live_settlement_status ??
-              current?.live_settlement_status ??
+              refreshed
+                .live_settlement_status ??
+              current
+                ?.live_settlement_status ??
               null,
 
             public_route_status:
-              refreshed.public_route_status ??
-              current?.public_route_status ??
+              refreshed
+                .public_route_status ??
+              current
+                ?.public_route_status ??
               null
           })
         );
@@ -506,7 +565,8 @@ export function useRouteFlow({
               intentId,
 
             corridor:
-              selectedRoute?.label ||
+              selectedRoute
+                ?.label ||
               selectedRoute?.id ||
               "—",
 
@@ -593,7 +653,10 @@ export function useRouteFlow({
 
           return;
         }
-      } catch (err) {
+      }
+      catch (
+        err
+      ) {
         writeDebug(
           "Route status check failed",
           {
@@ -652,6 +715,14 @@ export function useRouteFlow({
       return;
     }
 
+    if (!connectSessionSecret) {
+      writeDebug(
+        "Wallet authentication is still preparing. Try again in a moment."
+      );
+
+      return;
+    }
+
     if (!selectedRoute) {
       writeDebug(
         "Select a payout route first."
@@ -687,13 +758,16 @@ export function useRouteFlow({
 
     validateRouteForm({
       form,
+
       route:
         selectedRoute
     });
 
     if (
       chainId &&
-      Number(chainId) !==
+      Number(
+        chainId
+      ) !==
         REQUIRED_CHAIN_ID
     ) {
       writeDebug(
@@ -739,7 +813,8 @@ export function useRouteFlow({
 
     /*
      * Save the pre-KYC flow.
-     * No payout intent exists at this stage.
+     * The session secret must remain in memory
+     * and must never be persisted here.
      */
     storeFlowSnapshot({
       connect_session_id:
@@ -772,7 +847,8 @@ export function useRouteFlow({
     try {
       const kyc =
         await startKyc({
-          connectSessionId
+          connectSessionId,
+          connectSessionSecret
         });
 
       if (
@@ -792,7 +868,8 @@ export function useRouteFlow({
               null,
 
             verification_status:
-              kyc?.verification_status ||
+              kyc
+                ?.verification_status ||
               null,
 
             next_step:
@@ -825,7 +902,10 @@ export function useRouteFlow({
       window.location.assign(
         kyc.url
       );
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       if (
         isMissingKycUrlError(
           err
@@ -853,7 +933,9 @@ export function useRouteFlow({
   async function ensurePolygonNetwork() {
     if (
       !chainId ||
-      Number(chainId) ===
+      Number(
+        chainId
+      ) ===
         REQUIRED_CHAIN_ID
     ) {
       return true;
@@ -903,7 +985,10 @@ export function useRouteFlow({
       );
 
       return false;
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       writeDebug(
         "Wallet network switch failed",
         {
@@ -1003,7 +1088,9 @@ export function useRouteFlow({
 
     if (
       !amount ||
-      Number(amount) <= 0
+      Number(
+        amount
+      ) <= 0
     ) {
       writeDebug(
         "Invalid funding amount",
@@ -1036,7 +1123,9 @@ export function useRouteFlow({
             depositAddress,
 
             parseUnits(
-              String(amount),
+              String(
+                amount
+              ),
               token.decimals
             )
           ]
@@ -1066,19 +1155,20 @@ export function useRouteFlow({
       );
 
       const hash =
-        await walletClient.sendTransaction({
-          account:
-            address,
+        await walletClient
+          .sendTransaction({
+            account:
+              address,
 
-          to:
-            token.address,
+            to:
+              token.address,
 
-          data:
-            transferData,
+            data:
+              transferData,
 
-          gas:
-            100000n
-        });
+            gas:
+              100000n
+          });
 
       setFundingTxHash(
         hash
@@ -1135,7 +1225,10 @@ export function useRouteFlow({
         asset,
         amount
       });
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       setWalletConfirmationPending(
         false
       );
@@ -1147,7 +1240,8 @@ export function useRouteFlow({
             err.message
         }
       );
-    } finally {
+    }
+    finally {
       setIsBusy(
         false
       );
@@ -1158,6 +1252,7 @@ export function useRouteFlow({
     try {
       if (settlement?.funding) {
         await sendFundingTransaction();
+
         return;
       }
 
@@ -1183,11 +1278,15 @@ export function useRouteFlow({
         }
 
         await continueAfterKyc();
+
         return;
       }
 
       await startNewFlow();
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       setWalletConfirmationPending(
         false
       );
@@ -1199,7 +1298,8 @@ export function useRouteFlow({
             err.message
         }
       );
-    } finally {
+    }
+    finally {
       setIsBusy(
         false
       );
