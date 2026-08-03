@@ -1,0 +1,24 @@
+{
+  "name": "Pay with UniBridge",
+  "short_name": "UniBridge",
+  "description": "Access supported payout routes with wallet, bank transfer, or card funding.",
+  "start_url": "/pay",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000E2D",
+  "theme_color": "#000E2D",
+  "icons": [
+    {
+      "src": "/connect/icons/app/ub-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/connect/icons/app/ub-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

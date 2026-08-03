@@ -1,71 +1,124 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#000E2D" />
+  <head>
+    <meta charset="UTF-8" />
 
-  <title>UniBridge Connect</title>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "@id": "https://www.unibrij.io/connect#webapp",
+  "name": "UniBridge Connect",
+  "url": "https://www.unibrij.io/connect",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Web",
+  "publisher": {
+    "@id": "https://www.unibrij.io/#organization"
+  },
+  "provider": {
+    "@id": "https://www.unibrij.io/#organization"
+  },
+  "isPartOf": {
+    "@id": "https://www.unibrij.io/#organization"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://www.unibrij.io/connect"
+  },
+  "description": "UniBridge Connect is the non-custodial user-facing entry point of UniBridge for accessing supported payout routes. Connecting a wallet does not give UniBridge access to user funds, seed phrases, private keys, or independent transfer authority. Users approve required blockchain transactions directly from their own wallet.",
+  "featureList": [
+    "External wallet connection",
+    "Supported payout route review",
+    "User-authorized transaction signing",
+    "Non-custodial payout route initiation",
+    "Route status visibility"
+  ]
+}
+    </script>
 
-  <link rel="icon" type="image/png" href="../favicon.png" />
-  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=1" />
-  <link rel="stylesheet" href="./connect.css" />
-</head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
 
-<body>
-  <main class="connect-shell pay-page-shell">
-    <div id="pay-brand"></div>
+    <title>UniBridge Connect</title>
 
-    <h1>Connect your wallet</h1>
+    <link rel="manifest" href="/connect/connect/manifest.webmanifest" />
 
-    <p>
-      Use your wallet to fund verified payout routes.
-    </p>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
 
-    <div id="wallet-button"></div>
+    <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
 
-    <section id="payout-form" class="payout-form hidden">
-      <div class="route-label">Brazil PIX route</div>
+    <meta name="theme-color" content="#ffffff" />
 
-      <label>
-        Amount
-        <input id="payout-amount" type="number" min="1" placeholder="100" />
-      </label>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="UniBridge" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script type="module" crossorigin src="/connect/assets/index-BWYiiS3A.js"></script>
+    <link rel="modulepreload" crossorigin href="/connect/assets/events-B3DdqVh6.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/utils-Bpv4vmSW.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ccip-DIJjxzpD.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/secp256k1-BXYoC_Jp.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/_esm-BH2orzu5.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/eventemitter3-CgbLLl7Z.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/createConnector-BScGicGV.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ModalController-BpI2CVep.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-text-BYsKclfS.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-image-ULdhAbCV.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-icon-box-HVE45C5G.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-link-ByUo21KU.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-icon-box-DxXAok4-.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-shimmer-Bs6zUKz5.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/w3m-activity-list-CStbcQGa.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/NavigationUtil-CLCRNDHF.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/index.es-BVbe9akN.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-list-social-BCsdvmIX.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/dist-CoS6E-3x.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ConstantsUtil-By2xKbQ9.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-network-image-DNj4pM0G.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-icon-BwVM7EqR.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/w3m-onramp-providers-footer-4UUPduXL.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ConstantsUtil-C1qdKpER.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-tag-DqCtSGfn.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-list-wallet-CRSCnnaU.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/AlertController-CpzjEVwu.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/w3m-tooltip-D66X9Lsj.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ref-BLcAZs2a.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-loading-thumbnail-DYko2rz-.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/ExchangeController-CNYwsrZl.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/MathUtil-B2UslVSw.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-loading-spinner-CU-ZC_Ms.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-avatar-BUOhe160.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-icon-link-BGT_LQKg.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-list-item-qb3hzeIN.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-button-D4lGsHiQ.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-list-token-Cev0693G.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-separator-D12ohk-6.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-input-text-BfJlHufR.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-shimmer-Cqmm9vvX.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-loading-spinner-MAqQ-MII.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-email-input-CXQwq03H.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-qr-code-CJCT0BQT.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-visual-WQnmTLF4.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/wui-input-text-DCuwV72C.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/exports-lm3FN26i.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/OnRampController-DuDgmKIa.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/EnsController-qNwGAqTI.js">
+    <link rel="modulepreload" crossorigin href="/connect/assets/polygon-CdIUuHxx.js">
+    <link rel="stylesheet" crossorigin href="/connect/assets/index-BLX0Iiyy.css">
+  </head>
 
-      <label>
-        Asset
-        <select id="payout-asset">
-          <option value="USDT">USDT</option>
-          <option value="USDC">USDC</option>
-        </select>
-      </label>
+  <body>
+    <div id="root"></div>
 
-      <label>
-        Recipient name
-        <input id="recipient-name" type="text" placeholder="Recipient name" />
-      </label>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/connect/service-worker.js");
+        });
+      }
+    </script>
 
-      <label>
-        PIX key
-        <input id="recipient-pix" type="text" placeholder="email, CPF, phone, or random key" />
-      </label>
-
-      <button id="create-payout-intent" type="button">
-        Create payout intent
-      </button>
-
-      <button id="authorize-route" class="secondary-action hidden" type="button">
-        Authorize route
-      </button>
-
-      <pre id="connect-debug" class="connect-debug"></pre>
-    </section>
-
-    <div id="pay-footer"></div>
-  </main>
-
-  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
-  <script type="module" src="./reown.js"></script>
-  <script type="module" src="./connect.js"></script>
-</body>
+  </body>
 </html>

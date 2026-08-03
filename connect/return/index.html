@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Verification received</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(20, 184, 166, 0.14), transparent 30%),
+        linear-gradient(135deg, #07111f 0%, #0f172a 55%, #111827 100%);
+      color: #e5edf7;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+      backdrop-filter: blur(14px);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+      color: #f8fafc;
+    }
+
+    p {
+      color: #a8b3c7;
+      line-height: 1.6;
+    }
+
+    .intent {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      color: #dbeafe;
+      font-family: monospace;
+      word-break: break-all;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2dd4bf, #38bdf8);
+      color: #020617;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Verification received</h1>
+
+      <p>
+        Your verification was submitted successfully.
+        Continue your payout flow to receive funding instructions.
+      </p>
+
+      <div id="intent" class="intent"></div>
+
+      <a id="continueBtn" class="btn">
+        Continue payout
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const payoutIntentId =
+      params.get("payout_intent_id");
+
+    document.getElementById("intent").textContent =
+      payoutIntentId || "No payout intent";
+
+    const continueUrl =
+      payoutIntentId
+        ? `/connect/?payout_intent_id=${encodeURIComponent(payoutIntentId)}`
+        : "/connect/";
+
+    document
+      .getElementById("continueBtn")
+      .setAttribute("href", continueUrl);
+  </script>
+</body>
+</html>
