@@ -1,0 +1,43 @@
+name: Build Connect App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-connect-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: connect-app
+        run: npm install
+
+      - name: Build Connect app
+        working-directory: connect-app
+        run: npm run build
+
+      - name: Commit built Connect assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add connect
+
+          if git diff --cached --quiet; then
+            echo "No built Connect asset changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Build Connect app assets"
+          git push
