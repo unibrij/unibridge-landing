@@ -299,7 +299,6 @@ export default function App() {
     };
   }, [
     returnedPayoutIntentId,
-    selectedRouteId,
     storedFlow
   ]);
 
@@ -500,16 +499,10 @@ export default function App() {
 
   const {
     connectSessionId,
-    connectSessionSecret,
-    connectSessionStatus,
-    connectSessionError,
-    retryConnectSession,
     resetConnectSession
   } = useConnectSession({
     isConnected,
     address,
-    chainId,
-    walletClient,
     writeDebug
   });
 
@@ -548,11 +541,6 @@ export default function App() {
       Boolean(
         connectSessionId
       ) &&
-      Boolean(
-        connectSessionSecret
-      ) &&
-      connectSessionStatus ===
-        "authenticated" &&
       Boolean(
         selectedRoute
       ) &&
@@ -600,7 +588,6 @@ export default function App() {
             const response =
               await previewConnectRoute({
                 connectSessionId,
-                connectSessionSecret,
 
                 walletAddress:
                   address,
@@ -662,8 +649,6 @@ export default function App() {
   }, [
     address,
     connectSessionId,
-    connectSessionSecret,
-    connectSessionStatus,
     form.amount,
     form.asset,
     isConnected,
@@ -682,7 +667,6 @@ export default function App() {
     walletClient,
     switchChainAsync,
     connectSessionId,
-    connectSessionSecret,
     selectedRoute,
     form,
     pricingPreview,
@@ -980,10 +964,6 @@ export default function App() {
     );
   }
 
-  const canShowPayoutFlow =
-    isReturnedFlow ||
-    isConnected;
-
   return (
     <main className="connect-shell">
       <header className="connect-brandbar">
@@ -1036,34 +1016,8 @@ export default function App() {
         </div>
       )}
 
-      {!isReturnedFlow &&
-        isConnected &&
-        connectSessionStatus ===
-          "error" && (
-          <div className="connect-auth-error">
-            <p>
-              Wallet authentication failed.
-            </p>
-
-            {connectSessionError && (
-              <span>
-                {connectSessionError}
-              </span>
-            )}
-
-            <button
-              type="button"
-              className="secondary-action"
-              onClick={
-                retryConnectSession
-              }
-            >
-              Retry authentication
-            </button>
-          </div>
-        )}
-
-      {canShowPayoutFlow && (
+      {(isConnected ||
+        isReturnedFlow) && (
         <>
           <PayoutForm
             selectedRouteId={
