@@ -1,37 +1,14 @@
 // unibridge-landing/connect/reown.js
 
-import 'https://esm.sh/@reown/appkit-polyfills@1.8.23'
+import { createAppKit } from 'https://esm.sh/@reown/appkit'
+import { EthersAdapter } from 'https://esm.sh/@reown/appkit-adapter-ethers'
 
-const [
-  appKitModule,
-  ethersAdapterModule,
-  networksModule,
-  siwxModule
-] = await Promise.all([
-  import('https://esm.sh/@reown/appkit@1.8.23'),
-  import('https://esm.sh/@reown/appkit-adapter-ethers@1.8.23'),
-  import('https://esm.sh/@reown/appkit@1.8.23/networks'),
-  import('https://esm.sh/@reown/appkit-siwx@1.8.23')
-])
-
-const {
-  createAppKit
-} = appKitModule
-
-const {
-  EthersAdapter
-} = ethersAdapterModule
-
-const {
+import {
   mainnet,
   polygon,
   base,
   arbitrum
-} = networksModule
-
-const {
-  ReownAuthentication
-} = siwxModule
+} from 'https://esm.sh/@reown/appkit/networks'
 
 export const projectId =
   'c15ae70122dad197db547f7bc77cea37'
@@ -45,7 +22,7 @@ export const metadata = {
   ]
 }
 
-export const appKit = createAppKit({
+window.appKit = createAppKit({
   adapters: [
     new EthersAdapter()
   ],
@@ -63,11 +40,5 @@ export const appKit = createAppKit({
 
   features: {
     analytics: false
-  },
-
-  siwx: new ReownAuthentication({
-    required: true
-  })
+  }
 })
-
-window.appKit = appKit
