@@ -178,7 +178,6 @@ export function useRouteFlow({
   switchChainAsync,
 
   connectSessionId,
-  connectSessionSecret,
   selectedRoute,
   form,
   pricingPreview,
@@ -223,12 +222,6 @@ export function useRouteFlow({
     if (!connectSessionId) {
       throw new Error(
         "connect_session_required"
-      );
-    }
-
-    if (!connectSessionSecret) {
-      throw new Error(
-        "connect_session_secret_required"
       );
     }
 
@@ -318,7 +311,6 @@ export function useRouteFlow({
     const intentResult =
       await createPayoutIntent({
         connectSessionId,
-        connectSessionSecret,
 
         walletAddress:
           address,
@@ -715,14 +707,6 @@ export function useRouteFlow({
       return;
     }
 
-    if (!connectSessionSecret) {
-      writeDebug(
-        "Wallet authentication is still preparing. Try again in a moment."
-      );
-
-      return;
-    }
-
     if (!selectedRoute) {
       writeDebug(
         "Select a payout route first."
@@ -813,8 +797,7 @@ export function useRouteFlow({
 
     /*
      * Save the pre-KYC flow.
-     * The session secret must remain in memory
-     * and must never be persisted here.
+     * No payout intent exists at this stage.
      */
     storeFlowSnapshot({
       connect_session_id:
@@ -847,8 +830,7 @@ export function useRouteFlow({
     try {
       const kyc =
         await startKyc({
-          connectSessionId,
-          connectSessionSecret
+          connectSessionId
         });
 
       if (
