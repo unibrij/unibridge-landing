@@ -21,13 +21,13 @@ export const networks = [
 
 export const metadata = {
   name:
-    "UniBridge Connect",
+    "UniBridge",
 
   description:
-    "Pay verified payout routes with your wallet",
+    "UniBridge Connect",
 
   url:
-    "https://unibrij.io/connect/",
+    "https://unibrij.io",
 
   icons: [
     "https://unibrij.io/connect/icons/social/Ub.png"
