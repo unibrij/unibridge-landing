@@ -982,17 +982,7 @@ export default function App() {
 
   const canShowPayoutFlow =
     isReturnedFlow ||
-    (
-      isConnected &&
-      connectSessionStatus ===
-        "authenticated" &&
-      Boolean(
-        connectSessionId
-      ) &&
-      Boolean(
-        connectSessionSecret
-      )
-    );
+    isConnected;
 
   return (
     <main className="connect-shell">
