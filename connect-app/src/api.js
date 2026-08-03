@@ -63,26 +63,8 @@ export async function getConnectRoutes() {
 export async function createConnectSession({
   walletAddress,
   chainId,
-  caipAddress = null,
-  embeddedWallet = null,
-  accounts = [],
   source = "reown"
 }) {
-  if (!walletAddress) {
-    throw new Error(
-      "wallet_address_required"
-    );
-  }
-
-  if (
-    chainId === null ||
-    chainId === undefined
-  ) {
-    throw new Error(
-      "wallet_chain_required"
-    );
-  }
-
   const response =
     await fetch(
       `${API_BASE}/connect/session`,
@@ -95,31 +77,16 @@ export async function createConnectSession({
             "application/json"
         },
 
-        cache:
-          "no-store",
-
         body:
           JSON.stringify({
-            source,
-
             wallet_address:
               walletAddress,
 
             chain_id:
-              chainId,
+              chainId ||
+              137,
 
-            caip_address:
-              caipAddress,
-
-            embedded_wallet:
-              embeddedWallet,
-
-            accounts:
-              Array.isArray(
-                accounts
-              )
-                ? accounts
-                : []
+            source
           })
       }
     );
@@ -135,146 +102,11 @@ export async function createConnectSession({
     "connect_session_failed"
   );
 
-  if (
-    !data.connect_session_id ||
-    !data.connect_session_secret
-  ) {
-    throw new Error(
-      "connect_session_credential_missing"
-    );
-  }
-
-  return data;
-}
-
-export async function createSiwxChallenge({
-  connectSessionId,
-  connectSessionSecret,
-  address,
-  chainId
-}) {
-  const response =
-    await fetch(
-      `${API_BASE}/connect/auth/siwx/challenge`,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-
-        cache:
-          "no-store",
-
-        body:
-          JSON.stringify({
-            connect_session_id:
-              connectSessionId,
-
-            connect_session_secret:
-              connectSessionSecret,
-
-            address,
-
-            chain_id:
-              chainId
-          })
-      }
-    );
-
-  const data =
-    await parseJson(
-      response
-    );
-
-  assertOk(
-    response,
-    data,
-    "siwx_challenge_failed"
-  );
-
-  if (
-    !data.challenge_id ||
-    typeof data.message !==
-      "string" ||
-    !data.message
-  ) {
-    throw new Error(
-      "siwx_challenge_invalid"
-    );
-  }
-
-  return data;
-}
-
-export async function verifySiwxChallenge({
-  connectSessionId,
-  connectSessionSecret,
-  challengeId,
-  message,
-  signature
-}) {
-  const response =
-    await fetch(
-      `${API_BASE}/connect/auth/siwx/verify`,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-
-        cache:
-          "no-store",
-
-        body:
-          JSON.stringify({
-            connect_session_id:
-              connectSessionId,
-
-            connect_session_secret:
-              connectSessionSecret,
-
-            challenge_id:
-              challengeId,
-
-            message,
-
-            signature
-          })
-      }
-    );
-
-  const data =
-    await parseJson(
-      response
-    );
-
-  assertOk(
-    response,
-    data,
-    "siwx_verification_failed"
-  );
-
-  if (
-    data.auth_status !==
-    "authenticated"
-  ) {
-    throw new Error(
-      "siwx_authentication_failed"
-    );
-  }
-
   return data;
 }
 
 export async function previewConnectRoute({
   connectSessionId,
-  connectSessionSecret,
   walletAddress,
   route,
   amount,
@@ -314,9 +146,6 @@ export async function previewConnectRoute({
           JSON.stringify({
             connect_session_id:
               connectSessionId,
-
-            connect_session_secret:
-              connectSessionSecret,
 
             wallet_address:
               walletAddress,
@@ -368,7 +197,6 @@ export async function previewConnectRoute({
 
 export async function startKyc({
   connectSessionId,
-  connectSessionSecret,
   payoutIntentId
 }) {
   const hasConnectSessionId =
@@ -394,10 +222,7 @@ export async function startKyc({
     hasConnectSessionId
       ? {
           connect_session_id:
-            connectSessionId,
-
-          connect_session_secret:
-            connectSessionSecret
+            connectSessionId
         }
       : {
           payout_intent_id:
@@ -448,7 +273,6 @@ export async function startKyc({
 
 export async function createPayoutIntent({
   connectSessionId,
-  connectSessionSecret,
   walletAddress,
   route,
   form
@@ -491,9 +315,6 @@ export async function createPayoutIntent({
           JSON.stringify({
             connect_session_id:
               connectSessionId,
-
-            connect_session_secret:
-              connectSessionSecret,
 
             wallet_address:
               walletAddress,
