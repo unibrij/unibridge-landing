@@ -1084,18 +1084,6 @@ export default function App() {
             settlement={
               settlement
             }
-            address={
-              address
-            }
-            selectedRouteId={
-              selectedRouteId
-            }
-            selectedRoute={
-              selectedRoute
-            }
-            form={
-              form
-            }
             onUseAgain={
               handleUseRouteAgain
             }
