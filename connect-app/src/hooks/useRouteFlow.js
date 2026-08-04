@@ -64,8 +64,7 @@ export function useRouteFlow({
   const {
     payoutAccessToken,
     authorizeIntentWithWallet,
-    ensureIntentAuthorized,
-    resetPayoutAccessToken
+    ensureIntentAuthorized
   } = usePayoutAuthorization({
     payoutIntentId,
     address,
@@ -121,7 +120,6 @@ export function useRouteFlow({
     setWalletConfirmationPending,
     authorizeIntentWithWallet,
     ensureIntentAuthorized,
-    resetPayoutAccessToken,
     cancelSettlementPolling,
     writeDebug
   });
