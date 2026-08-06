@@ -6,9 +6,12 @@ const STORAGE_KEY_PREFIX =
 const PAYOUT_ACCESS_TOKEN_PATTERN =
   /^ub_pat_[A-Za-z0-9_-]{43}$/;
 
-function normalizeString(value) {
+function normalizeString(
+  value
+) {
   return String(
-    value || ""
+    value ||
+    ""
   ).trim();
 }
 
@@ -220,16 +223,23 @@ export function storePayoutAccessToken({
     );
   }
 
-  storage.setItem(
-    key,
-    JSON.stringify({
-      token:
-        normalizedToken,
+  try {
+    storage.setItem(
+      key,
+      JSON.stringify({
+        token:
+          normalizedToken,
 
-      expires_at:
-        expiry.value
-    })
-  );
+        expires_at:
+          expiry.value
+      })
+    );
+  }
+  catch {
+    throw new Error(
+      "payout_access_token_storage_unavailable"
+    );
+  }
 }
 
 export function clearPayoutAccessToken(
