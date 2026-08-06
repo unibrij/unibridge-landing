@@ -50,6 +50,32 @@ function assertOk(
   }
 }
 
+function buildCustomerAuthHeaders(
+  accessToken
+) {
+  const normalizedAccessToken =
+    String(
+      accessToken ||
+      ""
+    ).trim();
+
+  if (
+    !normalizedAccessToken
+  ) {
+    throw new Error(
+      "customer_access_token_required"
+    );
+  }
+
+  return {
+    "Content-Type":
+      "application/json",
+
+    Authorization:
+      `Bearer ${normalizedAccessToken}`
+  };
+}
+
 export async function getConnectRoutes() {
   const response =
     await fetch(
@@ -541,18 +567,34 @@ export async function getPayoutIntent({
   return data.payout_intent;
 }
 
-export async function getWalletPayoutHistory({
-  walletAddress,
+export async function getPayoutHistory({
+  accessToken,
   limit = 20
 }) {
+  const normalizedLimit =
+    Number.isFinite(
+      Number(
+        limit
+      )
+    )
+      ? Math.max(
+          1,
+          Math.min(
+            50,
+            Math.trunc(
+              Number(
+                limit
+              )
+            )
+          )
+        )
+      : 20;
+
   const params =
     new URLSearchParams({
-      wallet_address:
-        walletAddress,
-
       limit:
         String(
-          limit
+          normalizedLimit
         )
     });
 
@@ -563,10 +605,10 @@ export async function getWalletPayoutHistory({
         method:
           "GET",
 
-        headers: {
-          "Content-Type":
-            "application/json"
-        }
+        headers:
+          buildCustomerAuthHeaders(
+            accessToken
+          )
       }
     );
 
@@ -578,14 +620,118 @@ export async function getWalletPayoutHistory({
   assertOk(
     response,
     data,
-    "get_wallet_payout_history_failed"
+    "get_payout_history_failed"
   );
 
-  return Array.isArray(
-    data.items
-  )
-    ? data.items
-    : [];
+  return {
+    recent_recipients:
+      Array.isArray(
+        data.recent_recipients
+      )
+        ? data.recent_recipients
+        : [],
+
+    recent_payouts:
+      Array.isArray(
+        data.recent_payouts
+      )
+        ? data.recent_payouts
+        : []
+  };
+}
+
+export async function repeatPayout({
+  sourcePayoutIntentId,
+  connectSessionId,
+  amount,
+  accessToken
+}) {
+  const normalizedSourcePayoutIntentId =
+    String(
+      sourcePayoutIntentId ||
+      ""
+    ).trim();
+
+  const normalizedConnectSessionId =
+    String(
+      connectSessionId ||
+      ""
+    ).trim();
+
+  const normalizedAmount =
+    String(
+      amount ??
+      ""
+    ).trim();
+
+  if (
+    !normalizedSourcePayoutIntentId
+  ) {
+    throw new Error(
+      "source_payout_intent_id_required"
+    );
+  }
+
+  if (
+    !normalizedConnectSessionId
+  ) {
+    throw new Error(
+      "connect_session_id_required"
+    );
+  }
+
+  if (!normalizedAmount) {
+    throw new Error(
+      "amount_required"
+    );
+  }
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/repeat-payout`,
+      {
+        method:
+          "POST",
+
+        headers:
+          buildCustomerAuthHeaders(
+            accessToken
+          ),
+
+        body:
+          JSON.stringify({
+            source_payout_intent_id:
+              normalizedSourcePayoutIntentId,
+
+            connect_session_id:
+              normalizedConnectSessionId,
+
+            amount:
+              normalizedAmount
+          })
+      }
+    );
+
+  const data =
+    await parseJson(
+      response
+    );
+
+  assertOk(
+    response,
+    data,
+    "repeat_payout_failed"
+  );
+
+  if (
+    !data.payout_intent_id
+  ) {
+    throw new Error(
+      "repeated_payout_intent_missing"
+    );
+  }
+
+  return data;
 }
 
 export async function submitWalletFundingTx(
