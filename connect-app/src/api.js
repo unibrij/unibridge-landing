@@ -571,21 +571,20 @@ export async function getPayoutHistory({
   accessToken,
   limit = 20
 }) {
+  const parsedLimit =
+    Number(
+      limit
+    );
+
   const normalizedLimit =
     Number.isFinite(
-      Number(
-        limit
-      )
-    )
-      ? Math.max(
-          1,
-          Math.min(
-            50,
-            Math.trunc(
-              Number(
-                limit
-              )
-            )
+      parsedLimit
+    ) &&
+    parsedLimit > 0
+      ? Math.min(
+          50,
+          Math.trunc(
+            parsedLimit
           )
         )
       : 20;
