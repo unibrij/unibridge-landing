@@ -40,57 +40,99 @@ export default function SearchableSelect({
     normalizeArray(options);
 
   const selectedOption =
-    safeOptions.find(option => option.value === value) ||
+    safeOptions.find(
+      option =>
+        option.value === value
+    ) ||
     null;
 
   const filteredOptions =
     useMemo(() => {
       const search =
-        normalizeSearchText(query);
+        normalizeSearchText(
+          query
+        );
 
       if (!search) {
-        return safeOptions.slice(0, 40);
+        return safeOptions.slice(
+          0,
+          40
+        );
       }
 
       return safeOptions
-        .filter(option =>
-          normalizeSearchText(
-            `${option.label} ${option.value}`
-          ).includes(search)
+        .filter(
+          option =>
+            normalizeSearchText(
+              `${option.label} ${option.value}`
+            ).includes(
+              search
+            )
         )
-        .slice(0, 40);
+        .slice(
+          0,
+          40
+        );
     }, [
       query,
       safeOptions
     ]);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (!shellRef.current) return;
+    function handleClickOutside(
+      event
+    ) {
+      if (!shellRef.current) {
+        return;
+      }
 
-      if (!shellRef.current.contains(event.target)) {
-        setIsOpen(false);
-        setQuery("");
+      if (
+        !shellRef.current.contains(
+          event.target
+        )
+      ) {
+        setIsOpen(
+          false
+        );
+
+        setQuery(
+          ""
+        );
       }
     }
 
-    document.addEventListener("click", handleClickOutside);
+    document.addEventListener(
+      "click",
+      handleClickOutside
+    );
 
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener(
+        "click",
+        handleClickOutside
+      );
     };
   }, []);
 
   useEffect(() => {
     if (disabled) {
-      setIsOpen(false);
-      setQuery("");
+      setIsOpen(
+        false
+      );
+
+      setQuery(
+        ""
+      );
     }
-  }, [disabled]);
+  }, [
+    disabled
+  ]);
 
   return (
     <div
-      ref={shellRef}
+      ref={
+        shellRef
+      }
       className={
         isOpen
           ? "connect-select-shell is-open"
@@ -100,32 +142,57 @@ export default function SearchableSelect({
       <input
         type="text"
         className="connect-select-trigger"
-        disabled={disabled}
-        aria-label={ariaLabel}
+        disabled={
+          disabled
+        }
+        aria-label={
+          ariaLabel
+        }
         placeholder={
-          selectedOption?.label ||
+          selectedOption
+            ?.label ||
           placeholder
         }
         value={
           isOpen
             ? query
-            : selectedOption?.label || ""
+            : selectedOption
+                ?.label ||
+              ""
         }
         onFocus={() => {
-          if (disabled) return;
+          if (disabled) {
+            return;
+          }
 
-          setIsOpen(true);
-          setQuery("");
+          setIsOpen(
+            true
+          );
+
+          setQuery(
+            ""
+          );
         }}
         onClick={() => {
-          if (disabled) return;
+          if (disabled) {
+            return;
+          }
 
-          setIsOpen(true);
+          setIsOpen(
+            true
+          );
         }}
-        onChange={event => {
-          setQuery(event.target.value);
-          setIsOpen(true);
-        }}
+        onChange={
+          event => {
+            setQuery(
+              event.target.value
+            );
+
+            setIsOpen(
+              true
+            );
+          }
+        }
       />
 
       <div
@@ -133,31 +200,51 @@ export default function SearchableSelect({
         role="listbox"
       >
         {filteredOptions.length > 0 ? (
-          filteredOptions.map(option => {
-            const isSelected =
-              option.value === value;
+          filteredOptions.map(
+            option => {
+              const isSelected =
+                option.value ===
+                value;
 
-            return (
-              <button
-                key={option.value}
-                type="button"
-                className={
-                  isSelected
-                    ? "connect-select-option is-selected"
-                    : "connect-select-option"
-                }
-                role="option"
-                aria-selected={isSelected ? "true" : "false"}
-                onClick={() => {
-                  onChange(option.value);
-                  setQuery("");
-                  setIsOpen(false);
-                }}
-              >
-                {option.label}
-              </button>
-            );
-          })
+              return (
+                <button
+                  key={
+                    option.value
+                  }
+                  type="button"
+                  className={
+                    isSelected
+                      ? "connect-select-option is-selected"
+                      : "connect-select-option"
+                  }
+                  role="option"
+                  aria-selected={
+                    isSelected
+                      ? "true"
+                      : "false"
+                  }
+                  onClick={() => {
+                    onChange(
+                      option.value,
+                      option
+                    );
+
+                    setQuery(
+                      ""
+                    );
+
+                    setIsOpen(
+                      false
+                    );
+                  }}
+                >
+                  {
+                    option.label
+                  }
+                </button>
+              );
+            }
+          )
         ) : (
           <div className="connect-select-option">
             No matching institution
