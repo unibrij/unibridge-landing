@@ -35,7 +35,8 @@ import {
 } from "./flow/flowStorage";
 
 import {
-  readPayoutAccessToken
+  readPayoutAccessToken,
+  readLastPayoutAccessToken
 } from "./flow/payoutAccessTokenStorage";
 
 import {
@@ -221,12 +222,11 @@ export default function App() {
   );
 
   /*
-   * Repeat always uses the source payout token.
+   * Current / repeat flow access token.
    *
-   * This keeps authentication stable before and after
-   * a KYC redirect.
-   *
-   * Normal flows fall back to the returned/current payout.
+   * Repeat must always prefer the source payout token.
+   * This is intentionally NOT allowed to fall back to
+   * an unrelated "last known" payout token.
    */
   const [
     flowAccessToken
@@ -254,9 +254,38 @@ export default function App() {
     );
   });
 
+  /*
+   * History may use the current known payout context.
+   *
+   * If the page was opened through a fresh
+   * /connect/?view=history reload and the flow snapshot
+   * no longer contains a payout intent, fall back to the
+   * explicit last-access pointer maintained by
+   * payoutAccessTokenStorage.
+   *
+   * This does not scan localStorage.
+   */
+  const [
+    historyFallbackAccessToken
+  ] = useState(() => {
+    if (!isHistoryPage) {
+      return null;
+    }
+
+    return (
+      readLastPayoutAccessToken()
+        ?.token ||
+      null
+    );
+  });
+
   const historyAccessToken =
     isHistoryPage
-      ? flowAccessToken
+      ? (
+          flowAccessToken ||
+          historyFallbackAccessToken ||
+          null
+        )
       : null;
 
   const repeatAccessToken =
