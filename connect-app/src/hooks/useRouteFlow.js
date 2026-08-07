@@ -38,6 +38,10 @@ export function useRouteFlow({
   setIsBusy,
 
   isReturnedFlow,
+
+  repeatSourcePayoutIntentId,
+  repeatAccessToken,
+
   writeDebug
 }) {
   const [
@@ -111,6 +115,7 @@ export function useRouteFlow({
     selectedRoute,
     form,
     pricingPreview,
+
     payoutIntentId,
     payoutIntentIdRef,
     setPayoutIntentId,
@@ -118,9 +123,14 @@ export function useRouteFlow({
     setFundingTxHash,
     setIsBusy,
     setWalletConfirmationPending,
+
+    repeatSourcePayoutIntentId,
+    repeatAccessToken,
+
     authorizeIntentWithWallet,
     ensureIntentAuthorized,
     cancelSettlementPolling,
+
     writeDebug
   });
 
@@ -171,7 +181,8 @@ export function useRouteFlow({
         "Send failed",
         {
           message:
-            err.message
+            err?.message ||
+            "route_flow_failed"
         }
       );
     }
