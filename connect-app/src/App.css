@@ -95,16 +95,17 @@ body {
     ),
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.10) 48%,
+      rgba(0, 14, 45, 0) 0%,
+      rgba(0, 14, 45, 0.1) 48%,
       rgba(0, 14, 45, 0.18) 100%
     );
 }
 
 .history-shell {
-  justify-content: center;
-  padding-top: 18px;
-  padding-bottom: 40px;
+  justify-content: flex-start;
+  gap: 0;
+  padding-top: 118px;
+  padding-bottom: 42px;
 }
 
 /* --------------------------------------------------
@@ -203,8 +204,77 @@ p {
 }
 
 /* --------------------------------------------------
+   Connect tabs
+-------------------------------------------------- */
+
+.connect-tabs {
+  position: relative;
+  width: min(100%, 440px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 9px 9px 0 0;
+  background: rgba(9, 30, 65, 0.72);
+  overflow: hidden;
+  text-align: center;
+}
+
+.connect-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 43px;
+  padding: 12px 14px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.connect-tab + .connect-tab {
+  border-left: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.connect-tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.connect-tab.is-active {
+  color: #5eead4;
+  font-weight: 750;
+  cursor: default;
+}
+
+.connect-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+  background: #2dd4bf;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.38);
+}
+
+/* --------------------------------------------------
    Wallet / form
 -------------------------------------------------- */
+
+.wallet-connect-row {
+  width: min(100%, 440px);
+  display: flex;
+  justify-content: center;
+}
 
 .wallet-button {
   margin-top: 8px;
@@ -570,28 +640,6 @@ p {
   color: rgba(254, 202, 202, 0.86);
 }
 
-@media (max-width: 430px) {
-  .pricing-preview {
-    padding: 11px;
-  }
-
-  .pricing-preview-row {
-    gap: 10px;
-  }
-
-  .pricing-preview-label {
-    font-size: 12px;
-  }
-
-  .pricing-preview-value {
-    font-size: 13px;
-  }
-
-  .pricing-preview-recipient .pricing-preview-value {
-    font-size: 14px;
-  }
-}
-
 .wallet-pending-card {
   margin-top: 10px;
   padding: 10px 12px;
@@ -609,6 +657,10 @@ p {
   color: #99f6e4;
   font-size: 12px;
 }
+
+/* --------------------------------------------------
+   Route info
+-------------------------------------------------- */
 
 .route-info-grid {
   display: grid;
@@ -690,7 +742,7 @@ p {
   margin: 0 !important;
   padding: 2px 5px !important;
   border-radius: 7px !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   background: rgba(255, 255, 255, 0.06) !important;
   color: rgba(255, 255, 255, 0.72) !important;
   font-size: 11px !important;
@@ -711,6 +763,10 @@ p {
   border-radius: 999px;
   white-space: nowrap;
 }
+
+/* --------------------------------------------------
+   Route actions
+-------------------------------------------------- */
 
 .route-actions {
   width: min(100%, 392px);
@@ -794,6 +850,9 @@ p {
 }
 
 .connect-select-value {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
   min-width: 0;
   color: #ffffff;
   font-size: 14px;
@@ -897,61 +956,325 @@ p {
   flex: 0 0 20px;
 }
 
-.connect-select-value {
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
 /* --------------------------------------------------
    History
 -------------------------------------------------- */
 
-.history-empty {
-  max-width: none;
-  text-align: center;
-  font-size: 13px;
+.history-content {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 28px;
+  text-align: left;
 }
 
-.history-list {
+.history-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.history-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 0 3px;
+}
+
+.history-section-title {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.history-recipient-list,
+.history-payout-list {
   display: grid;
   gap: 10px;
 }
 
-.history-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
-  border-radius: 16px;
-  padding: 14px 16px;
-}
+/* --------------------------------------------------
+   History recipient cards
+-------------------------------------------------- */
 
-.history-row {
+.history-recipient-card {
+  width: 100%;
+  min-width: 0;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 39, 78, 0.72) 0%,
+      rgba(8, 28, 61, 0.74) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.history-recipient-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 5px 0;
-  font-size: 12px;
 }
 
-.history-row span {
-  color: rgba(255, 255, 255, 0.52);
+.history-recipient-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(45, 212, 191, 0.55),
+      rgba(59, 130, 246, 0.45)
+    );
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-.history-row strong {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 700;
-  text-align: right;
-  overflow-wrap: anywhere;
+.history-recipient-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
 }
 
-.history-status-success {
-  color: #5eead4 !important;
+.history-recipient-name {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.history-back-link {
+.history-recipient-destination,
+.history-recipient-last-paid,
+.history-payout-date {
   display: block;
-  margin-top: 12px;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-recipient-destination {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --------------------------------------------------
+   History payout cards
+-------------------------------------------------- */
+
+.history-payouts-section {
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.history-payout-card {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 39, 78, 0.72) 0%,
+      rgba(8, 28, 61, 0.74) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.history-payout-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.history-payout-summary {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.history-payout-amount {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.history-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.13);
+  background: rgba(20, 184, 166, 0.14);
+  color: #6ee7b7;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.history-status-completed,
+.history-status-complete,
+.history-status-executed,
+.history-status-success,
+.history-status-succeeded,
+.history-status-payout_completed,
+.history-status-execution_completed {
+  border-color: rgba(52, 211, 153, 0.16);
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+.history-status-processing,
+.history-status-pending {
+  border-color: rgba(251, 191, 36, 0.18);
+  background: rgba(245, 158, 11, 0.11);
+  color: #fcd34d;
+}
+
+.history-status-failed {
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(239, 68, 68, 0.11);
+  color: #fca5a5;
+}
+
+/* --------------------------------------------------
+   History actions
+-------------------------------------------------- */
+
+.history-secondary-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid rgba(45, 212, 191, 0.42);
+  border-radius: 9px;
+  background: rgba(20, 184, 166, 0.035);
+  color: #5eead4;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 100ms ease;
+}
+
+.history-secondary-button:hover {
+  border-color: rgba(94, 234, 212, 0.62);
+  background: rgba(20, 184, 166, 0.09);
+  color: #99f6e4;
+}
+
+.history-secondary-button:active {
+  transform: scale(0.98);
+}
+
+.history-secondary-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.history-payout-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.history-payout-actions .history-secondary-button {
+  width: 100%;
+}
+
+/* --------------------------------------------------
+   History state
+-------------------------------------------------- */
+
+.history-state-card {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 22px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background: rgba(8, 30, 66, 0.6);
+  text-align: center;
+}
+
+.history-state-card strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.history-state-card span {
+  max-width: 300px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------
+   History footer
+-------------------------------------------------- */
+
+.connect-history-footer {
+  width: min(100%, 440px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 34px;
+  padding: 16px 0 4px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 1;
 }
 
 /* --------------------------------------------------
@@ -1061,7 +1384,7 @@ p {
 
 .review-later {
   margin-top: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: rgba(255, 255, 255, 0.62);
 }
@@ -1118,7 +1441,7 @@ p {
   min-height: 36px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid rgba(45, 212, 191, 0.30);
+  border: 1px solid rgba(45, 212, 191, 0.3);
   background: rgba(20, 184, 166, 0.06);
   color: #5eead4;
   font-size: 12px;
@@ -1244,9 +1567,17 @@ p {
   .connect-shell {
     gap: 12px;
     padding: 14px;
-    justify-content: center;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    justify-content: flex-start;
+    padding-top:
+      max(
+        24px,
+        env(safe-area-inset-top)
+      );
+    padding-bottom:
+      max(
+        14px,
+        env(safe-area-inset-bottom)
+      );
   }
 
   .connect-shell::before {
@@ -1282,8 +1613,17 @@ p {
 
   .history-shell {
     justify-content: flex-start;
-    padding-top: max(72px, env(safe-area-inset-top));
-    padding-bottom: max(40px, env(safe-area-inset-bottom));
+    gap: 0;
+    padding-top:
+      max(
+        24px,
+        env(safe-area-inset-top)
+      );
+    padding-bottom:
+      max(
+        30px,
+        env(safe-area-inset-bottom)
+      );
   }
 
   .connect-brandbar {
@@ -1291,19 +1631,28 @@ p {
     top: auto;
     left: auto;
     right: auto;
-    width: 100%;
-    justify-content: center;
+    width: min(100%, 392px);
+    justify-content: space-between;
     margin: 0 0 4px;
     pointer-events: none;
   }
 
   .connect-brandbar-logo {
-    width: 200px;
-    max-width: 68vw;
+    width: 150px;
+    max-width: 52vw;
   }
 
   .connect-domain-pill {
     display: none;
+  }
+
+  .history-shell .connect-brandbar {
+    margin-bottom: 18px;
+  }
+
+  .history-shell .connect-brandbar-logo {
+    width: 150px;
+    max-width: 52vw;
   }
 
   h1 {
@@ -1315,18 +1664,34 @@ p {
   }
 
   .connect-eyebrow {
-    font-size: 12px;
+    font-size: 11px;
+    margin-top: 2px;
   }
 
+  .wallet-connect-row,
   .payout-form,
   .route-actions,
   .install-pwa-button,
-  .connect-auth-error {
+  .connect-auth-error,
+  .connect-tabs,
+  .history-content,
+  .connect-history-footer {
     width: min(100%, 392px);
   }
 
+  .connect-tabs {
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+
+  .connect-tab {
+    min-height: 41px;
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
   .payout-form {
-    margin-top: 6px;
+    margin-top: 2px;
     padding: 13px;
     background:
       linear-gradient(
@@ -1336,6 +1701,75 @@ p {
       );
     backdrop-filter: blur(4px) saturate(124%);
     -webkit-backdrop-filter: blur(4px) saturate(124%);
+  }
+
+  .history-content {
+    gap: 25px;
+  }
+
+  .history-section-header {
+    margin-bottom: 11px;
+  }
+
+  .history-recipient-card,
+  .history-payout-card {
+    padding: 13px;
+    border-radius: 12px;
+  }
+
+  .history-recipient-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .history-recipient-main {
+    gap: 10px;
+  }
+
+  .history-recipient-name {
+    font-size: 13px;
+  }
+
+  .history-recipient-destination,
+  .history-recipient-last-paid,
+  .history-payout-date {
+    font-size: 10px;
+  }
+
+  .history-secondary-button {
+    min-height: 31px;
+    padding: 0 11px;
+    font-size: 10px;
+  }
+
+  .history-payout-amount {
+    font-size: 13px;
+  }
+
+  .history-payout-actions {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .pricing-preview {
+    padding: 11px;
+  }
+
+  .pricing-preview-row {
+    gap: 10px;
+  }
+
+  .pricing-preview-label {
+    font-size: 12px;
+  }
+
+  .pricing-preview-value {
+    font-size: 13px;
+  }
+
+  .pricing-preview-recipient .pricing-preview-value {
+    font-size: 14px;
   }
 
   .review-card {
@@ -1363,5 +1797,40 @@ p {
     gap: 10px;
     margin-top: 36px;
     padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .connect-brandbar-logo,
+  .history-shell .connect-brandbar-logo {
+    width: 140px;
+  }
+
+  .history-recipient-card {
+    align-items: flex-start;
+  }
+
+  .history-recipient-card >
+  .history-secondary-button {
+    padding: 0 9px;
+  }
+
+  .history-recipient-main {
+    gap: 9px;
+  }
+
+  .history-recipient-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    font-size: 11px;
+  }
+
+  .history-payout-header {
+    gap: 8px;
+  }
+
+  .history-payout-summary {
+    gap: 5px;
   }
 }
