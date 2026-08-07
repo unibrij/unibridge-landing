@@ -1252,11 +1252,11 @@ export default function App() {
       </p>
 
       <nav
-        className="connect-view-navigation"
+        className="connect-tabs"
         aria-label="Connect navigation"
       >
         <span
-          className="route-action-link"
+          className="connect-tab is-active"
           aria-current="page"
         >
           New payout
@@ -1264,7 +1264,7 @@ export default function App() {
 
         <a
           href="/connect/?view=history"
-          className="route-action-link"
+          className="connect-tab"
         >
           History
         </a>
