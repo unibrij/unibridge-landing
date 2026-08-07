@@ -50,7 +50,6 @@ import useRouteFlow from "./hooks/useRouteFlow";
 import PayoutForm from "./components/PayoutForm";
 import HistoryPage from "./components/HistoryPage";
 import PayoutReviewManager from "./components/PayoutReviewManager";
-import RouteActions from "./components/RouteActions";
 
 import {
   trackConnectEvent
@@ -63,17 +62,6 @@ function normalizeString(
     value ??
     ""
   ).trim();
-}
-
-function getSettlementId(
-  settlement
-) {
-  return (
-    settlement?.settlement_id ||
-    settlement?.id ||
-    settlement?.route_id ||
-    "N/A"
-  );
 }
 
 function hasRoute(
@@ -1009,109 +997,6 @@ export default function App() {
       ]
     );
 
-  const handleUseRouteAgain =
-    useCallback(
-      async () => {
-        await trackConnectEvent(
-          "use_route_again_clicked",
-          {
-            wallet_address:
-              address,
-
-            route_id:
-              selectedRouteId,
-
-            asset:
-              form.asset,
-
-            metadata: {
-              previous_settlement_id:
-                getSettlementId(
-                  settlement
-                )
-            }
-          }
-        );
-
-        setRepeatSourcePayoutIntentId(
-          null
-        );
-
-        setPayoutIntentId(
-          null
-        );
-
-        setSettlement(
-          null
-        );
-
-        setFundingTxHash(
-          null
-        );
-
-        setIsBusy(
-          false
-        );
-
-        setPricingPreview(
-          null
-        );
-
-        setPricingPreviewStatus(
-          "idle"
-        );
-
-        setPricingPreviewError(
-          null
-        );
-
-        routeCreatedTrackedRef
-          .current = false;
-
-        resetConnectSession();
-
-        setForm(
-          current => ({
-            ...current,
-
-            amount:
-              "",
-
-            asset:
-              current.asset ||
-              selectedRoute
-                ?.assets?.[0] ||
-              initialFormRoute
-                .assets[0],
-
-            beneficiary:
-              current
-                .beneficiary ||
-              buildEmptyForm(
-                selectedRoute ||
-                  initialFormRoute
-              ).beneficiary
-          })
-        );
-
-        clearStoredFlow();
-
-        writeDebug(
-          "Ready to start another payout."
-        );
-      },
-      [
-        address,
-        form.asset,
-        initialFormRoute,
-        resetConnectSession,
-        selectedRoute,
-        selectedRouteId,
-        settlement,
-        writeDebug
-      ]
-    );
-
   function updateBeneficiaryField(
     name,
     value
@@ -1354,15 +1239,6 @@ export default function App() {
             }
             routes={
               routes
-            }
-          />
-
-          <RouteActions
-            settlement={
-              settlement
-            }
-            onUseAgain={
-              handleUseRouteAgain
             }
           />
 
