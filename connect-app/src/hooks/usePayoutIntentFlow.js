@@ -4,6 +4,7 @@ import {
   createPayoutIntent,
   createSettlement,
   getPayoutIntent,
+  repeatPayout,
   startKyc
 } from "../api";
 
@@ -42,13 +43,21 @@ export function usePayoutIntentFlow({
   setIsBusy,
   setWalletConfirmationPending,
 
+  repeatSourcePayoutIntentId,
+  repeatAccessToken,
+
   authorizeIntentWithWallet,
   ensureIntentAuthorized,
   cancelSettlementPolling,
 
   writeDebug
 }) {
-  function requireFlowContext() {
+  const isRepeatFlow =
+    Boolean(
+      repeatSourcePayoutIntentId
+    );
+
+  function requireNormalFlowContext() {
     if (!connectSessionId) {
       throw new Error(
         "connect_session_required"
@@ -73,6 +82,44 @@ export function usePayoutIntentFlow({
       route:
         selectedRoute
     });
+  }
+
+  function requireRepeatFlowContext() {
+    if (!connectSessionId) {
+      throw new Error(
+        "connect_session_required"
+      );
+    }
+
+    if (
+      !repeatSourcePayoutIntentId
+    ) {
+      throw new Error(
+        "repeat_source_payout_intent_id_required"
+      );
+    }
+
+    if (!repeatAccessToken) {
+      throw new Error(
+        "repeat_access_token_required"
+      );
+    }
+
+    const amount =
+      Number(
+        form?.amount
+      );
+
+    if (
+      !Number.isFinite(
+        amount
+      ) ||
+      amount <= 0
+    ) {
+      throw new Error(
+        "invalid_amount"
+      );
+    }
   }
 
   async function createSettlementForIntent(
@@ -119,36 +166,60 @@ export function usePayoutIntentFlow({
   }
 
   async function createIntentAndSettlement() {
-    requireFlowContext();
+    if (isRepeatFlow) {
+      requireRepeatFlowContext();
+    }
+    else {
+      requireNormalFlowContext();
+    }
 
     writeDebug(
-      "Creating payout intent...",
+      isRepeatFlow
+        ? "Creating repeated payout intent..."
+        : "Creating payout intent...",
       {
         connect_session_id:
           connectSessionId,
 
         route_id:
-          selectedRoute.id ||
+          selectedRoute?.id ||
           null,
 
         chain_id:
           chainId ||
+          null,
+
+        repeat_source_payout_intent_id:
+          repeatSourcePayoutIntentId ||
           null
       }
     );
 
     const intentResult =
-      await createPayoutIntent({
-        connectSessionId,
+      isRepeatFlow
+        ? await repeatPayout({
+            sourcePayoutIntentId:
+              repeatSourcePayoutIntentId,
 
-        walletAddress:
-          address,
+            connectSessionId,
 
-        route:
-          selectedRoute,
+            amount:
+              form.amount,
 
-        form
-      });
+            accessToken:
+              repeatAccessToken
+          })
+        : await createPayoutIntent({
+            connectSessionId,
+
+            walletAddress:
+              address,
+
+            route:
+              selectedRoute,
+
+            form
+          });
 
     const intentId =
       getPayoutIntentId(
@@ -175,22 +246,35 @@ export function usePayoutIntentFlow({
       payout_intent_id:
         intentId,
 
+      repeat_source_payout_intent_id:
+        repeatSourcePayoutIntentId ||
+        null,
+
       route_id:
-        selectedRoute.id,
+        selectedRoute?.id ||
+        null,
 
       form,
 
       pricing_preview:
-        normalizePricingPreview(
-          pricingPreview
-        )
+        isRepeatFlow
+          ? null
+          : normalizePricingPreview(
+              pricingPreview
+            )
     });
 
     writeDebug(
-      "Payout intent created.",
+      isRepeatFlow
+        ? "Repeated payout intent created."
+        : "Payout intent created.",
       {
         payout_intent_id:
-          intentId
+          intentId,
+
+        repeat_source_payout_intent_id:
+          repeatSourcePayoutIntentId ||
+          null
       }
     );
 
@@ -259,7 +343,9 @@ export function usePayoutIntentFlow({
     }
 
     writeDebug(
-      "Verification completed. Creating payout intent..."
+      isRepeatFlow
+        ? "Verification completed. Creating repeated payout intent..."
+        : "Verification completed. Creating payout intent..."
     );
 
     const result =
@@ -293,7 +379,10 @@ export function usePayoutIntentFlow({
       return;
     }
 
-    if (!selectedRoute) {
+    if (
+      !selectedRoute &&
+      !isRepeatFlow
+    ) {
       writeDebug(
         "Select a payout route first."
       );
@@ -301,33 +390,43 @@ export function usePayoutIntentFlow({
       return;
     }
 
-    const normalizedPricingPreview =
-      normalizePricingPreview(
-        pricingPreview
-      );
+    let normalizedPricingPreview =
+      null;
 
-    if (!normalizedPricingPreview) {
-      writeDebug(
-        "Pricing preview is required before continuing.",
-        {
-          connect_session_id:
-            connectSessionId,
-
-          route_id:
-            selectedRoute.id ||
-            null
-        }
-      );
-
-      return;
+    if (isRepeatFlow) {
+      requireRepeatFlowContext();
     }
+    else {
+      normalizedPricingPreview =
+        normalizePricingPreview(
+          pricingPreview
+        );
 
-    validateRouteForm({
-      form,
+      if (
+        !normalizedPricingPreview
+      ) {
+        writeDebug(
+          "Pricing preview is required before continuing.",
+          {
+            connect_session_id:
+              connectSessionId,
 
-      route:
-        selectedRoute
-    });
+            route_id:
+              selectedRoute?.id ||
+              null
+          }
+        );
+
+        return;
+      }
+
+      validateRouteForm({
+        form,
+
+        route:
+          selectedRoute
+      });
+    }
 
     setIsBusy(
       true
@@ -355,9 +454,10 @@ export function usePayoutIntentFlow({
     cancelSettlementPolling();
 
     /*
-     * Do not delete the previous payout access token.
-     * Historical transfers still need their token for
-     * authenticated receipt downloads.
+     * Do not delete previous payout access tokens.
+     * Historical transfers still need them for authenticated
+     * receipt downloads and Repeat may still need the source
+     * flow token until the new intent exists.
      */
 
     storeFlowSnapshot({
@@ -367,13 +467,20 @@ export function usePayoutIntentFlow({
       payout_intent_id:
         null,
 
+      repeat_source_payout_intent_id:
+        repeatSourcePayoutIntentId ||
+        null,
+
       route_id:
-        selectedRoute.id,
+        selectedRoute?.id ||
+        null,
 
       form,
 
       pricing_preview:
-        normalizedPricingPreview
+        isRepeatFlow
+          ? null
+          : normalizedPricingPreview
     });
 
     writeDebug(
@@ -383,7 +490,11 @@ export function usePayoutIntentFlow({
           connectSessionId,
 
         route_id:
-          selectedRoute.id ||
+          selectedRoute?.id ||
+          null,
+
+        repeat_source_payout_intent_id:
+          repeatSourcePayoutIntentId ||
           null
       }
     );
