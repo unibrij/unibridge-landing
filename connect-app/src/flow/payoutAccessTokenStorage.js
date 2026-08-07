@@ -3,6 +3,9 @@
 const STORAGE_KEY_PREFIX =
   "unibridge_payout_access_token:";
 
+const LAST_ACCESS_PAYOUT_INTENT_ID_KEY =
+  "unibridge_last_access_payout_intent_id";
+
 const PAYOUT_ACCESS_TOKEN_PATTERN =
   /^ub_pat_[A-Za-z0-9_-]{43}$/;
 
@@ -104,6 +107,101 @@ function safelyRemoveItem(
   }
 }
 
+function readLastAccessPayoutIntentId() {
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return null;
+  }
+
+  try {
+    return (
+      normalizeString(
+        storage.getItem(
+          LAST_ACCESS_PAYOUT_INTENT_ID_KEY
+        )
+      ) ||
+      null
+    );
+  }
+  catch {
+    return null;
+  }
+}
+
+function storeLastAccessPayoutIntentId(
+  payoutIntentId
+) {
+  const intentId =
+    normalizeString(
+      payoutIntentId
+    );
+
+  const storage =
+    getLocalStorage();
+
+  if (
+    !intentId ||
+    !storage
+  ) {
+    return;
+  }
+
+  try {
+    storage.setItem(
+      LAST_ACCESS_PAYOUT_INTENT_ID_KEY,
+      intentId
+    );
+  }
+  catch {
+    // The primary payout token may still have been stored.
+    // Do not fail token storage only because the pointer
+    // could not be updated.
+  }
+}
+
+function clearLastAccessPayoutIntentIdIfMatches(
+  payoutIntentId
+) {
+  const intentId =
+    normalizeString(
+      payoutIntentId
+    );
+
+  if (!intentId) {
+    return;
+  }
+
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  try {
+    const current =
+      normalizeString(
+        storage.getItem(
+          LAST_ACCESS_PAYOUT_INTENT_ID_KEY
+        )
+      );
+
+    if (
+      current ===
+      intentId
+    ) {
+      storage.removeItem(
+        LAST_ACCESS_PAYOUT_INTENT_ID_KEY
+      );
+    }
+  }
+  catch {
+    // Storage may be unavailable or blocked.
+  }
+}
+
 export function readPayoutAccessToken(
   payoutIntentId
 ) {
@@ -160,6 +258,10 @@ export function readPayoutAccessToken(
         key
       );
 
+      clearLastAccessPayoutIntentIdIfMatches(
+        payoutIntentId
+      );
+
       return null;
     }
 
@@ -176,8 +278,45 @@ export function readPayoutAccessToken(
       key
     );
 
+    clearLastAccessPayoutIntentIdIfMatches(
+      payoutIntentId
+    );
+
     return null;
   }
+}
+
+export function readLastPayoutAccessToken() {
+  const payoutIntentId =
+    readLastAccessPayoutIntentId();
+
+  if (!payoutIntentId) {
+    return null;
+  }
+
+  const access =
+    readPayoutAccessToken(
+      payoutIntentId
+    );
+
+  if (!access) {
+    clearLastAccessPayoutIntentIdIfMatches(
+      payoutIntentId
+    );
+
+    return null;
+  }
+
+  return {
+    payout_intent_id:
+      payoutIntentId,
+
+    token:
+      access.token,
+
+    expires_at:
+      access.expires_at
+  };
 }
 
 export function storePayoutAccessToken({
@@ -185,9 +324,14 @@ export function storePayoutAccessToken({
   token,
   expiresAt
 }) {
+  const intentId =
+    normalizeString(
+      payoutIntentId
+    );
+
   const key =
     buildStorageKey(
-      payoutIntentId
+      intentId
     );
 
   const storage =
@@ -204,6 +348,7 @@ export function storePayoutAccessToken({
     );
 
   if (
+    !intentId ||
     !key ||
     !PAYOUT_ACCESS_TOKEN_PATTERN.test(
       normalizedToken
@@ -234,6 +379,10 @@ export function storePayoutAccessToken({
           expiry.value
       })
     );
+
+    storeLastAccessPayoutIntentId(
+      intentId
+    );
   }
   catch {
     throw new Error(
@@ -245,9 +394,14 @@ export function storePayoutAccessToken({
 export function clearPayoutAccessToken(
   payoutIntentId
 ) {
+  const intentId =
+    normalizeString(
+      payoutIntentId
+    );
+
   const key =
     buildStorageKey(
-      payoutIntentId
+      intentId
     );
 
   const storage =
@@ -256,5 +410,9 @@ export function clearPayoutAccessToken(
   safelyRemoveItem(
     storage,
     key
+  );
+
+  clearLastAccessPayoutIntentIdIfMatches(
+    intentId
   );
 }
