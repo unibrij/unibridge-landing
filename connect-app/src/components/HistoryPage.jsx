@@ -7,79 +7,34 @@ import {
 
 import {
   downloadReceiptPdf,
-  getWalletPayoutHistory
+  getPayoutHistory
 } from "../api";
-
-import {
-  readRouteHistory,
-  mergeRouteHistoryItems
-} from "../history/routeHistory";
 
 import {
   readPayoutAccessToken
 } from "../flow/payoutAccessTokenStorage";
 
-function shortId(
-  value = ""
+function normalizeString(
+  value
 ) {
-  const text =
-    String(
-      value ||
-      ""
-    ).trim();
-
-  if (!text) {
-    return "—";
-  }
-
-  if (
-    text.length <=
-    18
-  ) {
-    return text;
-  }
-
-  return `${text.slice(
-    0,
-    8
-  )}...${text.slice(
-    -6
-  )}`;
+  return String(
+    value ??
+    ""
+  ).trim();
 }
 
 function normalizeStatus(
-  status = ""
+  status
 ) {
-  return String(
-    status ||
-    ""
-  )
-    .trim()
-    .toLowerCase();
-}
-
-function isSuccessStatus(
-  status = ""
-) {
-  return [
-    "completed",
-    "complete",
-    "executed",
-    "success",
-    "succeeded",
-    "payout_completed",
-    "execution_completed"
-  ].includes(
-    normalizeStatus(
-      status
-    )
-  );
+  return normalizeString(
+    status
+  ).toLowerCase();
 }
 
 function formatStatus(
-  status = ""
+  status
 ) {
-  const value =
+  const normalized =
     normalizeStatus(
       status
     );
@@ -104,83 +59,138 @@ function formatStatus(
       "Completed",
 
     execution_completed:
-      "Completed"
+      "Completed",
+
+    processing:
+      "Processing",
+
+    pending:
+      "Pending",
+
+    failed:
+      "Failed"
   };
 
-  return (
-    labels[value] ||
-    value ||
-    "—"
-  );
+  if (
+    labels[normalized]
+  ) {
+    return labels[
+      normalized
+    ];
+  }
+
+  if (!normalized) {
+    return "—";
+  }
+
+  return normalized
+    .replace(
+      /_/g,
+      " "
+    )
+    .replace(
+      /\b\w/g,
+      character =>
+        character.toUpperCase()
+    );
 }
 
 function formatAmount(
   item
 ) {
   const amount =
-    String(
-      item?.amount ||
-      ""
-    ).trim();
+    normalizeString(
+      item?.amount
+    );
 
   const asset =
-    String(
-      item?.asset ||
-      ""
-    ).trim();
+    normalizeString(
+      item?.asset
+    );
 
   if (!amount) {
     return "—";
   }
 
-  return `${amount}${
-    asset
-      ? ` ${asset}`
-      : ""
-  }`;
+  return asset
+    ? `${amount} ${asset}`
+    : amount;
+}
+
+function resolveDate(
+  value
+) {
+  if (!value) {
+    return null;
+  }
+
+  if (
+    typeof value ===
+      "string" ||
+    typeof value ===
+      "number"
+  ) {
+    const date =
+      new Date(
+        value
+      );
+
+    return Number.isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
+  }
+
+  const seconds =
+    value?._seconds ??
+    value?.seconds;
+
+  if (
+    Number.isFinite(
+      Number(
+        seconds
+      )
+    )
+  ) {
+    const date =
+      new Date(
+        Number(
+          seconds
+        ) *
+        1000
+      );
+
+    return Number.isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
+  }
+
+  return null;
 }
 
 function formatDate(
   value
 ) {
-  if (!value) {
+  const date =
+    resolveDate(
+      value
+    );
+
+  if (!date) {
     return "—";
   }
 
   try {
-    const date =
-      typeof value ===
-        "string" ||
-      typeof value ===
-        "number"
-        ? new Date(
-            value
-          )
-        : value?._seconds
-          ? new Date(
-              value._seconds *
-              1000
-            )
-          : value?.seconds
-            ? new Date(
-                value.seconds *
-                1000
-              )
-            : null;
-
-    if (
-      !date ||
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return "—";
-    }
-
     return date
       .toLocaleDateString(
         undefined,
         {
+          year:
+            "numeric",
+
           month:
             "short",
 
@@ -194,15 +204,90 @@ function formatDate(
   }
 }
 
-function completedOnly(
-  items = []
+function getRecipientLabel(
+  item
 ) {
-  return items.filter(
-    item =>
-      isSuccessStatus(
-        item?.status
-      )
+  return (
+    normalizeString(
+      item
+        ?.recipient_display
+        ?.label
+    ) ||
+    "Recipient"
   );
+}
+
+function getRecipientDestination(
+  item
+) {
+  return normalizeString(
+    item
+      ?.recipient_display
+      ?.destination
+  );
+}
+
+function getMaskedIdentifier(
+  item
+) {
+  return normalizeString(
+    item
+      ?.recipient_display
+      ?.masked_identifier
+  );
+}
+
+function buildRecipientSummary(
+  item
+) {
+  return [
+    getRecipientDestination(
+      item
+    ),
+
+    getMaskedIdentifier(
+      item
+    )
+  ]
+    .filter(Boolean)
+    .join(" · ") ||
+    "Saved payout recipient";
+}
+
+function buildRepeatUrl(
+  item
+) {
+  const sourcePayoutIntentId =
+    normalizeString(
+      item
+        ?.repeat_source_payout_intent_id ||
+      item?.payout_intent_id
+    );
+
+  const routeId =
+    normalizeString(
+      item?.route_id
+    );
+
+  if (
+    !sourcePayoutIntentId ||
+    !routeId ||
+    item?.repeat_available ===
+      false
+  ) {
+    return null;
+  }
+
+  const params =
+    new URLSearchParams({
+      repeat_source_payout_intent_id:
+        sourcePayoutIntentId,
+
+      route_id:
+        routeId
+    });
+
+  return `/connect/?${params.toString()}`;
 }
 
 function triggerBlobDownload({
@@ -244,45 +329,78 @@ function triggerBlobDownload({
 }
 
 export default function HistoryPage({
-  walletAddress
+  accessToken
 }) {
   const [
-    history,
-    setHistory
-  ] = useState(
-    () =>
-      completedOnly(
-        readRouteHistory()
-      )
-  );
+    recentRecipients,
+    setRecentRecipients
+  ] = useState([]);
 
   const [
-    downloadingReceiptId,
-    setDownloadingReceiptId
-  ] = useState(
-    null
-  );
+    recentPayouts,
+    setRecentPayouts
+  ] = useState([]);
+
+  const [
+    historyStatus,
+    setHistoryStatus
+  ] = useState("idle");
+
+  const [
+    historyError,
+    setHistoryError
+  ] = useState(null);
 
   const [
     receiptError,
     setReceiptError
-  ] = useState(
-    null
-  );
+  ] = useState(null);
+
+  const [
+    downloadingReceiptId,
+    setDownloadingReceiptId
+  ] = useState(null);
 
   useEffect(() => {
     let cancelled =
       false;
 
-    async function syncWalletHistory() {
-      if (!walletAddress) {
-        return;
-      }
+    if (!accessToken) {
+      setRecentRecipients(
+        []
+      );
+
+      setRecentPayouts(
+        []
+      );
+
+      setHistoryStatus(
+        "unavailable"
+      );
+
+      setHistoryError(
+        null
+      );
+
+      return () => {
+        cancelled =
+          true;
+      };
+    }
+
+    async function loadHistory() {
+      setHistoryStatus(
+        "loading"
+      );
+
+      setHistoryError(
+        null
+      );
 
       try {
-        const items =
-          await getWalletPayoutHistory({
-            walletAddress,
+        const result =
+          await getPayoutHistory({
+            accessToken,
             limit:
               20
           });
@@ -291,52 +409,71 @@ export default function HistoryPage({
           return;
         }
 
-        const merged =
-          mergeRouteHistoryItems(
-            items
-          );
+        setRecentRecipients(
+          result
+            .recent_recipients
+        );
 
-        setHistory(
-          completedOnly(
-            merged
-          )
+        setRecentPayouts(
+          result
+            .recent_payouts
+        );
+
+        setHistoryStatus(
+          "ready"
         );
       }
-      catch {
-        if (!cancelled) {
-          setHistory(
-            completedOnly(
-              readRouteHistory()
-            )
-          );
+      catch (
+        error
+      ) {
+        if (cancelled) {
+          return;
         }
+
+        setRecentRecipients(
+          []
+        );
+
+        setRecentPayouts(
+          []
+        );
+
+        setHistoryStatus(
+          "error"
+        );
+
+        setHistoryError(
+          error?.message ||
+          "get_payout_history_failed"
+        );
       }
     }
 
-    void syncWalletHistory();
+    void loadHistory();
 
     return () => {
       cancelled =
         true;
     };
   }, [
-    walletAddress
+    accessToken
   ]);
 
-  async function handleDownloadReceipt(
-    item
-  ) {
+  async function handleDownloadReceipt({
+    item,
+    accessToken:
+      receiptAccessToken
+  }) {
     const receiptId =
-      String(
-        item?.receipt_id ||
-        ""
-      ).trim();
+      normalizeString(
+        item?.receipt_id
+      );
 
     const payoutIntentId =
-      String(
-        item?.payout_intent_id ||
-        ""
-      ).trim();
+      normalizeString(
+        item
+          ?.payout_intent_id
+      );
 
     if (
       !receiptId ||
@@ -349,20 +486,9 @@ export default function HistoryPage({
       return;
     }
 
-    const storedAccess =
-      readPayoutAccessToken(
-        payoutIntentId
-      );
-
-    const accessToken =
-      typeof storedAccess ===
-        "string"
-        ? storedAccess
-        : storedAccess?.access_token ||
-          storedAccess?.token ||
-          null;
-
-    if (!accessToken) {
+    if (
+      !receiptAccessToken
+    ) {
       setReceiptError(
         "Receipt access has expired or is unavailable."
       );
@@ -382,7 +508,9 @@ export default function HistoryPage({
       const result =
         await downloadReceiptPdf({
           receiptId,
-          accessToken
+
+          accessToken:
+            receiptAccessToken
         });
 
       triggerBlobDownload({
@@ -394,10 +522,10 @@ export default function HistoryPage({
       });
     }
     catch (
-      err
+      error
     ) {
       setReceiptError(
-        err?.message ||
+        error?.message ||
         "receipt_download_failed"
       );
     }
@@ -407,6 +535,12 @@ export default function HistoryPage({
       );
     }
   }
+
+  const hasHistory =
+    recentRecipients.length >
+      0 ||
+    recentPayouts.length >
+      0;
 
   return (
     <main className="connect-shell history-shell">
@@ -422,6 +556,14 @@ export default function HistoryPage({
             alt="UniBridge"
           />
         </a>
+
+        <a
+          href="/"
+          className="connect-domain-pill"
+          aria-label="UniBridge website"
+        >
+          Unibrij.io
+        </a>
       </header>
 
       <h1 className="sr-only">
@@ -429,10 +571,54 @@ export default function HistoryPage({
       </h1>
 
       <p className="connect-eyebrow">
-        Payout history
+        History
       </p>
 
+      <nav
+        className="connect-view-navigation"
+        aria-label="Connect navigation"
+      >
+        <a
+          href="/connect/"
+          className="route-action-link"
+        >
+          New payout
+        </a>
+
+        <span
+          className="route-action-link"
+          aria-current="page"
+        >
+          History
+        </span>
+      </nav>
+
       <section className="payout-form">
+        {historyStatus ===
+        "unavailable" ? (
+          <p className="history-empty">
+            History unavailable for this session.
+          </p>
+        ) : null}
+
+        {historyStatus ===
+        "loading" ? (
+          <p className="history-empty">
+            Loading history...
+          </p>
+        ) : null}
+
+        {historyStatus ===
+        "error" ? (
+          <p
+            className="history-empty"
+            role="alert"
+          >
+            {historyError ||
+              "History could not be loaded."}
+          </p>
+        ) : null}
+
         {receiptError ? (
           <p
             className="history-empty"
@@ -442,141 +628,283 @@ export default function HistoryPage({
           </p>
         ) : null}
 
-        {history.length ===
-        0 ? (
+        {historyStatus ===
+          "ready" &&
+        !hasHistory ? (
           <p className="history-empty">
             No completed payouts yet.
           </p>
-        ) : (
-          <div className="history-list">
-            {history.map(
-              (
-                item,
-                index
-              ) => {
-                const receiptId =
-                  item
-                    ?.receipt_id ||
-                  null;
+        ) : null}
 
-                const payoutIntentId =
-                  item
-                    ?.payout_intent_id ||
-                  null;
+        {historyStatus ===
+          "ready" &&
+        recentRecipients.length >
+          0 ? (
+          <section
+            className="history-section"
+            aria-labelledby="recent-recipients-heading"
+          >
+            <h2
+              id="recent-recipients-heading"
+              className="history-section-title"
+            >
+              Recent recipients
+            </h2>
 
-                const canDownloadReceipt =
-                  Boolean(
-                    receiptId &&
+            <div className="history-list">
+              {recentRecipients.map(
+                (
+                  recipient,
+                  index
+                ) => {
+                  const repeatUrl =
+                    buildRepeatUrl(
+                      recipient
+                    );
+
+                  return (
+                    <article
+                      className="history-card"
+                      key={
+                        recipient
+                          ?.repeat_source_payout_intent_id ||
+                        `${recipient?.route_id || "recipient"}-${index}`
+                      }
+                    >
+                      <div className="history-row">
+                        <span>
+                          Recipient
+                        </span>
+
+                        <strong>
+                          {getRecipientLabel(
+                            recipient
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Destination
+                        </span>
+
+                        <strong>
+                          {buildRecipientSummary(
+                            recipient
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Last paid
+                        </span>
+
+                        <strong>
+                          {formatDate(
+                            recipient
+                              ?.last_paid_at
+                          )}
+                        </strong>
+                      </div>
+
+                      {repeatUrl ? (
+                        <a
+                          href={
+                            repeatUrl
+                          }
+                          className="route-action-link history-repeat-link"
+                        >
+                          Send again
+                        </a>
+                      ) : null}
+                    </article>
+                  );
+                }
+              )}
+            </div>
+          </section>
+        ) : null}
+
+        {historyStatus ===
+          "ready" &&
+        recentPayouts.length >
+          0 ? (
+          <section
+            className="history-section"
+            aria-labelledby="recent-payouts-heading"
+          >
+            <h2
+              id="recent-payouts-heading"
+              className="history-section-title"
+            >
+              Recent payouts
+            </h2>
+
+            <div className="history-list">
+              {recentPayouts.map(
+                (
+                  payout,
+                  index
+                ) => {
+                  const receiptId =
+                    normalizeString(
+                      payout
+                        ?.receipt_id
+                    );
+
+                  const payoutIntentId =
+                    normalizeString(
+                      payout
+                        ?.payout_intent_id
+                    );
+
+                  const repeatUrl =
+                    buildRepeatUrl(
+                      payout
+                    );
+
+                  const storedReceiptAccess =
                     payoutIntentId
+                      ? readPayoutAccessToken(
+                          payoutIntentId
+                        )
+                      : null;
+
+                  const receiptAccessToken =
+                    storedReceiptAccess
+                      ?.token ||
+                    null;
+
+                  const canDownloadReceipt =
+                    Boolean(
+                      receiptId &&
+                      payoutIntentId &&
+                      receiptAccessToken
+                    );
+
+                  const isDownloading =
+                    Boolean(
+                      receiptId &&
+                      downloadingReceiptId ===
+                        receiptId
+                    );
+
+                  return (
+                    <article
+                      className="history-card"
+                      key={
+                        payoutIntentId ||
+                        payout
+                          ?.settlement_id ||
+                        payout?.id ||
+                        index
+                      }
+                    >
+                      <div className="history-row">
+                        <span>
+                          Recipient
+                        </span>
+
+                        <strong>
+                          {getRecipientLabel(
+                            payout
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Destination
+                        </span>
+
+                        <strong>
+                          {buildRecipientSummary(
+                            payout
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Amount
+                        </span>
+
+                        <strong>
+                          {formatAmount(
+                            payout
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Status
+                        </span>
+
+                        <strong className="history-status-success">
+                          {formatStatus(
+                            payout
+                              ?.status
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-row">
+                        <span>
+                          Date
+                        </span>
+
+                        <strong>
+                          {formatDate(
+                            payout
+                              ?.created_at
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="history-card-actions">
+                        {repeatUrl ? (
+                          <a
+                            href={
+                              repeatUrl
+                            }
+                            className="route-action-link history-repeat-link"
+                          >
+                            Send again
+                          </a>
+                        ) : null}
+
+                        {canDownloadReceipt ? (
+                          <button
+                            type="button"
+                            className="route-action-link history-receipt-link"
+                            disabled={
+                              isDownloading
+                            }
+                            onClick={() =>
+                              handleDownloadReceipt({
+                                item:
+                                  payout,
+
+                                accessToken:
+                                  receiptAccessToken
+                              })
+                            }
+                          >
+                            {isDownloading
+                              ? "Downloading..."
+                              : "Receipt"}
+                          </button>
+                        ) : null}
+                      </div>
+                    </article>
                   );
-
-                const isDownloading =
-                  Boolean(
-                    receiptId &&
-                    downloadingReceiptId ===
-                      receiptId
-                  );
-
-                return (
-                  <div
-                    className="history-card"
-                    key={
-                      item
-                        .payout_intent_id ||
-                      item
-                        .settlement_id ||
-                      item.id ||
-                      index
-                    }
-                  >
-                    <div className="history-row">
-                      <span>
-                        Reference ID
-                      </span>
-
-                      <strong>
-                        {shortId(
-                          item
-                            .public_reference ||
-                          item.route_id ||
-                          item
-                            .settlement_id
-                        )}
-                      </strong>
-                    </div>
-
-                    <div className="history-row">
-                      <span>
-                        Corridor
-                      </span>
-
-                      <strong>
-                        {item.corridor ||
-                          "—"}
-                      </strong>
-                    </div>
-
-                    <div className="history-row">
-                      <span>
-                        Amount
-                      </span>
-
-                      <strong>
-                        {formatAmount(
-                          item
-                        )}
-                      </strong>
-                    </div>
-
-                    <div className="history-row">
-                      <span>
-                        Status
-                      </span>
-
-                      <strong className="history-status-success">
-                        {formatStatus(
-                          item.status
-                        )}
-                      </strong>
-                    </div>
-
-                    <div className="history-row">
-                      <span>
-                        Date
-                      </span>
-
-                      <strong>
-                        {formatDate(
-                          item
-                            .created_at
-                        )}
-                      </strong>
-                    </div>
-
-                    {canDownloadReceipt ? (
-                      <button
-                        type="button"
-                        className="route-action-link history-receipt-link"
-                        disabled={
-                          isDownloading
-                        }
-                        onClick={() =>
-                          handleDownloadReceipt(
-                            item
-                          )
-                        }
-                      >
-                        {isDownloading
-                          ? "Downloading..."
-                          : "Download receipt"}
-                      </button>
-                    ) : null}
-                  </div>
-                );
-              }
-            )}
-          </div>
-        )}
+                }
+              )}
+            </div>
+          </section>
+        ) : null}
 
         <a
           href="/connect/"
