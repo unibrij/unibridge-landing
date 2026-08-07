@@ -35,6 +35,10 @@ import {
 } from "./flow/flowStorage";
 
 import {
+  readPayoutAccessToken
+} from "./flow/payoutAccessTokenStorage";
+
+import {
   readPayoutIntentFromUrl,
   buildEmptyForm
 } from "./flow/routes";
@@ -162,6 +166,23 @@ export default function App() {
       storedFlow?.payout_intent_id ||
       null
   );
+
+  const payoutAccess =
+    useMemo(
+      () =>
+        payoutIntentId
+          ? readPayoutAccessToken(
+              payoutIntentId
+            )
+          : null,
+      [
+        payoutIntentId
+      ]
+    );
+
+  const historyAccessToken =
+    payoutAccess?.token ||
+    null;
 
   const [
     settlement,
@@ -957,8 +978,8 @@ export default function App() {
   if (isHistoryPage) {
     return (
       <HistoryPage
-        walletAddress={
-          address
+        accessToken={
+          historyAccessToken
         }
       />
     );
