@@ -60,7 +60,9 @@ function normalizeBackendEndpoint(
     )
   ) {
     normalized =
-      normalized.slice(1);
+      normalized.slice(
+        1
+      );
   }
 
   return normalized;
@@ -454,7 +456,10 @@ export function filterFieldOptions({
           resolveOptionLabel(
             option,
             field
-          )
+          ),
+
+        raw:
+          option
       })
     )
   );
