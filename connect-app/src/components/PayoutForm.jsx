@@ -14,7 +14,8 @@ import PricingPreview from "./PricingPreview.jsx";
 import {
   filterFieldOptions,
   normalizeDynamicOptions,
-  resolveDynamicOptionEndpoint
+  resolveDynamicOptionEndpoint,
+  resolveFieldSchemaKey
 } from "./payout-form/dynamicOptions.js";
 
 import {
@@ -40,6 +41,370 @@ function hasOwn(
   return Object.prototype.hasOwnProperty.call(
     value,
     key
+  );
+}
+
+function normalizeString(
+  value
+) {
+  return String(
+    value ??
+    ""
+  ).trim();
+}
+
+function normalizeLower(
+  value
+) {
+  return normalizeString(
+    value
+  ).toLowerCase();
+}
+
+function normalizeDynamicFieldName(
+  value
+) {
+  const name =
+    normalizeString(
+      value
+    );
+
+  switch (name) {
+    case "recipientName":
+    case "recipient_name":
+      return "name";
+
+    case "recipientAccountNumber":
+    case "recipient_account_number":
+      return "account";
+
+    case "recipientAddress":
+    case "recipient_address":
+      return "recipient_address";
+
+    case "recipientPhone":
+    case "recipient_phone":
+      return "phone";
+
+    case "recipientPixKey":
+    case "recipient_pix_key":
+      return "pix_key";
+
+    default:
+      return name;
+  }
+}
+
+function buildFieldLabel(
+  name
+) {
+  const normalized =
+    normalizeDynamicFieldName(
+      name
+    );
+
+  switch (normalized) {
+    case "name":
+      return "Recipient name";
+
+    case "account":
+      return "Recipient account or wallet number";
+
+    case "recipient_address":
+      return "Recipient address";
+
+    case "phone":
+      return "Recipient phone";
+
+    case "pix_key":
+      return "PIX key";
+
+    case "remarks":
+      return "Remarks";
+
+    default:
+      return normalized
+        .replace(
+          /_/g,
+          " "
+        )
+        .replace(
+          /\b\w/g,
+          character =>
+            character.toUpperCase()
+        );
+  }
+}
+
+function normalizeFieldNameList(
+  value
+) {
+  return normalizeArray(
+    value
+  )
+    .map(item => {
+      if (
+        item &&
+        typeof item ===
+          "object"
+      ) {
+        return normalizeString(
+          item.name ||
+            item.field ||
+            item.key
+        );
+      }
+
+      return normalizeString(
+        item
+      );
+    })
+    .filter(Boolean);
+}
+
+function normalizeDynamicSchemaField({
+  rawField,
+  requiredNames,
+  optionalNames
+}) {
+  const fieldObject =
+    rawField &&
+    typeof rawField ===
+      "object" &&
+    !Array.isArray(
+      rawField
+    )
+      ? rawField
+      : {};
+
+  const rawName =
+    normalizeString(
+      fieldObject.name ||
+        fieldObject.field ||
+        fieldObject.key ||
+        rawField
+    );
+
+  if (!rawName) {
+    return null;
+  }
+
+  const name =
+    normalizeDynamicFieldName(
+      rawName
+    );
+
+  if (!name) {
+    return null;
+  }
+
+  const explicitlyRequired =
+    fieldObject.required ===
+      true;
+
+  const explicitlyOptional =
+    fieldObject.required ===
+      false;
+
+  const required =
+    explicitlyRequired ||
+    (
+      !explicitlyOptional &&
+      (
+        requiredNames.has(
+          rawName
+        ) ||
+        requiredNames.has(
+          name
+        )
+      )
+    );
+
+  const type =
+    normalizeLower(
+      fieldObject.type
+    ) ||
+    (
+      name === "phone"
+        ? "tel"
+        : "text"
+    );
+
+  const normalized = {
+    name,
+
+    label:
+      normalizeString(
+        fieldObject.label
+      ) ||
+      buildFieldLabel(
+        name
+      ),
+
+    type,
+
+    required:
+      required &&
+      !optionalNames.has(
+        rawName
+      ) &&
+      !optionalNames.has(
+        name
+      )
+  };
+
+  const placeholder =
+    normalizeString(
+      fieldObject.placeholder
+    );
+
+  if (placeholder) {
+    normalized.placeholder =
+      placeholder;
+  }
+
+  return normalized;
+}
+
+function normalizeSelectedFieldSchema(
+  fieldSchema
+) {
+  if (!fieldSchema) {
+    return [];
+  }
+
+  if (
+    Array.isArray(
+      fieldSchema
+    )
+  ) {
+    return fieldSchema
+      .map(rawField =>
+        normalizeDynamicSchemaField({
+          rawField,
+
+          requiredNames:
+            new Set(),
+
+          optionalNames:
+            new Set()
+        })
+      )
+      .filter(Boolean);
+  }
+
+  if (
+    typeof fieldSchema !==
+      "object"
+  ) {
+    return [];
+  }
+
+  const requiredNames =
+    new Set(
+      normalizeFieldNameList(
+        fieldSchema.required
+      )
+    );
+
+  const optionalNames =
+    new Set(
+      normalizeFieldNameList(
+        fieldSchema.optional
+      )
+    );
+
+  let rawFields =
+    normalizeArray(
+      fieldSchema.fields
+    );
+
+  if (
+    rawFields.length ===
+      0
+  ) {
+    rawFields = [
+      ...requiredNames,
+      ...optionalNames
+    ];
+  }
+
+  const map =
+    new Map();
+
+  rawFields
+    .map(rawField =>
+      normalizeDynamicSchemaField({
+        rawField,
+        requiredNames,
+        optionalNames
+      })
+    )
+    .filter(Boolean)
+    .forEach(field => {
+      if (
+        !map.has(
+          field.name
+        )
+      ) {
+        map.set(
+          field.name,
+          field
+        );
+      }
+    });
+
+  return Array.from(
+    map.values()
+  );
+}
+
+function resolveSelectedOption({
+  options,
+  value
+}) {
+  if (!value) {
+    return null;
+  }
+
+  return (
+    normalizeArray(
+      options
+    ).find(
+      option =>
+        option?.value ===
+        value
+    ) ||
+    null
+  );
+}
+
+function resolveOptionDynamicFields({
+  field,
+  option
+}) {
+  if (!field || !option) {
+    return [];
+  }
+
+  const schemaKey =
+    resolveFieldSchemaKey(
+      field
+    );
+
+  if (!schemaKey) {
+    return [];
+  }
+
+  const fieldSchema =
+    option
+      ?.raw
+      ?.[
+        schemaKey
+      ];
+
+  return normalizeSelectedFieldSchema(
+    fieldSchema
   );
 }
 
@@ -220,9 +585,7 @@ export default function PayoutForm({
                   payload
                 );
 
-              if (
-                cancelled
-              ) {
+              if (cancelled) {
                 return;
               }
 
@@ -244,9 +607,7 @@ export default function PayoutForm({
                   )
               );
 
-              if (
-                cancelled
-              ) {
+              if (cancelled) {
                 return;
               }
 
@@ -276,9 +637,7 @@ export default function PayoutForm({
   ]);
 
   useEffect(() => {
-    if (
-      !selectedAsset
-    ) {
+    if (!selectedAsset) {
       return;
     }
 
@@ -302,6 +661,210 @@ export default function PayoutForm({
     selectedAsset,
     setForm
   ]);
+
+  const dynamicBeneficiaryFields =
+    useMemo(
+      () => {
+        const fields =
+          [];
+
+        const existingNames =
+          new Set(
+            beneficiaryFields
+              .map(
+                field =>
+                  field?.name
+              )
+              .filter(Boolean)
+          );
+
+        for (
+          const field of
+            beneficiaryFields
+        ) {
+          const schemaKey =
+            resolveFieldSchemaKey(
+              field
+            );
+
+          if (!schemaKey) {
+            continue;
+          }
+
+          const endpoint =
+            resolveDynamicOptionEndpoint(
+              field
+            );
+
+          if (!endpoint) {
+            continue;
+          }
+
+          const filteredOptions =
+            filterFieldOptions({
+              field,
+
+              options:
+                dynamicOptionSources[
+                  endpoint
+                ],
+
+              selectedRoute
+            });
+
+          const selectedOption =
+            resolveSelectedOption({
+              options:
+                filteredOptions,
+
+              value:
+                form
+                  .beneficiary
+                  ?.[
+                    field.name
+                  ] ||
+                ""
+            });
+
+          if (!selectedOption) {
+            continue;
+          }
+
+          const dynamicFields =
+            resolveOptionDynamicFields({
+              field,
+              option:
+                selectedOption
+            });
+
+          for (
+            const dynamicField of
+              dynamicFields
+          ) {
+            if (
+              existingNames.has(
+                dynamicField.name
+              )
+            ) {
+              continue;
+            }
+
+            existingNames.add(
+              dynamicField.name
+            );
+
+            fields.push(
+              dynamicField
+            );
+          }
+        }
+
+        return fields;
+      },
+      [
+        beneficiaryFields,
+        dynamicOptionSources,
+        form.beneficiary,
+        selectedRoute
+      ]
+    );
+
+  const renderedBeneficiaryFields =
+    useMemo(
+      () => [
+        ...beneficiaryFields,
+        ...dynamicBeneficiaryFields
+      ],
+      [
+        beneficiaryFields,
+        dynamicBeneficiaryFields
+      ]
+    );
+
+  function updateDynamicSelectField({
+    field,
+    value,
+    options
+  }) {
+    const fieldName =
+      field.name;
+
+    const previousValue =
+      form
+        .beneficiary
+        ?.[
+          fieldName
+        ] ||
+      "";
+
+    const previousOption =
+      resolveSelectedOption({
+        options,
+        value:
+          previousValue
+      });
+
+    const previousDynamicFields =
+      resolveOptionDynamicFields({
+        field,
+        option:
+          previousOption
+      });
+
+    const protectedFieldNames =
+      new Set(
+        beneficiaryFields
+          .map(
+            item =>
+              item?.name
+          )
+          .filter(Boolean)
+      );
+
+    setForm(
+      current => {
+        const beneficiary = {
+          ...(
+            current
+              .beneficiary ||
+            {}
+          )
+        };
+
+        for (
+          const dynamicField of
+            previousDynamicFields
+        ) {
+          const dynamicName =
+            dynamicField?.name;
+
+          if (
+            !dynamicName ||
+            protectedFieldNames.has(
+              dynamicName
+            )
+          ) {
+            continue;
+          }
+
+          delete beneficiary[
+            dynamicName
+          ];
+        }
+
+        beneficiary[
+          fieldName
+        ] =
+          value;
+
+        return {
+          ...current,
+
+          beneficiary
+        };
+      }
+    );
+  }
 
   const displayStatus =
     resolveDisplayStatus({
@@ -433,7 +996,7 @@ export default function PayoutForm({
         </div>
       </label>
 
-      {beneficiaryFields.map(
+      {renderedBeneficiaryFields.map(
         field => {
           const fieldName =
             field.name;
@@ -488,11 +1051,26 @@ export default function PayoutForm({
                   ariaLabel={`Search ${field.label}`}
                   placeholder="Search bank or wallet"
                   onChange={
-                    value =>
+                    value => {
+                      if (
+                        resolveFieldSchemaKey(
+                          field
+                        )
+                      ) {
+                        updateDynamicSelectField({
+                          field,
+                          value,
+                          options
+                        });
+
+                        return;
+                      }
+
                       updateBeneficiaryField(
                         fieldName,
                         value
-                      )
+                      );
+                    }
                   }
                 />
               </label>
