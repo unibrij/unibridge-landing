@@ -12,14 +12,151 @@ export const DYNAMIC_OPTION_ENDPOINTS = {
 };
 
 function normalizeString(value) {
-  return String(value || "").trim();
+  return String(
+    value ||
+    ""
+  ).trim();
 }
 
 function normalizeUpper(value) {
-  return normalizeString(value).toUpperCase();
+  return normalizeString(
+    value
+  ).toUpperCase();
 }
 
-function uniqueByValue(options = []) {
+function normalizeBackendEndpoint(
+  endpoint
+) {
+  let normalized =
+    normalizeString(
+      endpoint
+    );
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (
+    normalized.startsWith(
+      "/v2/"
+    )
+  ) {
+    normalized =
+      normalized.slice(
+        "/v2/".length
+      );
+  } else if (
+    normalized.startsWith(
+      "v2/"
+    )
+  ) {
+    normalized =
+      normalized.slice(
+        "v2/".length
+      );
+  } else if (
+    normalized.startsWith(
+      "/"
+    )
+  ) {
+    normalized =
+      normalized.slice(1);
+  }
+
+  return normalized;
+}
+
+function buildProxyEndpoint(
+  endpoint
+) {
+  const normalizedEndpoint =
+    normalizeBackendEndpoint(
+      endpoint
+    );
+
+  if (!normalizedEndpoint) {
+    return "";
+  }
+
+  return (
+    `/api/proxy?endpoint=${encodeURIComponent(
+      normalizedEndpoint
+    )}`
+  );
+}
+
+export function resolveDynamicOptionEndpoint(
+  field = {}
+) {
+  const schemaEndpoint =
+    normalizeString(
+      field?.options?.endpoint
+    );
+
+  if (schemaEndpoint) {
+    return buildProxyEndpoint(
+      schemaEndpoint
+    );
+  }
+
+  const source =
+    normalizeString(
+      field.source
+    );
+
+  if (!source) {
+    return "";
+  }
+
+  return (
+    DYNAMIC_OPTION_ENDPOINTS[
+      source
+    ] ||
+    ""
+  );
+}
+
+function resolveFieldValueKey(
+  field = {}
+) {
+  return normalizeString(
+    field?.options?.value_field ||
+      field.value_field
+  );
+}
+
+function resolveFieldLabelKey(
+  field = {}
+) {
+  return normalizeString(
+    field?.options?.label_field ||
+      field.label_field
+  );
+}
+
+function resolveFieldChannelKey(
+  field = {}
+) {
+  return normalizeString(
+    field?.options?.channel_field ||
+      field.channel_field
+  );
+}
+
+export function resolveFieldSchemaKey(
+  field = {}
+) {
+  return normalizeString(
+    field
+      ?.options
+      ?.field_schema_field ||
+      field.field_schema_field
+  );
+}
+
+function uniqueByValue(
+  options = []
+) {
   const map =
     new Map();
 
@@ -28,44 +165,73 @@ function uniqueByValue(options = []) {
       return;
     }
 
-    if (!map.has(option.value)) {
-      map.set(option.value, option);
+    if (
+      !map.has(
+        option.value
+      )
+    ) {
+      map.set(
+        option.value,
+        option
+      );
     }
   });
 
-  return Array.from(map.values());
+  return Array.from(
+    map.values()
+  );
 }
 
-export function normalizeDynamicOptions(payload) {
-  if (Array.isArray(payload)) {
+export function normalizeDynamicOptions(
+  payload
+) {
+  if (
+    Array.isArray(
+      payload
+    )
+  ) {
     return payload;
   }
 
   const data =
-    normalizeArray(payload?.data);
+    normalizeArray(
+      payload?.data
+    );
 
   if (data.length > 0) {
     return data;
   }
 
   const channels =
-    normalizeArray(payload?.channels);
+    normalizeArray(
+      payload?.channels
+    );
 
-  if (channels.length > 0) {
+  if (
+    channels.length >
+    0
+  ) {
     return channels;
   }
 
   const options =
-    normalizeArray(payload?.options);
+    normalizeArray(
+      payload?.options
+    );
 
-  if (options.length > 0) {
+  if (
+    options.length >
+    0
+  ) {
     return options;
   }
 
   return [];
 }
 
-export function resolveRouteChannelName(route = {}) {
+export function resolveRouteChannelName(
+  route = {}
+) {
   return normalizeUpper(
     route.channelName ||
       route.channel_name ||
@@ -77,9 +243,23 @@ export function resolveRouteChannelName(route = {}) {
   );
 }
 
-export function resolveOptionValue(option = {}, field = {}) {
+export function resolveOptionValue(
+  option = {},
+  field = {}
+) {
+  const valueField =
+    resolveFieldValueKey(
+      field
+    );
+
   return normalizeString(
-    option?.[field.value_field] ||
+    (
+      valueField
+        ? option?.[
+            valueField
+          ]
+        : null
+    ) ||
       option?.value ||
       option?.transactionSubject ||
       option?.transaction_subject ||
@@ -94,9 +274,23 @@ export function resolveOptionValue(option = {}, field = {}) {
   );
 }
 
-export function resolveOptionLabel(option = {}, field = {}) {
+export function resolveOptionLabel(
+  option = {},
+  field = {}
+) {
+  const labelField =
+    resolveFieldLabelKey(
+      field
+    );
+
   return normalizeString(
-    option?.[field.label_field] ||
+    (
+      labelField
+        ? option?.[
+            labelField
+          ]
+        : null
+    ) ||
       option?.label ||
       option?.bankName ||
       option?.bank_name ||
@@ -105,13 +299,30 @@ export function resolveOptionLabel(option = {}, field = {}) {
       option?.channelSubjectName ||
       option?.channel_subject_name ||
       option?.name ||
-      resolveOptionValue(option, field)
+      resolveOptionValue(
+        option,
+        field
+      )
   );
 }
 
-export function resolveOptionChannel(option = {}, field = {}) {
+export function resolveOptionChannel(
+  option = {},
+  field = {}
+) {
+  const channelField =
+    resolveFieldChannelKey(
+      field
+    );
+
   return normalizeUpper(
-    option?.[field.channel_field] ||
+    (
+      channelField
+        ? option?.[
+            channelField
+          ]
+        : null
+    ) ||
       option?.transactionChannel ||
       option?.transaction_channel ||
       option?.channelName ||
@@ -129,26 +340,40 @@ function optionMatchesRouteChannel({
   }
 
   const optionChannel =
-    resolveOptionChannel(option, field);
+    resolveOptionChannel(
+      option,
+      field
+    );
 
   if (!optionChannel) {
     return true;
   }
 
-  if (optionChannel === routeChannel) {
-    return true;
-  }
-
   if (
-    routeChannel.includes("INSTAPAY") &&
-    optionChannel.includes("INSTAPAY")
+    optionChannel ===
+    routeChannel
   ) {
     return true;
   }
 
   if (
-    routeChannel.includes("PESONET") &&
-    optionChannel.includes("PESONET")
+    routeChannel.includes(
+      "INSTAPAY"
+    ) &&
+    optionChannel.includes(
+      "INSTAPAY"
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    routeChannel.includes(
+      "PESONET"
+    ) &&
+    optionChannel.includes(
+      "PESONET"
+    )
   ) {
     return true;
   }
@@ -162,50 +387,75 @@ export function filterFieldOptions({
   selectedRoute = {}
 }) {
   const routeChannel =
-    resolveRouteChannelName(selectedRoute);
+    resolveRouteChannelName(
+      selectedRoute
+    );
 
   const rawOptions =
-    normalizeArray(options);
+    normalizeArray(
+      options
+    );
 
   const availableOptions =
-    rawOptions.filter(option => {
-      const status =
-        option?.status;
+    rawOptions.filter(
+      option => {
+        const status =
+          option?.status;
 
-      if (
-        status !== undefined &&
-        status !== null &&
-        String(status).trim() !== "1"
-      ) {
-        return false;
+        if (
+          status !==
+            undefined &&
+          status !==
+            null &&
+          String(
+            status
+          ).trim() !==
+            "1"
+        ) {
+          return false;
+        }
+
+        return Boolean(
+          resolveOptionValue(
+            option,
+            field
+          )
+        );
       }
-
-      return Boolean(
-        resolveOptionValue(option, field)
-      );
-    });
+    );
 
   const channelFilteredOptions =
-    availableOptions.filter(option =>
-      optionMatchesRouteChannel({
-        option,
-        field,
-        routeChannel
-      })
+    availableOptions.filter(
+      option =>
+        optionMatchesRouteChannel({
+          option,
+          field,
+          routeChannel
+        })
     );
 
   const finalOptions =
-    channelFilteredOptions.length > 0
+    channelFilteredOptions
+      .length >
+    0
       ? channelFilteredOptions
       : availableOptions;
 
   return uniqueByValue(
-    finalOptions.map(option => ({
-      value:
-        resolveOptionValue(option, field),
+    finalOptions.map(
+      option => ({
+        value:
+          resolveOptionValue(
+            option,
+            field
+          ),
 
-      label:
-        resolveOptionLabel(option, field)
-    }))
+        label:
+          resolveOptionLabel(
+            option,
+            field
+          )
+      })
+    )
   );
 }
