@@ -1159,12 +1159,6 @@ export default function App() {
         Pay with wallet
       </h1>
 
-      <p className="connect-eyebrow">
-        {isRepeatFlow
-          ? "Send again"
-          : "Pay with wallet"}
-      </p>
-
       <nav
         className="connect-tabs"
         aria-label="Connect navigation"
