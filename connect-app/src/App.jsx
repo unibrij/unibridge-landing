@@ -56,6 +56,15 @@ import {
   trackConnectEvent
 } from "./analytics/trackConnectEvent";
 
+function normalizeString(
+  value
+) {
+  return String(
+    value ??
+    ""
+  ).trim();
+}
+
 function getSettlementId(
   settlement
 ) {
@@ -90,6 +99,9 @@ export default function App() {
   const routeCreatedTrackedRef =
     useRef(false);
 
+  const repeatInitializedRef =
+    useRef(false);
+
   const [
     installPrompt,
     setInstallPrompt
@@ -119,6 +131,37 @@ export default function App() {
     switchChainAsync
   } = useSwitchChain();
 
+  const searchParams =
+    useMemo(
+      () =>
+        new URLSearchParams(
+          window.location.search
+        ),
+      []
+    );
+
+  const isHistoryPage =
+    searchParams.get(
+      "view"
+    ) ===
+    "history";
+
+  const repeatSourceFromUrl =
+    normalizeString(
+      searchParams.get(
+        "repeat_source_payout_intent_id"
+      )
+    ) ||
+    null;
+
+  const repeatRouteIdFromUrl =
+    normalizeString(
+      searchParams.get(
+        "route_id"
+      )
+    ) ||
+    null;
+
   const storedFlow =
     useMemo(
       () =>
@@ -128,6 +171,25 @@ export default function App() {
 
   const returnedPayoutIntentId =
     readPayoutIntentFromUrl();
+
+  const initialRepeatSourcePayoutIntentId =
+    repeatSourceFromUrl ||
+    storedFlow
+      ?.repeat_source_payout_intent_id ||
+    null;
+
+  const initialSelectedRouteId =
+    repeatRouteIdFromUrl ||
+    storedFlow?.route_id ||
+    ROUTES[0]?.id ||
+    "br_pix";
+
+  const [
+    repeatSourcePayoutIntentId,
+    setRepeatSourcePayoutIntentId
+  ] = useState(
+    initialRepeatSourcePayoutIntentId
+  );
 
   const [
     routes,
@@ -140,9 +202,7 @@ export default function App() {
     selectedRouteId,
     setSelectedRouteId
   ] = useState(
-    storedFlow?.route_id ||
-      ROUTES[0]?.id ||
-      "br_pix"
+    initialSelectedRouteId
   );
 
   const selectedRoute =
@@ -158,31 +218,63 @@ export default function App() {
       ]
     );
 
+  const initialFormRoute =
+    selectedRoute ||
+    ROUTES[0];
+
   const [
     payoutIntentId,
     setPayoutIntentId
   ] = useState(
     returnedPayoutIntentId ||
-      storedFlow?.payout_intent_id ||
+      storedFlow
+        ?.payout_intent_id ||
       null
   );
 
-  const payoutAccess =
-    useMemo(
-      () =>
-        payoutIntentId
-          ? readPayoutAccessToken(
-              payoutIntentId
-            )
-          : null,
-      [
-        payoutIntentId
-      ]
+  /*
+   * Repeat always uses the source payout token.
+   *
+   * This keeps authentication stable before and after
+   * a KYC redirect.
+   *
+   * Normal flows fall back to the returned/current payout.
+   */
+  const [
+    flowAccessToken
+  ] = useState(() => {
+    const accessPayoutIntentId =
+      repeatSourceFromUrl ||
+      storedFlow
+        ?.repeat_source_payout_intent_id ||
+      returnedPayoutIntentId ||
+      storedFlow
+        ?.payout_intent_id ||
+      null;
+
+    if (
+      !accessPayoutIntentId
+    ) {
+      return null;
+    }
+
+    return (
+      readPayoutAccessToken(
+        accessPayoutIntentId
+      )?.token ||
+      null
     );
+  });
 
   const historyAccessToken =
-    payoutAccess?.token ||
-    null;
+    isHistoryPage
+      ? flowAccessToken
+      : null;
+
+  const repeatAccessToken =
+    repeatSourcePayoutIntentId
+      ? flowAccessToken
+      : null;
 
   const [
     settlement,
@@ -220,40 +312,56 @@ export default function App() {
   ] = useState(
     returnedPayoutIntentId
       ? "Loading payout route..."
-      : "Waiting for wallet connection..."
+      : initialRepeatSourcePayoutIntentId
+        ? "Preparing repeat payout..."
+        : "Waiting for wallet connection..."
   );
 
   const [
     form,
     setForm
-  ] = useState(() => ({
-    amount:
-      storedFlow?.form?.amount ||
-      "",
+  ] = useState(() => {
+    if (
+      initialRepeatSourcePayoutIntentId
+    ) {
+      return {
+        ...buildEmptyForm(
+          initialFormRoute
+        ),
 
-    asset:
-      storedFlow?.form?.asset ||
-      selectedRoute.assets[0],
+        amount:
+          ""
+      };
+    }
 
-    beneficiary:
-      storedFlow
-        ?.form
-        ?.beneficiary ||
-      buildEmptyForm(
-        selectedRoute
-      ).beneficiary
-  }));
+    return {
+      amount:
+        storedFlow?.form?.amount ||
+        "",
+
+      asset:
+        storedFlow?.form?.asset ||
+        initialFormRoute.assets[0],
+
+      beneficiary:
+        storedFlow
+          ?.form
+          ?.beneficiary ||
+        buildEmptyForm(
+          initialFormRoute
+        ).beneficiary
+    };
+  });
 
   const isReturnedFlow =
     Boolean(
       returnedPayoutIntentId
     );
 
-  const isHistoryPage =
-    new URLSearchParams(
-      window.location.search
-    ).get("view") ===
-    "history";
+  const isRepeatFlow =
+    Boolean(
+      repeatSourcePayoutIntentId
+    );
 
   useEffect(() => {
     let cancelled =
@@ -278,29 +386,35 @@ export default function App() {
         );
 
         if (
-          !hasRoute(
+          hasRoute(
             normalized,
-            selectedRouteId
+            initialSelectedRouteId
           )
         ) {
-          const nextRoute =
-            normalized[0] ||
-            ROUTES[0];
+          return;
+        }
 
-          setSelectedRouteId(
-            nextRoute.id
+        const nextRoute =
+          normalized[0] ||
+          ROUTES[0];
+
+        setSelectedRouteId(
+          nextRoute.id
+        );
+
+        setRepeatSourcePayoutIntentId(
+          null
+        );
+
+        if (
+          !storedFlow?.form &&
+          !returnedPayoutIntentId
+        ) {
+          setForm(
+            buildEmptyForm(
+              nextRoute
+            )
           );
-
-          if (
-            !storedFlow?.form &&
-            !returnedPayoutIntentId
-          ) {
-            setForm(
-              buildEmptyForm(
-                nextRoute
-              )
-            );
-          }
         }
       }
       catch {
@@ -312,15 +426,84 @@ export default function App() {
       }
     }
 
-    loadRoutes();
+    void loadRoutes();
 
     return () => {
       cancelled =
         true;
     };
   }, [
+    initialSelectedRouteId,
     returnedPayoutIntentId,
     storedFlow
+  ]);
+
+  useEffect(() => {
+    if (
+      repeatInitializedRef.current ||
+      !repeatSourceFromUrl ||
+      !repeatRouteIdFromUrl
+    ) {
+      return;
+    }
+
+    const repeatRoute =
+      getRouteById(
+        repeatRouteIdFromUrl,
+        routes
+      );
+
+    if (!repeatRoute) {
+      return;
+    }
+
+    repeatInitializedRef.current =
+      true;
+
+    setRepeatSourcePayoutIntentId(
+      repeatSourceFromUrl
+    );
+
+    setSelectedRouteId(
+      repeatRoute.id
+    );
+
+    setPayoutIntentId(
+      null
+    );
+
+    setSettlement(
+      null
+    );
+
+    setFundingTxHash(
+      null
+    );
+
+    setPricingPreview(
+      null
+    );
+
+    setPricingPreviewStatus(
+      "idle"
+    );
+
+    setPricingPreviewError(
+      null
+    );
+
+    setForm({
+      ...buildEmptyForm(
+        repeatRoute
+      ),
+
+      amount:
+        ""
+    });
+  }, [
+    repeatRouteIdFromUrl,
+    repeatSourceFromUrl,
+    routes
   ]);
 
   useEffect(() => {
@@ -389,13 +572,17 @@ export default function App() {
 
         metadata: {
           returned_flow:
-            isReturnedFlow
+            isReturnedFlow,
+
+          repeat_flow:
+            isRepeatFlow
         }
       }
     );
   }, [
     form.asset,
     isHistoryPage,
+    isRepeatFlow,
     isReturnedFlow,
     selectedRouteId
   ]);
@@ -488,7 +675,10 @@ export default function App() {
             null,
 
           payout_intent_id:
-            payoutIntentId
+            payoutIntentId,
+
+          repeat_source_payout_intent_id:
+            repeatSourcePayoutIntentId
         }
       }
     );
@@ -497,6 +687,7 @@ export default function App() {
     form.asset,
     isHistoryPage,
     payoutIntentId,
+    repeatSourcePayoutIntentId,
     selectedRouteId,
     settlement
   ]);
@@ -542,10 +733,9 @@ export default function App() {
       false;
 
     const amount =
-      String(
-        form.amount ??
-        ""
-      ).trim();
+      normalizeString(
+        form.amount
+      );
 
     const numericAmount =
       Number(
@@ -555,6 +745,7 @@ export default function App() {
     const canLoadPreview =
       !isHistoryPage &&
       !isReturnedFlow &&
+      !isRepeatFlow &&
       isConnected &&
       Boolean(
         address
@@ -674,6 +865,7 @@ export default function App() {
     form.asset,
     isConnected,
     isHistoryPage,
+    isRepeatFlow,
     isReturnedFlow,
     selectedRoute
   ]);
@@ -687,17 +879,24 @@ export default function App() {
     chainId,
     walletClient,
     switchChainAsync,
+
     connectSessionId,
     selectedRoute,
     form,
     pricingPreview,
+
     payoutIntentId,
     setPayoutIntentId,
     settlement,
     setSettlement,
     setFundingTxHash,
     setIsBusy,
+
     isReturnedFlow,
+
+    repeatSourcePayoutIntentId,
+    repeatAccessToken,
+
     writeDebug
   });
 
@@ -721,7 +920,10 @@ export default function App() {
                 form.amount,
 
               payout_intent_id:
-                payoutIntentId
+                payoutIntentId,
+
+              repeat_source_payout_intent_id:
+                repeatSourcePayoutIntentId
             }
           }
         );
@@ -734,6 +936,7 @@ export default function App() {
         form.asset,
         handleSend,
         payoutIntentId,
+        repeatSourcePayoutIntentId,
         selectedRouteId
       ]
     );
@@ -830,6 +1033,10 @@ export default function App() {
           }
         );
 
+        setRepeatSourcePayoutIntentId(
+          null
+        );
+
         setPayoutIntentId(
           null
         );
@@ -873,13 +1080,16 @@ export default function App() {
             asset:
               current.asset ||
               selectedRoute
+                ?.assets?.[0] ||
+              initialFormRoute
                 .assets[0],
 
             beneficiary:
               current
                 .beneficiary ||
               buildEmptyForm(
-                selectedRoute
+                selectedRoute ||
+                  initialFormRoute
               ).beneficiary
           })
         );
@@ -893,6 +1103,7 @@ export default function App() {
       [
         address,
         form.asset,
+        initialFormRoute,
         resetConnectSession,
         selectedRoute,
         selectedRouteId,
@@ -905,6 +1116,10 @@ export default function App() {
     name,
     value
   ) {
+    if (isRepeatFlow) {
+      return;
+    }
+
     setForm(
       current => ({
         ...current,
@@ -928,6 +1143,23 @@ export default function App() {
         routeId,
         routes
       );
+
+    if (!route) {
+      writeDebug(
+        "Selected payout route is unavailable.",
+        {
+          route_id:
+            routeId ||
+            null
+        }
+      );
+
+      return;
+    }
+
+    setRepeatSourcePayoutIntentId(
+      null
+    );
 
     setSelectedRouteId(
       route.id
@@ -1014,8 +1246,29 @@ export default function App() {
       </h1>
 
       <p className="connect-eyebrow">
-        Pay with wallet
+        {isRepeatFlow
+          ? "Send again"
+          : "Pay with wallet"}
       </p>
+
+      <nav
+        className="connect-view-navigation"
+        aria-label="Connect navigation"
+      >
+        <span
+          className="route-action-link"
+          aria-current="page"
+        >
+          New payout
+        </span>
+
+        <a
+          href="/connect/?view=history"
+          className="route-action-link"
+        >
+          History
+        </a>
+      </nav>
 
       {!isReturnedFlow && (
         <div
@@ -1058,6 +1311,9 @@ export default function App() {
             }
             isReturnedFlow={
               isReturnedFlow
+            }
+            isRepeatFlow={
+              isRepeatFlow
             }
             settlement={
               settlement
