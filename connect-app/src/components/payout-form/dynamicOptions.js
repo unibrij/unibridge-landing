@@ -80,10 +80,52 @@ function buildProxyEndpoint(
     return "";
   }
 
+  const [
+    path,
+    queryString = ""
+  ] =
+    normalizedEndpoint.split(
+      "?"
+    );
+
+  const normalizedPath =
+    normalizeString(
+      path
+    );
+
+  if (!normalizedPath) {
+    return "";
+  }
+
+  const proxyParams =
+    new URLSearchParams();
+
+  proxyParams.set(
+    "endpoint",
+    normalizedPath
+  );
+
+  if (queryString) {
+    const sourceParams =
+      new URLSearchParams(
+        queryString
+      );
+
+    for (
+      const [
+        key,
+        value
+      ] of sourceParams.entries()
+    ) {
+      proxyParams.append(
+        key,
+        value
+      );
+    }
+  }
+
   return (
-    `/api/proxy?endpoint=${encodeURIComponent(
-      normalizedEndpoint
-    )}`
+    `/api/proxy?${proxyParams.toString()}`
   );
 }
 
