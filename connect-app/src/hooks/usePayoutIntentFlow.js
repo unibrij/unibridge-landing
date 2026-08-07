@@ -333,7 +333,6 @@ export function usePayoutIntentFlow({
     const existingIntentId =
       suppliedIntentId ||
       payoutIntentIdRef.current ||
-      payoutIntentId ||
       null;
 
     if (existingIntentId) {
