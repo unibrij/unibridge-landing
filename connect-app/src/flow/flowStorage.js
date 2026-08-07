@@ -3,27 +3,167 @@
 export const FLOW_STORAGE_KEY =
   "unibridge_connect_flow";
 
-export function readStoredFlow() {
+function getLocalStorage() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return null;
+  }
+
   try {
-    return JSON.parse(
-      localStorage.getItem(FLOW_STORAGE_KEY) || "null"
+    return (
+      window.localStorage ||
+      null
     );
-  } catch {
+  }
+  catch {
     return null;
   }
 }
 
-export function storeFlowSnapshot(snapshot) {
-  if (!snapshot || typeof snapshot !== "object") {
+function normalizeString(
+  value
+) {
+  return String(
+    value ??
+    ""
+  ).trim();
+}
+
+function normalizeStoredFlow(
+  value
+) {
+  if (
+    !value ||
+    typeof value !==
+      "object" ||
+    Array.isArray(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    ...value,
+
+    connect_session_id:
+      normalizeString(
+        value.connect_session_id
+      ) ||
+      null,
+
+    payout_intent_id:
+      normalizeString(
+        value.payout_intent_id
+      ) ||
+      null,
+
+    repeat_source_payout_intent_id:
+      normalizeString(
+        value
+          .repeat_source_payout_intent_id
+      ) ||
+      null,
+
+    route_id:
+      normalizeString(
+        value.route_id
+      ) ||
+      null
+  };
+}
+
+export function readStoredFlow() {
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return null;
+  }
+
+  try {
+    const raw =
+      storage.getItem(
+        FLOW_STORAGE_KEY
+      );
+
+    if (!raw) {
+      return null;
+    }
+
+    const parsed =
+      JSON.parse(
+        raw
+      );
+
+    return normalizeStoredFlow(
+      parsed
+    );
+  }
+  catch {
+    return null;
+  }
+}
+
+export function storeFlowSnapshot(
+  snapshot
+) {
+  if (
+    !snapshot ||
+    typeof snapshot !==
+      "object" ||
+    Array.isArray(
+      snapshot
+    )
+  ) {
     return;
   }
 
-  localStorage.setItem(
-    FLOW_STORAGE_KEY,
-    JSON.stringify(snapshot)
-  );
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  const normalizedSnapshot =
+    normalizeStoredFlow(
+      snapshot
+    );
+
+  if (!normalizedSnapshot) {
+    return;
+  }
+
+  try {
+    storage.setItem(
+      FLOW_STORAGE_KEY,
+      JSON.stringify(
+        normalizedSnapshot
+      )
+    );
+  }
+  catch {
+    // Storage may be unavailable, blocked, or full.
+  }
 }
 
 export function clearStoredFlow() {
-  localStorage.removeItem(FLOW_STORAGE_KEY);
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  try {
+    storage.removeItem(
+      FLOW_STORAGE_KEY
+    );
+  }
+  catch {
+    // Storage may be unavailable or blocked.
+  }
 }
