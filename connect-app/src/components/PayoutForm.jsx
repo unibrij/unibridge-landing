@@ -12,9 +12,9 @@ import RouteInfo from "./payout-form/RouteInfo.jsx";
 import PricingPreview from "./PricingPreview.jsx";
 
 import {
-  DYNAMIC_OPTION_ENDPOINTS,
   filterFieldOptions,
-  normalizeDynamicOptions
+  normalizeDynamicOptions,
+  resolveDynamicOptionEndpoint
 } from "./payout-form/dynamicOptions.js";
 
 import {
@@ -148,22 +148,18 @@ export default function PayoutForm({
       ]
     );
 
-  const dynamicSources =
+  const dynamicEndpoints =
     useMemo(
       () =>
         Array.from(
           new Set(
             beneficiaryFields
-              .map(
-                field =>
-                  field?.source
+              .map(field =>
+                resolveDynamicOptionEndpoint(
+                  field
+                )
               )
-              .filter(
-                source =>
-                  DYNAMIC_OPTION_ENDPOINTS[
-                    source
-                  ]
-              )
+              .filter(Boolean)
           )
         ),
       [
@@ -173,7 +169,7 @@ export default function PayoutForm({
 
   useEffect(() => {
     if (
-      dynamicSources.length ===
+      dynamicEndpoints.length ===
       0
     ) {
       return;
@@ -183,30 +179,25 @@ export default function PayoutForm({
       false;
 
     async function loadDynamicSources() {
-      const missingSources =
-        dynamicSources.filter(
-          source =>
+      const missingEndpoints =
+        dynamicEndpoints.filter(
+          endpoint =>
             !hasOwn(
               dynamicOptionSources,
-              source
+              endpoint
             )
         );
 
       if (
-        missingSources.length ===
+        missingEndpoints.length ===
         0
       ) {
         return;
       }
 
       await Promise.all(
-        missingSources.map(
-          async source => {
-            const endpoint =
-              DYNAMIC_OPTION_ENDPOINTS[
-                source
-              ];
-
+        missingEndpoints.map(
+          async endpoint => {
             try {
               const response =
                 await fetch(
@@ -217,7 +208,7 @@ export default function PayoutForm({
                 !response.ok
               ) {
                 throw new Error(
-                  `options_${source}_failed`
+                  `dynamic_options_failed:${response.status}`
                 );
               }
 
@@ -239,14 +230,14 @@ export default function PayoutForm({
                 current => ({
                   ...current,
 
-                  [source]:
+                  [endpoint]:
                     options
                 })
               );
             } catch (err) {
               console.warn(
                 "CONNECT_DYNAMIC_OPTIONS_FAILED",
-                source,
+                endpoint,
                 err?.message ||
                   String(
                     err
@@ -263,7 +254,7 @@ export default function PayoutForm({
                 current => ({
                   ...current,
 
-                  [source]:
+                  [endpoint]:
                     []
                 })
               );
@@ -280,7 +271,7 @@ export default function PayoutForm({
         true;
     };
   }, [
-    dynamicSources,
+    dynamicEndpoints,
     dynamicOptionSources
   ]);
 
@@ -447,10 +438,15 @@ export default function PayoutForm({
           const fieldName =
             field.name;
 
+          const dynamicEndpoint =
+            resolveDynamicOptionEndpoint(
+              field
+            );
+
           if (
             field.type ===
               "select" &&
-            field.source
+            dynamicEndpoint
           ) {
             const options =
               filterFieldOptions({
@@ -458,8 +454,7 @@ export default function PayoutForm({
 
                 options:
                   dynamicOptionSources[
-                    field
-                      .source
+                    dynamicEndpoint
                   ],
 
                 selectedRoute
