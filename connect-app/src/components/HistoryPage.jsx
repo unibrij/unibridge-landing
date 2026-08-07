@@ -204,6 +204,71 @@ function formatDate(
   }
 }
 
+function formatRelativeDate(
+  value
+) {
+  const date =
+    resolveDate(
+      value
+    );
+
+  if (!date) {
+    return "—";
+  }
+
+  const now =
+    new Date();
+
+  const diffMs =
+    now.getTime() -
+    date.getTime();
+
+  const dayMs =
+    24 *
+    60 *
+    60 *
+    1000;
+
+  const days =
+    Math.max(
+      0,
+      Math.floor(
+        diffMs /
+        dayMs
+      )
+    );
+
+  if (days === 0) {
+    return "Today";
+  }
+
+  if (days === 1) {
+    return "Yesterday";
+  }
+
+  if (days < 7) {
+    return `${days} days ago`;
+  }
+
+  const weeks =
+    Math.floor(
+      days /
+      7
+    );
+
+  if (weeks === 1) {
+    return "1 week ago";
+  }
+
+  if (weeks < 5) {
+    return `${weeks} weeks ago`;
+  }
+
+  return formatDate(
+    date
+  );
+}
+
 function getRecipientLabel(
   item
 ) {
@@ -249,9 +314,56 @@ function buildRecipientSummary(
       item
     )
   ]
-    .filter(Boolean)
-    .join(" · ") ||
+    .filter(
+      Boolean
+    )
+    .join(
+      " · "
+    ) ||
     "Saved payout recipient";
+}
+
+function getRecipientInitials(
+  item
+) {
+  const label =
+    getRecipientLabel(
+      item
+    );
+
+  const words =
+    label
+      .split(
+        /\s+/
+      )
+      .filter(
+        Boolean
+      );
+
+  if (
+    words.length === 0
+  ) {
+    return "UB";
+  }
+
+  if (
+    words.length === 1
+  ) {
+    return words[0]
+      .slice(
+        0,
+        2
+      )
+      .toUpperCase();
+  }
+
+  return (
+    words[0][0] +
+    words[
+      words.length -
+      1
+    ][0]
+  ).toUpperCase();
 }
 
 function buildRepeatUrl(
@@ -316,6 +428,7 @@ function triggerBlobDownload({
   );
 
   link.click();
+
   link.remove();
 
   globalThis.setTimeout(
@@ -325,6 +438,21 @@ function triggerBlobDownload({
       );
     },
     0
+  );
+}
+
+function RecipientAvatar({
+  item
+}) {
+  return (
+    <div
+      className="history-recipient-avatar"
+      aria-hidden="true"
+    >
+      {getRecipientInitials(
+        item
+      )}
+    </div>
   );
 }
 
@@ -410,13 +538,23 @@ export default function HistoryPage({
         }
 
         setRecentRecipients(
-          result
-            .recent_recipients
+          Array.isArray(
+            result
+              ?.recent_recipients
+          )
+            ? result
+                .recent_recipients
+            : []
         );
 
         setRecentPayouts(
-          result
-            .recent_payouts
+          Array.isArray(
+            result
+              ?.recent_payouts
+          )
+            ? result
+                .recent_payouts
+            : []
         );
 
         setHistoryStatus(
@@ -546,9 +684,9 @@ export default function HistoryPage({
     <main className="connect-shell history-shell">
       <header className="connect-brandbar">
         <a
-          href="/connect"
+          href="/connect/"
           className="connect-brandbar-logo-link"
-          aria-label="Pay with UniBridge"
+          aria-label="UniBridge"
         >
           <img
             src="/public/icons/social/unibridge-orbit-lockup-white.png"
@@ -556,84 +694,94 @@ export default function HistoryPage({
             alt="UniBridge"
           />
         </a>
-
-        <a
-          href="/"
-          className="connect-domain-pill"
-          aria-label="UniBridge website"
-        >
-          Unibrij.io
-        </a>
       </header>
 
       <h1 className="sr-only">
         Payout history
       </h1>
 
-      <p className="connect-eyebrow">
-        History
-      </p>
-
       <nav
-        className="connect-view-navigation"
+        className="connect-tabs"
         aria-label="Connect navigation"
       >
         <a
           href="/connect/"
-          className="route-action-link"
+          className="connect-tab"
         >
           New payout
         </a>
 
         <span
-          className="route-action-link"
+          className="connect-tab is-active"
           aria-current="page"
         >
           History
         </span>
       </nav>
 
-      <section className="payout-form">
+      <section className="history-content">
         {historyStatus ===
         "unavailable" ? (
-          <p className="history-empty">
-            History unavailable for this session.
-          </p>
+          <div className="history-state-card">
+            <strong>
+              History unavailable
+            </strong>
+
+            <span>
+              This session does not have access to payout history.
+            </span>
+          </div>
         ) : null}
 
         {historyStatus ===
         "loading" ? (
-          <p className="history-empty">
-            Loading history...
-          </p>
+          <div className="history-state-card">
+            <span>
+              Loading history...
+            </span>
+          </div>
         ) : null}
 
         {historyStatus ===
         "error" ? (
-          <p
-            className="history-empty"
+          <div
+            className="history-state-card"
             role="alert"
           >
-            {historyError ||
-              "History could not be loaded."}
-          </p>
+            <strong>
+              Could not load history
+            </strong>
+
+            <span>
+              {historyError ||
+                "History could not be loaded."}
+            </span>
+          </div>
         ) : null}
 
         {receiptError ? (
-          <p
-            className="history-empty"
+          <div
+            className="history-state-card"
             role="alert"
           >
-            {receiptError}
-          </p>
+            <span>
+              {receiptError}
+            </span>
+          </div>
         ) : null}
 
         {historyStatus ===
           "ready" &&
         !hasHistory ? (
-          <p className="history-empty">
-            No completed payouts yet.
-          </p>
+          <div className="history-state-card">
+            <strong>
+              No payouts yet
+            </strong>
+
+            <span>
+              Completed payouts will appear here.
+            </span>
+          </div>
         ) : null}
 
         {historyStatus ===
@@ -644,14 +792,16 @@ export default function HistoryPage({
             className="history-section"
             aria-labelledby="recent-recipients-heading"
           >
-            <h2
-              id="recent-recipients-heading"
-              className="history-section-title"
-            >
-              Recent recipients
-            </h2>
+            <div className="history-section-header">
+              <h2
+                id="recent-recipients-heading"
+                className="history-section-title"
+              >
+                Recent recipients
+              </h2>
+            </div>
 
-            <div className="history-list">
+            <div className="history-recipient-list">
               {recentRecipients.map(
                 (
                   recipient,
@@ -664,48 +814,41 @@ export default function HistoryPage({
 
                   return (
                     <article
-                      className="history-card"
+                      className="history-recipient-card"
                       key={
                         recipient
                           ?.repeat_source_payout_intent_id ||
                         `${recipient?.route_id || "recipient"}-${index}`
                       }
                     >
-                      <div className="history-row">
-                        <span>
-                          Recipient
-                        </span>
-
-                        <strong>
-                          {getRecipientLabel(
+                      <div className="history-recipient-main">
+                        <RecipientAvatar
+                          item={
                             recipient
-                          )}
-                        </strong>
-                      </div>
+                          }
+                        />
 
-                      <div className="history-row">
-                        <span>
-                          Destination
-                        </span>
+                        <div className="history-recipient-copy">
+                          <strong className="history-recipient-name">
+                            {getRecipientLabel(
+                              recipient
+                            )}
+                          </strong>
 
-                        <strong>
-                          {buildRecipientSummary(
-                            recipient
-                          )}
-                        </strong>
-                      </div>
+                          <span className="history-recipient-destination">
+                            {buildRecipientSummary(
+                              recipient
+                            )}
+                          </span>
 
-                      <div className="history-row">
-                        <span>
-                          Last paid
-                        </span>
-
-                        <strong>
-                          {formatDate(
-                            recipient
-                              ?.last_paid_at
-                          )}
-                        </strong>
+                          <span className="history-recipient-last-paid">
+                            Last paid{" "}
+                            {formatRelativeDate(
+                              recipient
+                                ?.last_paid_at
+                            )}
+                          </span>
+                        </div>
                       </div>
 
                       {repeatUrl ? (
@@ -713,7 +856,7 @@ export default function HistoryPage({
                           href={
                             repeatUrl
                           }
-                          className="route-action-link history-repeat-link"
+                          className="history-secondary-button"
                         >
                           Send again
                         </a>
@@ -731,17 +874,19 @@ export default function HistoryPage({
         recentPayouts.length >
           0 ? (
           <section
-            className="history-section"
+            className="history-section history-payouts-section"
             aria-labelledby="recent-payouts-heading"
           >
-            <h2
-              id="recent-payouts-heading"
-              className="history-section-title"
-            >
-              Recent payouts
-            </h2>
+            <div className="history-section-header">
+              <h2
+                id="recent-payouts-heading"
+                className="history-section-title"
+              >
+                Recent payouts
+              </h2>
+            </div>
 
-            <div className="history-list">
+            <div className="history-payout-list">
               {recentPayouts.map(
                 (
                   payout,
@@ -792,7 +937,7 @@ export default function HistoryPage({
 
                   return (
                     <article
-                      className="history-card"
+                      className="history-payout-card"
                       key={
                         payoutIntentId ||
                         payout
@@ -801,75 +946,66 @@ export default function HistoryPage({
                         index
                       }
                     >
-                      <div className="history-row">
-                        <span>
-                          Recipient
-                        </span>
+                      <div className="history-payout-header">
+                        <div className="history-recipient-main">
+                          <RecipientAvatar
+                            item={
+                              payout
+                            }
+                          />
 
-                        <strong>
-                          {getRecipientLabel(
-                            payout
-                          )}
-                        </strong>
+                          <div className="history-recipient-copy">
+                            <strong className="history-recipient-name">
+                              {getRecipientLabel(
+                                payout
+                              )}
+                            </strong>
+
+                            <span className="history-recipient-destination">
+                              {buildRecipientSummary(
+                                payout
+                              )}
+                            </span>
+
+                            <span className="history-payout-date">
+                              {formatDate(
+                                payout
+                                  ?.created_at
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="history-payout-summary">
+                          <strong className="history-payout-amount">
+                            {formatAmount(
+                              payout
+                            )}
+                          </strong>
+
+                          <span
+                            className={
+                              `history-status-pill history-status-${normalizeStatus(
+                                payout
+                                  ?.status
+                              ) || "unknown"}`
+                            }
+                          >
+                            {formatStatus(
+                              payout
+                                ?.status
+                            )}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="history-row">
-                        <span>
-                          Destination
-                        </span>
-
-                        <strong>
-                          {buildRecipientSummary(
-                            payout
-                          )}
-                        </strong>
-                      </div>
-
-                      <div className="history-row">
-                        <span>
-                          Amount
-                        </span>
-
-                        <strong>
-                          {formatAmount(
-                            payout
-                          )}
-                        </strong>
-                      </div>
-
-                      <div className="history-row">
-                        <span>
-                          Status
-                        </span>
-
-                        <strong className="history-status-success">
-                          {formatStatus(
-                            payout
-                              ?.status
-                          )}
-                        </strong>
-                      </div>
-
-                      <div className="history-row">
-                        <span>
-                          Date
-                        </span>
-
-                        <strong>
-                          {formatDate(
-                            payout
-                              ?.created_at
-                          )}
-                        </strong>
-                      </div>
-
-                      <div className="history-card-actions">
+                      <div className="history-payout-actions">
                         {repeatUrl ? (
                           <a
                             href={
                               repeatUrl
                             }
-                            className="route-action-link history-repeat-link"
+                            className="history-secondary-button"
                           >
                             Send again
                           </a>
@@ -878,7 +1014,7 @@ export default function HistoryPage({
                         {canDownloadReceipt ? (
                           <button
                             type="button"
-                            className="route-action-link history-receipt-link"
+                            className="history-secondary-button"
                             disabled={
                               isDownloading
                             }
@@ -905,14 +1041,29 @@ export default function HistoryPage({
             </div>
           </section>
         ) : null}
-
-        <a
-          href="/connect/"
-          className="route-action-link history-back-link"
-        >
-          Back to payout
-        </a>
       </section>
+
+      <footer className="connect-history-footer">
+        <span>
+          🔒 Secure
+        </span>
+
+        <span>
+          ·
+        </span>
+
+        <span>
+          Fast
+        </span>
+
+        <span>
+          ·
+        </span>
+
+        <span>
+          Reliable
+        </span>
+      </footer>
     </main>
   );
 }
