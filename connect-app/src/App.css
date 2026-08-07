@@ -1632,7 +1632,7 @@ p {
     left: auto;
     right: auto;
     width: min(100%, 392px);
-    justify-content: space-between;
+    justify-content: center;
     margin: 0 0 4px;
     pointer-events: none;
   }
