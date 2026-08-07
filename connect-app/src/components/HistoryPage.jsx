@@ -1042,28 +1042,6 @@ export default function HistoryPage({
           </section>
         ) : null}
       </section>
-
-      <footer className="connect-history-footer">
-        <span>
-          🔒 Secure
-        </span>
-
-        <span>
-          ·
-        </span>
-
-        <span>
-          Fast
-        </span>
-
-        <span>
-          ·
-        </span>
-
-        <span>
-          Reliable
-        </span>
-      </footer>
     </main>
   );
 }
