@@ -27,6 +27,8 @@ export function openPayoutKyc({
 
   isFlowCurrent,
 
+  kycCompletionPendingRef,
+
   setIsBusy,
 
   continueAfterKyc,
@@ -147,6 +149,22 @@ export function openPayoutKyc({
           return;
         }
 
+        /*
+         * SDK completion replaces the callback-navigation
+         * boundary used by the old redirect flow.
+         *
+         * Keep this flag set until post-KYC continuation
+         * succeeds. If the immediate continuation fails,
+         * the next Continue must resume after KYC instead
+         * of opening another verification session.
+         */
+        if (
+          kycCompletionPendingRef
+        ) {
+          kycCompletionPendingRef.current =
+            true;
+        }
+
         writeDebug(
           "Verification completed.",
           {
@@ -168,14 +186,9 @@ export function openPayoutKyc({
         );
 
         /*
-         * The SDK completion event can arrive before
-         * Didit's webhook/decision update has propagated
-         * to the backend.
-         *
-         * The old redirect flow naturally introduced
-         * a short delay while navigating back to the app.
-         * Keep that timing boundary here without coupling
-         * KYC polling to the payout lifecycle.
+         * Preserve the small timing boundary that the
+         * old redirect/navigation flow naturally had
+         * before post-KYC continuation.
          */
         await wait(
           DIDIT_BACKEND_PROPAGATION_DELAY_MS
@@ -194,6 +207,19 @@ export function openPayoutKyc({
             null,
             flowGeneration
           );
+
+          /*
+           * Post-KYC continuation succeeded.
+           *
+           * The SDK flow no longer needs to emulate
+           * the old returned-flow state.
+           */
+          if (
+            kycCompletionPendingRef
+          ) {
+            kycCompletionPendingRef.current =
+              false;
+          }
         }
         catch (err) {
           if (
@@ -204,6 +230,13 @@ export function openPayoutKyc({
             return;
           }
 
+          /*
+           * Intentionally keep
+           * kycCompletionPendingRef.current === true.
+           *
+           * The next Continue will retry the post-KYC
+           * path instead of calling startKyc() again.
+           */
           setIsBusy(
             false
           );
