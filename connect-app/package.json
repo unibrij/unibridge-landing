@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@didit-protocol/sdk-web": "latest",
     "@reown/appkit": "latest",
     "@reown/appkit-adapter-wagmi": "latest",
     "@tanstack/react-query": "latest",
