@@ -71,6 +71,12 @@ function normalizeStoredFlow(
       normalizeString(
         value.route_id
       ) ||
+      null,
+
+    transfer_fingerprint:
+      normalizeString(
+        value.transfer_fingerprint
+      ) ||
       null
   };
 }
@@ -147,6 +153,56 @@ export function storeFlowSnapshot(
   }
   catch {
     // Storage may be unavailable, blocked, or full.
+  }
+}
+
+export function clearStoredPayoutIntent() {
+  const storage =
+    getLocalStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  try {
+    const raw =
+      storage.getItem(
+        FLOW_STORAGE_KEY
+      );
+
+    if (!raw) {
+      return;
+    }
+
+    const parsed =
+      JSON.parse(
+        raw
+      );
+
+    const normalizedFlow =
+      normalizeStoredFlow(
+        parsed
+      );
+
+    if (!normalizedFlow) {
+      return;
+    }
+
+    storage.setItem(
+      FLOW_STORAGE_KEY,
+      JSON.stringify({
+        ...normalizedFlow,
+
+        payout_intent_id:
+          null,
+
+        transfer_fingerprint:
+          null
+      })
+    );
+  }
+  catch {
+    // Storage may be unavailable, blocked, or contain invalid data.
   }
 }
 
