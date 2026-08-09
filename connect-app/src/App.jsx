@@ -20,27 +20,17 @@ import {
 
 import {
   ROUTES,
-  getRouteById,
-  normalizeBackendRoutes
+  getRouteById
 } from "./routes";
-
-import {
-  getConnectRoutes,
-  getPayoutIntent,
-  previewConnectRoute
-} from "./api";
 
 import {
   readStoredFlow,
   storeFlowSnapshot,
-  clearStoredPayoutIntent,
   clearStoredFlow
 } from "./flow/flowStorage";
 
 import {
-  PAYOUT_ATTEMPT_STATE,
-  resolvePayoutAttemptState,
-  resolveSettlementCreationStatus
+  PAYOUT_ATTEMPT_STATE
 } from "./flow/payoutAttempt";
 
 import {
@@ -53,131 +43,59 @@ import {
   buildEmptyForm
 } from "./flow/routes";
 
-import useConnectSession from "./hooks/useConnectSession";
-import useReturnedPayoutIntent from "./hooks/useReturnedPayoutIntent";
-import useRouteFlow from "./hooks/useRouteFlow";
-
-import PayoutForm from "./components/PayoutForm";
-import HistoryPage from "./components/HistoryPage";
-import PayoutReviewManager from "./components/PayoutReviewManager";
-
 import {
-  trackConnectEvent
-} from "./analytics/trackConnectEvent";
+  readConnectUrlState,
+  removeQueryParams
+} from "./flow/urlState";
 
-function normalizeString(
-  value
-) {
-  return String(
-    value ??
-    ""
-  ).trim();
-}
+import useConnectSession
+  from "./hooks/useConnectSession";
 
-function hasRoute(
-  routes = [],
-  routeId
-) {
-  return routes.some(
-    route =>
-      route.id === routeId ||
-      route.route_id === routeId
-  );
-}
+import useReturnedPayoutIntent
+  from "./hooks/useReturnedPayoutIntent";
 
-function removeQueryParams(
-  names = []
-) {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
-    return;
-  }
+import useRouteFlow
+  from "./hooks/useRouteFlow";
 
-  try {
-    const url =
-      new URL(
-        window.location.href
-      );
+import useConnectRoutes
+  from "./hooks/useConnectRoutes";
 
-    let changed =
-      false;
+import usePayoutAttemptLifecycle
+  from "./hooks/usePayoutAttemptLifecycle";
 
-    for (
-      const name
-      of names
-    ) {
-      if (
-        !url.searchParams.has(
-          name
-        )
-      ) {
-        continue;
-      }
+import useConnectPricingPreview
+  from "./hooks/useConnectPricingPreview";
 
-      url.searchParams.delete(
-        name
-      );
+import useConnectAnalytics
+  from "./hooks/useConnectAnalytics";
 
-      changed =
-        true;
-    }
+import usePwaInstall
+  from "./hooks/usePwaInstall";
 
-    if (!changed) {
-      return;
-    }
+import PayoutForm
+  from "./components/PayoutForm";
 
-    const nextUrl =
-      `${url.pathname}${url.search}${url.hash}`;
+import HistoryPage
+  from "./components/HistoryPage";
 
-    window.history.replaceState(
-      window.history.state,
-      "",
-      nextUrl
-    );
-  }
-  catch {
-    // URL cleanup is non-critical.
-  }
-}
+import PayoutReviewManager
+  from "./components/PayoutReviewManager";
 
 export default function App() {
   useAppKit();
 
-  const pageViewTrackedRef =
-    useRef(false);
-
-  const walletConnectedTrackedRef =
-    useRef(false);
-
-  const routeCreatedTrackedRef =
-    useRef(false);
-
-  const repeatInitializedRef =
-    useRef(false);
-
   /*
-   * Tracks the currently active payout intent
-   * independently from async lifecycle reads.
+   * Mutable identity of the payout attempt currently
+   * owned by this frontend flow.
+   *
+   * Async lifecycle reads use this to reject stale
+   * responses after the active intent changes.
    */
   const payoutIntentIdStateRef =
     useRef(null);
 
-  const [
-    installPrompt,
-    setInstallPrompt
-  ] = useState(null);
-
-  const [
-    canInstallPwa,
-    setCanInstallPwa
-  ] = useState(false);
-
-  const [
-    isStandalonePwa,
-    setIsStandalonePwa
-  ] = useState(false);
+  const repeatInitializedRef =
+    useRef(false);
 
   const {
     address,
@@ -193,36 +111,26 @@ export default function App() {
     switchChainAsync
   } = useSwitchChain();
 
-  const searchParams =
+  /*
+   * URL state is read once for this mounted Connect
+   * session.
+   */
+  const urlState =
     useMemo(
       () =>
-        new URLSearchParams(
-          window.location.search
-        ),
+        readConnectUrlState(),
       []
     );
 
-  const isHistoryPage =
-    searchParams.get(
-      "view"
-    ) ===
-    "history";
+  const {
+    isHistoryPage,
 
-  const repeatSourceFromUrl =
-    normalizeString(
-      searchParams.get(
-        "repeat_source_payout_intent_id"
-      )
-    ) ||
-    null;
+    repeatSourcePayoutIntentId:
+      repeatSourceFromUrl,
 
-  const repeatRouteIdFromUrl =
-    normalizeString(
-      searchParams.get(
-        "route_id"
-      )
-    ) ||
-    null;
+    repeatRouteId:
+      repeatRouteIdFromUrl
+  } = urlState;
 
   const storedFlow =
     useMemo(
@@ -233,16 +141,6 @@ export default function App() {
 
   const returnedPayoutIntentId =
     readPayoutIntentFromUrl();
-
-  const [
-    returnedFlowDismissed,
-    setReturnedFlowDismissed
-  ] = useState(false);
-
-  const effectiveReturnedPayoutIntentId =
-    returnedFlowDismissed
-      ? null
-      : returnedPayoutIntentId;
 
   const initialRepeatSourcePayoutIntentId =
     repeatSourceFromUrl ||
@@ -256,42 +154,19 @@ export default function App() {
     ROUTES[0]?.id ||
     "br_pix";
 
-  const [
-    repeatSourcePayoutIntentId,
-    setRepeatSourcePayoutIntentId
-  ] = useState(
-    initialRepeatSourcePayoutIntentId
-  );
-
-  const [
-    routes,
-    setRoutes
-  ] = useState(
-    ROUTES
-  );
-
-  const [
-    selectedRouteId,
-    setSelectedRouteId
-  ] = useState(
-    initialSelectedRouteId
-  );
-
-  const selectedRoute =
-    useMemo(
-      () =>
-        getRouteById(
-          selectedRouteId,
-          routes
-        ),
-      [
-        routes,
-        selectedRouteId
-      ]
-    );
-
+  /*
+   * Initial form construction must not depend on
+   * remote route discovery.
+   *
+   * The bundled route catalog is sufficient for the
+   * first render; useConnectRoutes replaces it with
+   * Core routes when discovery succeeds.
+   */
   const initialFormRoute =
-    selectedRoute ||
+    getRouteById(
+      initialSelectedRouteId,
+      ROUTES
+    ) ||
     ROUTES[0];
 
   const initialPayoutIntentId =
@@ -299,6 +174,18 @@ export default function App() {
     storedFlow
       ?.payout_intent_id ||
     null;
+
+  const [
+    returnedFlowDismissed,
+    setReturnedFlowDismissed
+  ] = useState(false);
+
+  const [
+    repeatSourcePayoutIntentId,
+    setRepeatSourcePayoutIntentId
+  ] = useState(
+    initialRepeatSourcePayoutIntentId
+  );
 
   const [
     payoutIntentId,
@@ -311,29 +198,74 @@ export default function App() {
     payoutIntentId ||
     null;
 
-  /*
-   * Existing attempts begin conservatively locked
-   * until Core confirms their lifecycle.
-   */
   const [
-    payoutAttemptState,
-    setPayoutAttemptState
+    settlement,
+    setSettlement
+  ] = useState(null);
+
+  const [
+    fundingTxHash,
+    setFundingTxHash
+  ] = useState(null);
+
+  const [
+    isBusy,
+    setIsBusy
+  ] = useState(false);
+
+  const [
+    debug,
+    setDebug
   ] = useState(
-    initialPayoutIntentId
-      ? PAYOUT_ATTEMPT_STATE
-          .LOCKED_RECOVERY
-      : PAYOUT_ATTEMPT_STATE
-          .EDITABLE
+    returnedPayoutIntentId
+      ? "Loading payout route..."
+      : initialRepeatSourcePayoutIntentId
+        ? "Preparing repeat payout..."
+        : "Waiting for wallet connection..."
   );
 
-  /*
-   * Explicit lifecycle refresh trigger after
-   * user-driven payout actions.
-   */
   const [
-    attemptRefreshNonce,
-    setAttemptRefreshNonce
-  ] = useState(0);
+    form,
+    setForm
+  ] = useState(() => {
+    if (
+      initialRepeatSourcePayoutIntentId
+    ) {
+      return {
+        ...buildEmptyForm(
+          initialFormRoute
+        ),
+
+        amount:
+          ""
+      };
+    }
+
+    return {
+      amount:
+        storedFlow
+          ?.form
+          ?.amount ||
+        "",
+
+      asset:
+        storedFlow
+          ?.form
+          ?.asset ||
+        initialFormRoute
+          ?.assets
+          ?.[0] ||
+        "USDT",
+
+      beneficiary:
+        storedFlow
+          ?.form
+          ?.beneficiary ||
+        buildEmptyForm(
+          initialFormRoute
+        ).beneficiary
+    };
+  });
 
   /*
    * Current / repeat flow access token.
@@ -395,99 +327,11 @@ export default function App() {
       ? flowAccessToken
       : null;
 
-  const [
-    settlement,
-    setSettlement
-  ] = useState(null);
-
-  const [
-    fundingTxHash,
-    setFundingTxHash
-  ] = useState(null);
-
-  const [
-    isBusy,
-    setIsBusy
-  ] = useState(false);
-
-  /*
-   * Local in-flight work locks immediately.
-   *
-   * Once the request settles, Core lifecycle is the
-   * authoritative source for whether the transfer
-   * remains locked.
-   */
-  const isTransferLocked =
-    isBusy ||
-    payoutAttemptState !==
-      PAYOUT_ATTEMPT_STATE
-        .EDITABLE;
-
-  const [
-    pricingPreview,
-    setPricingPreview
-  ] = useState(null);
-
-  const [
-    pricingPreviewStatus,
-    setPricingPreviewStatus
-  ] = useState("idle");
-
-  const [
-    pricingPreviewError,
-    setPricingPreviewError
-  ] = useState(null);
-
-  const [
-    debug,
-    setDebug
-  ] = useState(
-    returnedPayoutIntentId
-      ? "Loading payout route..."
-      : initialRepeatSourcePayoutIntentId
-        ? "Preparing repeat payout..."
-        : "Waiting for wallet connection..."
-  );
-
-  const [
-    form,
-    setForm
-  ] = useState(() => {
-    if (
-      initialRepeatSourcePayoutIntentId
-    ) {
-      return {
-        ...buildEmptyForm(
-          initialFormRoute
-        ),
-
-        amount:
-          ""
-      };
-    }
-
-    return {
-      amount:
-        storedFlow?.form?.amount ||
-        "",
-
-      asset:
-        storedFlow?.form?.asset ||
-        initialFormRoute.assets[0],
-
-      beneficiary:
-        storedFlow
-          ?.form
-          ?.beneficiary ||
-        buildEmptyForm(
-          initialFormRoute
-        ).beneficiary
-    };
-  });
-
   const isReturnedFlow =
     Boolean(
-      effectiveReturnedPayoutIntentId
+      returnedFlowDismissed
+        ? null
+        : returnedPayoutIntentId
     );
 
   const isRepeatFlow =
@@ -495,45 +339,34 @@ export default function App() {
       repeatSourcePayoutIntentId
     );
 
-  useEffect(() => {
-    let cancelled =
-      false;
-
-    async function loadRoutes() {
-      try {
-        const backendRoutes =
-          await getConnectRoutes();
-
-        if (cancelled) {
-          return;
-        }
-
-        const normalized =
-          normalizeBackendRoutes(
-            backendRoutes
-          );
-
-        setRoutes(
-          normalized
+  const writeDebug =
+    useCallback(
+      (
+        label,
+        value = {}
+      ) => {
+        setDebug(
+          `${label}\n${JSON.stringify(
+            value,
+            null,
+            2
+          )}`
         );
+      },
+      []
+    );
 
-        if (
-          hasRoute(
-            normalized,
-            initialSelectedRouteId
-          )
-        ) {
-          return;
-        }
-
-        const nextRoute =
-          normalized[0] ||
-          ROUTES[0];
-
-        setSelectedRouteId(
-          nextRoute.id
-        );
-
+  /*
+   * Core route discovery owns only the route catalog
+   * and selected route.
+   *
+   * If Core successfully proves that the initially
+   * requested route disappeared, App owns the
+   * cross-subsystem consequences.
+   */
+  const handleInitialRouteFallback =
+    useCallback(
+      fallbackRoute => {
         setRepeatSourcePayoutIntentId(
           null
         );
@@ -544,32 +377,71 @@ export default function App() {
         ) {
           setForm(
             buildEmptyForm(
-              nextRoute
+              fallbackRoute
             )
           );
         }
-      }
-      catch {
-        if (!cancelled) {
-          setRoutes(
-            ROUTES
-          );
-        }
-      }
-    }
+      },
+      [
+        returnedPayoutIntentId,
+        storedFlow
+      ]
+    );
 
-    void loadRoutes();
-
-    return () => {
-      cancelled =
-        true;
-    };
-  }, [
+  const {
+    routes,
+    selectedRouteId,
+    setSelectedRouteId,
+    selectedRoute
+  } = useConnectRoutes({
     initialSelectedRouteId,
-    returnedPayoutIntentId,
-    storedFlow
-  ]);
 
+    onInitialRouteFallback:
+      handleInitialRouteFallback
+  });
+
+  /*
+   * Payout lifecycle ownership.
+   *
+   * Core is authoritative for whether a payout is
+   * editable, resumable or requires recovery.
+   */
+  const {
+    payoutAttemptState,
+    settlementCreationStatus,
+
+    refreshPayoutAttempt,
+    resetPayoutAttemptLifecycle
+  } = usePayoutAttemptLifecycle({
+    payoutIntentId,
+    payoutIntentIdStateRef,
+
+    returnedPayoutIntentId,
+
+    setPayoutIntentId,
+    setSettlement,
+    setFundingTxHash,
+    setReturnedFlowDismissed
+  });
+
+  /*
+   * Local in-flight work locks immediately.
+   *
+   * Once local work settles, the authoritative Core
+   * lifecycle controls whether the transfer remains
+   * immutable.
+   */
+  const isTransferLocked =
+    isBusy ||
+    payoutAttemptState !==
+      PAYOUT_ATTEMPT_STATE
+        .EDITABLE;
+
+  /*
+   * Repeat links initialize their own fresh local
+   * payout attempt while preserving the source
+   * payout reference.
+   */
   useEffect(() => {
     if (
       repeatInitializedRef.current ||
@@ -607,28 +479,13 @@ export default function App() {
       null
     );
 
-    setPayoutAttemptState(
-      PAYOUT_ATTEMPT_STATE
-        .EDITABLE
-    );
+    resetPayoutAttemptLifecycle();
 
     setSettlement(
       null
     );
 
     setFundingTxHash(
-      null
-    );
-
-    setPricingPreview(
-      null
-    );
-
-    setPricingPreviewStatus(
-      "idle"
-    );
-
-    setPricingPreviewError(
       null
     );
 
@@ -643,211 +500,10 @@ export default function App() {
   }, [
     repeatRouteIdFromUrl,
     repeatSourceFromUrl,
-    routes
+    resetPayoutAttemptLifecycle,
+    routes,
+    setSelectedRouteId
   ]);
-
-  useEffect(() => {
-    const standalone =
-      window
-        .matchMedia(
-          "(display-mode: standalone)"
-        )
-        .matches ||
-      window.navigator
-        .standalone === true;
-
-    setIsStandalonePwa(
-      standalone
-    );
-
-    function handleBeforeInstallPrompt(
-      event
-    ) {
-      event.preventDefault();
-
-      setInstallPrompt(
-        event
-      );
-
-      setCanInstallPwa(
-        true
-      );
-    }
-
-    window.addEventListener(
-      "beforeinstallprompt",
-      handleBeforeInstallPrompt
-    );
-
-    return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isHistoryPage) {
-      return;
-    }
-
-    if (
-      pageViewTrackedRef.current
-    ) {
-      return;
-    }
-
-    pageViewTrackedRef.current =
-      true;
-
-    trackConnectEvent(
-      "page_view",
-      {
-        route_id:
-          selectedRouteId,
-
-        asset:
-          form.asset,
-
-        metadata: {
-          returned_flow:
-            isReturnedFlow,
-
-          repeat_flow:
-            isRepeatFlow
-        }
-      }
-    );
-  }, [
-    form.asset,
-    isHistoryPage,
-    isRepeatFlow,
-    isReturnedFlow,
-    selectedRouteId
-  ]);
-
-  useEffect(() => {
-    if (isHistoryPage) {
-      return;
-    }
-
-    if (
-      !isConnected ||
-      !address
-    ) {
-      return;
-    }
-
-    if (
-      walletConnectedTrackedRef
-        .current
-    ) {
-      return;
-    }
-
-    walletConnectedTrackedRef
-      .current = true;
-
-    trackConnectEvent(
-      "wallet_connected",
-      {
-        wallet_address:
-          address,
-
-        route_id:
-          selectedRouteId,
-
-        asset:
-          form.asset,
-
-        metadata: {
-          chain_id:
-            chainId
-        }
-      }
-    );
-  }, [
-    address,
-    chainId,
-    form.asset,
-    isConnected,
-    isHistoryPage,
-    selectedRouteId
-  ]);
-
-  useEffect(() => {
-    if (isHistoryPage) {
-      return;
-    }
-
-    if (!settlement) {
-      return;
-    }
-
-    if (
-      routeCreatedTrackedRef
-        .current
-    ) {
-      return;
-    }
-
-    routeCreatedTrackedRef
-      .current = true;
-
-    trackConnectEvent(
-      "route_created",
-      {
-        wallet_address:
-          address,
-
-        route_id:
-          selectedRouteId,
-
-        asset:
-          form.asset,
-
-        metadata: {
-          settlement_id:
-            settlement
-              ?.settlement_id ||
-            settlement?.id ||
-            null,
-
-          payout_intent_id:
-            payoutIntentId,
-
-          repeat_source_payout_intent_id:
-            repeatSourcePayoutIntentId
-        }
-      }
-    );
-  }, [
-    address,
-    form.asset,
-    isHistoryPage,
-    payoutIntentId,
-    repeatSourcePayoutIntentId,
-    selectedRouteId,
-    settlement
-  ]);
-
-  const writeDebug =
-    useCallback(
-      (
-        label,
-        value = {}
-      ) => {
-        setDebug(
-          `${label}\n${JSON.stringify(
-            value,
-            null,
-            2
-          )}`
-        );
-      },
-      []
-    );
 
   const {
     connectSessionId,
@@ -858,9 +514,15 @@ export default function App() {
     writeDebug
   });
 
+  /*
+   * Returned KYC / authorization flows may hydrate
+   * route, form and payout intent from Core.
+   */
   useReturnedPayoutIntent({
     returnedPayoutIntentId:
-      effectiveReturnedPayoutIntentId,
+      returnedFlowDismissed
+        ? null
+        : returnedPayoutIntentId,
 
     routes,
     setSelectedRouteId,
@@ -871,358 +533,42 @@ export default function App() {
   });
 
   /*
-   * Authoritative payout-attempt lifecycle restore.
+   * Editable standard payouts receive a debounced
+   * route pricing preview.
    *
-   * Unknown lifecycle stays conservatively locked.
-   * Safe pre-side-effect failure is detached so the
-   * next Continue creates a new payout intent.
+   * Returned, repeat and locked flows rely on their
+   * backend-owned execution context instead.
    */
-  useEffect(() => {
-    let cancelled =
-      false;
+  const {
+    pricingPreview,
+    pricingPreviewStatus,
+    pricingPreviewError,
 
-    const intentId =
-      normalizeString(
-        payoutIntentId
-      );
-
-    payoutIntentIdStateRef.current =
-      intentId ||
-      null;
-
-    if (!intentId) {
-      setPayoutAttemptState(
-        PAYOUT_ATTEMPT_STATE
-          .EDITABLE
-      );
-
-      return () => {
-        cancelled =
-          true;
-      };
-    }
-
-    async function restoreAttemptState() {
-      try {
-        const intent =
-          await getPayoutIntent({
-            payoutIntentId:
-              intentId
-          });
-
-        if (
-          cancelled ||
-          payoutIntentIdStateRef
-            .current !== intentId
-        ) {
-          return;
-        }
-
-        const attemptState =
-          resolvePayoutAttemptState(
-            intent
-          );
-
-        const creationStatus =
-          resolveSettlementCreationStatus(
-            intent
-          );
-
-        /*
-         * Safe failure:
-         *
-         * FAILED + reserved/prepared resolves to
-         * EDITABLE. Retire that intent locally.
-         */
-        if (
-          creationStatus ===
-            "failed" &&
-          attemptState ===
-            PAYOUT_ATTEMPT_STATE
-              .EDITABLE
-        ) {
-          const cameFromReturnedUrl =
-            normalizeString(
-              returnedPayoutIntentId
-            ) ===
-            intentId;
-
-          clearStoredPayoutIntent();
-
-          payoutIntentIdStateRef.current =
-            null;
-
-          setPayoutIntentId(
-            current =>
-              current === intentId
-                ? null
-                : current
-          );
-
-          setPayoutAttemptState(
-            PAYOUT_ATTEMPT_STATE
-              .EDITABLE
-          );
-
-          setSettlement(
-            null
-          );
-
-          setFundingTxHash(
-            null
-          );
-
-          if (
-            cameFromReturnedUrl
-          ) {
-            setReturnedFlowDismissed(
-              true
-            );
-
-            removeQueryParams([
-              "payout_intent_id"
-            ]);
-          }
-
-          return;
-        }
-
-        setPayoutAttemptState(
-          attemptState
-        );
-      }
-      catch (
-        error
-      ) {
-        if (
-          cancelled ||
-          payoutIntentIdStateRef
-            .current !== intentId
-        ) {
-          return;
-        }
-
-        /*
-         * A missing locally restored intent can be
-         * safely detached.
-         */
-        if (
-          error?.message ===
-          "payout_intent_not_found"
-        ) {
-          const cameFromReturnedUrl =
-            normalizeString(
-              returnedPayoutIntentId
-            ) ===
-            intentId;
-
-          clearStoredPayoutIntent();
-
-          payoutIntentIdStateRef.current =
-            null;
-
-          setPayoutIntentId(
-            current =>
-              current === intentId
-                ? null
-                : current
-          );
-
-          setPayoutAttemptState(
-            PAYOUT_ATTEMPT_STATE
-              .EDITABLE
-          );
-
-          setSettlement(
-            null
-          );
-
-          setFundingTxHash(
-            null
-          );
-
-          if (
-            cameFromReturnedUrl
-          ) {
-            setReturnedFlowDismissed(
-              true
-            );
-
-            removeQueryParams([
-              "payout_intent_id"
-            ]);
-          }
-
-          return;
-        }
-
-        /*
-         * Failed lifecycle read:
-         * never guess that mutation is safe.
-         */
-        setPayoutAttemptState(
-          PAYOUT_ATTEMPT_STATE
-            .LOCKED_RECOVERY
-        );
-      }
-    }
-
-    void restoreAttemptState();
-
-    return () => {
-      cancelled =
-        true;
-    };
-  }, [
-    attemptRefreshNonce,
-    payoutIntentId,
-    returnedPayoutIntentId
-  ]);
-
-  useEffect(() => {
-    let cancelled =
-      false;
-
-    const amount =
-      normalizeString(
-        form.amount
-      );
-
-    const numericAmount =
-      Number(
-        amount
-      );
-
-    const canLoadPreview =
+    resetPricingPreview
+  } = useConnectPricingPreview({
+    enabled:
       !isHistoryPage &&
       !isReturnedFlow &&
       !isRepeatFlow &&
-      !isTransferLocked &&
-      isConnected &&
-      Boolean(
-        address
-      ) &&
-      Boolean(
-        connectSessionId
-      ) &&
-      Boolean(
-        selectedRoute
-      ) &&
-      Boolean(
-        form.asset
-      ) &&
-      amount !== "" &&
-      Number.isFinite(
-        numericAmount
-      ) &&
-      numericAmount > 0;
+      !isTransferLocked,
 
-    if (!canLoadPreview) {
-      setPricingPreview(
-        null
-      );
-
-      setPricingPreviewStatus(
-        "idle"
-      );
-
-      setPricingPreviewError(
-        null
-      );
-
-      return undefined;
-    }
-
-    setPricingPreview(
-      null
-    );
-
-    setPricingPreviewStatus(
-      "loading"
-    );
-
-    setPricingPreviewError(
-      null
-    );
-
-    const timeoutId =
-      window.setTimeout(
-        async () => {
-          try {
-            const response =
-              await previewConnectRoute({
-                connectSessionId,
-
-                walletAddress:
-                  address,
-
-                route:
-                  selectedRoute,
-
-                amount,
-
-                asset:
-                  form.asset
-              });
-
-            if (cancelled) {
-              return;
-            }
-
-            setPricingPreview(
-              response
-                .pricing_preview
-            );
-
-            setPricingPreviewStatus(
-              "ready"
-            );
-          }
-          catch (
-            error
-          ) {
-            if (cancelled) {
-              return;
-            }
-
-            setPricingPreview(
-              null
-            );
-
-            setPricingPreviewStatus(
-              "error"
-            );
-
-            setPricingPreviewError(
-              error?.message ||
-              "connect_pricing_preview_failed"
-            );
-          }
-        },
-        300
-      );
-
-    return () => {
-      cancelled =
-        true;
-
-      window.clearTimeout(
-        timeoutId
-      );
-    };
-  }, [
+    isConnected,
     address,
     connectSessionId,
-    form.amount,
-    form.asset,
-    isConnected,
-    isHistoryPage,
-    isRepeatFlow,
-    isReturnedFlow,
-    isTransferLocked,
-    selectedRoute
-  ]);
 
+    selectedRoute,
+
+    amount:
+      form.amount,
+
+    asset:
+      form.asset
+  });
+
+  /*
+   * Route execution owns authorization, settlement
+   * creation, funding and settlement polling.
+   */
   const {
     handleSend,
     walletConfirmationPending,
@@ -1241,6 +587,7 @@ export default function App() {
 
     payoutIntentId,
     setPayoutIntentId,
+
     settlement,
     setSettlement,
     setFundingTxHash,
@@ -1254,75 +601,96 @@ export default function App() {
     writeDebug
   });
 
+  /*
+   * Analytics is intentionally separated from the
+   * product flows it observes.
+   */
+  const {
+    trackWalletConnectStarted,
+    trackRouteStarted,
+    trackInstallClicked,
+
+    resetRouteCreatedTracking
+  } = useConnectAnalytics({
+    isHistoryPage,
+
+    isConnected,
+    address,
+    chainId,
+
+    selectedRouteId,
+
+    asset:
+      form.asset,
+
+    isReturnedFlow,
+    isRepeatFlow,
+
+    settlement,
+    payoutIntentId,
+    repeatSourcePayoutIntentId
+  });
+
+  /*
+   * PWA lifecycle is independent from payout
+   * execution. Analytics is injected rather than
+   * owned by the PWA hook.
+   */
+  const {
+    canInstallPwa,
+    isStandalonePwa,
+    handleInstallPwa
+  } = usePwaInstall({
+    onInstallClicked:
+      trackInstallClicked,
+
+    writeDebug
+  });
+
+  /*
+   * User-driven payout execution.
+   *
+   * Every completed attempt triggers an authoritative
+   * lifecycle refresh, regardless of success or
+   * failure.
+   */
   const trackedHandleSend =
     useCallback(
       async () => {
-        await trackConnectEvent(
-          "route_started",
-          {
-            wallet_address:
-              address,
-
-            route_id:
-              selectedRouteId,
-
-            asset:
-              form.asset,
-
-            metadata: {
-              amount:
-                form.amount,
-
-              payout_intent_id:
-                payoutIntentId,
-
-              repeat_source_payout_intent_id:
-                repeatSourcePayoutIntentId
-            }
-          }
-        );
+        await trackRouteStarted({
+          amount:
+            form.amount
+        });
 
         try {
           return await handleSend();
         }
         finally {
-          /*
-           * Re-read Core lifecycle after every
-           * user-driven payout attempt.
-           */
-          setAttemptRefreshNonce(
-            current =>
-              current + 1
-          );
+          refreshPayoutAttempt();
         }
       },
       [
-        address,
         form.amount,
-        form.asset,
         handleSend,
-        payoutIntentId,
-        repeatSourcePayoutIntentId,
-        selectedRouteId
+        refreshPayoutAttempt,
+        trackRouteStarted
       ]
     );
 
   /*
    * Explicit user action.
    *
-   * Detaches the current attempt locally without
-   * cancelling or mutating the old backend payout.
+   * Detach the frontend from the current payout
+   * without mutating or cancelling the old backend
+   * attempt.
    */
   const handleNewPayout =
     useCallback(
       () => {
         /*
-         * Do not detach while an authorization,
-         * creation or funding request is still active.
-         *
-         * resetRouteFlowRuntime can cancel polling,
-         * but it cannot cancel an already-running
-         * settlement creation request.
+         * Polling can be stopped, but an already
+         * running authorization / settlement /
+         * funding request cannot be safely detached.
          */
         if (isBusy) {
           return;
@@ -1337,10 +705,7 @@ export default function App() {
           null
         );
 
-        setPayoutAttemptState(
-          PAYOUT_ATTEMPT_STATE
-            .EDITABLE
-        );
+        resetPayoutAttemptLifecycle();
 
         setSettlement(
           null
@@ -1358,24 +723,13 @@ export default function App() {
           true
         );
 
-        setPricingPreview(
-          null
-        );
+        resetPricingPreview();
 
-        setPricingPreviewStatus(
-          "idle"
-        );
-
-        setPricingPreviewError(
-          null
-        );
-
-        routeCreatedTrackedRef
-          .current = false;
+        resetRouteCreatedTracking();
 
         /*
-         * Keep route + transfer details as the draft
-         * for the next payout.
+         * Preserve route and transfer details as the
+         * editable draft for the next payout.
          */
         storeFlowSnapshot({
           connect_session_id:
@@ -1414,85 +768,21 @@ export default function App() {
         connectSessionId,
         form,
         isBusy,
+        resetPayoutAttemptLifecycle,
+        resetPricingPreview,
+        resetRouteCreatedTracking,
         resetRouteFlowRuntime,
         selectedRouteId,
         writeDebug
       ]
     );
 
-  const handleInstallPwa =
-    useCallback(
-      async () => {
-        await trackConnectEvent(
-          "add_to_home_screen_clicked",
-          {
-            wallet_address:
-              address,
-
-            route_id:
-              selectedRouteId,
-
-            asset:
-              form.asset,
-
-            metadata: {
-              has_install_prompt:
-                Boolean(
-                  installPrompt
-                )
-            }
-          }
-        );
-
-        if (!installPrompt) {
-          writeDebug(
-            "Save UniBridge",
-            {
-              instruction:
-                "Use your browser menu and choose Add to Home Screen."
-            }
-          );
-
-          return;
-        }
-
-        installPrompt.prompt();
-
-        const choice =
-          await installPrompt
-            .userChoice;
-
-        setInstallPrompt(
-          null
-        );
-
-        setCanInstallPwa(
-          false
-        );
-
-        writeDebug(
-          "Home screen install prompt completed.",
-          {
-            outcome:
-              choice?.outcome ||
-              null
-          }
-        );
-      },
-      [
-        address,
-        form.asset,
-        installPrompt,
-        selectedRouteId,
-        writeDebug
-      ]
-    );
-
   /*
-   * Guard form mutation at the parent boundary.
+   * Guard transfer-spec mutation at the parent
+   * boundary.
    *
-   * Individual controls will also be visually
-   * disabled by PayoutForm.
+   * PayoutForm also disables the corresponding
+   * controls visually.
    */
   const setEditableForm =
     useCallback(
@@ -1510,137 +800,155 @@ export default function App() {
       ]
     );
 
-  function updateBeneficiaryField(
-    name,
-    value
-  ) {
-    if (
-      isRepeatFlow ||
-      isTransferLocked
-    ) {
-      return;
-    }
-
-    setForm(
-      current => ({
-        ...current,
-
-        beneficiary: {
-          ...current
-            .beneficiary,
-
-          [name]:
-            value
+  const updateBeneficiaryField =
+    useCallback(
+      (
+        name,
+        value
+      ) => {
+        if (
+          isRepeatFlow ||
+          isTransferLocked
+        ) {
+          return;
         }
-      })
+
+        setForm(
+          current => ({
+            ...current,
+
+            beneficiary: {
+              ...current
+                .beneficiary,
+
+              [name]:
+                value
+            }
+          })
+        );
+      },
+      [
+        isRepeatFlow,
+        isTransferLocked
+      ]
     );
-  }
 
-  function changeRoute(
-    routeId
-  ) {
-    if (isTransferLocked) {
-      writeDebug(
-        "This payout is locked. Start a new payout to change the route.",
-        {
-          payout_intent_id:
-            payoutIntentId,
+  /*
+   * Explicit route change starts a clean payout
+   * draft.
+   *
+   * This action is unavailable once the active
+   * payout specification has crossed its lock
+   * boundary.
+   */
+  const changeRoute =
+    useCallback(
+      routeId => {
+        if (isTransferLocked) {
+          writeDebug(
+            "This payout is locked. Start a new payout to change the route.",
+            {
+              payout_intent_id:
+                payoutIntentId,
 
-          payout_attempt_state:
-            payoutAttemptState
+              payout_attempt_state:
+                payoutAttemptState
+            }
+          );
+
+          return;
         }
-      );
 
-      return;
-    }
+        const route =
+          getRouteById(
+            routeId,
+            routes
+          );
 
-    const route =
-      getRouteById(
-        routeId,
-        routes
-      );
+        if (!route) {
+          writeDebug(
+            "Selected payout route is unavailable.",
+            {
+              route_id:
+                routeId ||
+                null
+            }
+          );
 
-    if (!route) {
-      writeDebug(
-        "Selected payout route is unavailable.",
-        {
-          route_id:
-            routeId ||
-            null
+          return;
         }
-      );
 
-      return;
-    }
+        setRepeatSourcePayoutIntentId(
+          null
+        );
 
-    setRepeatSourcePayoutIntentId(
-      null
+        setReturnedFlowDismissed(
+          true
+        );
+
+        setSelectedRouteId(
+          route.id
+        );
+
+        payoutIntentIdStateRef.current =
+          null;
+
+        setPayoutIntentId(
+          null
+        );
+
+        resetPayoutAttemptLifecycle();
+
+        setSettlement(
+          null
+        );
+
+        setFundingTxHash(
+          null
+        );
+
+        resetPricingPreview();
+
+        resetRouteCreatedTracking();
+
+        resetConnectSession();
+
+        setForm(
+          buildEmptyForm(
+            route
+          )
+        );
+
+        clearStoredFlow();
+
+        removeQueryParams([
+          "payout_intent_id",
+          "repeat_source_payout_intent_id",
+          "route_id"
+        ]);
+
+        writeDebug(
+          "Ready to start a new payout."
+        );
+      },
+      [
+        isTransferLocked,
+        payoutAttemptState,
+        payoutIntentId,
+        resetConnectSession,
+        resetPayoutAttemptLifecycle,
+        resetPricingPreview,
+        resetRouteCreatedTracking,
+        routes,
+        setSelectedRouteId,
+        writeDebug
+      ]
     );
 
-    setReturnedFlowDismissed(
-      true
-    );
-
-    setSelectedRouteId(
-      route.id
-    );
-
-    payoutIntentIdStateRef.current =
-      null;
-
-    setPayoutIntentId(
-      null
-    );
-
-    setPayoutAttemptState(
-      PAYOUT_ATTEMPT_STATE
-        .EDITABLE
-    );
-
-    setSettlement(
-      null
-    );
-
-    setFundingTxHash(
-      null
-    );
-
-    setPricingPreview(
-      null
-    );
-
-    setPricingPreviewStatus(
-      "idle"
-    );
-
-    setPricingPreviewError(
-      null
-    );
-
-    routeCreatedTrackedRef
-      .current = false;
-
-    resetConnectSession();
-
-    setForm(
-      buildEmptyForm(
-        route
-      )
-    );
-
-    clearStoredFlow();
-
-    removeQueryParams([
-      "payout_intent_id",
-      "repeat_source_payout_intent_id",
-      "route_id"
-    ]);
-
-    writeDebug(
-      "Ready to start a new payout."
-    );
-  }
-
+  /*
+   * History is a separate surface and should not
+   * mount the payout composition below.
+   */
   if (isHistoryPage) {
     return (
       <HistoryPage
@@ -1701,18 +1009,11 @@ export default function App() {
       {!isReturnedFlow && (
         <div
           className="wallet-connect-row"
-          onClick={() => {
-            trackConnectEvent(
-              "wallet_connect_started",
-              {
-                route_id:
-                  selectedRouteId,
-
-                asset:
-                  form.asset
-              }
-            );
-          }}
+          onClick={
+            () => {
+              trackWalletConnectStarted();
+            }
+          }
         >
           <appkit-button />
         </div>
@@ -1728,12 +1029,14 @@ export default function App() {
             selectedRoute={
               selectedRoute
             }
+
             form={
               form
             }
             setForm={
               setEditableForm
             }
+
             isBusy={
               isBusy
             }
@@ -1743,6 +1046,7 @@ export default function App() {
             isRepeatFlow={
               isRepeatFlow
             }
+
             settlement={
               settlement
             }
@@ -1752,11 +1056,15 @@ export default function App() {
             walletConfirmationPending={
               walletConfirmationPending
             }
+
             payoutIntentId={
               payoutIntentId
             }
             payoutAttemptState={
               payoutAttemptState
+            }
+            settlementCreationStatus={
+              settlementCreationStatus
             }
             isTransferLocked={
               isTransferLocked
@@ -1764,11 +1072,13 @@ export default function App() {
             onNewPayout={
               handleNewPayout
             }
+
             pricingPreview={
               pricingPreview
             }
             executionPricing={
-              settlement?.pricing ??
+              settlement
+                ?.pricing ??
               null
             }
             pricingPreviewStatus={
@@ -1777,9 +1087,11 @@ export default function App() {
             pricingPreviewError={
               pricingPreviewError
             }
+
             debug={
               debug
             }
+
             handleSend={
               trackedHandleSend
             }
@@ -1789,6 +1101,7 @@ export default function App() {
             updateBeneficiaryField={
               updateBeneficiaryField
             }
+
             routes={
               routes
             }
