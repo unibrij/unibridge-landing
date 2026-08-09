@@ -134,6 +134,21 @@ export function useRouteFlow({
     writeDebug
   });
 
+  function resetRouteFlowRuntime() {
+    /*
+     * Stop any polling belonging to the previous
+     * payout attempt before App detaches it.
+     *
+     * This prevents an old async poll from writing
+     * settlement state into a newly started payout.
+     */
+    cancelSettlementPolling();
+
+    setWalletConfirmationPending(
+      false
+    );
+  }
+
   async function handleSend() {
     try {
       if (settlement?.funding) {
@@ -199,7 +214,8 @@ export function useRouteFlow({
     sendFundingTransaction,
     handleSend,
     walletConfirmationPending,
-    payoutAccessToken
+    payoutAccessToken,
+    resetRouteFlowRuntime
   };
 }
 
