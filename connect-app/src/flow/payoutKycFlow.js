@@ -4,6 +4,22 @@ import {
   startDiditVerification
 } from "./diditSdk";
 
+const DIDIT_BACKEND_PROPAGATION_DELAY_MS =
+  1500;
+
+function wait(
+  milliseconds
+) {
+  return new Promise(
+    resolve => {
+      window.setTimeout(
+        resolve,
+        milliseconds
+      );
+    }
+  );
+}
+
 export function openPayoutKyc({
   url,
   connectSessionId,
@@ -151,6 +167,28 @@ export function openPayoutKyc({
           }
         );
 
+        /*
+         * The SDK completion event can arrive before
+         * Didit's webhook/decision update has propagated
+         * to the backend.
+         *
+         * The old redirect flow naturally introduced
+         * a short delay while navigating back to the app.
+         * Keep that timing boundary here without coupling
+         * KYC polling to the payout lifecycle.
+         */
+        await wait(
+          DIDIT_BACKEND_PROPAGATION_DELAY_MS
+        );
+
+        if (
+          !isFlowCurrent(
+            flowGeneration
+          )
+        ) {
+          return;
+        }
+
         try {
           await continueAfterKyc(
             null,
@@ -175,6 +213,12 @@ export function openPayoutKyc({
             {
               connect_session_id:
                 connectSessionId,
+
+              verification_session_id:
+                result
+                  ?.session
+                  ?.sessionId ||
+                null,
 
               error:
                 err?.message ||
