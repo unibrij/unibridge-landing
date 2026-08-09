@@ -47,6 +47,7 @@ export function usePayoutIntentFlow({
 
   payoutIntentId,
   payoutIntentIdRef,
+  routeFlowGenerationRef,
   setPayoutIntentId,
   setSettlement,
   setFundingTxHash,
@@ -66,6 +67,23 @@ export function usePayoutIntentFlow({
     Boolean(
       repeatSourcePayoutIntentId
     );
+
+  function getFlowGeneration() {
+    return (
+      routeFlowGenerationRef
+        ?.current ??
+      0
+    );
+  }
+
+  function isFlowCurrent(
+    generation
+  ) {
+    return (
+      getFlowGeneration() ===
+      generation
+    );
+  }
 
   function requireNormalFlowContext() {
     if (!connectSessionId) {
@@ -191,16 +209,6 @@ export function usePayoutIntentFlow({
         intent
       );
 
-    /*
-     * Product attempt boundary:
-     *
-     * FAILED + EDITABLE means the Core confirms
-     * settlement creation failed before crossing
-     * the unsafe external side-effect boundary.
-     *
-     * The product ends that attempt here instead of
-     * keeping the user attached to the failed intent.
-     */
     if (
       creationStatus ===
         "failed" &&
@@ -226,7 +234,9 @@ export function usePayoutIntentFlow({
   }
 
   async function createSettlementForIntent(
-    intentId
+    intentId,
+    flowGeneration =
+      getFlowGeneration()
   ) {
     if (!intentId) {
       throw new Error(
@@ -248,6 +258,18 @@ export function usePayoutIntentFlow({
           payoutIntentId:
             intentId
         });
+
+      /*
+       * New payout may have detached this attempt
+       * while settlement creation was pending.
+       */
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
 
       setSettlement(
         settlementResult
@@ -272,17 +294,32 @@ export function usePayoutIntentFlow({
       err
     ) {
       /*
-       * Do not infer lifecycle from the HTTP failure.
-       *
-       * Read the authoritative Core state produced
-       * by this settlement-creation attempt.
+       * Once the user detached this flow, its
+       * lifecycle result must not affect the new
+       * frontend payout.
        */
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
+
       try {
         const latestIntent =
           await getPayoutIntent({
             payoutIntentId:
               intentId
           });
+
+        if (
+          !isFlowCurrent(
+            flowGeneration
+          )
+        ) {
+          return null;
+        }
 
         const retired =
           await retireSafeFailedIntent(
@@ -331,13 +368,14 @@ export function usePayoutIntentFlow({
       catch (
         lifecycleError
       ) {
-        /*
-         * If the authoritative lifecycle cannot be
-         * read, do not clear the intent blindly.
-         *
-         * We cannot prove that it failed before the
-         * side-effect boundary.
-         */
+        if (
+          !isFlowCurrent(
+            flowGeneration
+          )
+        ) {
+          return null;
+        }
+
         writeDebug(
           "Could not resolve payout lifecycle after settlement failure. Existing payout intent was preserved.",
           {
@@ -358,7 +396,10 @@ export function usePayoutIntentFlow({
     }
   }
 
-  async function createIntentAndSettlement() {
+  async function createIntentAndSettlement(
+    flowGeneration =
+      getFlowGeneration()
+  ) {
     if (isRepeatFlow) {
       requireRepeatFlowContext();
     }
@@ -413,6 +454,21 @@ export function usePayoutIntentFlow({
 
             form
           });
+
+    /*
+     * The user may have pressed New payout while
+     * intent creation was pending.
+     *
+     * Never attach the resulting old intent to the
+     * new frontend draft.
+     */
+    if (
+      !isFlowCurrent(
+        flowGeneration
+      )
+    ) {
+      return null;
+    }
 
     const intentId =
       getPayoutIntentId(
@@ -483,10 +539,27 @@ export function usePayoutIntentFlow({
           intentId
         );
 
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
+
       const settlementResult =
         await createSettlementForIntent(
-          intentId
+          intentId,
+          flowGeneration
         );
+
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
 
       return {
         intentId,
@@ -503,13 +576,14 @@ export function usePayoutIntentFlow({
     catch (
       err
     ) {
-      /*
-       * createSettlementForIntent() handles settlement
-       * lifecycle decisions itself.
-       *
-       * If authorization failed before settlement
-       * creation ever started, the intent is disposable.
-       */
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
+
       if (
         payoutIntentIdRef.current ===
           intentId
@@ -520,6 +594,14 @@ export function usePayoutIntentFlow({
               payoutIntentId:
                 intentId
             });
+
+          if (
+            !isFlowCurrent(
+              flowGeneration
+            )
+          ) {
+            return null;
+          }
 
           const attemptState =
             resolvePayoutAttemptState(
@@ -556,7 +638,9 @@ export function usePayoutIntentFlow({
 
   async function continueExistingIntent(
     intentId,
-    existingIntent = null
+    existingIntent = null,
+    flowGeneration =
+      getFlowGeneration()
   ) {
     const resolvedIntent =
       existingIntent ||
@@ -564,6 +648,14 @@ export function usePayoutIntentFlow({
         payoutIntentId:
           intentId
       });
+
+    if (
+      !isFlowCurrent(
+        flowGeneration
+      )
+    ) {
+      return null;
+    }
 
     const attemptState =
       resolvePayoutAttemptState(
@@ -575,10 +667,6 @@ export function usePayoutIntentFlow({
         resolvedIntent
       );
 
-    /*
-     * Safe failure:
-     * this product attempt is over.
-     */
     if (
       await retireSafeFailedIntent(
         intentId,
@@ -588,10 +676,6 @@ export function usePayoutIntentFlow({
       return null;
     }
 
-    /*
-     * Unsafe failure:
-     * preserve the intent and require recovery.
-     */
     if (
       attemptState ===
       PAYOUT_ATTEMPT_STATE
@@ -618,13 +702,6 @@ export function usePayoutIntentFlow({
       );
     }
 
-    /*
-     * Creation is already running.
-     *
-     * Keep the same intent and keep the form locked,
-     * but do not call createSettlement again while
-     * the backend lease is active.
-     */
     if (
       creationStatus ===
       "creating"
@@ -650,16 +727,26 @@ export function usePayoutIntentFlow({
           resolvedIntent
             ?.authorization_status
       });
+
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
     }
     catch (
       err
     ) {
-      /*
-       * Before settlement creation has begun, an
-       * authorization failure ends this attempt.
-       *
-       * Locked/resumable attempts are preserved.
-       */
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
+
       if (
         attemptState ===
           PAYOUT_ATTEMPT_STATE.EDITABLE &&
@@ -673,23 +760,16 @@ export function usePayoutIntentFlow({
       throw err;
     }
 
-    /*
-     * At this point:
-     *
-     * - editable pre-creation intent may create
-     *   settlement for the first time
-     *
-     * - ready intent may call createSettlement
-     *   idempotently and receive the existing
-     *   settlement
-     */
     return createSettlementForIntent(
-      intentId
+      intentId,
+      flowGeneration
     );
   }
 
   async function continueAfterKyc(
-    suppliedIntentId
+    suppliedIntentId,
+    flowGeneration =
+      getFlowGeneration()
   ) {
     setIsBusy(
       true
@@ -708,6 +788,14 @@ export function usePayoutIntentFlow({
             existingIntentId
         });
 
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return null;
+      }
+
       const attemptState =
         resolvePayoutAttemptState(
           existingIntent
@@ -718,12 +806,6 @@ export function usePayoutIntentFlow({
           existingIntent
         );
 
-      /*
-       * SAFE FAILED ATTEMPT:
-       *
-       * End the old attempt immediately.
-       * Same data or different data does not matter.
-       */
       if (
         await retireSafeFailedIntent(
           existingIntentId,
@@ -737,20 +819,16 @@ export function usePayoutIntentFlow({
         );
 
         const result =
-          await createIntentAndSettlement();
+          await createIntentAndSettlement(
+            flowGeneration
+          );
 
-        return result.settlement;
+        return (
+          result?.settlement ||
+          null
+        );
       }
 
-      /*
-       * CREATING:
-       *
-       * Existing attempt owns the transfer
-       * specification, so it remains locked.
-       *
-       * Do not invoke createSettlement again while
-       * creation is already in progress.
-       */
       if (
         creationStatus ===
         "creating"
@@ -768,11 +846,6 @@ export function usePayoutIntentFlow({
         );
       }
 
-      /*
-       * LOCKED / RECOVERY:
-       *
-       * Preserve the current payout intent.
-       */
       if (
         attemptState ===
         PAYOUT_ATTEMPT_STATE
@@ -799,15 +872,6 @@ export function usePayoutIntentFlow({
         );
       }
 
-      /*
-       * LOCKED / RESUMABLE:
-       *
-       * At this point "creating" has already been
-       * handled above, so this is effectively READY.
-       *
-       * Reuse the same intent. Backend createSettlement
-       * returns the existing settlement idempotently.
-       */
       if (
         attemptState ===
         PAYOUT_ATTEMPT_STATE
@@ -815,17 +879,11 @@ export function usePayoutIntentFlow({
       ) {
         return continueExistingIntent(
           existingIntentId,
-          existingIntent
+          existingIntent,
+          flowGeneration
         );
       }
 
-      /*
-       * EDITABLE and not previously failed:
-       *
-       * The same active pre-creation intent may be
-       * reused only if the transfer specification
-       * still matches.
-       */
       const storedFlow =
         readStoredFlow();
 
@@ -860,7 +918,8 @@ export function usePayoutIntentFlow({
       else {
         return continueExistingIntent(
           existingIntentId,
-          existingIntent
+          existingIntent,
+          flowGeneration
         );
       }
     }
@@ -872,9 +931,14 @@ export function usePayoutIntentFlow({
     );
 
     const result =
-      await createIntentAndSettlement();
+      await createIntentAndSettlement(
+        flowGeneration
+      );
 
-    return result.settlement;
+    return (
+      result?.settlement ||
+      null
+    );
   }
 
   async function startNewFlow() {
@@ -913,10 +977,9 @@ export function usePayoutIntentFlow({
       return;
     }
 
-    /*
-     * Never discard an existing attempt before
-     * asking the Core what lifecycle state it is in.
-     */
+    const flowGeneration =
+      getFlowGeneration();
+
     const existingIntentId =
       payoutIntentIdRef.current ||
       payoutIntentId ||
@@ -924,7 +987,8 @@ export function usePayoutIntentFlow({
 
     if (existingIntentId) {
       return continueAfterKyc(
-        existingIntentId
+        existingIntentId,
+        flowGeneration
       );
     }
 
@@ -1040,6 +1104,14 @@ export function usePayoutIntentFlow({
         });
 
       if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return;
+      }
+
+      if (
         kyc?.skipped ||
         isKycAlreadyPassed(
           kyc
@@ -1067,7 +1139,8 @@ export function usePayoutIntentFlow({
         );
 
         await continueAfterKyc(
-          null
+          null,
+          flowGeneration
         );
 
         return;
@@ -1095,6 +1168,14 @@ export function usePayoutIntentFlow({
       err
     ) {
       if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return;
+      }
+
+      if (
         isMissingKycUrlError(
           err
         )
@@ -1108,7 +1189,8 @@ export function usePayoutIntentFlow({
         );
 
         await continueAfterKyc(
-          null
+          null,
+          flowGeneration
         );
 
         return;
