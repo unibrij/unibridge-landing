@@ -124,16 +124,13 @@ export default function useConnectRoutes({
           );
 
         /*
-         * Keep the static catalog as a defensive
-         * fallback if Core returns no usable routes.
+         * Preserve the original Connect behavior.
+         *
+         * A successful Core response is authoritative,
+         * even when it contains no usable routes.
          */
-        const nextRoutes =
-          normalized.length > 0
-            ? normalized
-            : ROUTES;
-
         setRoutes(
-          nextRoutes
+          normalized
         );
 
         /*
@@ -142,7 +139,7 @@ export default function useConnectRoutes({
          */
         if (
           hasRoute(
-            nextRoutes,
+            normalized,
             initialSelectedRouteId
           )
         ) {
@@ -151,15 +148,14 @@ export default function useConnectRoutes({
 
         /*
          * Core responded successfully but the
-         * originally requested route is no longer
-         * available.
+         * originally requested route is unavailable.
          *
-         * Route ownership stops at selecting the
-         * fallback. The parent decides what this
-         * means for repeat/form/payout state.
+         * Selection may fall back to the bundled
+         * catalog, but the authoritative route list
+         * remains the normalized Core response.
          */
         const fallbackRoute =
-          nextRoutes[0] ||
+          normalized[0] ||
           ROUTES[0] ||
           null;
 
@@ -192,11 +188,8 @@ export default function useConnectRoutes({
         }
 
         /*
-         * Preserve the original Connect behavior.
-         *
-         * A route-discovery failure proves only that
-         * discovery failed. It does not prove that
-         * the requested route disappeared.
+         * A route-discovery failure does not prove
+         * that the requested route disappeared.
          *
          * Fall back to the bundled catalog without
          * changing selected route or triggering any
