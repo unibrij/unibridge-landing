@@ -13,8 +13,18 @@ import {
 } from "../form";
 
 import {
+  clearStoredPayoutIntent,
+  readStoredFlow,
   storeFlowSnapshot
 } from "../flow/flowStorage";
+
+import {
+  PAYOUT_ATTEMPT_STATE,
+  buildTransferFingerprint,
+  resolvePayoutAttemptState,
+  resolveSettlementCreationStatus,
+  isStalePreCommitIntent
+} from "../flow/payoutAttempt";
 
 import {
   isKycAlreadyPassed,
@@ -122,6 +132,99 @@ export function usePayoutIntentFlow({
     }
   }
 
+  function buildCurrentTransferFingerprint() {
+    return buildTransferFingerprint({
+      route:
+        selectedRoute,
+
+      form,
+
+      repeatSourcePayoutIntentId:
+        repeatSourcePayoutIntentId ||
+        null
+    });
+  }
+
+  function invalidateLocalPayoutIntent(
+    intentId
+  ) {
+    const normalizedIntentId =
+      String(
+        intentId ||
+        ""
+      ).trim();
+
+    /*
+     * Protect a newer attempt from being cleared
+     * by an older async operation.
+     */
+    if (
+      normalizedIntentId &&
+      payoutIntentIdRef.current &&
+      payoutIntentIdRef.current !==
+        normalizedIntentId
+    ) {
+      return;
+    }
+
+    payoutIntentIdRef.current =
+      null;
+
+    setPayoutIntentId(
+      null
+    );
+
+    clearStoredPayoutIntent();
+  }
+
+  async function retireSafeFailedIntent(
+    intentId,
+    intent
+  ) {
+    const attemptState =
+      resolvePayoutAttemptState(
+        intent
+      );
+
+    const creationStatus =
+      resolveSettlementCreationStatus(
+        intent
+      );
+
+    /*
+     * Product attempt boundary:
+     *
+     * FAILED + EDITABLE means the Core confirms
+     * settlement creation failed before crossing
+     * the unsafe external side-effect boundary.
+     *
+     * The product ends that attempt here instead of
+     * keeping the user attached to the failed intent.
+     */
+    if (
+      creationStatus ===
+        "failed" &&
+      attemptState ===
+        PAYOUT_ATTEMPT_STATE.EDITABLE
+    ) {
+      invalidateLocalPayoutIntent(
+        intentId
+      );
+
+      writeDebug(
+        "Safe pre-side-effect payout attempt failed. A new payout intent will be created on the next attempt.",
+        {
+          payout_intent_id:
+            intentId
+        }
+      );
+
+      return true;
+    }
+
+    return false;
+  }
+
   async function createSettlementForIntent(
     intentId
   ) {
@@ -139,30 +242,120 @@ export function usePayoutIntentFlow({
       }
     );
 
-    const settlementResult =
-      await createSettlement({
-        payoutIntentId:
-          intentId
-      });
+    try {
+      const settlementResult =
+        await createSettlement({
+          payoutIntentId:
+            intentId
+        });
 
-    setSettlement(
-      settlementResult
-    );
+      setSettlement(
+        settlementResult
+      );
 
-    setFundingTxHash(
-      null
-    );
+      setFundingTxHash(
+        null
+      );
 
-    setWalletConfirmationPending(
-      false
-    );
+      setWalletConfirmationPending(
+        false
+      );
 
-    writeDebug(
-      "Funding route ready. Send from wallet.",
-      settlementResult
-    );
+      writeDebug(
+        "Funding route ready. Send from wallet.",
+        settlementResult
+      );
 
-    return settlementResult;
+      return settlementResult;
+    }
+    catch (
+      err
+    ) {
+      /*
+       * Do not infer lifecycle from the HTTP failure.
+       *
+       * Read the authoritative Core state produced
+       * by this settlement-creation attempt.
+       */
+      try {
+        const latestIntent =
+          await getPayoutIntent({
+            payoutIntentId:
+              intentId
+          });
+
+        const retired =
+          await retireSafeFailedIntent(
+            intentId,
+            latestIntent
+          );
+
+        if (!retired) {
+          const attemptState =
+            resolvePayoutAttemptState(
+              latestIntent
+            );
+
+          const creationStatus =
+            resolveSettlementCreationStatus(
+              latestIntent
+            );
+
+          writeDebug(
+            attemptState ===
+              PAYOUT_ATTEMPT_STATE
+                .LOCKED_RECOVERY
+              ? "Settlement creation crossed the safe boundary and requires recovery."
+              : creationStatus ===
+                  "creating"
+                ? "Settlement creation is still in progress."
+                : "Settlement creation remains attached to the current payout attempt.",
+            {
+              payout_intent_id:
+                intentId,
+
+              payout_attempt_state:
+                attemptState,
+
+              settlement_creation_status:
+                creationStatus,
+
+              settlement_creation_stage:
+                latestIntent
+                  ?.settlement_creation_stage ||
+                null
+            }
+          );
+        }
+      }
+      catch (
+        lifecycleError
+      ) {
+        /*
+         * If the authoritative lifecycle cannot be
+         * read, do not clear the intent blindly.
+         *
+         * We cannot prove that it failed before the
+         * side-effect boundary.
+         */
+        writeDebug(
+          "Could not resolve payout lifecycle after settlement failure. Existing payout intent was preserved.",
+          {
+            payout_intent_id:
+              intentId,
+
+            lifecycle_error:
+              lifecycleError
+                ?.message ||
+              String(
+                lifecycleError
+              )
+          }
+        );
+      }
+
+      throw err;
+    }
   }
 
   async function createIntentAndSettlement() {
@@ -232,6 +425,9 @@ export function usePayoutIntentFlow({
       );
     }
 
+    const transferFingerprint =
+      buildCurrentTransferFingerprint();
+
     payoutIntentIdRef.current =
       intentId;
 
@@ -253,6 +449,9 @@ export function usePayoutIntentFlow({
       route_id:
         selectedRoute?.id ||
         null,
+
+      transfer_fingerprint:
+        transferFingerprint,
 
       form,
 
@@ -278,46 +477,212 @@ export function usePayoutIntentFlow({
       }
     );
 
-    const authorization =
-      await authorizeIntentWithWallet(
-        intentId
-      );
+    try {
+      const authorization =
+        await authorizeIntentWithWallet(
+          intentId
+        );
 
-    const settlementResult =
-      await createSettlementForIntent(
-        intentId
-      );
+      const settlementResult =
+        await createSettlementForIntent(
+          intentId
+        );
 
-    return {
-      intentId,
+      return {
+        intentId,
 
-      intent:
-        intentResult,
+        intent:
+          intentResult,
 
-      authorization,
+        authorization,
 
-      settlement:
-        settlementResult
-    };
+        settlement:
+          settlementResult
+      };
+    }
+    catch (
+      err
+    ) {
+      /*
+       * createSettlementForIntent() handles settlement
+       * lifecycle decisions itself.
+       *
+       * If authorization failed before settlement
+       * creation ever started, the intent is disposable.
+       */
+      if (
+        payoutIntentIdRef.current ===
+          intentId
+      ) {
+        try {
+          const latestIntent =
+            await getPayoutIntent({
+              payoutIntentId:
+                intentId
+            });
+
+          const attemptState =
+            resolvePayoutAttemptState(
+              latestIntent
+            );
+
+          const creationStatus =
+            resolveSettlementCreationStatus(
+              latestIntent
+            );
+
+          if (
+            !creationStatus &&
+            attemptState ===
+              PAYOUT_ATTEMPT_STATE
+                .EDITABLE
+          ) {
+            invalidateLocalPayoutIntent(
+              intentId
+            );
+          }
+        }
+        catch {
+          /*
+           * Keep the intent when authoritative
+           * lifecycle cannot be determined.
+           */
+        }
+      }
+
+      throw err;
+    }
   }
 
   async function continueExistingIntent(
-    intentId
+    intentId,
+    existingIntent = null
   ) {
-    const existingIntent =
+    const resolvedIntent =
+      existingIntent ||
       await getPayoutIntent({
         payoutIntentId:
           intentId
       });
 
-    await ensureIntentAuthorized({
-      intentId,
+    const attemptState =
+      resolvePayoutAttemptState(
+        resolvedIntent
+      );
 
-      authorizationStatus:
-        existingIntent
-          ?.authorization_status
-    });
+    const creationStatus =
+      resolveSettlementCreationStatus(
+        resolvedIntent
+      );
 
+    /*
+     * Safe failure:
+     * this product attempt is over.
+     */
+    if (
+      await retireSafeFailedIntent(
+        intentId,
+        resolvedIntent
+      )
+    ) {
+      return null;
+    }
+
+    /*
+     * Unsafe failure:
+     * preserve the intent and require recovery.
+     */
+    if (
+      attemptState ===
+      PAYOUT_ATTEMPT_STATE
+        .LOCKED_RECOVERY
+    ) {
+      writeDebug(
+        "This payout requires recovery before it can continue.",
+        {
+          payout_intent_id:
+            intentId,
+
+          settlement_creation_status:
+            creationStatus,
+
+          settlement_creation_stage:
+            resolvedIntent
+              ?.settlement_creation_stage ||
+            null
+        }
+      );
+
+      throw new Error(
+        "connect_settlement_recovery_required"
+      );
+    }
+
+    /*
+     * Creation is already running.
+     *
+     * Keep the same intent and keep the form locked,
+     * but do not call createSettlement again while
+     * the backend lease is active.
+     */
+    if (
+      creationStatus ===
+      "creating"
+    ) {
+      writeDebug(
+        "Settlement creation is already in progress.",
+        {
+          payout_intent_id:
+            intentId
+        }
+      );
+
+      throw new Error(
+        "connect_settlement_creation_in_progress"
+      );
+    }
+
+    try {
+      await ensureIntentAuthorized({
+        intentId,
+
+        authorizationStatus:
+          resolvedIntent
+            ?.authorization_status
+      });
+    }
+    catch (
+      err
+    ) {
+      /*
+       * Before settlement creation has begun, an
+       * authorization failure ends this attempt.
+       *
+       * Locked/resumable attempts are preserved.
+       */
+      if (
+        attemptState ===
+          PAYOUT_ATTEMPT_STATE.EDITABLE &&
+        !creationStatus
+      ) {
+        invalidateLocalPayoutIntent(
+          intentId
+        );
+      }
+
+      throw err;
+    }
+
+    /*
+     * At this point:
+     *
+     * - editable pre-creation intent may create
+     *   settlement for the first time
+     *
+     * - ready intent may call createSettlement
+     *   idempotently and receive the existing
+     *   settlement
+     */
     return createSettlementForIntent(
       intentId
     );
@@ -333,12 +698,171 @@ export function usePayoutIntentFlow({
     const existingIntentId =
       suppliedIntentId ||
       payoutIntentIdRef.current ||
+      payoutIntentId ||
       null;
 
     if (existingIntentId) {
-      return continueExistingIntent(
-        existingIntentId
-      );
+      const existingIntent =
+        await getPayoutIntent({
+          payoutIntentId:
+            existingIntentId
+        });
+
+      const attemptState =
+        resolvePayoutAttemptState(
+          existingIntent
+        );
+
+      const creationStatus =
+        resolveSettlementCreationStatus(
+          existingIntent
+        );
+
+      /*
+       * SAFE FAILED ATTEMPT:
+       *
+       * End the old attempt immediately.
+       * Same data or different data does not matter.
+       */
+      if (
+        await retireSafeFailedIntent(
+          existingIntentId,
+          existingIntent
+        )
+      ) {
+        writeDebug(
+          isRepeatFlow
+            ? "Creating a new repeated payout intent..."
+            : "Creating a new payout intent..."
+        );
+
+        const result =
+          await createIntentAndSettlement();
+
+        return result.settlement;
+      }
+
+      /*
+       * CREATING:
+       *
+       * Existing attempt owns the transfer
+       * specification, so it remains locked.
+       *
+       * Do not invoke createSettlement again while
+       * creation is already in progress.
+       */
+      if (
+        creationStatus ===
+        "creating"
+      ) {
+        writeDebug(
+          "Settlement creation is already in progress.",
+          {
+            payout_intent_id:
+              existingIntentId
+          }
+        );
+
+        throw new Error(
+          "connect_settlement_creation_in_progress"
+        );
+      }
+
+      /*
+       * LOCKED / RECOVERY:
+       *
+       * Preserve the current payout intent.
+       */
+      if (
+        attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .LOCKED_RECOVERY
+      ) {
+        writeDebug(
+          "Existing payout requires recovery.",
+          {
+            payout_intent_id:
+              existingIntentId,
+
+            settlement_creation_status:
+              creationStatus,
+
+            settlement_creation_stage:
+              existingIntent
+                ?.settlement_creation_stage ||
+              null
+          }
+        );
+
+        throw new Error(
+          "connect_settlement_recovery_required"
+        );
+      }
+
+      /*
+       * LOCKED / RESUMABLE:
+       *
+       * At this point "creating" has already been
+       * handled above, so this is effectively READY.
+       *
+       * Reuse the same intent. Backend createSettlement
+       * returns the existing settlement idempotently.
+       */
+      if (
+        attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .LOCKED_RESUMABLE
+      ) {
+        return continueExistingIntent(
+          existingIntentId,
+          existingIntent
+        );
+      }
+
+      /*
+       * EDITABLE and not previously failed:
+       *
+       * The same active pre-creation intent may be
+       * reused only if the transfer specification
+       * still matches.
+       */
+      const storedFlow =
+        readStoredFlow();
+
+      const currentFingerprint =
+        buildCurrentTransferFingerprint();
+
+      const staleIntent =
+        isStalePreCommitIntent({
+          intent:
+            existingIntent,
+
+          storedFingerprint:
+            storedFlow
+              ?.transfer_fingerprint,
+
+          currentFingerprint
+        });
+
+      if (staleIntent) {
+        invalidateLocalPayoutIntent(
+          existingIntentId
+        );
+
+        writeDebug(
+          "Transfer details changed before settlement creation. Creating a new payout intent.",
+          {
+            payout_intent_id:
+              existingIntentId
+          }
+        );
+      }
+      else {
+        return continueExistingIntent(
+          existingIntentId,
+          existingIntent
+        );
+      }
     }
 
     writeDebug(
@@ -387,6 +911,21 @@ export function usePayoutIntentFlow({
       );
 
       return;
+    }
+
+    /*
+     * Never discard an existing attempt before
+     * asking the Core what lifecycle state it is in.
+     */
+    const existingIntentId =
+      payoutIntentIdRef.current ||
+      payoutIntentId ||
+      null;
+
+    if (existingIntentId) {
+      return continueAfterKyc(
+        existingIntentId
+      );
     }
 
     let normalizedPricingPreview =
@@ -452,13 +991,6 @@ export function usePayoutIntentFlow({
 
     cancelSettlementPolling();
 
-    /*
-     * Do not delete previous payout access tokens.
-     * Historical transfers still need them for authenticated
-     * receipt downloads and Repeat may still need the source
-     * flow token until the new intent exists.
-     */
-
     storeFlowSnapshot({
       connect_session_id:
         connectSessionId,
@@ -472,6 +1004,9 @@ export function usePayoutIntentFlow({
 
       route_id:
         selectedRoute?.id ||
+        null,
+
+      transfer_fingerprint:
         null,
 
       form,
