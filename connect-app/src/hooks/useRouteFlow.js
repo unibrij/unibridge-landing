@@ -144,6 +144,16 @@ export function useRouteFlow({
      */
     cancelSettlementPolling();
 
+    /*
+     * New payout is an explicit frontend escape hatch.
+     *
+     * The abandoned pre-funding flow must not keep the
+     * new draft blocked by runtime UI state.
+     */
+    setIsBusy(
+      false
+    );
+
     setWalletConfirmationPending(
       false
     );
