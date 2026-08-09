@@ -177,6 +177,16 @@ export function useRouteFlow({
   }
 
   async function handleSend() {
+    /*
+     * Capture the frontend flow that owns this send.
+     *
+     * If New payout is pressed while this operation
+     * is pending, resetRouteFlowRuntime() increments
+     * the generation and this operation becomes stale.
+     */
+    const flowGeneration =
+      routeFlowGenerationRef.current;
+
     try {
       if (settlement?.funding) {
         await sendFundingTransaction();
@@ -215,6 +225,18 @@ export function useRouteFlow({
     catch (
       err
     ) {
+      /*
+       * A detached flow must not clear wallet state
+       * or overwrite debug state belonging to the
+       * newly active payout flow.
+       */
+      if (
+        routeFlowGenerationRef.current !==
+        flowGeneration
+      ) {
+        return;
+      }
+
       setWalletConfirmationPending(
         false
       );
@@ -229,9 +251,21 @@ export function useRouteFlow({
       );
     }
     finally {
-      setIsBusy(
-        false
-      );
+      /*
+       * New payout releases isBusy itself.
+       *
+       * Therefore an old detached send must never
+       * clear isBusy after a newer payout has already
+       * started.
+       */
+      if (
+        routeFlowGenerationRef.current ===
+        flowGeneration
+      ) {
+        setIsBusy(
+          false
+        );
+      }
     }
   }
 
