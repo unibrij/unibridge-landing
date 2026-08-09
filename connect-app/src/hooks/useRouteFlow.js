@@ -58,6 +58,21 @@ export function useRouteFlow({
     );
 
   /*
+   * SDK verification does not perform the browser
+   * callback navigation used by the old redirect
+   * flow.
+   *
+   * Once Didit reports completion, keep the current
+   * frontend flow in "returned from KYC" mode until
+   * post-KYC continuation succeeds or the user
+   * explicitly starts a new payout.
+   */
+  const kycCompletionPendingRef =
+    useRef(
+      false
+    );
+
+  /*
    * Identifies the currently attached pre-funding
    * frontend flow.
    *
@@ -132,6 +147,8 @@ export function useRouteFlow({
     payoutIntentId,
     payoutIntentIdRef,
     routeFlowGenerationRef,
+    kycCompletionPendingRef,
+
     setPayoutIntentId,
     setSettlement,
     setFundingTxHash,
@@ -154,6 +171,14 @@ export function useRouteFlow({
      * previous pre-funding frontend flow.
      */
     routeFlowGenerationRef.current += 1;
+
+    /*
+     * The SDK-completed KYC state belongs to the
+     * detached flow and must never leak into a new
+     * payout.
+     */
+    kycCompletionPendingRef.current =
+      false;
 
     /*
      * Stop any polling belonging to the previous
@@ -194,7 +219,22 @@ export function useRouteFlow({
         return;
       }
 
-      if (isReturnedFlow) {
+      /*
+       * Redirect flow:
+       *   isReturnedFlow === true
+       *
+       * SDK flow:
+       *   kycCompletionPendingRef.current === true
+       *
+       * Both represent the same lifecycle boundary:
+       * verification has already completed, therefore
+       * Continue must resume after KYC and must not
+       * start another verification session.
+       */
+      if (
+        isReturnedFlow ||
+        kycCompletionPendingRef.current
+      ) {
         if (
           !connectSessionId ||
           !selectedRoute
@@ -208,7 +248,11 @@ export function useRouteFlow({
 
               route_id:
                 selectedRoute?.id ||
-                null
+                null,
+
+              sdk_kyc_completed:
+                kycCompletionPendingRef
+                  .current
             }
           );
 
@@ -216,6 +260,17 @@ export function useRouteFlow({
         }
 
         await continueAfterKyc();
+
+        /*
+         * Clear only after successful continuation.
+         *
+         * If continueAfterKyc throws because backend
+         * confirmation is not ready yet, leave the flag
+         * set so the next Continue retries the post-KYC
+         * path instead of reopening Didit.
+         */
+        kycCompletionPendingRef.current =
+          false;
 
         return;
       }
