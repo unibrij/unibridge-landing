@@ -107,6 +107,26 @@ function validateWalletManagedCapability(
   }
 }
 
+function buildCapabilities() {
+  /*
+   * ERC-7682 auxiliaryFunds was already discovered
+   * through wallet_getCapabilities.
+   *
+   * UniBridge does not currently supply requiredAssets.
+   * We still include the capability as optional so the
+   * wallet can use auxiliary funds when available while
+   * remaining free to continue according to EIP-5792
+   * semantics if the capability cannot be fulfilled.
+   */
+
+  return {
+    auxiliaryFunds: {
+      optional:
+        true
+    }
+  };
+}
+
 export async function sendWalletManagedFunding({
   walletClient,
   address,
@@ -154,19 +174,6 @@ export async function sendWalletManagedFunding({
       normalizedChainId
     );
 
-  /*
-   * wallet-managed execution deliberately uses
-   * EIP-5792 wallet_sendCalls.
-   *
-   * auxiliaryFunds was already discovered through
-   * wallet_getCapabilities by fundingCapability.js.
-   *
-   * We intentionally do not send an auxiliaryFunds
-   * capability object here because UniBridge is not
-   * supplying requiredAssets or any other extended
-   * ERC-7682 execution parameters.
-   */
-
   const request = {
     version:
       "2.0.0",
@@ -178,8 +185,9 @@ export async function sendWalletManagedFunding({
       chainHex,
 
     /*
-     * UniBridge currently sends one ERC-20 transfer.
-     * Atomic execution is therefore not required.
+     * UniBridge currently submits one ERC-20
+     * transfer call, so atomic execution is not
+     * required for correctness.
      */
 
     atomicRequired:
@@ -199,7 +207,10 @@ export async function sendWalletManagedFunding({
             transaction.value
           )
       }
-    ]
+    ],
+
+    capabilities:
+      buildCapabilities()
   };
 
   const result =
@@ -213,15 +224,8 @@ export async function sendWalletManagedFunding({
     });
 
   /*
-   * EIP-5792 v2 wallet_sendCalls returns:
-   *
-   * {
-   *   id: string,
-   *   capabilities?: { ... }
-   * }
-   *
-   * The id is a calls/batch identifier.
-   * It is NOT a transaction hash.
+   * EIP-5792 v2 returns a calls identifier.
+   * This identifier is NOT a transaction hash.
    */
 
   const callsId =
