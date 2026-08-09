@@ -57,6 +57,19 @@ export function useRouteFlow({
       null
     );
 
+  /*
+   * Identifies the currently attached pre-funding
+   * frontend flow.
+   *
+   * New payout increments this generation so async
+   * work from the detached flow can no longer attach
+   * old intent / settlement state to the new draft.
+   */
+  const routeFlowGenerationRef =
+    useRef(
+      0
+    );
+
   useEffect(() => {
     payoutIntentIdRef.current =
       payoutIntentId ||
@@ -118,6 +131,7 @@ export function useRouteFlow({
 
     payoutIntentId,
     payoutIntentIdRef,
+    routeFlowGenerationRef,
     setPayoutIntentId,
     setSettlement,
     setFundingTxHash,
@@ -136,11 +150,14 @@ export function useRouteFlow({
 
   function resetRouteFlowRuntime() {
     /*
+     * Explicitly detach async work belonging to the
+     * previous pre-funding frontend flow.
+     */
+    routeFlowGenerationRef.current += 1;
+
+    /*
      * Stop any polling belonging to the previous
      * payout attempt before App detaches it.
-     *
-     * This prevents an old async poll from writing
-     * settlement state into a newly started payout.
      */
     cancelSettlementPolling();
 
