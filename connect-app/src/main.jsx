@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import App from "./App.jsx";
 import { wagmiAdapter } from "./appkit.js";
-import "./App.css";
+import "./styles/connect.css";
 
 const queryClient = new QueryClient();
 
