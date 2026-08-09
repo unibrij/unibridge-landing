@@ -172,12 +172,15 @@ export default function PayoutLifecyclePanel({
     isLockedRecovery;
 
   /*
-   * Explicit New payout is available only after
-   * local in-flight work has finished.
+   * Once transfer details are locked, the current
+   * payout has crossed the editable-draft boundary.
+   *
+   * Starting a new payout is an explicit user action
+   * and remains available independently of local
+   * in-flight work, including wallet confirmation.
    */
   const showNewPayout =
     isTransferLocked &&
-    !isBusy &&
     typeof onNewPayout ===
       "function";
 
