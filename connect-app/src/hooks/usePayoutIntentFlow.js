@@ -45,7 +45,6 @@ export function usePayoutIntentFlow({
   form,
   pricingPreview,
 
-  payoutIntentId,
   payoutIntentIdRef,
   routeFlowGenerationRef,
   setPayoutIntentId,
@@ -83,6 +82,17 @@ export function usePayoutIntentFlow({
       getFlowGeneration() ===
       generation
     );
+  }
+
+  function normalizeAuthorizationStatus(
+    value
+  ) {
+    return String(
+      value ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
   }
 
   function requireNormalFlowContext() {
@@ -775,10 +785,17 @@ export function usePayoutIntentFlow({
       true
     );
 
+    /*
+     * setPayoutIntentId() is asynchronous.
+     *
+     * Only an explicitly supplied id or the mutable
+     * ref may resume an existing attempt here.
+     * Do not revive an intent from a stale render
+     * value after it was detached locally.
+     */
     const existingIntentId =
       suppliedIntentId ||
       payoutIntentIdRef.current ||
-      payoutIntentId ||
       null;
 
     if (existingIntentId) {
@@ -980,16 +997,194 @@ export function usePayoutIntentFlow({
     const flowGeneration =
       getFlowGeneration();
 
+    /*
+     * Inspect an existing attempt before deciding
+     * whether Continue should resume it or safely
+     * replace a completed pre-creation authorization.
+     */
     const existingIntentId =
       payoutIntentIdRef.current ||
-      payoutIntentId ||
       null;
 
     if (existingIntentId) {
-      return continueAfterKyc(
-        existingIntentId,
-        flowGeneration
-      );
+      const existingIntent =
+        await getPayoutIntent({
+          payoutIntentId:
+            existingIntentId
+        });
+
+      if (
+        !isFlowCurrent(
+          flowGeneration
+        )
+      ) {
+        return;
+      }
+
+      const attemptState =
+        resolvePayoutAttemptState(
+          existingIntent
+        );
+
+      const creationStatus =
+        resolveSettlementCreationStatus(
+          existingIntent
+        );
+
+      if (
+        await retireSafeFailedIntent(
+          existingIntentId,
+          existingIntent
+        )
+      ) {
+        /*
+         * Safe failed pre-side-effect attempt was
+         * detached. Continue below and create a
+         * replacement attempt.
+         */
+      }
+      else if (
+        creationStatus ===
+        "creating"
+      ) {
+        writeDebug(
+          "Settlement creation is already in progress.",
+          {
+            payout_intent_id:
+              existingIntentId
+          }
+        );
+
+        throw new Error(
+          "connect_settlement_creation_in_progress"
+        );
+      }
+      else if (
+        attemptState ===
+          PAYOUT_ATTEMPT_STATE
+            .LOCKED_RECOVERY
+      ) {
+        writeDebug(
+          "Existing payout requires recovery.",
+          {
+            payout_intent_id:
+              existingIntentId,
+
+            settlement_creation_status:
+              creationStatus,
+
+            settlement_creation_stage:
+              existingIntent
+                ?.settlement_creation_stage ||
+              null
+          }
+        );
+
+        throw new Error(
+          "connect_settlement_recovery_required"
+        );
+      }
+      else if (
+        attemptState ===
+          PAYOUT_ATTEMPT_STATE
+            .LOCKED_RESUMABLE
+      ) {
+        return continueExistingIntent(
+          existingIntentId,
+          existingIntent,
+          flowGeneration
+        );
+      }
+      else {
+        const authorizationStatus =
+          normalizeAuthorizationStatus(
+            existingIntent
+              ?.authorization_status
+          );
+
+        /*
+         * An unsigned editable intent may simply
+         * be waiting for wallet confirmation.
+         *
+         * Keep the same intent so pressing Continue
+         * again can reopen its wallet signature.
+         */
+        if (
+          attemptState ===
+            PAYOUT_ATTEMPT_STATE
+              .EDITABLE &&
+          authorizationStatus !==
+            "signed"
+        ) {
+          return continueExistingIntent(
+            existingIntentId,
+            existingIntent,
+            flowGeneration
+          );
+        }
+
+        /*
+         * A signed editable/pre-creation intent is
+         * still before settlement side effects.
+         *
+         * Validate the replacement draft BEFORE
+         * detaching this intent. If pricing or form
+         * validation is not ready, keep the existing
+         * attempt attached.
+         */
+        if (
+          attemptState ===
+            PAYOUT_ATTEMPT_STATE
+              .EDITABLE
+        ) {
+          if (isRepeatFlow) {
+            requireRepeatFlowContext();
+          }
+          else {
+            const normalizedPricingPreview =
+              normalizePricingPreview(
+                pricingPreview
+              );
+
+            if (
+              !normalizedPricingPreview
+            ) {
+              writeDebug(
+                "Pricing preview is required before continuing.",
+                {
+                  connect_session_id:
+                    connectSessionId,
+
+                  route_id:
+                    selectedRoute?.id ||
+                    null
+                }
+              );
+
+              return;
+            }
+
+            validateRouteForm({
+              form,
+
+              route:
+                selectedRoute
+            });
+          }
+
+          invalidateLocalPayoutIntent(
+            existingIntentId
+          );
+
+          writeDebug(
+            "Previous pre-creation payout authorization was detached. Starting a fresh payout attempt.",
+            {
+              previous_payout_intent_id:
+                existingIntentId
+            }
+          );
+        }
+      }
     }
 
     let normalizedPricingPreview =
