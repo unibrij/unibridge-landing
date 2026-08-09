@@ -1,0 +1,253 @@
+/* connect-app/src/styles/overlays.css */
+
+/* --------------------------------------------------
+   Review
+-------------------------------------------------- */
+
+.review-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(3, 7, 18, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+.review-card {
+  width: min(100%, 360px);
+  box-sizing: border-box;
+  border-radius: 22px;
+  padding: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: rgba(0, 14, 45, 0.94);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  text-align: center;
+}
+
+.review-card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.review-card p {
+  max-width: none;
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+
+.review-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.review-option,
+.review-submit,
+.review-later {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.review-option {
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  background: rgba(20, 184, 166, 0.07);
+  color: #5eead4;
+}
+
+.review-option.selected {
+  background: #14b8a6;
+  color: #04111f;
+  border-color: rgba(20, 184, 166, 0.58);
+}
+
+.review-note {
+  width: 100%;
+  min-height: 82px;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+}
+
+.review-note::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.review-note:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.review-submit {
+  margin-top: 8px;
+  border: 0;
+  background: #14b8a6;
+  color: #04111f;
+}
+
+.review-later {
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.review-option:active,
+.review-submit:active,
+.review-later:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Debug
+-------------------------------------------------- */
+
+.connect-debug {
+  margin: 12px 0 0;
+  white-space: pre-wrap;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------
+   PWA install
+-------------------------------------------------- */
+
+.install-pwa-button {
+  width: min(100%, 392px);
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 184, 166, 0.45);
+  background: #14b8a6;
+  color: #04111f;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.install-pwa-button:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Shared guide link
+-------------------------------------------------- */
+
+.pay-guide-link-wrap,
+.connect-guide-link-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.pay-guide-link,
+.connect-guide-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  background: rgba(20, 184, 166, 0.06);
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.pay-guide-link:hover,
+.connect-guide-link:hover {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(45, 212, 191, 0.42);
+}
+
+.pay-guide-link:active,
+.connect-guide-link:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
+   Wallet authentication error
+-------------------------------------------------- */
+
+.connect-auth-error {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 16px;
+  background: rgba(127, 29, 29, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 34px rgba(0, 0, 0, 0.16);
+  text-align: left;
+}
+
+.connect-auth-error p {
+  max-width: none;
+  margin: 0;
+  color: #fecaca;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.connect-auth-error span {
+  display: block;
+  color: rgba(254, 202, 202, 0.72);
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.connect-auth-error .secondary-action {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 11px 14px;
+  border: 1px solid rgba(248, 113, 113, 0.34);
+  border-radius: 14px;
+  background: rgba(248, 113, 113, 0.08);
+  color: #fecaca;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.connect-auth-error .secondary-action:hover {
+  background: rgba(248, 113, 113, 0.14);
+}
+
+.connect-auth-error .secondary-action:active {
+  transform: scale(0.98);
+}
