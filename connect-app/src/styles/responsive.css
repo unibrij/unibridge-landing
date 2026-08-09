@@ -1,0 +1,280 @@
+/* connect-app/src/styles/responsive.css */
+
+@media (max-width: 900px) {
+  .connect-brandbar-logo {
+    width: 220px;
+    max-width: 58vw;
+  }
+}
+
+@media (max-width: 430px) {
+  .connect-shell {
+    gap: 12px;
+    padding: 14px;
+    justify-content: flex-start;
+    padding-top:
+      max(
+        24px,
+        env(safe-area-inset-top)
+      );
+    padding-bottom:
+      max(
+        14px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .connect-shell::before {
+    top: 78px;
+    height: 500px;
+    background:
+      url("/connect/connect-map-bg.png")
+      center top / 780px auto
+      no-repeat;
+
+    -webkit-mask-image:
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        #000 7%,
+        #000 76%,
+        transparent 100%
+      );
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+
+    mask-image:
+      linear-gradient(
+        180deg,
+        transparent 0%,
+        #000 7%,
+        #000 76%,
+        transparent 100%
+      );
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
+
+  .history-shell {
+    justify-content: flex-start;
+    gap: 0;
+    padding-top:
+      max(
+        24px,
+        env(safe-area-inset-top)
+      );
+    padding-bottom:
+      max(
+        30px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .connect-brandbar {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: min(100%, 392px);
+    justify-content: center;
+    margin: 0 0 4px;
+    pointer-events: none;
+  }
+
+  .connect-brandbar-logo {
+    width: 150px;
+    max-width: 52vw;
+  }
+
+  .connect-domain-pill {
+    display: none;
+  }
+
+  .history-shell .connect-brandbar {
+    margin-bottom: 18px;
+  }
+
+  .history-shell .connect-brandbar-logo {
+    width: 150px;
+    max-width: 52vw;
+  }
+
+  h1 {
+    font-size: 29px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+
+  .connect-eyebrow {
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  .wallet-connect-row,
+  .payout-form,
+  .route-actions,
+  .install-pwa-button,
+  .connect-auth-error,
+  .connect-tabs,
+  .history-content,
+  .connect-history-footer {
+    width: min(100%, 392px);
+  }
+
+  .connect-tabs {
+    margin-top: 2px;
+    margin-bottom: 12px;
+  }
+
+  .connect-tab {
+    min-height: 41px;
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  .payout-form {
+    margin-top: 2px;
+    padding: 13px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(9, 34, 72, 0.22) 0%,
+        rgba(0, 14, 45, 0.12) 100%
+      );
+    backdrop-filter: blur(4px) saturate(124%);
+    -webkit-backdrop-filter: blur(4px) saturate(124%);
+  }
+
+  .history-content {
+    gap: 25px;
+  }
+
+  .history-section-header {
+    margin-bottom: 11px;
+  }
+
+  .history-recipient-card,
+  .history-payout-card {
+    padding: 13px;
+    border-radius: 12px;
+  }
+
+  .history-recipient-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .history-recipient-main {
+    gap: 10px;
+  }
+
+  .history-recipient-name {
+    font-size: 13px;
+  }
+
+  .history-recipient-destination,
+  .history-recipient-last-paid,
+  .history-payout-date {
+    font-size: 10px;
+  }
+
+  .history-secondary-button {
+    min-height: 31px;
+    padding: 0 11px;
+    font-size: 10px;
+  }
+
+  .history-payout-amount {
+    font-size: 13px;
+  }
+
+  .history-payout-actions {
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .pricing-preview {
+    padding: 11px;
+  }
+
+  .pricing-preview-row {
+    gap: 10px;
+  }
+
+  .pricing-preview-label {
+    font-size: 12px;
+  }
+
+  .pricing-preview-value {
+    font-size: 13px;
+  }
+
+  .pricing-preview-recipient .pricing-preview-value {
+    font-size: 14px;
+  }
+
+  .review-card {
+    width: min(100%, 350px);
+    padding: 16px;
+  }
+
+  .pay-guide-link-wrap,
+  .connect-guide-link-wrap {
+    margin-top: 14px;
+  }
+
+  .pay-guide-link,
+  .connect-guide-link {
+    min-height: 34px;
+    padding: 0 13px;
+    font-size: 12px;
+  }
+
+  .connect-lite-footer {
+    width: min(100%, 392px);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    margin-top: 36px;
+    padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .connect-brandbar-logo,
+  .history-shell .connect-brandbar-logo {
+    width: 140px;
+  }
+
+  .history-recipient-card {
+    align-items: flex-start;
+  }
+
+  .history-recipient-card >
+  .history-secondary-button {
+    padding: 0 9px;
+  }
+
+  .history-recipient-main {
+    gap: 9px;
+  }
+
+  .history-recipient-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    font-size: 11px;
+  }
+
+  .history-payout-header {
+    gap: 8px;
+  }
+
+  .history-payout-summary {
+    gap: 5px;
+  }
+}
