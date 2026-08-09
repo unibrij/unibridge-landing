@@ -26,13 +26,22 @@ import {
 
 import {
   getConnectRoutes,
+  getPayoutIntent,
   previewConnectRoute
 } from "./api";
 
 import {
   readStoredFlow,
+  storeFlowSnapshot,
+  clearStoredPayoutIntent,
   clearStoredFlow
 } from "./flow/flowStorage";
+
+import {
+  PAYOUT_ATTEMPT_STATE,
+  resolvePayoutAttemptState,
+  resolveSettlementCreationStatus
+} from "./flow/payoutAttempt";
 
 import {
   readPayoutAccessToken,
@@ -76,6 +85,63 @@ function hasRoute(
   );
 }
 
+function removeQueryParams(
+  names = []
+) {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    const url =
+      new URL(
+        window.location.href
+      );
+
+    let changed =
+      false;
+
+    for (
+      const name
+      of names
+    ) {
+      if (
+        !url.searchParams.has(
+          name
+        )
+      ) {
+        continue;
+      }
+
+      url.searchParams.delete(
+        name
+      );
+
+      changed =
+        true;
+    }
+
+    if (!changed) {
+      return;
+    }
+
+    const nextUrl =
+      `${url.pathname}${url.search}${url.hash}`;
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      nextUrl
+    );
+  }
+  catch {
+    // URL cleanup is non-critical.
+  }
+}
+
 export default function App() {
   useAppKit();
 
@@ -90,6 +156,13 @@ export default function App() {
 
   const repeatInitializedRef =
     useRef(false);
+
+  /*
+   * Tracks the currently active payout intent
+   * independently from async lifecycle reads.
+   */
+  const payoutIntentIdStateRef =
+    useRef(null);
 
   const [
     installPrompt,
@@ -161,6 +234,16 @@ export default function App() {
   const returnedPayoutIntentId =
     readPayoutIntentFromUrl();
 
+  const [
+    returnedFlowDismissed,
+    setReturnedFlowDismissed
+  ] = useState(false);
+
+  const effectiveReturnedPayoutIntentId =
+    returnedFlowDismissed
+      ? null
+      : returnedPayoutIntentId;
+
   const initialRepeatSourcePayoutIntentId =
     repeatSourceFromUrl ||
     storedFlow
@@ -211,22 +294,52 @@ export default function App() {
     selectedRoute ||
     ROUTES[0];
 
+  const initialPayoutIntentId =
+    returnedPayoutIntentId ||
+    storedFlow
+      ?.payout_intent_id ||
+    null;
+
   const [
     payoutIntentId,
     setPayoutIntentId
   ] = useState(
-    returnedPayoutIntentId ||
-      storedFlow
-        ?.payout_intent_id ||
-      null
+    initialPayoutIntentId
   );
+
+  payoutIntentIdStateRef.current =
+    payoutIntentId ||
+    null;
+
+  /*
+   * Existing attempts begin conservatively locked
+   * until Core confirms their lifecycle.
+   */
+  const [
+    payoutAttemptState,
+    setPayoutAttemptState
+  ] = useState(
+    initialPayoutIntentId
+      ? PAYOUT_ATTEMPT_STATE
+          .LOCKED_RECOVERY
+      : PAYOUT_ATTEMPT_STATE
+          .EDITABLE
+  );
+
+  /*
+   * Explicit lifecycle refresh trigger after
+   * user-driven payout actions.
+   */
+  const [
+    attemptRefreshNonce,
+    setAttemptRefreshNonce
+  ] = useState(0);
 
   /*
    * Current / repeat flow access token.
    *
-   * Repeat must always prefer the source payout token.
-   * This is intentionally NOT allowed to fall back to
-   * an unrelated "last known" payout token.
+   * Repeat always uses the source payout token.
+   * Never fall back to an unrelated last token.
    */
   const [
     flowAccessToken
@@ -254,17 +367,6 @@ export default function App() {
     );
   });
 
-  /*
-   * History may use the current known payout context.
-   *
-   * If the page was opened through a fresh
-   * /connect/?view=history reload and the flow snapshot
-   * no longer contains a payout intent, fall back to the
-   * explicit last-access pointer maintained by
-   * payoutAccessTokenStorage.
-   *
-   * This does not scan localStorage.
-   */
   const [
     historyFallbackAccessToken
   ] = useState(() => {
@@ -307,6 +409,19 @@ export default function App() {
     isBusy,
     setIsBusy
   ] = useState(false);
+
+  /*
+   * Local in-flight work locks immediately.
+   *
+   * Once the request settles, Core lifecycle is the
+   * authoritative source for whether the transfer
+   * remains locked.
+   */
+  const isTransferLocked =
+    isBusy ||
+    payoutAttemptState !==
+      PAYOUT_ATTEMPT_STATE
+        .EDITABLE;
 
   const [
     pricingPreview,
@@ -372,7 +487,7 @@ export default function App() {
 
   const isReturnedFlow =
     Boolean(
-      returnedPayoutIntentId
+      effectiveReturnedPayoutIntentId
     );
 
   const isRepeatFlow =
@@ -485,8 +600,16 @@ export default function App() {
       repeatRoute.id
     );
 
+    payoutIntentIdStateRef.current =
+      null;
+
     setPayoutIntentId(
       null
+    );
+
+    setPayoutAttemptState(
+      PAYOUT_ATTEMPT_STATE
+        .EDITABLE
     );
 
     setSettlement(
@@ -736,7 +859,9 @@ export default function App() {
   });
 
   useReturnedPayoutIntent({
-    returnedPayoutIntentId,
+    returnedPayoutIntentId:
+      effectiveReturnedPayoutIntentId,
+
     routes,
     setSelectedRouteId,
     setPayoutIntentId,
@@ -744,6 +869,215 @@ export default function App() {
     setIsBusy,
     writeDebug
   });
+
+  /*
+   * Authoritative payout-attempt lifecycle restore.
+   *
+   * Unknown lifecycle stays conservatively locked.
+   * Safe pre-side-effect failure is detached so the
+   * next Continue creates a new payout intent.
+   */
+  useEffect(() => {
+    let cancelled =
+      false;
+
+    const intentId =
+      normalizeString(
+        payoutIntentId
+      );
+
+    payoutIntentIdStateRef.current =
+      intentId ||
+      null;
+
+    if (!intentId) {
+      setPayoutAttemptState(
+        PAYOUT_ATTEMPT_STATE
+          .EDITABLE
+      );
+
+      return () => {
+        cancelled =
+          true;
+      };
+    }
+
+    async function restoreAttemptState() {
+      try {
+        const intent =
+          await getPayoutIntent({
+            payoutIntentId:
+              intentId
+          });
+
+        if (
+          cancelled ||
+          payoutIntentIdStateRef
+            .current !== intentId
+        ) {
+          return;
+        }
+
+        const attemptState =
+          resolvePayoutAttemptState(
+            intent
+          );
+
+        const creationStatus =
+          resolveSettlementCreationStatus(
+            intent
+          );
+
+        /*
+         * Safe failure:
+         *
+         * FAILED + reserved/prepared resolves to
+         * EDITABLE. Retire that intent locally.
+         */
+        if (
+          creationStatus ===
+            "failed" &&
+          attemptState ===
+            PAYOUT_ATTEMPT_STATE
+              .EDITABLE
+        ) {
+          const cameFromReturnedUrl =
+            normalizeString(
+              returnedPayoutIntentId
+            ) ===
+            intentId;
+
+          clearStoredPayoutIntent();
+
+          payoutIntentIdStateRef.current =
+            null;
+
+          setPayoutIntentId(
+            current =>
+              current === intentId
+                ? null
+                : current
+          );
+
+          setPayoutAttemptState(
+            PAYOUT_ATTEMPT_STATE
+              .EDITABLE
+          );
+
+          setSettlement(
+            null
+          );
+
+          setFundingTxHash(
+            null
+          );
+
+          if (
+            cameFromReturnedUrl
+          ) {
+            setReturnedFlowDismissed(
+              true
+            );
+
+            removeQueryParams([
+              "payout_intent_id"
+            ]);
+          }
+
+          return;
+        }
+
+        setPayoutAttemptState(
+          attemptState
+        );
+      }
+      catch (
+        error
+      ) {
+        if (
+          cancelled ||
+          payoutIntentIdStateRef
+            .current !== intentId
+        ) {
+          return;
+        }
+
+        /*
+         * A missing locally restored intent can be
+         * safely detached.
+         */
+        if (
+          error?.message ===
+          "payout_intent_not_found"
+        ) {
+          const cameFromReturnedUrl =
+            normalizeString(
+              returnedPayoutIntentId
+            ) ===
+            intentId;
+
+          clearStoredPayoutIntent();
+
+          payoutIntentIdStateRef.current =
+            null;
+
+          setPayoutIntentId(
+            current =>
+              current === intentId
+                ? null
+                : current
+          );
+
+          setPayoutAttemptState(
+            PAYOUT_ATTEMPT_STATE
+              .EDITABLE
+          );
+
+          setSettlement(
+            null
+          );
+
+          setFundingTxHash(
+            null
+          );
+
+          if (
+            cameFromReturnedUrl
+          ) {
+            setReturnedFlowDismissed(
+              true
+            );
+
+            removeQueryParams([
+              "payout_intent_id"
+            ]);
+          }
+
+          return;
+        }
+
+        /*
+         * Failed lifecycle read:
+         * never guess that mutation is safe.
+         */
+        setPayoutAttemptState(
+          PAYOUT_ATTEMPT_STATE
+            .LOCKED_RECOVERY
+        );
+      }
+    }
+
+    void restoreAttemptState();
+
+    return () => {
+      cancelled =
+        true;
+    };
+  }, [
+    attemptRefreshNonce,
+    payoutIntentId,
+    returnedPayoutIntentId
+  ]);
 
   useEffect(() => {
     let cancelled =
@@ -763,6 +1097,7 @@ export default function App() {
       !isHistoryPage &&
       !isReturnedFlow &&
       !isRepeatFlow &&
+      !isTransferLocked &&
       isConnected &&
       Boolean(
         address
@@ -884,12 +1219,14 @@ export default function App() {
     isHistoryPage,
     isRepeatFlow,
     isReturnedFlow,
+    isTransferLocked,
     selectedRoute
   ]);
 
   const {
     handleSend,
-    walletConfirmationPending
+    walletConfirmationPending,
+    resetRouteFlowRuntime
   } = useRouteFlow({
     isConnected,
     address,
@@ -945,7 +1282,19 @@ export default function App() {
           }
         );
 
-        return handleSend();
+        try {
+          return await handleSend();
+        }
+        finally {
+          /*
+           * Re-read Core lifecycle after every
+           * user-driven payout attempt.
+           */
+          setAttemptRefreshNonce(
+            current =>
+              current + 1
+          );
+        }
       },
       [
         address,
@@ -955,6 +1304,119 @@ export default function App() {
         payoutIntentId,
         repeatSourcePayoutIntentId,
         selectedRouteId
+      ]
+    );
+
+  /*
+   * Explicit user action.
+   *
+   * Detaches the current attempt locally without
+   * cancelling or mutating the old backend payout.
+   */
+  const handleNewPayout =
+    useCallback(
+      () => {
+        /*
+         * Do not detach while an authorization,
+         * creation or funding request is still active.
+         *
+         * resetRouteFlowRuntime can cancel polling,
+         * but it cannot cancel an already-running
+         * settlement creation request.
+         */
+        if (isBusy) {
+          return;
+        }
+
+        resetRouteFlowRuntime();
+
+        payoutIntentIdStateRef.current =
+          null;
+
+        setPayoutIntentId(
+          null
+        );
+
+        setPayoutAttemptState(
+          PAYOUT_ATTEMPT_STATE
+            .EDITABLE
+        );
+
+        setSettlement(
+          null
+        );
+
+        setFundingTxHash(
+          null
+        );
+
+        setRepeatSourcePayoutIntentId(
+          null
+        );
+
+        setReturnedFlowDismissed(
+          true
+        );
+
+        setPricingPreview(
+          null
+        );
+
+        setPricingPreviewStatus(
+          "idle"
+        );
+
+        setPricingPreviewError(
+          null
+        );
+
+        routeCreatedTrackedRef
+          .current = false;
+
+        /*
+         * Keep route + transfer details as the draft
+         * for the next payout.
+         */
+        storeFlowSnapshot({
+          connect_session_id:
+            connectSessionId,
+
+          payout_intent_id:
+            null,
+
+          repeat_source_payout_intent_id:
+            null,
+
+          route_id:
+            selectedRouteId ||
+            null,
+
+          transfer_fingerprint:
+            null,
+
+          form,
+
+          pricing_preview:
+            null
+        });
+
+        removeQueryParams([
+          "payout_intent_id",
+          "repeat_source_payout_intent_id",
+          "route_id"
+        ]);
+
+        writeDebug(
+          "Ready to start a new payout."
+        );
+      },
+      [
+        connectSessionId,
+        form,
+        isBusy,
+        resetRouteFlowRuntime,
+        selectedRouteId,
+        writeDebug
       ]
     );
 
@@ -1026,11 +1488,36 @@ export default function App() {
       ]
     );
 
+  /*
+   * Guard form mutation at the parent boundary.
+   *
+   * Individual controls will also be visually
+   * disabled by PayoutForm.
+   */
+  const setEditableForm =
+    useCallback(
+      nextValue => {
+        if (isTransferLocked) {
+          return;
+        }
+
+        setForm(
+          nextValue
+        );
+      },
+      [
+        isTransferLocked
+      ]
+    );
+
   function updateBeneficiaryField(
     name,
     value
   ) {
-    if (isRepeatFlow) {
+    if (
+      isRepeatFlow ||
+      isTransferLocked
+    ) {
       return;
     }
 
@@ -1052,6 +1539,21 @@ export default function App() {
   function changeRoute(
     routeId
   ) {
+    if (isTransferLocked) {
+      writeDebug(
+        "This payout is locked. Start a new payout to change the route.",
+        {
+          payout_intent_id:
+            payoutIntentId,
+
+          payout_attempt_state:
+            payoutAttemptState
+        }
+      );
+
+      return;
+    }
+
     const route =
       getRouteById(
         routeId,
@@ -1075,12 +1577,24 @@ export default function App() {
       null
     );
 
+    setReturnedFlowDismissed(
+      true
+    );
+
     setSelectedRouteId(
       route.id
     );
 
+    payoutIntentIdStateRef.current =
+      null;
+
     setPayoutIntentId(
       null
+    );
+
+    setPayoutAttemptState(
+      PAYOUT_ATTEMPT_STATE
+        .EDITABLE
     );
 
     setSettlement(
@@ -1115,6 +1629,12 @@ export default function App() {
     );
 
     clearStoredFlow();
+
+    removeQueryParams([
+      "payout_intent_id",
+      "repeat_source_payout_intent_id",
+      "route_id"
+    ]);
 
     writeDebug(
       "Ready to start a new payout."
@@ -1212,7 +1732,7 @@ export default function App() {
               form
             }
             setForm={
-              setForm
+              setEditableForm
             }
             isBusy={
               isBusy
@@ -1234,6 +1754,15 @@ export default function App() {
             }
             payoutIntentId={
               payoutIntentId
+            }
+            payoutAttemptState={
+              payoutAttemptState
+            }
+            isTransferLocked={
+              isTransferLocked
+            }
+            onNewPayout={
+              handleNewPayout
             }
             pricingPreview={
               pricingPreview
