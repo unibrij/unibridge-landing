@@ -683,19 +683,14 @@ export default function App() {
    * Detach the frontend from the current payout
    * without mutating or cancelling the old backend
    * attempt.
+   *
+   * New payout also acts as the user's escape hatch
+   * from a pre-funding flow whose local runtime is
+   * still busy or waiting for wallet confirmation.
    */
   const handleNewPayout =
     useCallback(
       () => {
-        /*
-         * Polling can be stopped, but an already
-         * running authorization / settlement /
-         * funding request cannot be safely detached.
-         */
-        if (isBusy) {
-          return;
-        }
-
         resetRouteFlowRuntime();
 
         payoutIntentIdStateRef.current =
@@ -767,7 +762,6 @@ export default function App() {
       [
         connectSessionId,
         form,
-        isBusy,
         resetPayoutAttemptLifecycle,
         resetPricingPreview,
         resetRouteCreatedTracking,
