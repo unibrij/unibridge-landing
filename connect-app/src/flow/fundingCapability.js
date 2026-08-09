@@ -4,64 +4,30 @@ import {
   toHex
 } from "viem";
 
-const NATIVE_ASSET_ADDRESS =
-  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-
-const DEFAULT_ERC20_GAS_LIMIT =
-  100000n;
-
 const GAS_COST_BUFFER_BPS =
   2000n;
 
 const BPS_DENOMINATOR =
   10000n;
 
-function normalizeAddress(
-  value
-) {
-  return String(
-    value ||
-    ""
-  )
-    .trim()
-    .toLowerCase();
-}
-
 function normalizeChainId(
   chainId
 ) {
-  const numericChainId =
+  const normalized =
     Number(
       chainId
     );
 
   if (
     !Number.isInteger(
-      numericChainId
+      normalized
     ) ||
-    numericChainId <= 0
+    normalized <= 0
   ) {
     return null;
   }
 
-  return numericChainId;
-}
-
-function buildChainHex(
-  chainId
-) {
-  const normalizedChainId =
-    normalizeChainId(
-      chainId
-    );
-
-  if (!normalizedChainId) {
-    return null;
-  }
-
-  return toHex(
-    normalizedChainId
-  );
+  return normalized;
 }
 
 function parseRpcQuantity(
@@ -85,185 +51,11 @@ function parseRpcQuantity(
   }
 }
 
-function isCapabilitySupported(
-  capability
-) {
-  if (!capability) {
-    return false;
-  }
-
-  if (
-    capability === true
-  ) {
-    return true;
-  }
-
-  return (
-    typeof capability ===
-      "object" &&
-    capability.supported ===
-      true
-  );
-}
-
-function supportsNativeAuxiliaryFunds(
-  capability
-) {
-  if (
-    !isCapabilitySupported(
-      capability
-    )
-  ) {
-    return false;
-  }
-
-  const assets =
-    Array.isArray(
-      capability?.assets
-    )
-      ? capability.assets
-      : null;
-
-  /*
-   * ERC-7682:
-   *
-   * If auxiliaryFunds is supported and the wallet
-   * does not return an explicit assets list,
-   * the application SHOULD assume auxiliary funds
-   * are available for any asset.
-   */
-
-  if (!assets) {
-    return true;
-  }
-
-  const nativeAsset =
-    normalizeAddress(
-      NATIVE_ASSET_ADDRESS
-    );
-
-  return assets.some(
-    (
-      asset
-    ) =>
-      normalizeAddress(
-        asset
-      ) ===
-      nativeAsset
-  );
-}
-
-function findCapabilitiesForChain({
-  capabilities,
-  chainId
-}) {
-  if (
-    !capabilities ||
-    typeof capabilities !==
-      "object"
-  ) {
-    return null;
-  }
-
-  const expectedChainId =
-    Number(
-      chainId
-    );
-
-  if (
-    !Number.isInteger(
-      expectedChainId
-    ) ||
-    expectedChainId < 0
-  ) {
-    return null;
-  }
-
-  for (
-    const [
-      key,
-      value
-    ] of Object.entries(
-      capabilities
-    )
-  ) {
-    try {
-      if (
-        Number(
-          BigInt(
-            key
-          )
-        ) ===
-        expectedChainId
-      ) {
-        return (
-          value &&
-          typeof value ===
-            "object"
-        )
-          ? value
-          : null;
-      }
-    }
-    catch {
-      continue;
-    }
-  }
-
-  return null;
-}
-
-function pickChainCapabilities({
-  capabilities,
-  chainId
-}) {
-  if (
-    !capabilities ||
-    typeof capabilities !==
-      "object"
-  ) {
-    return null;
-  }
-
-  /*
-   * EIP-5792 allows capabilities that apply
-   * across chains to be exposed under "0x0".
-   *
-   * Chain-specific values override global ones.
-   */
-
-  const globalCapabilities =
-    findCapabilitiesForChain({
-      capabilities,
-      chainId:
-        0
-    }) ||
-    {};
-
-  const chainCapabilities =
-    findCapabilitiesForChain({
-      capabilities,
-      chainId
-    }) ||
-    {};
-
-  const mergedCapabilities = {
-    ...globalCapabilities,
-    ...chainCapabilities
-  };
-
-  return Object.keys(
-    mergedCapabilities
-  ).length
-    ? mergedCapabilities
-    : null;
-}
-
 async function readNativeBalance({
   walletClient,
   address
 }) {
-  const balance =
+  const value =
     await walletClient.request({
       method:
         "eth_getBalance",
@@ -275,7 +67,7 @@ async function readNativeBalance({
     });
 
   return parseRpcQuantity(
-    balance
+    value
   );
 }
 
@@ -283,7 +75,7 @@ async function estimateTransactionGas({
   walletClient,
   transaction
 }) {
-  const gas =
+  const value =
     await walletClient.request({
       method:
         "eth_estimateGas",
@@ -317,140 +109,35 @@ async function estimateTransactionGas({
     });
 
   return parseRpcQuantity(
-    gas
+    value
   );
 }
 
 async function readGasPrice({
   walletClient
 }) {
-  /*
-   * Current Polygon preflight.
-   *
-   * This intentionally remains isolated here so
-   * it can later be replaced by an EIP-1559-aware
-   * fee estimator without changing the resolver
-   * contract.
-   */
-
-  const gasPrice =
+  const value =
     await walletClient.request({
       method:
         "eth_gasPrice"
     });
 
   return parseRpcQuantity(
-    gasPrice
+    value
   );
-}
-
-async function readWalletCapabilities({
-  walletClient,
-  address,
-  chainHex
-}) {
-  try {
-    return await walletClient.request({
-      method:
-        "wallet_getCapabilities",
-
-      params: [
-        address,
-        [
-          chainHex
-        ]
-      ]
-    });
-  }
-  catch {
-    /*
-     * Capability discovery is optional.
-     *
-     * Wallets that do not implement EIP-5792
-     * must degrade cleanly.
-     */
-
-    return null;
-  }
-}
-
-function resolveWalletManagedCapability({
-  chainCapabilities
-}) {
-  if (
-    !chainCapabilities ||
-    typeof chainCapabilities !==
-      "object"
-  ) {
-    return null;
-  }
-
-  /*
-   * IMPORTANT:
-   *
-   * This resolver does not execute the transaction.
-   *
-   * auxiliaryFunds only means the wallet has
-   * declared access to additional funding.
-   *
-   * A consumer receiving mode "wallet_managed"
-   * MUST use the EIP-5792 wallet_sendCalls path.
-   * It must not fall back to eth_sendTransaction
-   * and assume auxiliaryFunds will apply.
-   */
-
-  if (
-    supportsNativeAuxiliaryFunds(
-      chainCapabilities
-        .auxiliaryFunds
-    )
-  ) {
-    return {
-      type:
-        "auxiliary_funds",
-
-      execution_method:
-        "wallet_sendCalls",
-
-      capability:
-        chainCapabilities
-          .auxiliaryFunds
-    };
-  }
-
-  /*
-   * paymasterService is deliberately NOT treated
-   * as wallet-managed funding.
-   *
-   * ERC-7677 only tells us that the wallet can
-   * communicate with a paymaster service supplied
-   * by the application.
-   *
-   * UniBridge sponsorship will be implemented
-   * later as its own explicit adapter.
-   */
-
-  return null;
 }
 
 function addGasCostBuffer(
   gasCost
 ) {
-  if (
-    typeof gasCost !==
-      "bigint"
-  ) {
-    return null;
-  }
-
   return (
-    gasCost +
+    gasCost *
     (
-      gasCost *
+      BPS_DENOMINATOR +
       GAS_COST_BUFFER_BPS
-    ) /
-      BPS_DENOMINATOR
-  );
+    )
+  ) /
+    BPS_DENOMINATOR;
 }
 
 function buildResult({
@@ -458,13 +145,10 @@ function buildResult({
   reason,
   nativeBalance,
   estimatedGas,
-  estimatedGasSource,
   gasPrice,
   estimatedGasCost,
   bufferedGasCost,
-  requiredNativeAmount,
-  chainCapabilities = null,
-  walletManagedCapability = null
+  requiredNativeAmount
 }) {
   return {
     mode,
@@ -475,9 +159,6 @@ function buildResult({
 
     estimated_gas:
       estimatedGas,
-
-    estimated_gas_source:
-      estimatedGasSource,
 
     gas_price:
       gasPrice,
@@ -494,13 +175,7 @@ function buildResult({
     gas_cost_buffer_bps:
       Number(
         GAS_COST_BUFFER_BPS
-      ),
-
-    wallet_capabilities:
-      chainCapabilities,
-
-    wallet_managed_capability:
-      walletManagedCapability
+      )
   };
 }
 
@@ -541,11 +216,6 @@ export async function resolveFundingCapability({
     );
   }
 
-  const chainHex =
-    buildChainHex(
-      normalizedChainId
-    );
-
   const normalizedTransaction = {
     from:
       address,
@@ -561,13 +231,6 @@ export async function resolveFundingCapability({
       transaction.value ??
       0n
   };
-
-  /*
-   * Each preflight component is independent.
-   *
-   * A failure in eth_estimateGas must not erase
-   * a successfully-read native balance or gas price.
-   */
 
   const [
     balanceResult,
@@ -598,7 +261,7 @@ export async function resolveFundingCapability({
       ? balanceResult.value
       : null;
 
-  const rpcEstimatedGas =
+  const estimatedGas =
     gasEstimateResult.status ===
       "fulfilled"
       ? gasEstimateResult.value
@@ -610,40 +273,27 @@ export async function resolveFundingCapability({
       ? gasPriceResult.value
       : null;
 
-  const estimatedGas =
-    rpcEstimatedGas ??
-    DEFAULT_ERC20_GAS_LIMIT;
-
-  const estimatedGasSource =
-    rpcEstimatedGas !==
-      null
-      ? "rpc"
-      : "fallback";
-
   /*
-   * If native balance itself cannot be read,
-   * we cannot safely declare gas insufficient.
+   * Zero native balance is definitive.
    *
-   * Preserve the existing native execution path.
+   * A normal Polygon transaction cannot pay
+   * network gas when the account has zero POL.
    */
 
   if (
     nativeBalance ===
-      null
+      0n
   ) {
     return buildResult({
       mode:
-        "native",
+        "insufficient_gas",
 
       reason:
-        "native_balance_unavailable",
+        "native_balance_zero",
 
-      nativeBalance:
-        null,
+      nativeBalance,
 
       estimatedGas,
-
-      estimatedGasSource,
 
       gasPrice,
 
@@ -659,26 +309,78 @@ export async function resolveFundingCapability({
   }
 
   /*
-   * If gas price is unavailable and the account
-   * has some native balance, we cannot make a
-   * reliable sufficiency decision.
+   * Native execution is allowed only when the
+   * required preflight data is actually available.
    *
-   * Keep the legacy native path.
-   *
-   * A zero native balance is different: an ERC-20
-   * transfer cannot pay normal Polygon gas with
-   * zero POL, so capability resolution remains useful.
+   * Unknown preflight state must not silently
+   * fall through to sendTransaction.
    */
 
   if (
-    gasPrice ===
-      null &&
-    nativeBalance >
-      0n
+    nativeBalance ===
+      null
   ) {
     return buildResult({
       mode:
-        "native",
+        "preflight_unavailable",
+
+      reason:
+        "native_balance_unavailable",
+
+      nativeBalance:
+        null,
+
+      estimatedGas,
+
+      gasPrice,
+
+      estimatedGasCost:
+        null,
+
+      bufferedGasCost:
+        null,
+
+      requiredNativeAmount:
+        null
+    });
+  }
+
+  if (
+    estimatedGas ===
+      null
+  ) {
+    return buildResult({
+      mode:
+        "preflight_unavailable",
+
+      reason:
+        "gas_estimate_unavailable",
+
+      nativeBalance,
+
+      estimatedGas:
+        null,
+
+      gasPrice,
+
+      estimatedGasCost:
+        null,
+
+      bufferedGasCost:
+        null,
+
+      requiredNativeAmount:
+        null
+    });
+  }
+
+  if (
+    gasPrice ===
+      null
+  ) {
+    return buildResult({
+      mode:
+        "preflight_unavailable",
 
       reason:
         "gas_price_unavailable",
@@ -686,8 +388,6 @@ export async function resolveFundingCapability({
       nativeBalance,
 
       estimatedGas,
-
-      estimatedGasSource,
 
       gasPrice:
         null,
@@ -703,52 +403,21 @@ export async function resolveFundingCapability({
     });
   }
 
-  let estimatedGasCost =
-    null;
+  const estimatedGasCost =
+    estimatedGas *
+    gasPrice;
 
-  let bufferedGasCost =
-    null;
+  const bufferedGasCost =
+    addGasCostBuffer(
+      estimatedGasCost
+    );
 
-  let requiredNativeAmount =
-    null;
-
-  if (
-    gasPrice !==
-      null
-  ) {
-    estimatedGasCost =
-      estimatedGas *
-      gasPrice;
-
-    bufferedGasCost =
-      addGasCostBuffer(
-        estimatedGasCost
-      );
-
-    requiredNativeAmount =
-      (
-        bufferedGasCost ??
-        estimatedGasCost
-      ) +
-      normalizedTransaction
-        .value;
-  }
-
-  /*
-   * Native execution.
-   *
-   * RPC estimate:
-   *   definitive preflight result.
-   *
-   * Fallback estimate:
-   *   preserve native execution, but report only
-   *   probable sufficiency because eth_estimateGas
-   *   itself did not succeed.
-   */
+  const requiredNativeAmount =
+    bufferedGasCost +
+    normalizedTransaction
+      .value;
 
   if (
-    requiredNativeAmount !==
-      null &&
     nativeBalance >=
       requiredNativeAmount
   ) {
@@ -757,16 +426,11 @@ export async function resolveFundingCapability({
         "native",
 
       reason:
-        estimatedGasSource ===
-          "rpc"
-          ? "native_gas_sufficient"
-          : "native_gas_probably_sufficient",
+        "native_gas_sufficient",
 
       nativeBalance,
 
       estimatedGas,
-
-      estimatedGasSource,
 
       gasPrice,
 
@@ -778,97 +442,16 @@ export async function resolveFundingCapability({
     });
   }
 
-  /*
-   * At this point:
-   *
-   * - native balance is zero, or
-   * - calculated native gas is insufficient.
-   *
-   * Only now ask the wallet whether it exposes
-   * a compatible EIP-5792 capability.
-   */
-
-  const walletCapabilities =
-    await readWalletCapabilities({
-      walletClient,
-      address,
-      chainHex
-    });
-
-  const chainCapabilities =
-    pickChainCapabilities({
-      capabilities:
-        walletCapabilities,
-
-      chainId:
-        normalizedChainId
-    });
-
-  const walletManagedCapability =
-    resolveWalletManagedCapability({
-      chainCapabilities
-    });
-
-  if (
-    walletManagedCapability
-  ) {
-    return buildResult({
-      mode:
-        "wallet_managed",
-
-      reason:
-        walletManagedCapability
-          .type,
-
-      nativeBalance,
-
-      estimatedGas,
-
-      estimatedGasSource,
-
-      gasPrice,
-
-      estimatedGasCost,
-
-      bufferedGasCost,
-
-      requiredNativeAmount,
-
-      chainCapabilities,
-
-      walletManagedCapability
-    });
-  }
-
-  /*
-   * No compatible wallet-managed funding path.
-   *
-   * UniBridge-sponsored execution is intentionally
-   * not inferred here.
-   *
-   * When sponsorship is introduced it will be an
-   * explicit resolver/adapter step between
-   * wallet_managed and insufficient_gas.
-   */
-
   return buildResult({
     mode:
       "insufficient_gas",
 
     reason:
-      nativeBalance ===
-        0n
-        ? "native_balance_zero"
-        : estimatedGasSource ===
-            "rpc"
-          ? "native_gas_insufficient"
-          : "native_gas_probably_insufficient",
+      "native_gas_insufficient",
 
     nativeBalance,
 
     estimatedGas,
-
-    estimatedGasSource,
 
     gasPrice,
 
@@ -876,9 +459,7 @@ export async function resolveFundingCapability({
 
     bufferedGasCost,
 
-    requiredNativeAmount,
-
-    chainCapabilities
+    requiredNativeAmount
   });
 }
 
