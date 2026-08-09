@@ -273,6 +273,24 @@ export default function PayoutForm({
         }
       />
 
+      {!routeUnavailable ? (
+        <PricingPreview
+          pricingPreview={
+            displayedPricing
+          }
+          status={
+            executionPricing
+              ? "ready"
+              : pricingPreviewStatus
+          }
+          error={
+            executionPricing
+              ? null
+              : pricingPreviewError
+          }
+        />
+      ) : null}
+
       <BeneficiaryFields
         form={
           form
@@ -293,24 +311,6 @@ export default function PayoutForm({
           beneficiaryFieldsDisabled
         }
       />
-
-      {!routeUnavailable ? (
-        <PricingPreview
-          pricingPreview={
-            displayedPricing
-          }
-          status={
-            executionPricing
-              ? "ready"
-              : pricingPreviewStatus
-          }
-          error={
-            executionPricing
-              ? null
-              : pricingPreviewError
-          }
-        />
-      ) : null}
 
       <PayoutLifecyclePanel
         routeUnavailable={
