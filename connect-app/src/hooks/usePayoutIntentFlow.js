@@ -2,7 +2,6 @@
 
 import {
   createPayoutIntent,
-  createSettlement,
   getPayoutIntent,
   repeatPayout,
   startKyc
@@ -13,14 +12,12 @@ import {
 } from "../form";
 
 import {
-  clearStoredPayoutIntent,
   readStoredFlow,
   storeFlowSnapshot
 } from "../flow/flowStorage";
 
 import {
   PAYOUT_ATTEMPT_STATE,
-  buildTransferFingerprint,
   resolvePayoutAttemptState,
   resolveSettlementCreationStatus,
   isStalePreCommitIntent
@@ -32,13 +29,24 @@ import {
 } from "../flow/kyc";
 
 import {
-  startDiditVerification
-} from "../flow/diditSdk";
-
-import {
   normalizePricingPreview,
   getPayoutIntentId
 } from "../flow/routeFlowUtils";
+
+import {
+  normalizeAuthorizationStatus,
+  requireNormalFlowContext,
+  requireRepeatFlowContext,
+  buildCurrentTransferFingerprint
+} from "../flow/payoutFlowContext";
+
+import {
+  createPayoutIntentLifecycle
+} from "../flow/payoutIntentLifecycle";
+
+import {
+  openPayoutKyc
+} from "../flow/payoutKycFlow";
 
 export function usePayoutIntentFlow({
   isConnected,
@@ -51,6 +59,7 @@ export function usePayoutIntentFlow({
 
   payoutIntentIdRef,
   routeFlowGenerationRef,
+
   setPayoutIntentId,
   setSettlement,
   setFundingTxHash,
@@ -88,338 +97,61 @@ export function usePayoutIntentFlow({
     );
   }
 
-  function normalizeAuthorizationStatus(
-    value
-  ) {
-    return String(
-      value ||
-      ""
-    )
-      .trim()
-      .toLowerCase();
-  }
+  function requireCurrentFlowContext() {
+    if (isRepeatFlow) {
+      requireRepeatFlowContext({
+        connectSessionId,
+        repeatSourcePayoutIntentId,
+        repeatAccessToken,
+        form
+      });
 
-  function requireNormalFlowContext() {
-    if (!connectSessionId) {
-      throw new Error(
-        "connect_session_required"
-      );
-    }
-
-    if (!selectedRoute) {
-      throw new Error(
-        "connect_route_required"
-      );
-    }
-
-    if (!address) {
-      throw new Error(
-        "wallet_address_required"
-      );
-    }
-
-    validateRouteForm({
-      form,
-
-      route:
-        selectedRoute
-    });
-  }
-
-  function requireRepeatFlowContext() {
-    if (!connectSessionId) {
-      throw new Error(
-        "connect_session_required"
-      );
-    }
-
-    if (
-      !repeatSourcePayoutIntentId
-    ) {
-      throw new Error(
-        "repeat_source_payout_intent_id_required"
-      );
-    }
-
-    if (!repeatAccessToken) {
-      throw new Error(
-        "repeat_access_token_required"
-      );
-    }
-
-    const amount =
-      Number(
-        form?.amount
-      );
-
-    if (
-      !Number.isFinite(
-        amount
-      ) ||
-      amount <= 0
-    ) {
-      throw new Error(
-        "invalid_amount"
-      );
-    }
-  }
-
-  function buildCurrentTransferFingerprint() {
-    return buildTransferFingerprint({
-      route:
-        selectedRoute,
-
-      form,
-
-      repeatSourcePayoutIntentId:
-        repeatSourcePayoutIntentId ||
-        null
-    });
-  }
-
-  function invalidateLocalPayoutIntent(
-    intentId
-  ) {
-    const normalizedIntentId =
-      String(
-        intentId ||
-        ""
-      ).trim();
-
-    /*
-     * Protect a newer attempt from being cleared
-     * by an older async operation.
-     */
-    if (
-      normalizedIntentId &&
-      payoutIntentIdRef.current &&
-      payoutIntentIdRef.current !==
-        normalizedIntentId
-    ) {
       return;
     }
 
-    payoutIntentIdRef.current =
-      null;
-
-    setPayoutIntentId(
-      null
-    );
-
-    clearStoredPayoutIntent();
+    requireNormalFlowContext({
+      connectSessionId,
+      selectedRoute,
+      address,
+      form
+    });
   }
 
-  async function retireSafeFailedIntent(
-    intentId,
-    intent
-  ) {
-    const attemptState =
-      resolvePayoutAttemptState(
-        intent
-      );
-
-    const creationStatus =
-      resolveSettlementCreationStatus(
-        intent
-      );
-
-    if (
-      creationStatus ===
-        "failed" &&
-      attemptState ===
-        PAYOUT_ATTEMPT_STATE.EDITABLE
-    ) {
-      invalidateLocalPayoutIntent(
-        intentId
-      );
-
-      writeDebug(
-        "Safe pre-side-effect payout attempt failed. A new payout intent will be created on the next attempt.",
-        {
-          payout_intent_id:
-            intentId
-        }
-      );
-
-      return true;
-    }
-
-    return false;
+  function buildTransferFingerprint() {
+    return buildCurrentTransferFingerprint({
+      selectedRoute,
+      form,
+      repeatSourcePayoutIntentId
+    });
   }
 
-  async function createSettlementForIntent(
-    intentId,
-    flowGeneration =
-      getFlowGeneration()
-  ) {
-    if (!intentId) {
-      throw new Error(
-        "payout_intent_id_required"
-      );
-    }
+  const {
+    invalidateLocalPayoutIntent,
+    retireSafeFailedIntent,
+    createSettlementForIntent,
+    continueExistingIntent
+  } =
+    createPayoutIntentLifecycle({
+      payoutIntentIdRef,
 
-    writeDebug(
-      "Preparing settlement...",
-      {
-        payout_intent_id:
-          intentId
-      }
-    );
+      setPayoutIntentId,
+      setSettlement,
+      setFundingTxHash,
+      setWalletConfirmationPending,
 
-    try {
-      const settlementResult =
-        await createSettlement({
-          payoutIntentId:
-            intentId
-        });
+      ensureIntentAuthorized,
 
-      /*
-       * New payout may have detached this attempt
-       * while settlement creation was pending.
-       */
-      if (
-        !isFlowCurrent(
-          flowGeneration
-        )
-      ) {
-        return null;
-      }
+      isFlowCurrent,
+      getFlowGeneration,
 
-      setSettlement(
-        settlementResult
-      );
-
-      setFundingTxHash(
-        null
-      );
-
-      setWalletConfirmationPending(
-        false
-      );
-
-      writeDebug(
-        "Funding route ready. Send from wallet.",
-        settlementResult
-      );
-
-      return settlementResult;
-    }
-    catch (
-      err
-    ) {
-      /*
-       * Once the user detached this flow, its
-       * lifecycle result must not affect the new
-       * frontend payout.
-       */
-      if (
-        !isFlowCurrent(
-          flowGeneration
-        )
-      ) {
-        return null;
-      }
-
-      try {
-        const latestIntent =
-          await getPayoutIntent({
-            payoutIntentId:
-              intentId
-          });
-
-        if (
-          !isFlowCurrent(
-            flowGeneration
-          )
-        ) {
-          return null;
-        }
-
-        const retired =
-          await retireSafeFailedIntent(
-            intentId,
-            latestIntent
-          );
-
-        if (!retired) {
-          const attemptState =
-            resolvePayoutAttemptState(
-              latestIntent
-            );
-
-          const creationStatus =
-            resolveSettlementCreationStatus(
-              latestIntent
-            );
-
-          writeDebug(
-            attemptState ===
-              PAYOUT_ATTEMPT_STATE
-                .LOCKED_RECOVERY
-              ? "Settlement creation crossed the safe boundary and requires recovery."
-              : creationStatus ===
-                  "creating"
-                ? "Settlement creation is still in progress."
-                : "Settlement creation remains attached to the current payout attempt.",
-            {
-              payout_intent_id:
-                intentId,
-
-              payout_attempt_state:
-                attemptState,
-
-              settlement_creation_status:
-                creationStatus,
-
-              settlement_creation_stage:
-                latestIntent
-                  ?.settlement_creation_stage ||
-                null
-            }
-          );
-        }
-      }
-      catch (
-        lifecycleError
-      ) {
-        if (
-          !isFlowCurrent(
-            flowGeneration
-          )
-        ) {
-          return null;
-        }
-
-        writeDebug(
-          "Could not resolve payout lifecycle after settlement failure. Existing payout intent was preserved.",
-          {
-            payout_intent_id:
-              intentId,
-
-            lifecycle_error:
-              lifecycleError
-                ?.message ||
-              String(
-                lifecycleError
-              )
-          }
-        );
-      }
-
-      throw err;
-    }
-  }
+      writeDebug
+    });
 
   async function createIntentAndSettlement(
     flowGeneration =
       getFlowGeneration()
   ) {
-    if (isRepeatFlow) {
-      requireRepeatFlowContext();
-    }
-    else {
-      requireNormalFlowContext();
-    }
+    requireCurrentFlowContext();
 
     writeDebug(
       isRepeatFlow
@@ -470,11 +202,8 @@ export function usePayoutIntentFlow({
           });
 
     /*
-     * The user may have pressed New payout while
+     * The user may have detached this attempt while
      * intent creation was pending.
-     *
-     * Never attach the resulting old intent to the
-     * new frontend draft.
      */
     if (
       !isFlowCurrent(
@@ -494,9 +223,6 @@ export function usePayoutIntentFlow({
         "payout_intent_id_missing"
       );
     }
-
-    const transferFingerprint =
-      buildCurrentTransferFingerprint();
 
     payoutIntentIdRef.current =
       intentId;
@@ -521,7 +247,7 @@ export function usePayoutIntentFlow({
         null,
 
       transfer_fingerprint:
-        transferFingerprint,
+        buildTransferFingerprint(),
 
       form,
 
@@ -561,7 +287,7 @@ export function usePayoutIntentFlow({
         return null;
       }
 
-      const settlementResult =
+      const settlement =
         await createSettlementForIntent(
           intentId,
           flowGeneration
@@ -583,13 +309,10 @@ export function usePayoutIntentFlow({
 
         authorization,
 
-        settlement:
-          settlementResult
+        settlement
       };
     }
-    catch (
-      err
-    ) {
+    catch (err) {
       if (
         !isFlowCurrent(
           flowGeneration
@@ -640,144 +363,14 @@ export function usePayoutIntentFlow({
         }
         catch {
           /*
-           * Keep the intent when authoritative
-           * lifecycle cannot be determined.
+           * Preserve intent when authoritative
+           * lifecycle cannot be resolved.
            */
         }
       }
 
       throw err;
     }
-  }
-
-  async function continueExistingIntent(
-    intentId,
-    existingIntent = null,
-    flowGeneration =
-      getFlowGeneration()
-  ) {
-    const resolvedIntent =
-      existingIntent ||
-      await getPayoutIntent({
-        payoutIntentId:
-          intentId
-      });
-
-    if (
-      !isFlowCurrent(
-        flowGeneration
-      )
-    ) {
-      return null;
-    }
-
-    const attemptState =
-      resolvePayoutAttemptState(
-        resolvedIntent
-      );
-
-    const creationStatus =
-      resolveSettlementCreationStatus(
-        resolvedIntent
-      );
-
-    if (
-      await retireSafeFailedIntent(
-        intentId,
-        resolvedIntent
-      )
-    ) {
-      return null;
-    }
-
-    if (
-      attemptState ===
-      PAYOUT_ATTEMPT_STATE
-        .LOCKED_RECOVERY
-    ) {
-      writeDebug(
-        "This payout requires recovery before it can continue.",
-        {
-          payout_intent_id:
-            intentId,
-
-          settlement_creation_status:
-            creationStatus,
-
-          settlement_creation_stage:
-            resolvedIntent
-              ?.settlement_creation_stage ||
-            null
-        }
-      );
-
-      throw new Error(
-        "connect_settlement_recovery_required"
-      );
-    }
-
-    if (
-      creationStatus ===
-      "creating"
-    ) {
-      writeDebug(
-        "Settlement creation is already in progress.",
-        {
-          payout_intent_id:
-            intentId
-        }
-      );
-
-      throw new Error(
-        "connect_settlement_creation_in_progress"
-      );
-    }
-
-    try {
-      await ensureIntentAuthorized({
-        intentId,
-
-        authorizationStatus:
-          resolvedIntent
-            ?.authorization_status
-      });
-
-      if (
-        !isFlowCurrent(
-          flowGeneration
-        )
-      ) {
-        return null;
-      }
-    }
-    catch (
-      err
-    ) {
-      if (
-        !isFlowCurrent(
-          flowGeneration
-        )
-      ) {
-        return null;
-      }
-
-      if (
-        attemptState ===
-          PAYOUT_ATTEMPT_STATE.EDITABLE &&
-        !creationStatus
-      ) {
-        invalidateLocalPayoutIntent(
-          intentId
-        );
-      }
-
-      throw err;
-    }
-
-    return createSettlementForIntent(
-      intentId,
-      flowGeneration
-    );
   }
 
   async function continueAfterKyc(
@@ -790,12 +383,8 @@ export function usePayoutIntentFlow({
     );
 
     /*
-     * setPayoutIntentId() is asynchronous.
-     *
      * Only an explicitly supplied id or the mutable
-     * ref may resume an existing attempt here.
-     * Do not revive an intent from a stale render
-     * value after it was detached locally.
+     * ref may resume an existing attempt.
      */
     const existingIntentId =
       suppliedIntentId ||
@@ -869,8 +458,8 @@ export function usePayoutIntentFlow({
 
       if (
         attemptState ===
-        PAYOUT_ATTEMPT_STATE
-          .LOCKED_RECOVERY
+          PAYOUT_ATTEMPT_STATE
+            .LOCKED_RECOVERY
       ) {
         writeDebug(
           "Existing payout requires recovery.",
@@ -895,8 +484,8 @@ export function usePayoutIntentFlow({
 
       if (
         attemptState ===
-        PAYOUT_ATTEMPT_STATE
-          .LOCKED_RESUMABLE
+          PAYOUT_ATTEMPT_STATE
+            .LOCKED_RESUMABLE
       ) {
         return continueExistingIntent(
           existingIntentId,
@@ -908,9 +497,6 @@ export function usePayoutIntentFlow({
       const storedFlow =
         readStoredFlow();
 
-      const currentFingerprint =
-        buildCurrentTransferFingerprint();
-
       const staleIntent =
         isStalePreCommitIntent({
           intent:
@@ -920,7 +506,8 @@ export function usePayoutIntentFlow({
             storedFlow
               ?.transfer_fingerprint,
 
-          currentFingerprint
+          currentFingerprint:
+            buildTransferFingerprint()
         });
 
       if (staleIntent) {
@@ -962,273 +549,223 @@ export function usePayoutIntentFlow({
     );
   }
 
-  async function startNewFlow() {
-    if (!isConnected) {
-      writeDebug(
-        "Connect your wallet first."
-      );
-
-      return;
-    }
-
-    if (!address) {
-      writeDebug(
-        "Wallet address missing."
-      );
-
-      return;
-    }
-
-    if (!connectSessionId) {
-      writeDebug(
-        "Connect session is still preparing. Try again in a moment."
-      );
-
-      return;
-    }
-
-    if (
-      !selectedRoute &&
-      !isRepeatFlow
-    ) {
-      writeDebug(
-        "Select a payout route first."
-      );
-
-      return;
-    }
-
-    const flowGeneration =
-      getFlowGeneration();
-
-    /*
-     * Inspect an existing attempt before deciding
-     * whether Continue should resume it or safely
-     * replace a completed pre-creation authorization.
-     */
+  async function inspectExistingIntent(
+    flowGeneration
+  ) {
     const existingIntentId =
       payoutIntentIdRef.current ||
       null;
 
-    if (existingIntentId) {
-      const existingIntent =
-        await getPayoutIntent({
-          payoutIntentId:
-            existingIntentId
-        });
+    if (!existingIntentId) {
+      return {
+        handled:
+          false
+      };
+    }
 
-      if (
-        !isFlowCurrent(
-          flowGeneration
-        )
-      ) {
-        return;
-      }
+    const existingIntent =
+      await getPayoutIntent({
+        payoutIntentId:
+          existingIntentId
+      });
 
-      const attemptState =
-        resolvePayoutAttemptState(
-          existingIntent
-        );
+    if (
+      !isFlowCurrent(
+        flowGeneration
+      )
+    ) {
+      return {
+        handled:
+          true,
 
-      const creationStatus =
-        resolveSettlementCreationStatus(
-          existingIntent
-        );
+        result:
+          undefined
+      };
+    }
 
-      if (
-        await retireSafeFailedIntent(
-          existingIntentId,
-          existingIntent
-        )
-      ) {
-        /*
-         * Safe failed pre-side-effect attempt was
-         * detached. Continue below and create a
-         * replacement attempt.
-         */
-      }
-      else if (
-        creationStatus ===
+    const attemptState =
+      resolvePayoutAttemptState(
+        existingIntent
+      );
+
+    const creationStatus =
+      resolveSettlementCreationStatus(
+        existingIntent
+      );
+
+    if (
+      await retireSafeFailedIntent(
+        existingIntentId,
+        existingIntent
+      )
+    ) {
+      return {
+        handled:
+          false
+      };
+    }
+
+    if (
+      creationStatus ===
         "creating"
-      ) {
-        writeDebug(
-          "Settlement creation is already in progress.",
-          {
-            payout_intent_id:
-              existingIntentId
-          }
-        );
+    ) {
+      writeDebug(
+        "Settlement creation is already in progress.",
+        {
+          payout_intent_id:
+            existingIntentId
+        }
+      );
 
-        throw new Error(
-          "connect_settlement_creation_in_progress"
-        );
-      }
-      else if (
-        attemptState ===
-          PAYOUT_ATTEMPT_STATE
-            .LOCKED_RECOVERY
-      ) {
-        writeDebug(
-          "Existing payout requires recovery.",
-          {
-            payout_intent_id:
-              existingIntentId,
+      throw new Error(
+        "connect_settlement_creation_in_progress"
+      );
+    }
 
-            settlement_creation_status:
-              creationStatus,
+    if (
+      attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .LOCKED_RECOVERY
+    ) {
+      writeDebug(
+        "Existing payout requires recovery.",
+        {
+          payout_intent_id:
+            existingIntentId,
 
-            settlement_creation_stage:
-              existingIntent
-                ?.settlement_creation_stage ||
-              null
-          }
-        );
+          settlement_creation_status:
+            creationStatus,
 
-        throw new Error(
-          "connect_settlement_recovery_required"
-        );
-      }
-      else if (
-        attemptState ===
-          PAYOUT_ATTEMPT_STATE
-            .LOCKED_RESUMABLE
-      ) {
-        return continueExistingIntent(
-          existingIntentId,
-          existingIntent,
-          flowGeneration
-        );
-      }
-      else {
-        const authorizationStatus =
-          normalizeAuthorizationStatus(
+          settlement_creation_stage:
             existingIntent
-              ?.authorization_status
-          );
+              ?.settlement_creation_stage ||
+            null
+        }
+      );
 
-        /*
-         * An unsigned editable intent may simply
-         * be waiting for wallet confirmation.
-         *
-         * Keep the same intent so pressing Continue
-         * again can reopen its wallet signature.
-         */
-        if (
-          attemptState ===
-            PAYOUT_ATTEMPT_STATE
-              .EDITABLE &&
-          authorizationStatus !==
-            "signed"
-        ) {
-          return continueExistingIntent(
+      throw new Error(
+        "connect_settlement_recovery_required"
+      );
+    }
+
+    if (
+      attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .LOCKED_RESUMABLE
+    ) {
+      return {
+        handled:
+          true,
+
+        result:
+          await continueExistingIntent(
             existingIntentId,
             existingIntent,
             flowGeneration
-          );
-        }
+          )
+      };
+    }
 
-        /*
-         * A signed editable/pre-creation intent is
-         * still before settlement side effects.
-         *
-         * Validate the replacement draft BEFORE
-         * detaching this intent. If pricing or form
-         * validation is not ready, keep the existing
-         * attempt attached.
-         */
-        if (
-          attemptState ===
-            PAYOUT_ATTEMPT_STATE
-              .EDITABLE
-        ) {
-          if (isRepeatFlow) {
-            requireRepeatFlowContext();
-          }
-          else {
-            const normalizedPricingPreview =
-              normalizePricingPreview(
-                pricingPreview
-              );
+    const authorizationStatus =
+      normalizeAuthorizationStatus(
+        existingIntent
+          ?.authorization_status
+      );
 
-            if (
-              !normalizedPricingPreview
-            ) {
-              writeDebug(
-                "Pricing preview is required before continuing.",
-                {
-                  connect_session_id:
-                    connectSessionId,
+    /*
+     * Unsigned editable attempts may simply be
+     * waiting for wallet confirmation.
+     */
+    if (
+      attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .EDITABLE &&
+      authorizationStatus !==
+        "signed"
+    ) {
+      return {
+        handled:
+          true,
 
-                  route_id:
-                    selectedRoute?.id ||
-                    null
-                }
-              );
+        result:
+          await continueExistingIntent(
+            existingIntentId,
+            existingIntent,
+            flowGeneration
+          )
+      };
+    }
 
-              return;
-            }
-
-            validateRouteForm({
-              form,
-
-              route:
-                selectedRoute
-            });
-          }
-
-          invalidateLocalPayoutIntent(
-            existingIntentId
+    /*
+     * Signed editable attempts remain before
+     * settlement side effects and may be replaced.
+     */
+    if (
+      attemptState ===
+        PAYOUT_ATTEMPT_STATE
+          .EDITABLE
+    ) {
+      if (isRepeatFlow) {
+        requireCurrentFlowContext();
+      }
+      else {
+        const normalizedPricing =
+          normalizePricingPreview(
+            pricingPreview
           );
 
+        if (!normalizedPricing) {
           writeDebug(
-            "Previous pre-creation payout authorization was detached. Starting a fresh payout attempt.",
+            "Pricing preview is required before continuing.",
             {
-              previous_payout_intent_id:
-                existingIntentId
+              connect_session_id:
+                connectSessionId,
+
+              route_id:
+                selectedRoute?.id ||
+                null
             }
           );
+
+          return {
+            handled:
+              true,
+
+            result:
+              undefined
+          };
         }
-      }
-    }
 
-    let normalizedPricingPreview =
-      null;
+        validateRouteForm({
+          form,
 
-    if (isRepeatFlow) {
-      requireRepeatFlowContext();
-    }
-    else {
-      normalizedPricingPreview =
-        normalizePricingPreview(
-          pricingPreview
-        );
-
-      if (
-        !normalizedPricingPreview
-      ) {
-        writeDebug(
-          "Pricing preview is required before continuing.",
-          {
-            connect_session_id:
-              connectSessionId,
-
-            route_id:
-              selectedRoute?.id ||
-              null
-          }
-        );
-
-        return;
+          route:
+            selectedRoute
+        });
       }
 
-      validateRouteForm({
-        form,
+      invalidateLocalPayoutIntent(
+        existingIntentId
+      );
 
-        route:
-          selectedRoute
-      });
+      writeDebug(
+        "Previous pre-creation payout authorization was detached. Starting a fresh payout attempt.",
+        {
+          previous_payout_intent_id:
+            existingIntentId
+        }
+      );
     }
 
+    return {
+      handled:
+        false
+    };
+  }
+
+  function prepareNewAttempt(
+    normalizedPricingPreview
+  ) {
     setIsBusy(
       true
     );
@@ -1279,6 +816,95 @@ export function usePayoutIntentFlow({
           ? null
           : normalizedPricingPreview
     });
+  }
+
+  async function startNewFlow() {
+    if (!isConnected) {
+      writeDebug(
+        "Connect your wallet first."
+      );
+
+      return;
+    }
+
+    if (!address) {
+      writeDebug(
+        "Wallet address missing."
+      );
+
+      return;
+    }
+
+    if (!connectSessionId) {
+      writeDebug(
+        "Connect session is still preparing. Try again in a moment."
+      );
+
+      return;
+    }
+
+    if (
+      !selectedRoute &&
+      !isRepeatFlow
+    ) {
+      writeDebug(
+        "Select a payout route first."
+      );
+
+      return;
+    }
+
+    const flowGeneration =
+      getFlowGeneration();
+
+    const existing =
+      await inspectExistingIntent(
+        flowGeneration
+      );
+
+    if (existing.handled) {
+      return existing.result;
+    }
+
+    let normalizedPricingPreview =
+      null;
+
+    if (isRepeatFlow) {
+      requireCurrentFlowContext();
+    }
+    else {
+      normalizedPricingPreview =
+        normalizePricingPreview(
+          pricingPreview
+        );
+
+      if (!normalizedPricingPreview) {
+        writeDebug(
+          "Pricing preview is required before continuing.",
+          {
+            connect_session_id:
+              connectSessionId,
+
+            route_id:
+              selectedRoute?.id ||
+              null
+          }
+        );
+
+        return;
+      }
+
+      validateRouteForm({
+        form,
+
+        route:
+          selectedRoute
+      });
+    }
+
+    prepareNewAttempt(
+      normalizedPricingPreview
+    );
 
     writeDebug(
       "Starting verification...",
@@ -1359,182 +985,23 @@ export function usePayoutIntentFlow({
         }
       );
 
-      startDiditVerification({
+      openPayoutKyc({
         url:
           kyc.url,
 
-        onStateChange:
-          (state, error) => {
-            if (
-              !isFlowCurrent(
-                flowGeneration
-              )
-            ) {
-              return;
-            }
+        connectSessionId,
+        flowGeneration,
 
-            writeDebug(
-              "Verification state changed.",
-              {
-                state:
-                  state ||
-                  null,
+        isFlowCurrent,
 
-                error:
-                  error?.message ||
-                  error ||
-                  null
-              }
-            );
+        setIsBusy,
 
-            if (
-              state ===
-              "error"
-            ) {
-              setIsBusy(
-                false
-              );
-            }
-          },
+        continueAfterKyc,
 
-        onComplete:
-          async result => {
-            if (
-              !isFlowCurrent(
-                flowGeneration
-              )
-            ) {
-              return;
-            }
-
-            if (
-              result?.type ===
-              "cancelled"
-            ) {
-              setIsBusy(
-                false
-              );
-
-              writeDebug(
-                "Verification cancelled.",
-                {
-                  connect_session_id:
-                    connectSessionId,
-
-                  verification_session_id:
-                    result
-                      ?.session
-                      ?.sessionId ||
-                    null
-                }
-              );
-
-              return;
-            }
-
-            if (
-              result?.type ===
-              "failed"
-            ) {
-              setIsBusy(
-                false
-              );
-
-              writeDebug(
-                "Verification failed.",
-                {
-                  connect_session_id:
-                    connectSessionId,
-
-                  error_type:
-                    result
-                      ?.error
-                      ?.type ||
-                    null,
-
-                  error:
-                    result
-                      ?.error
-                      ?.message ||
-                    null
-                }
-              );
-
-              return;
-            }
-
-            if (
-              result?.type !==
-              "completed"
-            ) {
-              setIsBusy(
-                false
-              );
-
-              return;
-            }
-
-            writeDebug(
-              "Verification completed.",
-              {
-                connect_session_id:
-                  connectSessionId,
-
-                verification_session_id:
-                  result
-                    ?.session
-                    ?.sessionId ||
-                  null,
-
-                verification_status:
-                  result
-                    ?.session
-                    ?.status ||
-                  null
-              }
-            );
-
-            try {
-              await continueAfterKyc(
-                null,
-                flowGeneration
-              );
-            }
-            catch (
-              err
-            ) {
-              if (
-                !isFlowCurrent(
-                  flowGeneration
-                )
-              ) {
-                return;
-              }
-
-              setIsBusy(
-                false
-              );
-
-              writeDebug(
-                "Unable to continue after verification.",
-                {
-                  connect_session_id:
-                    connectSessionId,
-
-                  error:
-                    err?.message ||
-                    String(
-                      err
-                    )
-                }
-              );
-            }
-          }
+        writeDebug
       });
     }
-    catch (
-      err
-    ) {
+    catch (err) {
       if (
         !isFlowCurrent(
           flowGeneration
