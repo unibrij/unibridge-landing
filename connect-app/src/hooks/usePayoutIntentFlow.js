@@ -59,6 +59,7 @@ export function usePayoutIntentFlow({
 
   payoutIntentIdRef,
   routeFlowGenerationRef,
+  kycCompletionPendingRef,
 
   setPayoutIntentId,
   setSettlement,
@@ -993,6 +994,8 @@ export function usePayoutIntentFlow({
         flowGeneration,
 
         isFlowCurrent,
+
+        kycCompletionPendingRef,
 
         setIsBusy,
 
