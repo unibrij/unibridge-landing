@@ -14,14 +14,6 @@ import {
 } from "../flow/fundingCapability";
 
 import {
-  sendWalletManagedFunding
-} from "../flow/sendWalletManagedFunding";
-
-import {
-  waitForWalletManagedFunding
-} from "../flow/waitForWalletManagedFunding";
-
-import {
   REQUIRED_CHAIN_ID,
   POLYGON_TOKENS,
   ERC20_TRANSFER_ABI,
@@ -29,6 +21,12 @@ import {
   pickFundingAmount,
   pickFundingDepositAddress
 } from "../flow/funding";
+
+const GAS_LIMIT_BUFFER_BPS =
+  2000n;
+
+const BPS_DENOMINATOR =
+  10000n;
 
 function bigintToString(
   value
@@ -38,6 +36,26 @@ function bigintToString(
     ? value.toString()
     : value ??
         null;
+}
+
+function addGasLimitBuffer(
+  gasLimit
+) {
+  if (
+    typeof gasLimit !==
+      "bigint"
+  ) {
+    return null;
+  }
+
+  return (
+    gasLimit *
+    (
+      BPS_DENOMINATOR +
+      GAS_LIMIT_BUFFER_BPS
+    )
+  ) /
+    BPS_DENOMINATOR;
 }
 
 export function useFundingTransaction({
@@ -269,7 +287,7 @@ export function useFundingTransaction({
       };
 
       writeDebug(
-        "Checking wallet funding capability...",
+        "Checking funding gas availability...",
         {
           asset,
           amount,
@@ -297,7 +315,7 @@ export function useFundingTransaction({
         });
 
       writeDebug(
-        "Wallet funding capability resolved",
+        "Funding gas availability resolved",
         {
           mode:
             fundingCapability
@@ -319,246 +337,50 @@ export function useFundingTransaction({
                 .estimated_gas
             ),
 
-          estimated_gas_source:
-            fundingCapability
-              .estimated_gas_source,
-
           gas_price:
             bigintToString(
               fundingCapability
                 .gas_price
             ),
 
+          estimated_gas_cost:
+            bigintToString(
+              fundingCapability
+                .estimated_gas_cost
+            ),
+
+          buffered_gas_cost:
+            bigintToString(
+              fundingCapability
+                .buffered_gas_cost
+            ),
+
           required_native_amount:
             bigintToString(
               fundingCapability
                 .required_native_amount
-            ),
-
-          wallet_managed_capability:
-            fundingCapability
-              .wallet_managed_capability
-              ?.type ||
-            null
+            )
         }
       );
 
-      let hash =
-        null;
-
-      let executionMode =
-        null;
-
-      let walletCallsId =
-        null;
-
       if (
-        fundingCapability.mode ===
-          "native"
-      ) {
-        executionMode =
-          "send_transaction_encoded_transfer";
-
-        const nativeGasLimit =
-          fundingCapability
-            .estimated_gas_source ===
-              "rpc" &&
-          typeof fundingCapability
-            .estimated_gas ===
-              "bigint"
-            ? fundingCapability
-                .estimated_gas
-            : 100000n;
-
-        setWalletConfirmationPending(
-          true
-        );
-
-        writeDebug(
-          "Opening wallet transfer...",
-          {
-            mode:
-              executionMode,
-
-            status:
-              "wallet_confirmation_pending",
-
-            capability_reason:
-              fundingCapability
-                .reason,
-
-            asset,
-            amount,
-
-            deposit_address:
-              depositAddress,
-
-            token_contract:
-              token.address,
-
-            gas_limit:
-              nativeGasLimit
-                .toString()
-          }
-        );
-
-        hash =
-          await walletClient
-            .sendTransaction({
-              account:
-                address,
-
-              to:
-                token.address,
-
-              data:
-                transferData,
-
-              gas:
-                nativeGasLimit
-            });
-
-        setWalletConfirmationPending(
-          false
-        );
-      }
-      else if (
-        fundingCapability.mode ===
-          "wallet_managed"
-      ) {
-        executionMode =
-          "wallet_managed_send_calls";
-
-        setWalletConfirmationPending(
-          true
-        );
-
-        writeDebug(
-          "Opening wallet-managed transfer...",
-          {
-            mode:
-              executionMode,
-
-            status:
-              "wallet_confirmation_pending",
-
-            capability:
-              fundingCapability
-                .wallet_managed_capability
-                ?.type ||
-              null,
-
-            execution_method:
-              fundingCapability
-                .wallet_managed_capability
-                ?.execution_method ||
-              null,
-
-            asset,
-            amount,
-
-            deposit_address:
-              depositAddress,
-
-            token_contract:
-              token.address
-          }
-        );
-
-        const submittedCalls =
-          await sendWalletManagedFunding({
-            walletClient,
-            address,
-
-            chainId:
-              REQUIRED_CHAIN_ID,
-
-            transaction,
-
-            walletManagedCapability:
-              fundingCapability
-                .wallet_managed_capability
-          });
-
-        walletCallsId =
-          submittedCalls.calls_id;
-
-        setWalletConfirmationPending(
-          false
-        );
-
-        writeDebug(
-          "Wallet-managed funding submitted.",
-          {
-            mode:
-              executionMode,
-
-            status:
-              "wallet_calls_submitted",
-
-            calls_id:
-              walletCallsId,
-
-            capability:
-              submittedCalls
-                .capability,
-
-            asset,
-            amount,
-
-            deposit_address:
-              depositAddress,
-
-            token_contract:
-              token.address
-          }
-        );
-
-        const confirmedCalls =
-          await waitForWalletManagedFunding({
-            walletClient,
-
-            callsId:
-              walletCallsId
-          });
-
-        hash =
-          confirmedCalls
-            .tx_hash;
-
-        writeDebug(
-          "Wallet-managed funding confirmed.",
-          {
-            mode:
-              executionMode,
-
-            status:
-              "wallet_calls_confirmed",
-
-            calls_id:
-              walletCallsId,
-
-            tx_hash:
-              hash,
-
-            transaction_hashes:
-              confirmedCalls
-                .transaction_hashes,
-
-            asset,
-            amount
-          }
-        );
-      }
-      else if (
         fundingCapability.mode ===
           "insufficient_gas"
       ) {
+        /*
+         * UniBridge sponsorship will be inserted
+         * here.
+         *
+         * Until that adapter exists, do not open
+         * the wallet with a transaction that we
+         * already know cannot pay network gas.
+         */
+
         writeDebug(
           "Insufficient POL for network fee",
           {
             message:
-              "Your wallet needs POL to pay the Polygon network fee.",
+              "Your wallet does not have enough POL to pay the Polygon network fee.",
 
             status:
               "insufficient_gas",
@@ -592,13 +414,159 @@ export function useFundingTransaction({
 
         return;
       }
-      else {
+
+      if (
+        fundingCapability.mode ===
+          "preflight_unavailable"
+      ) {
+        /*
+         * Unknown gas state must not fall through
+         * to native execution.
+         *
+         * This will also become a sponsorship
+         * candidate once that adapter exists.
+         */
+
+        writeDebug(
+          "Funding gas preflight unavailable",
+          {
+            message:
+              "Unable to verify the Polygon network fee requirements.",
+
+            status:
+              "preflight_unavailable",
+
+            reason:
+              fundingCapability
+                .reason,
+
+            native_balance:
+              bigintToString(
+                fundingCapability
+                  .native_balance
+              ),
+
+            estimated_gas:
+              bigintToString(
+                fundingCapability
+                  .estimated_gas
+              ),
+
+            gas_price:
+              bigintToString(
+                fundingCapability
+                  .gas_price
+              ),
+
+            asset,
+            amount,
+
+            deposit_address:
+              depositAddress,
+
+            token_contract:
+              token.address
+          }
+        );
+
+        return;
+      }
+
+      if (
+        fundingCapability.mode !==
+          "native"
+      ) {
         throw new Error(
           `Unsupported funding capability mode: ${String(
             fundingCapability.mode
           )}`
         );
       }
+
+      if (
+        typeof fundingCapability
+          .estimated_gas !==
+        "bigint"
+      ) {
+        throw new Error(
+          "Native funding selected without a valid gas estimate"
+        );
+      }
+
+      const nativeGasLimit =
+        addGasLimitBuffer(
+          fundingCapability
+            .estimated_gas
+        );
+
+      if (
+        typeof nativeGasLimit !==
+          "bigint"
+      ) {
+        throw new Error(
+          "Unable to build native gas limit"
+        );
+      }
+
+      const executionMode =
+        "send_transaction_encoded_transfer";
+
+      setWalletConfirmationPending(
+        true
+      );
+
+      writeDebug(
+        "Opening wallet transfer...",
+        {
+          mode:
+            executionMode,
+
+          status:
+            "wallet_confirmation_pending",
+
+          capability_reason:
+            fundingCapability
+              .reason,
+
+          asset,
+          amount,
+
+          deposit_address:
+            depositAddress,
+
+          token_contract:
+            token.address,
+
+          estimated_gas:
+            fundingCapability
+              .estimated_gas
+              .toString(),
+
+          gas_limit:
+            nativeGasLimit
+              .toString()
+        }
+      );
+
+      const hash =
+        await walletClient
+          .sendTransaction({
+            account:
+              address,
+
+            to:
+              token.address,
+
+            data:
+              transferData,
+
+            gas:
+              nativeGasLimit
+          });
+
+      setWalletConfirmationPending(
+        false
+      );
 
       if (!hash) {
         throw new Error(
@@ -608,10 +576,6 @@ export function useFundingTransaction({
 
       setFundingTxHash(
         hash
-      );
-
-      setWalletConfirmationPending(
-        false
       );
 
       clearStoredFlow();
@@ -627,9 +591,6 @@ export function useFundingTransaction({
 
           mode:
             executionMode,
-
-          calls_id:
-            walletCallsId,
 
           asset,
           amount,
