@@ -1,0 +1,329 @@
+/* connect-app/src/styles/history.css */
+
+.history-shell {
+  justify-content: flex-start;
+  gap: 0;
+  padding-top: 118px;
+  padding-bottom: 42px;
+}
+
+/* --------------------------------------------------
+   History
+-------------------------------------------------- */
+
+.history-content {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 28px;
+  text-align: left;
+}
+
+.history-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.history-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 0 3px;
+}
+
+.history-section-title {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.history-recipient-list,
+.history-payout-list {
+  display: grid;
+  gap: 10px;
+}
+
+/* --------------------------------------------------
+   History recipient cards
+-------------------------------------------------- */
+
+.history-recipient-card {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 39, 78, 0.72) 0%,
+      rgba(8, 28, 61, 0.74) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.history-recipient-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-recipient-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(45, 212, 191, 0.55),
+      rgba(59, 130, 246, 0.45)
+    );
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.history-recipient-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.history-recipient-name {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-recipient-destination,
+.history-recipient-last-paid,
+.history-payout-date {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-recipient-destination {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --------------------------------------------------
+   History payout cards
+-------------------------------------------------- */
+
+.history-payouts-section {
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.history-payout-card {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 39, 78, 0.72) 0%,
+      rgba(8, 28, 61, 0.74) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.history-payout-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.history-payout-summary {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.history-payout-amount {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.history-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 212, 191, 0.13);
+  background: rgba(20, 184, 166, 0.14);
+  color: #6ee7b7;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.history-status-completed,
+.history-status-complete,
+.history-status-executed,
+.history-status-success,
+.history-status-succeeded,
+.history-status-payout_completed,
+.history-status-execution_completed {
+  border-color: rgba(52, 211, 153, 0.16);
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+.history-status-processing,
+.history-status-pending {
+  border-color: rgba(251, 191, 36, 0.18);
+  background: rgba(245, 158, 11, 0.11);
+  color: #fcd34d;
+}
+
+.history-status-failed {
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(239, 68, 68, 0.11);
+  color: #fca5a5;
+}
+
+/* --------------------------------------------------
+   History actions
+-------------------------------------------------- */
+
+.history-secondary-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid rgba(45, 212, 191, 0.42);
+  border-radius: 9px;
+  background: rgba(20, 184, 166, 0.035);
+  color: #5eead4;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 100ms ease;
+}
+
+.history-secondary-button:hover {
+  border-color: rgba(94, 234, 212, 0.62);
+  background: rgba(20, 184, 166, 0.09);
+  color: #99f6e4;
+}
+
+.history-secondary-button:active {
+  transform: scale(0.98);
+}
+
+.history-secondary-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.history-payout-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.history-payout-actions .history-secondary-button {
+  width: 100%;
+}
+
+/* --------------------------------------------------
+   History state
+-------------------------------------------------- */
+
+.history-state-card {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 22px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 13px;
+  background: rgba(8, 30, 66, 0.6);
+  text-align: center;
+}
+
+.history-state-card strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.history-state-card span {
+  max-width: 300px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------
+   History footer
+-------------------------------------------------- */
+
+.connect-history-footer {
+  width: min(100%, 440px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 34px;
+  padding: 16px 0 4px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 1;
+}
