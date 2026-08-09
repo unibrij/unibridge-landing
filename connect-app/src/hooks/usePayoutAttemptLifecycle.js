@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState
 } from "react";
 
@@ -72,6 +73,24 @@ export default function usePayoutAttemptLifecycle({
   ] = useState(null);
 
   /*
+   * Tracks intent identity independently from
+   * lifecycle refreshes.
+   *
+   * Same-intent refresh:
+   * preserve the last authoritative lifecycle.
+   *
+   * New / different intent:
+   * lock conservatively until its first Core read.
+   */
+  const lastObservedIntentIdRef =
+    useRef(
+      normalizeString(
+        payoutIntentId
+      ) ||
+      null
+    );
+
+  /*
    * Explicit refresh trigger after user-driven
    * payout actions.
    */
@@ -101,6 +120,9 @@ export default function usePayoutAttemptLifecycle({
   const resetPayoutAttemptLifecycle =
     useCallback(
       () => {
+        lastObservedIntentIdRef.current =
+          null;
+
         setSettlementCreationStatus(
           null
         );
@@ -122,9 +144,22 @@ export default function usePayoutAttemptLifecycle({
         payoutIntentId
       );
 
-    payoutIntentIdStateRef.current =
+    const normalizedIntentId =
       intentId ||
       null;
+
+    const previousIntentId =
+      lastObservedIntentIdRef.current;
+
+    const intentChanged =
+      previousIntentId !==
+      normalizedIntentId;
+
+    lastObservedIntentIdRef.current =
+      normalizedIntentId;
+
+    payoutIntentIdStateRef.current =
+      normalizedIntentId;
 
     /*
      * No active intent means there is nothing for
@@ -147,17 +182,28 @@ export default function usePayoutAttemptLifecycle({
     }
 
     /*
-     * Do not replace a previously authoritative
-     * lifecycle merely because a refresh has begun.
+     * A newly observed payout intent has no trusted
+     * lifecycle in this hook yet.
      *
-     * On the initial restore, an existing intent is
-     * already conservatively LOCKED_RECOVERY through
-     * the initial state above.
+     * Lock it conservatively until Core confirms the
+     * actual state.
      *
-     * On subsequent refreshes, keep the last known
-     * authoritative lifecycle until Core replaces it
-     * or the read itself fails.
+     * A refresh of the same intent deliberately
+     * skips this block so the last authoritative
+     * lifecycle remains visible and usable while
+     * the GET is in flight.
      */
+    if (intentChanged) {
+      setSettlementCreationStatus(
+        null
+      );
+
+      setPayoutAttemptState(
+        PAYOUT_ATTEMPT_STATE
+          .LOCKED_RECOVERY
+      );
+    }
+
     async function restoreAttemptState() {
       try {
         const intent =
@@ -208,6 +254,9 @@ export default function usePayoutAttemptLifecycle({
             intentId;
 
           clearStoredPayoutIntent();
+
+          lastObservedIntentIdRef.current =
+            null;
 
           payoutIntentIdStateRef.current =
             null;
@@ -297,6 +346,9 @@ export default function usePayoutAttemptLifecycle({
             intentId;
 
           clearStoredPayoutIntent();
+
+          lastObservedIntentIdRef.current =
+            null;
 
           payoutIntentIdStateRef.current =
             null;
