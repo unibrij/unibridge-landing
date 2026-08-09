@@ -1,5 +1,62 @@
 // connect-app/src/flow/payoutAttempt.js
 
+const CREATION_STATUS =
+  Object.freeze({
+    CREATING:
+      "creating",
+
+    FAILED:
+      "failed",
+
+    READY:
+      "ready"
+  });
+
+const CREATION_STAGE =
+  Object.freeze({
+    RESERVED:
+      "reserved",
+
+    PREPARED:
+      "prepared",
+
+    EXTERNAL_SIDE_EFFECTS_STARTED:
+      "external_side_effects_started",
+
+    EXECUTION_WALLET_RESOLVED:
+      "execution_wallet_resolved",
+
+    SETTLEMENT_CREATED:
+      "settlement_created",
+
+    FUNDING_SESSION_CREATED:
+      "funding_session_created",
+
+    REFERENCES_PERSISTED:
+      "references_persisted",
+
+    READY:
+      "ready"
+  });
+
+const SAFE_RETRY_STAGES =
+  new Set([
+    CREATION_STAGE.RESERVED,
+    CREATION_STAGE.PREPARED
+  ]);
+
+export const PAYOUT_ATTEMPT_STATE =
+  Object.freeze({
+    EDITABLE:
+      "editable",
+
+    LOCKED_RESUMABLE:
+      "locked_resumable",
+
+    LOCKED_RECOVERY:
+      "locked_recovery"
+  });
+
 function normalizeString(
   value
 ) {
@@ -7,6 +64,19 @@ function normalizeString(
     value ??
     ""
   ).trim();
+}
+
+function normalizeLowerString(
+  value
+) {
+  const normalized =
+    normalizeString(
+      value
+    );
+
+  return normalized
+    ? normalized.toLowerCase()
+    : "";
 }
 
 function normalizeFingerprintValue(
@@ -143,9 +213,9 @@ export function buildTransferFingerprint({
    * Fingerprint only the transfer specification
    * controlled by the user.
    *
-   * Do not include pricing previews, provider
-   * responses, settlement state, timestamps,
-   * or other mutable execution metadata.
+   * Do not include pricing previews, execution
+   * lifecycle, settlement data, provider responses,
+   * or timestamps.
    */
   const specification =
     normalizeFingerprintValue({
@@ -207,24 +277,257 @@ export function resolvePayoutIntentSettlementId(
   );
 }
 
+export function resolveSettlementCreationStatus(
+  value
+) {
+  const intent =
+    resolveIntentPayload(
+      value
+    );
+
+  return (
+    normalizeLowerString(
+      intent
+        .settlement_creation_status
+    ) ||
+    normalizeLowerString(
+      intent
+        .settlementCreationStatus
+    ) ||
+    null
+  );
+}
+
+export function resolveSettlementCreationStage(
+  value
+) {
+  const intent =
+    resolveIntentPayload(
+      value
+    );
+
+  return (
+    normalizeLowerString(
+      intent
+        .settlement_creation_stage
+    ) ||
+    normalizeLowerString(
+      intent
+        .settlementCreationStage
+    ) ||
+    null
+  );
+}
+
+export function isSafeRetryPayoutAttempt(
+  value
+) {
+  const status =
+    resolveSettlementCreationStatus(
+      value
+    );
+
+  const stage =
+    resolveSettlementCreationStage(
+      value
+    );
+
+  return (
+    status ===
+      CREATION_STATUS.FAILED &&
+    SAFE_RETRY_STAGES.has(
+      stage
+    )
+  );
+}
+
+export function resolvePayoutAttemptState(
+  value
+) {
+  const status =
+    resolveSettlementCreationStatus(
+      value
+    );
+
+  const stage =
+    resolveSettlementCreationStage(
+      value
+    );
+
+  const settlementId =
+    resolvePayoutIntentSettlementId(
+      value
+    );
+
+  /*
+   * No settlement-creation lifecycle has started.
+   *
+   * The payout specification is still editable.
+   */
+  if (
+    !status &&
+    !stage &&
+    !settlementId
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .EDITABLE;
+  }
+
+  /*
+   * Active creation is always locked.
+   *
+   * Even at an early stage, the user must not mutate
+   * the transfer specification while orchestration
+   * is currently running.
+   */
+  if (
+    status ===
+    CREATION_STATUS.CREATING
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .LOCKED_RESUMABLE;
+  }
+
+  /*
+   * READY is authoritative.
+   *
+   * Once the backend reports the creation as ready,
+   * the existing payout attempt is resumable and
+   * its transfer specification must remain locked.
+   *
+   * Do not require stage === "ready" here because
+   * status is the stronger final lifecycle signal.
+   */
+  if (
+    status ===
+    CREATION_STATUS.READY
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .LOCKED_RESUMABLE;
+  }
+
+  /*
+   * Backend explicitly permits retry only for a
+   * FAILED attempt at reserved/prepared stages.
+   *
+   * At these stages no unsafe external side-effect
+   * boundary has been crossed.
+   */
+  if (
+    isSafeRetryPayoutAttempt(
+      value
+    )
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .EDITABLE;
+  }
+
+  /*
+   * Any other FAILED state requires recovery.
+   *
+   * This includes failures at or after external
+   * side effects started, as well as malformed or
+   * unknown failed stages.
+   */
+  if (
+    status ===
+    CREATION_STATUS.FAILED
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .LOCKED_RECOVERY;
+  }
+
+  /*
+   * Legacy or inconsistent state.
+   *
+   * A settlement reference alone is not enough to
+   * prove READY because the backend may reserve the
+   * settlement id before persistence.
+   *
+   * But it is enough to choose the conservative
+   * path and prevent automatic replacement.
+   */
+  if (settlementId) {
+    return PAYOUT_ATTEMPT_STATE
+      .LOCKED_RECOVERY;
+  }
+
+  /*
+   * Unknown lifecycle metadata means settlement
+   * creation appears to have started, but its safe
+   * state cannot be proven.
+   */
+  if (
+    status ||
+    stage
+  ) {
+    return PAYOUT_ATTEMPT_STATE
+      .LOCKED_RECOVERY;
+  }
+
+  return PAYOUT_ATTEMPT_STATE
+    .EDITABLE;
+}
+
+export function isPayoutAttemptEditable(
+  value
+) {
+  return (
+    resolvePayoutAttemptState(
+      value
+    ) ===
+    PAYOUT_ATTEMPT_STATE.EDITABLE
+  );
+}
+
+export function isPayoutAttemptLocked(
+  value
+) {
+  return !isPayoutAttemptEditable(
+    value
+  );
+}
+
+export function isPayoutAttemptResumable(
+  value
+) {
+  return (
+    resolvePayoutAttemptState(
+      value
+    ) ===
+    PAYOUT_ATTEMPT_STATE
+      .LOCKED_RESUMABLE
+  );
+}
+
+export function requiresPayoutAttemptRecovery(
+  value
+) {
+  return (
+    resolvePayoutAttemptState(
+      value
+    ) ===
+    PAYOUT_ATTEMPT_STATE
+      .LOCKED_RECOVERY
+  );
+}
+
+/*
+ * Temporary compatibility alias.
+ *
+ * Existing callers may still import this name.
+ *
+ * "Committed" here means the attempt is locked
+ * against transfer-specification mutation.
+ *
+ * New code should prefer:
+ * isPayoutAttemptLocked()
+ */
 export function isCommittedPayoutIntent(
   value
 ) {
-  /*
-   * UniBridge commitment boundary:
-   *
-   * once a settlement has been persisted and
-   * linked to the payout intent, the transfer
-   * specification becomes immutable.
-   *
-   * This deliberately knows nothing about
-   * provider orders, quotes, deposit addresses,
-   * or provider-specific lifecycle states.
-   */
-  return Boolean(
-    resolvePayoutIntentSettlementId(
-      value
-    )
+  return isPayoutAttemptLocked(
+    value
   );
 }
 
@@ -258,12 +561,14 @@ export function isStalePreCommitIntent({
   currentFingerprint
 } = {}) {
   /*
-   * A committed payout must never be replaced
-   * merely because the local form changed.
-   * The UI should be locked instead.
+   * A locked payout attempt must never be replaced
+   * merely because local form data differs.
+   *
+   * Resume/recovery must operate on the existing
+   * attempt instead.
    */
   if (
-    isCommittedPayoutIntent(
+    isPayoutAttemptLocked(
       intent
     )
   ) {
@@ -271,10 +576,12 @@ export function isStalePreCommitIntent({
   }
 
   /*
-   * Legacy stored flows without a fingerprint
-   * are treated as stale rather than silently
-   * reusing an intent whose specification we
-   * cannot prove still matches the form.
+   * For an editable attempt, fingerprint mismatch
+   * means the existing payout intent no longer
+   * represents the current transfer specification.
+   *
+   * Legacy stored flows without a fingerprint are
+   * intentionally treated as stale.
    */
   return !doTransferFingerprintsMatch(
     storedFingerprint,
@@ -283,8 +590,17 @@ export function isStalePreCommitIntent({
 }
 
 export default {
+  PAYOUT_ATTEMPT_STATE,
   buildTransferFingerprint,
   resolvePayoutIntentSettlementId,
+  resolveSettlementCreationStatus,
+  resolveSettlementCreationStage,
+  isSafeRetryPayoutAttempt,
+  resolvePayoutAttemptState,
+  isPayoutAttemptEditable,
+  isPayoutAttemptLocked,
+  isPayoutAttemptResumable,
+  requiresPayoutAttemptRecovery,
   isCommittedPayoutIntent,
   doTransferFingerprintsMatch,
   isStalePreCommitIntent
