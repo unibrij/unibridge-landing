@@ -23,6 +23,7 @@ export function useRouteFlow({
   address,
   chainId,
   walletClient,
+  publicClient,
   switchChainAsync,
 
   connectSessionId,
@@ -121,14 +122,20 @@ export function useRouteFlow({
     address,
     chainId,
     walletClient,
+    publicClient,
     switchChainAsync,
+
     settlement,
     payoutIntentId,
     payoutIntentIdRef,
+    payoutAccessToken,
+
     setFundingTxHash,
     setIsBusy,
     setWalletConfirmationPending,
+
     pollSettlementAfterFunding,
+
     writeDebug
   });
 
@@ -213,7 +220,9 @@ export function useRouteFlow({
       routeFlowGenerationRef.current;
 
     try {
-      if (settlement?.funding) {
+      if (
+        settlement?.funding
+      ) {
         await sendFundingTransaction();
 
         return;
@@ -287,7 +296,7 @@ export function useRouteFlow({
        */
       if (
         routeFlowGenerationRef.current !==
-        flowGeneration
+          flowGeneration
       ) {
         return;
       }
@@ -315,7 +324,7 @@ export function useRouteFlow({
        */
       if (
         routeFlowGenerationRef.current ===
-        flowGeneration
+          flowGeneration
       ) {
         setIsBusy(
           false
