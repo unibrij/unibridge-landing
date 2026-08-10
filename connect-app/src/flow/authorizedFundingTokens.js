@@ -140,7 +140,7 @@ const POLYGON_USDT =
         domain:
           Object.freeze({
             name:
-              "(PoS) Tether USD",
+              "UChildERC20Proxy",
 
             version:
               "1",
