@@ -14,6 +14,10 @@ import {
 } from "../flow/fundingCapability";
 
 import {
+  sendAuthorizedFunding
+} from "../flow/sendAuthorizedFunding";
+
+import {
   REQUIRED_CHAIN_ID,
   POLYGON_TOKENS,
   ERC20_TRANSFER_ABI,
@@ -58,15 +62,27 @@ function addGasLimitBuffer(
     BPS_DENOMINATOR;
 }
 
+function pickSettlementId(
+  settlement
+) {
+  return String(
+    settlement?.settlement_id ||
+    settlement?.id ||
+    ""
+  ).trim();
+}
+
 export function useFundingTransaction({
   address,
   chainId,
   walletClient,
+  publicClient,
   switchChainAsync,
 
   settlement,
   payoutIntentId,
   payoutIntentIdRef,
+  payoutAccessToken,
 
   setFundingTxHash,
   setIsBusy,
@@ -367,39 +383,125 @@ export function useFundingTransaction({
         fundingCapability.mode ===
           "insufficient_gas"
       ) {
-        /*
-         * UniBridge sponsorship will be inserted
-         * here.
-         *
-         * Until that adapter exists, do not open
-         * the wallet with a transaction that we
-         * already know cannot pay network gas.
-         */
+        const settlementId =
+          pickSettlementId(
+            settlement
+          );
 
+        if (!settlementId) {
+          throw new Error(
+            "authorized_funding_settlement_id_missing"
+          );
+        }
+
+        if (!payoutAccessToken) {
+          throw new Error(
+            "customer_access_token_required"
+          );
+        }
+
+        /*
+         * USDT NativeMetaTransaction needs an RPC
+         * client to read getNonce(user).
+         *
+         * USDC does not need it, so the dispatcher
+         * decides whether it is actually required.
+         */
         writeDebug(
-          "Insufficient POL for network fee",
+          "Preparing wallet authorization...",
           {
-            message:
-              "Your wallet does not have enough POL to pay the Polygon network fee.",
+            mode:
+              "authorized",
 
             status:
-              "insufficient_gas",
+              "wallet_confirmation_pending",
 
-            reason:
+            capability_reason:
               fundingCapability
                 .reason,
 
-            native_balance:
-              bigintToString(
-                fundingCapability
-                  .native_balance
-              ),
+            asset,
+            amount,
 
-            required_native_amount:
-              bigintToString(
-                fundingCapability
-                  .required_native_amount
-              ),
+            chain_id:
+              REQUIRED_CHAIN_ID,
+
+            deposit_address:
+              depositAddress,
+
+            token_contract:
+              token.address
+          }
+        );
+
+        setWalletConfirmationPending(
+          true
+        );
+
+        let authorizedResult;
+
+        try {
+          authorizedResult =
+            await sendAuthorizedFunding({
+              walletClient,
+              publicClient,
+
+              wallet:
+                address,
+
+              depositAddress,
+              amount,
+
+              token: {
+                asset,
+                address:
+                  token.address
+              },
+
+              settlementId,
+
+              accessToken:
+                payoutAccessToken
+            });
+        }
+        finally {
+          setWalletConfirmationPending(
+            false
+          );
+        }
+
+        const hash =
+          authorizedResult
+            ?.txHash ||
+          null;
+
+        if (!hash) {
+          throw new Error(
+            "Authorized funding completed without a transaction hash"
+          );
+        }
+
+        setFundingTxHash(
+          hash
+        );
+
+        clearStoredFlow();
+
+        writeDebug(
+          "Funding submitted.",
+          {
+            tx_hash:
+              hash,
+
+            status:
+              "wallet_submitted",
+
+            mode:
+              "authorized",
+
+            capability_reason:
+              fundingCapability
+                .reason,
 
             asset,
             amount,
@@ -412,6 +514,22 @@ export function useFundingTransaction({
           }
         );
 
+        const activeIntentId =
+          payoutIntentIdRef.current ||
+          payoutIntentId ||
+          null;
+
+        void pollSettlementAfterFunding({
+          intentId:
+            activeIntentId,
+
+          txHash:
+            hash,
+
+          asset,
+          amount
+        });
+
         return;
       }
 
@@ -420,13 +538,11 @@ export function useFundingTransaction({
           "preflight_unavailable"
       ) {
         /*
-         * Unknown gas state must not fall through
-         * to native execution.
+         * Unknown gas state remains fail-closed.
          *
-         * This will also become a sponsorship
-         * candidate once that adapter exists.
+         * We only use authorized funding after Core
+         * proves that native execution lacks gas.
          */
-
         writeDebug(
           "Funding gas preflight unavailable",
           {
