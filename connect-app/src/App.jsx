@@ -11,7 +11,8 @@ import {
 import {
   useAccount,
   useWalletClient,
-  useSwitchChain
+  useSwitchChain,
+  usePublicClient
 } from "wagmi";
 
 import {
@@ -106,6 +107,9 @@ export default function App() {
   const {
     data: walletClient
   } = useWalletClient();
+
+  const publicClient =
+    usePublicClient();
 
   const {
     switchChainAsync
@@ -578,6 +582,7 @@ export default function App() {
     address,
     chainId,
     walletClient,
+    publicClient,
     switchChainAsync,
 
     connectSessionId,
