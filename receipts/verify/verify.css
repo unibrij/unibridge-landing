@@ -60,6 +60,136 @@ body {
 
 /*
 =====================================================
+VERIFY HEADER
+=====================================================
+*/
+
+.verify-header {
+  width: 100%;
+  min-height: 84px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding:
+    16px
+    28px;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid
+    rgba(
+      0,
+      51,
+      102,
+      0.07
+    );
+}
+
+.verify-header-logo-link {
+  display: inline-flex;
+  align-items: center;
+
+  min-width: 0;
+
+  text-decoration: none;
+}
+
+.verify-header-logo {
+  display: block;
+
+  width: 190px;
+  max-width: 58vw;
+
+  height: auto;
+}
+
+.verify-header-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 32px;
+
+  box-sizing: border-box;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    rgba(
+      0,
+      51,
+      102,
+      0.10
+    );
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      0,
+      212,
+      170,
+      0.055
+    );
+
+  color:
+    var(
+      --verify-navy
+    );
+
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.verify-header-link:hover,
+.verify-header-link:focus-visible {
+  background:
+    rgba(
+      0,
+      212,
+      170,
+      0.10
+    );
+
+  border-color:
+    rgba(
+      0,
+      212,
+      170,
+      0.28
+    );
+
+  color:
+    var(
+      --verify-navy
+    );
+}
+
+
+/*
+=====================================================
 VERIFY PAGE
 =====================================================
 */
@@ -72,10 +202,12 @@ VERIFY PAGE
   align-items: center;
   justify-content: center;
 
+  box-sizing: border-box;
+
   padding:
-    72px
+    64px
     20px
-    64px;
+    58px;
 
   background:
     radial-gradient(
@@ -620,13 +752,36 @@ RESPONSIVE
 @media (
   max-width: 640px
 ) {
+  .verify-header {
+    min-height: 72px;
+
+    padding:
+      12px
+      16px;
+  }
+
+  .verify-header-logo {
+    width: 145px;
+    max-width: 54vw;
+  }
+
+  .verify-header-link {
+    min-height: 30px;
+
+    padding:
+      0
+      10px;
+
+    font-size: 11px;
+  }
+
   .verify-page {
     min-height: 58vh;
 
     padding:
-      44px
+      42px
       16px
-      48px;
+      46px;
   }
 
   .verify-card {
