@@ -204,71 +204,6 @@ function formatDate(
   }
 }
 
-function formatRelativeDate(
-  value
-) {
-  const date =
-    resolveDate(
-      value
-    );
-
-  if (!date) {
-    return "—";
-  }
-
-  const now =
-    new Date();
-
-  const diffMs =
-    now.getTime() -
-    date.getTime();
-
-  const dayMs =
-    24 *
-    60 *
-    60 *
-    1000;
-
-  const days =
-    Math.max(
-      0,
-      Math.floor(
-        diffMs /
-        dayMs
-      )
-    );
-
-  if (days === 0) {
-    return "Today";
-  }
-
-  if (days === 1) {
-    return "Yesterday";
-  }
-
-  if (days < 7) {
-    return `${days} days ago`;
-  }
-
-  const weeks =
-    Math.floor(
-      days /
-      7
-    );
-
-  if (weeks === 1) {
-    return "1 week ago";
-  }
-
-  if (weeks < 5) {
-    return `${weeks} weeks ago`;
-  }
-
-  return formatDate(
-    date
-  );
-}
-
 function getRecipientLabel(
   item
 ) {
@@ -460,11 +395,6 @@ export default function HistoryPage({
   accessToken
 }) {
   const [
-    recentRecipients,
-    setRecentRecipients
-  ] = useState([]);
-
-  const [
     recentPayouts,
     setRecentPayouts
   ] = useState([]);
@@ -494,10 +424,6 @@ export default function HistoryPage({
       false;
 
     if (!accessToken) {
-      setRecentRecipients(
-        []
-      );
-
       setRecentPayouts(
         []
       );
@@ -537,16 +463,6 @@ export default function HistoryPage({
           return;
         }
 
-        setRecentRecipients(
-          Array.isArray(
-            result
-              ?.recent_recipients
-          )
-            ? result
-                .recent_recipients
-            : []
-        );
-
         setRecentPayouts(
           Array.isArray(
             result
@@ -567,10 +483,6 @@ export default function HistoryPage({
         if (cancelled) {
           return;
         }
-
-        setRecentRecipients(
-          []
-        );
 
         setRecentPayouts(
           []
@@ -662,9 +574,13 @@ export default function HistoryPage({
     catch (
       error
     ) {
+      console.error(
+        "RECEIPT_DOWNLOAD_FAILED",
+        error
+      );
+
       setReceiptError(
-        error?.message ||
-        "receipt_download_failed"
+        "Unable to download receipt. Please try again."
       );
     }
     finally {
@@ -675,8 +591,6 @@ export default function HistoryPage({
   }
 
   const hasHistory =
-    recentRecipients.length >
-      0 ||
     recentPayouts.length >
       0;
 
@@ -782,91 +696,6 @@ export default function HistoryPage({
               Completed payouts will appear here.
             </span>
           </div>
-        ) : null}
-
-        {historyStatus ===
-          "ready" &&
-        recentRecipients.length >
-          0 ? (
-          <section
-            className="history-section"
-            aria-labelledby="recent-recipients-heading"
-          >
-            <div className="history-section-header">
-              <h2
-                id="recent-recipients-heading"
-                className="history-section-title"
-              >
-                Recent recipients
-              </h2>
-            </div>
-
-            <div className="history-recipient-list">
-              {recentRecipients.map(
-                (
-                  recipient,
-                  index
-                ) => {
-                  const repeatUrl =
-                    buildRepeatUrl(
-                      recipient
-                    );
-
-                  return (
-                    <article
-                      className="history-recipient-card"
-                      key={
-                        recipient
-                          ?.repeat_source_payout_intent_id ||
-                        `${recipient?.route_id || "recipient"}-${index}`
-                      }
-                    >
-                      <div className="history-recipient-main">
-                        <RecipientAvatar
-                          item={
-                            recipient
-                          }
-                        />
-
-                        <div className="history-recipient-copy">
-                          <strong className="history-recipient-name">
-                            {getRecipientLabel(
-                              recipient
-                            )}
-                          </strong>
-
-                          <span className="history-recipient-destination">
-                            {buildRecipientSummary(
-                              recipient
-                            )}
-                          </span>
-
-                          <span className="history-recipient-last-paid">
-                            Last paid{" "}
-                            {formatRelativeDate(
-                              recipient
-                                ?.last_paid_at
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      {repeatUrl ? (
-                        <a
-                          href={
-                            repeatUrl
-                          }
-                          className="history-secondary-button"
-                        >
-                          Send again
-                        </a>
-                      ) : null}
-                    </article>
-                  );
-                }
-              )}
-            </div>
-          </section>
         ) : null}
 
         {historyStatus ===
