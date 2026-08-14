@@ -106,6 +106,8 @@ VERIFY CARD
   width: 100%;
   max-width: 620px;
 
+  box-sizing: border-box;
+
   background:
     var(
       --verify-card
@@ -534,6 +536,83 @@ FAILED
 
 /*
 =====================================================
+PAY LIGHT FOOTER
+=====================================================
+*/
+
+#pay-footer {
+  width: 100%;
+
+  background:
+    #ffffff;
+
+  border-top:
+    1px solid
+    rgba(
+      0,
+      51,
+      102,
+      0.07
+    );
+}
+
+.pay-lite-footer {
+  width: 100%;
+  max-width: 1120px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  margin:
+    0
+    auto;
+
+  padding:
+    24px
+    28px;
+
+  color:
+    #667085;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pay-lite-footer-links {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.pay-lite-footer a {
+  color:
+    #667085;
+
+  text-decoration: none;
+
+  transition:
+    color
+    0.15s
+    ease;
+}
+
+.pay-lite-footer a:hover,
+.pay-lite-footer a:focus-visible {
+  color:
+    var(
+      --verify-navy
+    );
+}
+
+
+/*
+=====================================================
 RESPONSIVE
 =====================================================
 */
@@ -578,5 +657,24 @@ RESPONSIVE
 
   .verified-method {
     white-space: normal;
+  }
+
+  .pay-lite-footer {
+    flex-direction: column;
+    align-items: center;
+
+    gap: 10px;
+
+    padding:
+      20px
+      18px;
+
+    text-align: center;
+  }
+
+  .pay-lite-footer-links {
+    justify-content: center;
+
+    flex-wrap: wrap;
   }
 }
