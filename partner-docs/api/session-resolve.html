@@ -70,7 +70,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,21 +95,36 @@
 
         <h1>Resolve Session</h1>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/session/resolve</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/session/resolve
+        </div>
 
         <p class="lead">
-          Resolves funding sender options and execution options for the registered session.
+          Resolves the available funding and payout capabilities for the registered session.
         </p>
 
         <p>
-          This step prepares the controlled execution path before payment or funding begins.
+          This step prepares the supported transfer options for the selected corridor before funding begins.
         </p>
 
         <h2>Request body</h2>
 
         <table>
-          <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-          <tr><td><code>session_id</code></td><td>string</td><td>Yes</td><td>Session returned by <code>/v2/session/register</code>.</td></tr>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td><code>session_id</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>
+              Session returned by <code>/v2/session/register</code>.
+            </td>
+          </tr>
         </table>
 
         <h2>Example request</h2>
@@ -117,16 +140,13 @@
   "status": "resolved",
   "source_country": "DE",
   "receiver_country": "BR",
-  "sender_id": "onramp",
   "delivery_options": {
-    "sender": {
-      "id": "onramp",
-      "funding_mode": "ramp"
+    "funding": {
+      "mode": "checkout"
     },
-    "execution": {
+    "payout": {
       "pix": [
         {
-          "executor": "smartpay",
           "instruction_schema": {
             "type": "object",
             "required": ["pix_key"]
@@ -140,20 +160,39 @@
         <h2>Resolved context</h2>
 
         <ul>
-          <li>Funding sender or checkout path</li>
-          <li>Execution provider options</li>
-          <li>Destination payout rail requirements</li>
+          <li>Available funding method</li>
+          <li>Destination payout options</li>
+          <li>Required recipient information</li>
           <li>Corridor-specific constraints</li>
         </ul>
 
         <h2>Possible errors</h2>
 
         <table>
-          <tr><th>Error</th><th>Meaning</th></tr>
-          <tr><td><code>missing_session_id</code></td><td><code>session_id</code> was not provided.</td></tr>
-          <tr><td><code>session_not_found</code></td><td>Session does not exist.</td></tr>
-          <tr><td><code>corridor_not_supported</code></td><td>No supported route exists for the session corridor.</td></tr>
-          <tr><td><code>resolve_failed</code></td><td>UniBridge could not resolve sender or execution options.</td></tr>
+          <tr>
+            <th>Error</th>
+            <th>Meaning</th>
+          </tr>
+
+          <tr>
+            <td><code>missing_session_id</code></td>
+            <td><code>session_id</code> was not provided.</td>
+          </tr>
+
+          <tr>
+            <td><code>session_not_found</code></td>
+            <td>Session does not exist.</td>
+          </tr>
+
+          <tr>
+            <td><code>corridor_not_supported</code></td>
+            <td>No supported route exists for the session corridor.</td>
+          </tr>
+
+          <tr>
+            <td><code>resolve_failed</code></td>
+            <td>UniBridge could not resolve available transfer options.</td>
+          </tr>
         </table>
 
         <div class="pager">
@@ -161,6 +200,7 @@
             <span class="pager-label">Previous</span>
             ← Register session
           </a>
+
           <a class="next" href="./session-quote.html">
             <span class="pager-label">Next</span>
             Quote session →
