@@ -70,7 +70,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,21 +95,38 @@
 
         <h1>Funding Session</h1>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/funding/session</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/funding/session
+        </div>
 
         <p class="lead">
           Returns the funding session created for a settlement.
         </p>
 
         <p>
-          Depending on the selected sender, this may return a provider checkout URL or direct funding instructions.
+          Depending on the available funding method, the response may include
+          a checkout URL or direct funding instructions.
         </p>
 
         <h2>Request body</h2>
 
         <table>
-          <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-          <tr><td><code>settlement_id</code></td><td>string</td><td>Yes</td><td>Settlement created through <code>/v2/settlement/create</code>.</td></tr>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td><code>settlement_id</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>
+              Settlement created through
+              <code>/v2/settlement/create</code>.
+            </td>
+          </tr>
         </table>
 
         <h2>Example request</h2>
@@ -110,25 +135,18 @@
   "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000"
 }</code></pre>
 
-        <h2>Example response with provider widget</h2>
+        <h2>Example response with checkout</h2>
 
         <pre><code>{
   "funding_session_id": "sett_123e4567-e89b-12d3-a456-426614174000",
   "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
   "status": "created",
-  "sender_id": "onramp",
-  "widget_url": "https://provider.example.com/checkout/session",
+  "widget_url": "https://checkout.example.com/session",
   "funding": {
     "asset": "USDT",
     "network": "polygon",
     "amount": 10,
     "deposit_address": "0x0000000000000000000000000000000000000000"
-  },
-  "execution": {
-    "executor": "smartpay",
-    "asset": "USDT",
-    "network": "polygon",
-    "payout_rail": "pix"
   },
   "expires_at": "2026-01-01T12:00:00Z",
   "pricing_preview": null,
@@ -141,19 +159,12 @@
   "funding_session_id": "sett_123e4567-e89b-12d3-a456-426614174000",
   "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
   "status": "created",
-  "sender_id": "wallet",
   "widget_url": null,
   "funding": {
     "asset": "USDT",
     "network": "polygon",
     "amount": 10,
     "deposit_address": "0x0000000000000000000000000000000000000000"
-  },
-  "execution": {
-    "executor": "smartpay",
-    "asset": "USDT",
-    "network": "polygon",
-    "payout_rail": "pix"
   },
   "expires_at": "2026-01-01T12:00:00Z",
   "pricing_preview": null,
@@ -163,19 +174,39 @@
         <h2>Important behavior</h2>
 
         <div class="callout">
-          A funding session provides funding or checkout instructions. It does not represent final payout completion.
-          Final completion depends on funding observation, settlement confirmation dispatch, execution submission,
-          and provider status reconciliation.
+          A funding session provides the information required to fund the transfer.
+          It does not represent final payout completion.
+          Partners should track the settlement lifecycle through the settlement
+          status endpoint or enabled partner webhooks.
         </div>
 
         <h2>Possible errors</h2>
 
         <table>
-          <tr><th>Error</th><th>Meaning</th></tr>
-          <tr><td><code>missing_settlement_id</code></td><td><code>settlement_id</code> was not provided.</td></tr>
-          <tr><td><code>settlement_not_found</code></td><td>Settlement does not exist.</td></tr>
-          <tr><td><code>funding_session_not_found</code></td><td>Funding session does not exist.</td></tr>
-          <tr><td><code>funding_session_expired</code></td><td>Funding session has expired.</td></tr>
+          <tr>
+            <th>Error</th>
+            <th>Meaning</th>
+          </tr>
+
+          <tr>
+            <td><code>missing_settlement_id</code></td>
+            <td><code>settlement_id</code> was not provided.</td>
+          </tr>
+
+          <tr>
+            <td><code>settlement_not_found</code></td>
+            <td>Settlement does not exist.</td>
+          </tr>
+
+          <tr>
+            <td><code>funding_session_not_found</code></td>
+            <td>Funding session does not exist.</td>
+          </tr>
+
+          <tr>
+            <td><code>funding_session_expired</code></td>
+            <td>Funding session has expired.</td>
+          </tr>
         </table>
 
         <div class="pager">
@@ -183,6 +214,7 @@
             <span class="pager-label">Previous</span>
             ← Create settlement
           </a>
+
           <a class="next" href="./settlement-confirm.html">
             <span class="pager-label">Next</span>
             Confirm settlement →
