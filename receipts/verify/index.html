@@ -28,7 +28,7 @@
 
   <meta
     name="theme-color"
-    content="#000E2D"
+    content="#ffffff"
   />
 
   <meta
@@ -43,12 +43,7 @@
 
   <meta
     name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
-  />
-
-  <link
-    rel="stylesheet"
-    href="/partials/pay/css/pay-common.css?v=9"
+    content="default"
   />
 
   <link
@@ -58,192 +53,273 @@
 </head>
 
 <body>
-  <main class="page pay-page-shell">
-    <div id="pay-brand"></div>
+  <!--
+  =====================================================
+  SHARED SITE HEADER
+  =====================================================
+  -->
 
-    <div class="verify-page">
-      <section
-        class="verify-card"
-        aria-live="polite"
+  <div id="site-header"></div>
+
+
+  <!--
+  =====================================================
+  RECEIPT VERIFICATION
+  =====================================================
+  -->
+
+  <main class="verify-page">
+    <section
+      class="verify-card"
+      aria-live="polite"
+    >
+      <div
+        id="loading-state"
+        class="state"
       >
         <div
-          id="loading-state"
-          class="state"
+          class="loader"
+          aria-hidden="true"
+        ></div>
+
+        <h1>
+          Verifying receipt
+        </h1>
+
+        <p>
+          Checking the receipt and its cryptographic integrity.
+        </p>
+      </div>
+
+
+      <!-- VERIFIED -->
+
+      <div
+        id="verified-state"
+        class="state"
+        hidden
+      >
+        <div
+          class="status-icon status-icon-success"
+          aria-hidden="true"
         >
-          <div
-            class="loader"
-            aria-hidden="true"
-          ></div>
-
-          <h1>
-            Verifying receipt
-          </h1>
-
-          <p>
-            Checking the receipt and its cryptographic integrity.
-          </p>
+          ✓
         </div>
 
-        <div
-          id="verified-state"
-          class="state"
-          hidden
-        >
-          <div
-            class="status-icon status-icon-success"
-            aria-hidden="true"
-          >
-            ✓
-          </div>
+        <p class="eyebrow">
+          UniBridge Receipt
+        </p>
 
-          <p class="eyebrow">
-            UniBridge Receipt
-          </p>
+        <h1>
+          Receipt verified
+        </h1>
 
-          <h1>
-            Receipt verified
-          </h1>
+        <p
+          id="verified-reference"
+          class="reference"
+        ></p>
 
-          <p
-            id="verified-reference"
-            class="reference"
-          ></p>
-
-          <div class="details">
-            <div class="detail-row">
-              <span class="detail-label">
-                Status
-              </span>
-
-              <span
-                id="verified-status"
-                class="detail-value"
-              >
-                —
-              </span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">
-                Standing
-              </span>
-
-              <span
-                id="verified-standing"
-                class="detail-value"
-              >
-                —
-              </span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">
-                Issued
-              </span>
-
-              <span
-                id="verified-issued"
-                class="detail-value"
-              >
-                —
-              </span>
-            </div>
-
-            <div
-              id="amount-row"
-              class="detail-row"
-              hidden
-            >
-              <span class="detail-label">
-                Amount
-              </span>
-
-              <span
-                id="verified-amount"
-                class="detail-value"
-              >
-                —
-              </span>
-            </div>
-
-            <div
-              id="recipient-amount-row"
-              class="detail-row"
-              hidden
-            >
-              <span class="detail-label">
-                Recipient received
-              </span>
-
-              <span
-                id="verified-recipient-amount"
-                class="detail-value"
-              >
-                —
-              </span>
-            </div>
-
-            <div class="detail-row">
-              <span class="detail-label">
-                Cryptographic integrity
-              </span>
-
-              <span class="detail-value integrity-valid">
-                Valid
-              </span>
-            </div>
-          </div>
-
-          <div class="verified-footer">
-            <span>
-              Verified by UniBridge
+        <div class="details">
+          <div class="detail-row">
+            <span class="detail-label">
+              Status
             </span>
 
-            <span class="verified-method">
-              SHA-256 · Ed25519
+            <span
+              id="verified-status"
+              class="detail-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">
+              Standing
+            </span>
+
+            <span
+              id="verified-standing"
+              class="detail-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">
+              Issued
+            </span>
+
+            <span
+              id="verified-issued"
+              class="detail-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div
+            id="amount-row"
+            class="detail-row"
+            hidden
+          >
+            <span class="detail-label">
+              Amount
+            </span>
+
+            <span
+              id="verified-amount"
+              class="detail-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div
+            id="recipient-amount-row"
+            class="detail-row"
+            hidden
+          >
+            <span class="detail-label">
+              Recipient received
+            </span>
+
+            <span
+              id="verified-recipient-amount"
+              class="detail-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="detail-row">
+            <span class="detail-label">
+              Cryptographic integrity
+            </span>
+
+            <span
+              class="detail-value integrity-valid"
+            >
+              Valid
             </span>
           </div>
         </div>
 
-        <div
-          id="failed-state"
-          class="state"
-          hidden
-        >
-          <div
-            class="status-icon status-icon-error"
-            aria-hidden="true"
-          >
-            !
-          </div>
+        <div class="verified-footer">
+          <span>
+            Verified by UniBridge
+          </span>
 
-          <p class="eyebrow">
-            UniBridge Receipt
-          </p>
-
-          <h1>
-            Receipt could not be verified
-          </h1>
-
-          <p class="failure-copy">
-            The reference, verification token,
-            or receipt integrity could not be validated.
-          </p>
-
-          <p
-            id="failed-reference"
-            class="reference"
-          ></p>
+          <span class="verified-method">
+            SHA-256 · Ed25519
+          </span>
         </div>
-      </section>
-    </div>
+      </div>
 
-    <div id="pay-footer"></div>
+
+      <!-- FAILED -->
+
+      <div
+        id="failed-state"
+        class="state"
+        hidden
+      >
+        <div
+          class="status-icon status-icon-error"
+          aria-hidden="true"
+        >
+          !
+        </div>
+
+        <p class="eyebrow">
+          UniBridge Receipt
+        </p>
+
+        <h1>
+          Receipt could not be verified
+        </h1>
+
+        <p class="failure-copy">
+          The reference, verification token,
+          or receipt integrity could not be validated.
+        </p>
+
+        <p
+          id="failed-reference"
+          class="reference"
+        ></p>
+      </div>
+    </section>
   </main>
 
+
+  <!--
+  =====================================================
+  PAY LIGHT FOOTER
+  =====================================================
+  -->
+
+  <div id="pay-footer"></div>
+
+
+  <!--
+  =====================================================
+  SHARED HEADER
+  =====================================================
+  -->
+
   <script
-    src="/partials/pay/js/pay-includes.js?v=6"
+    src="/partials/js/includes.js"
+    defer
   ></script>
+
+
+  <!--
+  =====================================================
+  PAY FOOTER ONLY
+  Do not load pay-includes.js / pay-common.css here.
+  =====================================================
+  -->
+
+  <script>
+    document.addEventListener(
+      "DOMContentLoaded",
+      async () => {
+        const footer =
+          document.getElementById(
+            "pay-footer"
+          );
+
+        if (!footer) {
+          return;
+        }
+
+        try {
+          const response =
+            await fetch(
+              "/partials/pay/footer.html"
+            );
+
+          if (!response.ok) {
+            return;
+          }
+
+          footer.innerHTML =
+            await response.text();
+        } catch {
+          // Footer failure must not affect receipt verification.
+        }
+      }
+    );
+  </script>
+
+
+  <!--
+  =====================================================
+  RECEIPT VERIFICATION
+  =====================================================
+  -->
 
   <script
     src="/receipts/verify/verify.js"
