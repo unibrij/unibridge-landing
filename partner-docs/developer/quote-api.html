@@ -69,7 +69,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,7 +95,7 @@
         <h1>Quote API</h1>
 
         <p class="lead">
-          The quote flow prepares the payout route before payment or funding begins.
+          The quote flow prepares the available transfer route before payment or funding begins.
         </p>
 
         <h2>Current quote flow</h2>
@@ -98,9 +106,13 @@ POST /v2/session/quote</code></pre>
 
         <h2>1. Register session</h2>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/session/register</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/session/register
+        </div>
 
-        <p>Creates a controlled test session for a source country and destination country.</p>
+        <p>
+          Creates a controlled session for a source country and destination country.
+        </p>
 
         <pre><code>{
   "source_country": "DE",
@@ -114,17 +126,19 @@ POST /v2/session/quote</code></pre>
 
         <h2>2. Resolve session</h2>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/session/resolve</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/session/resolve
+        </div>
 
         <p>
-          Resolves the funding sender and available execution options for the selected corridor.
-          This step prepares both sides of the controlled flow before funds move.
+          Resolves the available funding and payout capabilities for the selected corridor.
+          This step prepares the supported transfer options before funds move.
         </p>
 
         <ul>
-          <li>Funding sender or checkout path</li>
-          <li>Execution provider options</li>
-          <li>Destination payout rail requirements</li>
+          <li>Available funding method</li>
+          <li>Destination payout options</li>
+          <li>Required recipient information</li>
         </ul>
 
         <pre><code>{
@@ -136,16 +150,13 @@ POST /v2/session/quote</code></pre>
   "status": "resolved",
   "source_country": "DE",
   "receiver_country": "BR",
-  "sender_id": "onramp",
   "delivery_options": {
-    "sender": {
-      "id": "onramp",
-      "funding_mode": "ramp"
+    "funding": {
+      "mode": "checkout"
     },
-    "execution": {
+    "payout": {
       "pix": [
         {
-          "executor": "smartpay",
           "instruction_schema": {
             "type": "object",
             "required": ["pix_key"]
@@ -158,11 +169,14 @@ POST /v2/session/quote</code></pre>
 
         <h2>3. Request quote</h2>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/session/quote</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/session/quote
+        </div>
 
         <p>
-          Generates executable route options and pricing fields for the resolved session.
-          A quoted route should contain the information needed to create a settlement and support post-funding execution.
+          Generates available route options and pricing fields for the resolved session.
+          A quoted route contains the information needed to create a settlement and continue
+          the transfer flow.
         </p>
 
         <pre><code>{
@@ -179,14 +193,10 @@ POST /v2/session/quote</code></pre>
   "routes": [
     {
       "route_id": "route_123",
-      "route_type": "executor",
-      "executor": "smartpay",
-      "execution_provider": "smartpay",
       "payout_rail": "pix",
       "network": "polygon",
       "asset": "USDT",
       "fx_rate": null,
-      "executor_fee": 0,
       "unibridge_fee": 0,
       "funding_amount": 10,
       "funding_asset": "USDT",
@@ -199,8 +209,9 @@ POST /v2/session/quote</code></pre>
         <h2>Important behavior</h2>
 
         <div class="callout">
-          A quote does not move funds. A quote does not guarantee final execution.
-          A quote prepares available routes for review before settlement creation and before any post-funding execution can occur.
+          A quote does not move funds. A quote does not guarantee final completion.
+          It prepares available transfer routes for review before settlement creation
+          and before the transfer can proceed.
         </div>
 
         <div class="pager">
@@ -208,6 +219,7 @@ POST /v2/session/quote</code></pre>
             <span class="pager-label">Previous</span>
             ← API authentication
           </a>
+
           <a class="next" href="./settlement-api.html">
             <span class="pager-label">Next</span>
             Settlement API →
