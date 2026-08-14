@@ -69,7 +69,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,7 +95,7 @@
         <h1>Execution Evidence</h1>
 
         <p class="lead">
-          UniBridge records evidence during controlled test execution to support partner review
+          UniBridge records transfer evidence during controlled testing to support partner review
           and operational validation.
         </p>
 
@@ -98,25 +106,22 @@
           <li>Funding session status</li>
           <li>Observed funding transaction</li>
           <li>Observed asset and amount</li>
-          <li>Funding confirmation source</li>
-          <li>Execution provider</li>
-          <li>Provider reference</li>
-          <li>Provider status</li>
-          <li>Normalized execution status</li>
+          <li>Transfer status</li>
           <li>Final settlement status</li>
           <li>Relevant timestamps</li>
+          <li>Receipt or verification reference where available</li>
         </ul>
 
         <h2>Completion signal</h2>
 
         <p>
-          A test is considered completed only when execution has been submitted,
-          a provider reference has been recorded where applicable, and provider status reconciliation confirms
-          a successful execution outcome.
+          A transfer is considered completed only when UniBridge reports a final successful
+          settlement status through the supported status or verification interface.
         </p>
 
         <div class="callout warning">
-          Funding confirmation alone does not represent final execution completion.
+          Funding confirmation alone does not represent final payout completion.
+          Partners should rely on the final settlement status returned by UniBridge.
         </div>
 
         <div class="pager">
@@ -124,6 +129,7 @@
             <span class="pager-label">Previous</span>
             ← Execution flow
           </a>
+
           <a class="next" href="./operating-boundaries.html">
             <span class="pager-label">Next</span>
             Operating boundaries →
