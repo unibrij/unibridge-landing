@@ -88,21 +88,8 @@
         <h1>Webhook Events</h1>
 
         <p class="lead">
-          This document describes webhook behavior for controlled UniBridge integration review.
+          This document describes partner-facing webhook behavior for controlled UniBridge integrations.
         </p>
-
-        <h2>Current implementation note</h2>
-
-        <p>
-          The current codebase includes provider webhook receivers for funding and execution providers.
-          These are provider-facing webhook receivers and are not the same as a stable partner-facing
-          webhook delivery contract.
-        </p>
-
-        <pre><code>/v2/webhooks/transak
-/v2/webhooks/onramp
-/v2/webhooks/smartpay
-/v2/webhooks/guardarian</code></pre>
 
         <h2>Partner webhook availability</h2>
 
@@ -116,8 +103,8 @@
         <h2>Conditional partner webhook model</h2>
 
         <p>
-          If partner webhook delivery is enabled, UniBridge may send lifecycle events covering both funding
-          and post-funding execution.
+          If partner webhook delivery is enabled, UniBridge may send lifecycle events covering funding
+          confirmation, payout processing, and final settlement completion.
         </p>
 
         <h3>Example funding event</h3>
@@ -146,8 +133,7 @@
     "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
     "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
     "status": "processing",
-    "execution_provider": "smartpay",
-    "provider_ref": "execution-provider-reference-if-available"
+    "execution_reference": "execution-reference-if-available"
   },
   "created_at": "2026-01-01T12:04:00Z"
 }</code></pre>
@@ -160,8 +146,7 @@
     "settlement_id": "sett_123e4567-e89b-12d3-a456-426614174000",
     "session_id": "sess_123e4567-e89b-12d3-a456-426614174000",
     "status": "completed",
-    "provider_status": "done",
-    "provider_ref": "execution-provider-reference-if-available"
+    "execution_reference": "execution-reference-if-available"
   },
   "created_at": "2026-01-01T12:05:00Z"
 }</code></pre>
