@@ -69,7 +69,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,37 +95,33 @@
         <h1>Execution Flow</h1>
 
         <p class="lead">
-          A controlled UniBridge test follows a staged execution flow.
+          A controlled UniBridge transfer follows a staged lifecycle from route selection through final completion.
         </p>
 
         <h2>Flow</h2>
 
         <ol>
           <li>Source country, destination country, and amount are selected.</li>
-          <li>UniBridge prepares the execution path before payment begins.</li>
+          <li>UniBridge determines the available transfer options for the selected corridor.</li>
           <li>A quote is generated for review.</li>
           <li>Required destination payout details are provided.</li>
-          <li>Payment is handled by the provider shown during checkout.</li>
-          <li>Provider-handled funding is observed and confirmed.</li>
-          <li>The funded settlement is dispatched into the next operational step.</li>
-          <li>Execution readiness is checked.</li>
-          <li>Execution is submitted to the configured execution provider.</li>
-          <li>A provider reference is recorded when execution is accepted.</li>
-          <li>Provider status is reconciled.</li>
-          <li>Final status is updated based on the execution outcome.</li>
+          <li>The required funding method or checkout instructions are presented.</li>
+          <li>Funding is received and confirmed.</li>
+          <li>UniBridge processes the transfer.</li>
+          <li>The settlement status is updated as the transfer progresses.</li>
+          <li>Final completion is confirmed through the settlement lifecycle.</li>
         </ol>
 
         <h2>Key principle</h2>
 
         <p>
-          The execution path is prepared before funds move. UniBridge coordinates and tracks
-          the execution process without taking custody of funds.
+          UniBridge coordinates the transfer lifecycle from funding through payout while presenting
+          partners with a consistent integration layer across supported corridors.
         </p>
 
         <div class="callout warning">
-          Funding confirmation alone does not represent final execution completion.
-          Final completion requires execution submission, provider reference recording where applicable,
-          and provider status reconciliation.
+          Funding confirmation alone does not represent final payout completion.
+          Partners should rely on the final settlement status returned by UniBridge.
         </div>
 
         <div class="pager">
@@ -125,6 +129,7 @@
             <span class="pager-label">Previous</span>
             ← Controlled pilot scope
           </a>
+
           <a class="next" href="./execution-evidence.html">
             <span class="pager-label">Next</span>
             Execution evidence →
