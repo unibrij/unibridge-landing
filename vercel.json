@@ -53,12 +53,34 @@
           "value": "no-store, no-cache, max-age=0, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/receipts/verify",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/receipts/verify/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
       "source": "/v2/integrations/:path*",
       "destination": "https://unibridge-v2-1066944028362.us-central1.run.app/v2/integrations/:path*"
+    },
+    {
+      "source": "/v2/receipts/verify",
+      "destination": "https://unibridge-v2-1066944028362.us-central1.run.app/v2/receipts/verify"
     },
     {
       "source": "/partner-portal",
@@ -115,6 +137,14 @@
     {
       "source": "/pay",
       "destination": "/pay/index.html"
+    },
+    {
+      "source": "/receipts/verify",
+      "destination": "/receipts/verify/index.html"
+    },
+    {
+      "source": "/receipts/verify/",
+      "destination": "/receipts/verify/index.html"
     }
   ]
 }
