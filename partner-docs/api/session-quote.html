@@ -70,7 +70,15 @@
 
     <main class="docs-main">
       <header class="docs-topbar">
-        <button class="menu-button" data-menu-button aria-label="Open navigation" aria-expanded="false">☰</button>
+        <button
+          class="menu-button"
+          data-menu-button
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
         <strong>UniBridge Partner Docs</strong>
       </header>
 
@@ -87,22 +95,41 @@
 
         <h1>Quote Session</h1>
 
-        <div class="endpoint-label"><span class="method">POST</span> /v2/session/quote</div>
+        <div class="endpoint-label">
+          <span class="method">POST</span> /v2/session/quote
+        </div>
 
         <p class="lead">
           Generates route and pricing information for a resolved session.
         </p>
 
         <p>
-          A quote prepares the route for settlement creation and post-funding execution planning.
+          A quote prepares the available transfer options for settlement creation.
         </p>
 
         <h2>Request body</h2>
 
         <table>
-          <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-          <tr><td><code>session_id</code></td><td>string</td><td>Yes</td><td>Resolved session ID.</td></tr>
-          <tr><td><code>amount</code></td><td>number</td><td>Yes</td><td>Test amount requested for the controlled payout.</td></tr>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td><code>session_id</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>Resolved session ID.</td>
+          </tr>
+
+          <tr>
+            <td><code>amount</code></td>
+            <td>number</td>
+            <td>Yes</td>
+            <td>Amount requested for the transfer.</td>
+          </tr>
         </table>
 
         <h2>Example request</h2>
@@ -123,14 +150,10 @@
   "routes": [
     {
       "route_id": "route_123",
-      "route_type": "executor",
-      "executor": "smartpay",
-      "execution_provider": "smartpay",
       "payout_rail": "pix",
       "network": "polygon",
       "asset": "USDT",
       "fx_rate": null,
-      "executor_fee": 0,
       "unibridge_fee": 0,
       "funding_amount": 10,
       "funding_asset": "USDT",
@@ -143,31 +166,101 @@
         <h2>Route fields</h2>
 
         <table>
-          <tr><th>Field</th><th>Meaning</th></tr>
-          <tr><td><code>route_id</code></td><td>Route identifier used during settlement creation.</td></tr>
-          <tr><td><code>executor</code> / <code>execution_provider</code></td><td>Configured provider expected to execute the payout after funding confirmation.</td></tr>
-          <tr><td><code>payout_rail</code></td><td>Destination payout rail, such as PIX.</td></tr>
-          <tr><td><code>funding_asset</code></td><td>Asset expected in the funding leg.</td></tr>
-          <tr><td><code>funding_network</code></td><td>Network expected in the funding leg.</td></tr>
-          <tr><td><code>funding_amount</code></td><td>Amount expected for the selected funding or sender route.</td></tr>
+          <tr>
+            <th>Field</th>
+            <th>Meaning</th>
+          </tr>
+
+          <tr>
+            <td><code>route_id</code></td>
+            <td>Route identifier used during settlement creation.</td>
+          </tr>
+
+          <tr>
+            <td><code>payout_rail</code></td>
+            <td>Destination payout rail, such as PIX.</td>
+          </tr>
+
+          <tr>
+            <td><code>asset</code></td>
+            <td>Asset associated with the selected transfer route.</td>
+          </tr>
+
+          <tr>
+            <td><code>network</code></td>
+            <td>Network associated with the selected transfer route.</td>
+          </tr>
+
+          <tr>
+            <td><code>fx_rate</code></td>
+            <td>Applicable exchange rate when available.</td>
+          </tr>
+
+          <tr>
+            <td><code>unibridge_fee</code></td>
+            <td>UniBridge fee associated with the quoted route.</td>
+          </tr>
+
+          <tr>
+            <td><code>funding_asset</code></td>
+            <td>Asset expected for funding.</td>
+          </tr>
+
+          <tr>
+            <td><code>funding_network</code></td>
+            <td>Network expected for funding.</td>
+          </tr>
+
+          <tr>
+            <td><code>funding_amount</code></td>
+            <td>Amount required to fund the selected route.</td>
+          </tr>
+
+          <tr>
+            <td><code>est_time</code></td>
+            <td>Estimated transfer time when available.</td>
+          </tr>
         </table>
 
         <h2>Important behavior</h2>
 
         <div class="callout">
-          A quote does not move funds. A quote does not guarantee final execution.
-          A quote prepares available routes for review before settlement creation.
+          A quote does not move funds and does not guarantee final completion.
+          It prepares available transfer options for review before settlement creation.
         </div>
 
         <h2>Possible errors</h2>
 
         <table>
-          <tr><th>Error</th><th>Meaning</th></tr>
-          <tr><td><code>missing_session_id</code></td><td><code>session_id</code> was not provided.</td></tr>
-          <tr><td><code>session_not_found</code></td><td>Session does not exist.</td></tr>
-          <tr><td><code>resolve_not_completed</code></td><td>Session must be resolved before quoting.</td></tr>
-          <tr><td><code>invalid_amount</code></td><td>Amount is missing, invalid, or outside allowed limits.</td></tr>
-          <tr><td><code>route_not_available</code></td><td>No executable route is available.</td></tr>
+          <tr>
+            <th>Error</th>
+            <th>Meaning</th>
+          </tr>
+
+          <tr>
+            <td><code>missing_session_id</code></td>
+            <td><code>session_id</code> was not provided.</td>
+          </tr>
+
+          <tr>
+            <td><code>session_not_found</code></td>
+            <td>Session does not exist.</td>
+          </tr>
+
+          <tr>
+            <td><code>resolve_not_completed</code></td>
+            <td>Session must be resolved before quoting.</td>
+          </tr>
+
+          <tr>
+            <td><code>invalid_amount</code></td>
+            <td>Amount is missing, invalid, or outside allowed limits.</td>
+          </tr>
+
+          <tr>
+            <td><code>route_not_available</code></td>
+            <td>No supported route is available for the requested transfer.</td>
+          </tr>
         </table>
 
         <div class="pager">
@@ -175,6 +268,7 @@
             <span class="pager-label">Previous</span>
             ← Resolve session
           </a>
+
           <a class="next" href="./settlement-create.html">
             <span class="pager-label">Next</span>
             Create settlement →
