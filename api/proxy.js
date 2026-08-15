@@ -37,6 +37,14 @@ const ALLOWED =
 
     /*
     --------------------------------------------------
+    Fiat bank-transfer / Transak VBA
+    --------------------------------------------------
+    */
+
+    "fiat/transak-virtual-account/create",
+
+    /*
+    --------------------------------------------------
     Shared payout options
     --------------------------------------------------
     */
@@ -62,7 +70,8 @@ const ALLOWED =
 
 const CLERK_AUTH_ENDPOINTS =
   new Set([
-    "fiat/kyc/create"
+    "fiat/kyc/create",
+    "fiat/transak-virtual-account/create"
   ]);
 
 function normalizeEndpoint(value) {
