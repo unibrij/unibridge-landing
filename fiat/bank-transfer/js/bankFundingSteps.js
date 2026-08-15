@@ -17,6 +17,10 @@ import {
   runBridgeBankTransferStep
 } from "./funding/bankTransferStep.js";
 
+import {
+  runTransakVirtualAccountStep
+} from "./funding/transakVirtualAccountStep.js";
+
 function clearInstructionsBox(instructionsBox) {
   if (!instructionsBox) {
     return;
@@ -70,6 +74,74 @@ export async function runBankFundingSteps({
 
       step:
         "kyc"
+    };
+  }
+
+  const senderId =
+    state
+      ?.prepared_quote
+      ?.resolved
+      ?.sender_id;
+
+  if (
+    senderId ===
+    "transak_virtual_account"
+  ) {
+    const fundingResult =
+      await runTransakVirtualAccountStep({
+        settlementId,
+        sourceRail:
+          state
+            ?.prepared_quote
+            ?.form
+            ?.source_rail,
+        state,
+        persist,
+        instructionsBox
+      });
+
+    if (
+      isBlockingResult(
+        fundingResult
+      )
+    ) {
+      return fundingResult;
+    }
+
+    return {
+      ok:
+        true,
+
+      funding:
+        fundingResult.funding
+    };
+  }
+
+  if (
+    senderId !==
+    "bridge_bank_transfer"
+  ) {
+    clearInstructionsBox(
+      instructionsBox
+    );
+
+    return {
+      ok:
+        false,
+
+      blocked:
+        true,
+
+      retryable:
+        false,
+
+      step:
+        "instructions",
+
+      error:
+        senderId
+          ? "unsupported_bank_funding_sender"
+          : "bank_funding_sender_missing"
     };
   }
 
