@@ -24,12 +24,7 @@ const RENDERABLE_BANK_FIELDS =
     "routing_number",
     "bank_routing_number",
     "sort_code",
-    "iban",
-    "bic",
-    "swift",
-    "clabe",
-    "br_code",
-    "pix_code"
+    "iban"
   ]);
 
 
@@ -66,27 +61,6 @@ function clearInstructionsBox(
 }
 
 
-/*
---------------------------------------------------
-Typed Transak bank field
-
-Transak exposes bank identifiers as:
-
-  {
-    type,
-    value
-  }
-
-The existing UniBridge bank-instruction renderer uses
-flat canonical instruction fields.
-
-This adapter is intentionally local to the Transak
-frontend step.
-
-No generic renderer contract changes are required.
---------------------------------------------------
-*/
-
 function appendTypedBankField({
   instructions,
   field
@@ -118,20 +92,6 @@ function appendTypedBankField({
 }
 
 
-/*
---------------------------------------------------
-Existing quote amount
-
-The bank-transfer flow already keeps the prepared
-quote/form state.
-
-Use it only for display.
-
-The Transak VBA endpoint remains authoritative for
-the bank-account details.
---------------------------------------------------
-*/
-
 function resolveSourceAmount(
   state = {}
 ) {
@@ -150,31 +110,6 @@ function resolveSourceAmount(
   );
 }
 
-
-/*
---------------------------------------------------
-Adapt Transak VBA result to the existing bank
-instruction renderer.
-
-Backend response:
-
-  next_action:
-    fiat_currency
-    payment_rail
-    bank_account { type, value }
-    bank_local_code { type, value }
-
-Frontend renderer:
-
-  source_deposit_instructions:
-    currency
-    payment_rail
-    account_number / iban / ...
-    routing_number / sort_code / ...
-
-The adaptation remains Transak-specific here.
---------------------------------------------------
-*/
 
 function buildRenderableFunding({
   funding,
@@ -253,13 +188,6 @@ function buildRenderableFunding({
       nextAction.bank_local_code
   });
 
-  /*
-  The bank-account identifier is the minimum usable
-  instruction returned by the Transak sender.
-
-  Do not render a card containing only currency/rail.
-  */
-
   if (!hasBankAccount) {
     return null;
   }
@@ -272,12 +200,6 @@ function buildRenderableFunding({
   };
 }
 
-
-/*
---------------------------------------------------
-Persistence
---------------------------------------------------
-*/
 
 function persistFundingSuccess({
   persist,
@@ -334,12 +256,6 @@ function persistFundingError({
   });
 }
 
-
-/*
---------------------------------------------------
-UI states
---------------------------------------------------
-*/
 
 function showInstructionsMissingStatus() {
   setActiveStep(
@@ -433,30 +349,6 @@ function buildCreateFailedResult(
 }
 
 
-/*
---------------------------------------------------
-Transak Virtual Account funding step
-
-KYC has already passed before this step is called.
-
-The orchestration layer supplies the already-resolved
-source rail.
-
-The frontend sends only:
-
-  settlement_id
-  source_rail
-
-Clerk authentication is attached by api.js.
-
-The backend derives Customer Context and passes it to
-the Transak sender.
-
-No email, customer id, or Transak userIdentifier is
-constructed by the frontend.
---------------------------------------------------
-*/
-
 export async function runTransakVirtualAccountStep({
   settlementId,
   sourceRail,
@@ -501,28 +393,10 @@ export async function runTransakVirtualAccountStep({
       return buildInstructionsMissingResult();
     }
 
-    const rendered =
-      renderBankInstructions(
-        instructionsBox,
-        renderableFunding
-      );
-
-    if (!rendered) {
-      clearInstructionsBox(
-        instructionsBox
-      );
-
-      persistFundingError({
-        persist,
-        funding,
-        error:
-          "transak_virtual_account_instructions_missing"
-      });
-
-      showInstructionsMissingStatus();
-
-      return buildInstructionsMissingResult();
-    }
+    renderBankInstructions(
+      instructionsBox,
+      renderableFunding
+    );
 
     persistFundingSuccess({
       persist,
