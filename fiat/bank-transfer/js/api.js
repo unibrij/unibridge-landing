@@ -4,21 +4,31 @@ import {
   buildClerkAuthorizationHeader
 } from "./clerkAuth.js";
 
-async function parseJsonResponse(response) {
+async function parseJsonResponse(
+  response
+) {
   const body =
-    await response.json().catch(() => ({}));
+    await response
+      .json()
+      .catch(
+        () => ({})
+      );
 
   /*
     Important:
-    Some backend routes intentionally return non-2xx HTTP status
-    with ok:true to describe a controlled business state, for example:
+
+    Some backend routes intentionally return non-2xx
+    HTTP status with ok:true to describe a controlled
+    business state, for example:
+
     - bridge_customer_kyc_pending
     - bridge_customer_rejected
     - bridge_customer_tos_pending
 
-    These must reach the flow layer instead of being converted into
-    generic request_failed_409 errors.
+    These must reach the flow layer instead of being
+    converted into generic request_failed_409 errors.
   */
+
   if (
     !response.ok &&
     body?.ok === true
@@ -57,16 +67,20 @@ async function parseJsonResponse(response) {
       body;
 
     error.reason =
-      body?.reason || null;
+      body?.reason ||
+      null;
 
     error.state =
-      body?.state || null;
+      body?.state ||
+      null;
 
     error.retryable =
-      body?.retryable ?? null;
+      body?.retryable ??
+      null;
 
     error.pending =
-      body?.pending ?? null;
+      body?.pending ??
+      null;
 
     throw error;
   }
@@ -74,17 +88,32 @@ async function parseJsonResponse(response) {
   return body;
 }
 
-function normalizeEndpoint(endpoint) {
-  return String(endpoint || "")
-    .replace(/^\/+/, "")
-    .replace(/^v2\//, "");
+function normalizeEndpoint(
+  endpoint
+) {
+  return String(
+    endpoint ||
+    ""
+  )
+    .replace(
+      /^\/+/,
+      ""
+    )
+    .replace(
+      /^v2\//,
+      ""
+    );
 }
 
-function buildProxyUrl(endpoint) {
+function buildProxyUrl(
+  endpoint
+) {
   return (
     "/api/proxy?partner=fiat_bank_transfer&endpoint=" +
     encodeURIComponent(
-      normalizeEndpoint(endpoint)
+      normalizeEndpoint(
+        endpoint
+      )
     )
   );
 }
@@ -98,7 +127,9 @@ async function postJson(
 ) {
   const response =
     await fetch(
-      buildProxyUrl(endpoint),
+      buildProxyUrl(
+        endpoint
+      ),
       {
         method:
           "POST",
@@ -114,7 +145,9 @@ async function postJson(
         },
 
         body:
-          JSON.stringify(payload)
+          JSON.stringify(
+            payload
+          )
       }
     );
 
@@ -131,7 +164,9 @@ async function getJson(
 ) {
   const response =
     await fetch(
-      buildProxyUrl(endpoint),
+      buildProxyUrl(
+        endpoint
+      ),
       {
         method:
           "GET",
@@ -149,6 +184,16 @@ async function getJson(
     response
   );
 }
+
+
+/*
+--------------------------------------------------
+Fiat KYC
+
+Authenticated through Clerk because the backend KYC
+route resolves canonical Customer Context.
+--------------------------------------------------
+*/
 
 export async function createFiatKyc({
   settlement_id,
@@ -175,6 +220,13 @@ export async function createFiatKyc({
     }
   );
 }
+
+
+/*
+--------------------------------------------------
+Bridge
+--------------------------------------------------
+*/
 
 export function createBridgeTos({
   settlement_id
@@ -215,6 +267,59 @@ export function createBridgeBankTransfer({
     }
   );
 }
+
+
+/*
+--------------------------------------------------
+Transak Virtual Account
+
+Authenticated through Clerk.
+
+Do not send:
+  customer_id
+  customer_identity_id
+  email
+  userIdentifier
+
+The backend derives canonical Customer Context from
+the authenticated Clerk request.
+
+The Transak sender boundary owns:
+
+  customerContext.identity.email
+    ->
+  userIdentifier
+    ->
+  x-user-identifier
+--------------------------------------------------
+*/
+
+export async function createTransakVirtualAccount({
+  settlement_id,
+  source_rail
+}) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
+  return postJson(
+    "fiat/transak-virtual-account/create",
+    {
+      settlement_id,
+      source_rail
+    },
+    {
+      headers:
+        authHeaders
+    }
+  );
+}
+
+
+/*
+--------------------------------------------------
+Bridge diagnostics
+--------------------------------------------------
+*/
 
 export function getBridgeTosPing() {
   return getJson(
