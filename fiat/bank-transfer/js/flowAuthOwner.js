@@ -7,7 +7,7 @@ import {
 import {
   ensureFiatClerkAuth,
   clearTransientCustomerProfile
-} from "./clerkAuth.js";
+} from "../../../shared/pay/auth/clerkAuth.js";
 
 import {
   isDifferentAuthSubject,
