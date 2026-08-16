@@ -5,8 +5,6 @@ import {
 } from "./elements.js";
 
 import {
-  populateSourceCountries,
-  populateReceiverCountries,
   setCurrency,
   showEntry
 } from "./entry.js";
@@ -41,20 +39,10 @@ import {
 
 
 export function initializeUI({
-  sourceCountries = [],
-  receiverCountries = [],
   currency = "EUR"
 } = {}) {
   const ui =
     getRequiredElements();
-
-  populateSourceCountries(
-    sourceCountries
-  );
-
-  populateReceiverCountries(
-    receiverCountries
-  );
 
   setCurrency(
     currency
