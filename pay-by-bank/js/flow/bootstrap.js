@@ -23,7 +23,6 @@ import {
 } from "./normalization.js";
 
 import {
-  getCountryOptions,
   getSourceCurrency,
   syncSharedCountryUi
 } from "./countries.js";
@@ -45,23 +44,17 @@ import {
 
 
 export function initializePayByBankFlow() {
-  const countries =
-    getCountryOptions();
-
   initializeUI({
-    sourceCountries:
-      countries.source,
-
-    receiverCountries:
-      countries.destination,
-
     currency:
       "EUR"
   });
 
   /*
-  Reuse the shared Pay country behavior rather than
-  introducing Pay-by-Bank-specific country logic.
+  Shared Pay owns country population and country
+  selection behavior.
+
+  Pay-by-Bank only asks the shared layer to sync
+  the existing source/destination selects.
   */
 
   syncSharedCountryUi();
