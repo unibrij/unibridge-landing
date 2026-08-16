@@ -49,6 +49,7 @@ const ALLOWED =
     --------------------------------------------------
     */
 
+    "options/corridors",
     "options/coinsph/ph-payout-channels",
     "options/elementpay/ng-banks",
 
@@ -191,6 +192,8 @@ function getAllowedMethod(
       "ramp/kyc/requirement" ||
     endpoint ===
       "ramp/order/status" ||
+    endpoint ===
+      "options/corridors" ||
     endpoint ===
       "options/coinsph/ph-payout-channels" ||
     endpoint ===
