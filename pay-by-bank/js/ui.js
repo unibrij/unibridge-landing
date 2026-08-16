@@ -5,8 +5,6 @@ export {
 } from "./ui/initialize.js";
 
 export {
-  populateSourceCountries,
-  populateReceiverCountries,
   setCurrency,
   readEntryForm,
   validateEntryForm,
