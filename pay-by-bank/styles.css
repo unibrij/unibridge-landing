@@ -637,7 +637,7 @@ Amount
 
 /*
 --------------------------------------------------
-Summary
+Route summary
 --------------------------------------------------
 */
 
@@ -754,6 +754,33 @@ Summary
 
   overflow-wrap:
     anywhere;
+}
+
+
+/*
+--------------------------------------------------
+Shared pricing preview mount
+--------------------------------------------------
+
+This file owns only the Pay-by-Bank page placement
+of the shared pricing component.
+
+All pricing presentation, fee rows, amount semantics,
+formatting and internal component styling remain
+owned by:
+
+  /shared/pricing/pricing.css
+
+Do not duplicate shared pricing styles here.
+--------------------------------------------------
+*/
+
+#pricingPreviewMount {
+  width:
+    100%;
+
+  min-width:
+    0;
 }
 
 
