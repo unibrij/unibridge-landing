@@ -135,8 +135,9 @@
           </h2>
 
           <p>
-            Enter your payment details and continue
-            securely with your bank.
+            Enter your payment details, review the
+            route and pricing, then continue securely
+            with your bank.
           </p>
         </header>
 
@@ -149,6 +150,18 @@
             <select
               id="sourceCountry"
               data-country-select="source"
+              required
+            ></select>
+          </label>
+
+          <label class="field">
+            <span>
+              Sending to
+            </span>
+
+            <select
+              id="receiverCountry"
+              data-country-select="destination"
               required
             ></select>
           </label>
@@ -181,9 +194,38 @@
           </label>
         </div>
 
+        <!--
+        ----------------------------------------------
+        Resolved route summary
+
+        This contains route information only.
+
+        Pricing is intentionally rendered separately
+        by the shared Pay pricing module.
+        ----------------------------------------------
+        -->
+
         <section
           id="routeSummary"
           class="summary-box hidden"
+          aria-live="polite"
+        ></section>
+
+        <!--
+        ----------------------------------------------
+        Shared pricing preview mount
+
+        Pricing markup, formatting and semantics are
+        owned by the shared Pay pricing module.
+
+        Pay-by-Bank must not calculate or duplicate
+        pricing presentation locally.
+        ----------------------------------------------
+        -->
+
+        <section
+          id="pricingPreviewMount"
+          class="hidden"
           aria-live="polite"
         ></section>
 
@@ -193,7 +235,15 @@
             class="button primary"
             type="button"
           >
-            Continue
+            Review payment
+          </button>
+
+          <button
+            id="confirmAction"
+            class="button primary hidden"
+            type="button"
+          >
+            Continue with bank
           </button>
         </div>
       </section>
@@ -223,12 +273,12 @@
 
             <div>
               <strong>
-                Verify your profile
+                Prepare your payment
               </strong>
 
               <p>
-                Sign in and complete identity
-                verification if required.
+                UniBridge checks the route and prepares
+                your secure bank payment.
               </p>
             </div>
           </div>
@@ -296,6 +346,7 @@
             id="primaryAction"
             class="button primary"
             type="button"
+            disabled
           >
             Continue to bank
           </button>
@@ -319,9 +370,10 @@
   --------------------------------------------------
   Shared Pay partial loader
 
-  Loads the shared Pay chrome, including:
+  Loads:
     /partials/pay/brand.html
     /partials/pay/footer.html
+    /partials/pay/css/pay-common.css
   --------------------------------------------------
   -->
 
@@ -329,7 +381,17 @@
     src="/partials/pay/js/pay-includes.js?v=6"
   ></script>
 
-  <!-- Pay-by-Bank orchestration -->
+  <!--
+  --------------------------------------------------
+  Pay-by-Bank orchestration
+
+  flow.js imports the shared Pay pricing preview
+  module.
+
+  Pricing markup and pricing semantics do not live
+  in this page.
+  --------------------------------------------------
+  -->
 
   <script
     type="module"
