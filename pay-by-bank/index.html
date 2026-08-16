@@ -59,6 +59,11 @@
 
   <link
     rel="stylesheet"
+    href="/shared/pricing/pricing.css"
+  />
+
+  <link
+    rel="stylesheet"
     href="/pay-by-bank/styles.css?v=1"
   />
 
@@ -216,7 +221,10 @@
         Shared pricing preview mount
 
         Pricing markup, formatting and semantics are
-        owned by the shared Pay pricing module.
+        owned by:
+
+          /shared/pricing/index.js
+          /shared/pricing/pricing.css
 
         Pay-by-Bank must not calculate or duplicate
         pricing presentation locally.
@@ -385,8 +393,9 @@
   --------------------------------------------------
   Pay-by-Bank orchestration
 
-  flow.js imports the shared Pay pricing preview
-  module.
+  flow.js imports the existing shared pricing module:
+
+    /shared/pricing/index.js
 
   Pricing markup and pricing semantics do not live
   in this page.
