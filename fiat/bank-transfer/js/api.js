@@ -2,7 +2,7 @@
 
 import {
   buildClerkAuthorizationHeader
-} from "./clerkAuth.js";
+} from "../../../shared/pay/auth/clerkAuth.js";
 
 async function parseJsonResponse(
   response
