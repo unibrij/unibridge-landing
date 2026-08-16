@@ -41,6 +41,16 @@ const elements = {
       "pricingPreviewMount"
     ),
 
+  destinationBox:
+    document.getElementById(
+      "destinationBox"
+    ),
+
+  destinationFields:
+    document.getElementById(
+      "destinationFields"
+    ),
+
   statusBox:
     document.getElementById(
       "statusBox"
@@ -130,6 +140,18 @@ function getRequiredElements() {
       requireElement(
         elements.pricingPreviewMount,
         "pricingPreviewMount"
+      ),
+
+    destinationBox:
+      requireElement(
+        elements.destinationBox,
+        "destinationBox"
+      ),
+
+    destinationFields:
+      requireElement(
+        elements.destinationFields,
+        "destinationFields"
       ),
 
     statusBox:
@@ -415,7 +437,11 @@ export function initializeUI({
 
   hideRouteSummary();
 
-  hidePricingPreview();
+  clearPricingPreviewMount();
+
+  clearDestinationFields();
+
+  hideDestinationFields();
 
   hideConfirmAction();
 
@@ -778,12 +804,7 @@ export function hideRouteSummary() {
 
 /*
 --------------------------------------------------
-Shared pricing mount visibility
-
-This module owns only the mount visibility.
-
-Pricing content, parsing, formatting and semantics
-must be owned by the shared Pay pricing module.
+Shared pricing mount
 --------------------------------------------------
 */
 
@@ -835,6 +856,67 @@ export function clearPricingPreviewMount() {
     pricingPreviewMount,
     true
   );
+}
+
+
+/*
+--------------------------------------------------
+Destination field mount
+--------------------------------------------------
+
+This module owns only mount visibility/access.
+
+The route-specific destination schema and field
+rendering contract are supplied by the flow layer
+using the already-resolved route.
+
+No payout-route business rules belong here.
+--------------------------------------------------
+*/
+
+export function getDestinationFieldsMount() {
+  const {
+    destinationFields
+  } =
+    getRequiredElements();
+
+  return destinationFields;
+}
+
+
+export function showDestinationFields() {
+  const {
+    destinationBox
+  } =
+    getRequiredElements();
+
+  setHidden(
+    destinationBox,
+    false
+  );
+}
+
+
+export function hideDestinationFields() {
+  const {
+    destinationBox
+  } =
+    getRequiredElements();
+
+  setHidden(
+    destinationBox,
+    true
+  );
+}
+
+
+export function clearDestinationFields() {
+  const {
+    destinationFields
+  } =
+    getRequiredElements();
+
+  destinationFields.replaceChildren();
 }
 
 
