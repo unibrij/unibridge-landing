@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
+
+  <title>Pay by Bank — UniBridge</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="/favicon.png"
+  />
+
+  <link
+    rel="apple-touch-icon"
+    href="/connect/icons/app/ub-app-icon-512.png"
+  />
+
+  <meta
+    name="theme-color"
+    content="#000E2D"
+  />
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  />
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="UniBridge"
+  />
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  />
+
+  <meta
+    name="description"
+    content="Pay directly from your bank with UniBridge."
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/unibridge-orbit-lockup-white.png"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=9"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/pay-by-bank/styles.css?v=1"
+  />
+
+  <style>
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page pay-page-shell">
+    <!--
+    ------------------------------------------------
+    Shared Pay brand header
+
+    Loaded from:
+      /partials/pay/brand.html
+    ------------------------------------------------
+    -->
+
+    <div id="pay-brand"></div>
+
+    <!--
+    ------------------------------------------------
+    Pay-by-Bank surface
+    ------------------------------------------------
+    -->
+
+    <section
+      class="hero"
+      aria-labelledby="payByBankTitle"
+    >
+      <h1
+        id="payByBankTitle"
+        class="sr-only"
+      >
+        Pay by Bank with UniBridge
+      </h1>
+
+      <p
+        class="eyebrow"
+        aria-hidden="true"
+      >
+        Pay by Bank
+      </p>
+    </section>
+
+    <!--
+    ------------------------------------------------
+    Entry
+    ------------------------------------------------
+    -->
+
+    <section
+      id="payByBankCard"
+      class="card"
+    >
+      <section
+        id="entryBox"
+        class="entry-box"
+      >
+        <header class="entry-header">
+          <h2>
+            Pay directly from your bank
+          </h2>
+
+          <p>
+            Enter your payment details and continue
+            securely with your bank.
+          </p>
+        </header>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>
+              Paying from
+            </span>
+
+            <select
+              id="sourceCountry"
+              data-country-select="source"
+              required
+            ></select>
+          </label>
+
+          <label class="field amount-field">
+            <span>
+              You pay
+            </span>
+
+            <div class="amount-input-wrap">
+              <input
+                id="amount"
+                type="number"
+                min="1"
+                step="0.01"
+                inputmode="decimal"
+                autocomplete="off"
+                required
+                aria-label="Amount"
+              />
+
+              <span
+                id="amountCurrency"
+                class="amount-currency"
+                aria-hidden="true"
+              >
+                EUR
+              </span>
+            </div>
+          </label>
+        </div>
+
+        <section
+          id="routeSummary"
+          class="summary-box hidden"
+          aria-live="polite"
+        ></section>
+
+        <div class="actions">
+          <button
+            id="continueAction"
+            class="button primary"
+            type="button"
+          >
+            Continue
+          </button>
+        </div>
+      </section>
+
+      <!--
+      ------------------------------------------------
+      Preparation / handoff
+      ------------------------------------------------
+      -->
+
+      <section
+        id="prepareBox"
+        class="hidden"
+      >
+        <section
+          class="steps"
+          aria-label="Payment steps"
+        >
+          <div
+            class="step"
+            data-step="profile"
+          >
+            <span
+              class="step-dot"
+              aria-hidden="true"
+            ></span>
+
+            <div>
+              <strong>
+                Verify your profile
+              </strong>
+
+              <p>
+                Sign in and complete identity
+                verification if required.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="payment"
+          >
+            <span
+              class="step-dot"
+              aria-hidden="true"
+            ></span>
+
+            <div>
+              <strong>
+                Continue to your bank
+              </strong>
+
+              <p>
+                Complete the bank payment securely.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="step"
+            data-step="confirmation"
+          >
+            <span
+              class="step-dot"
+              aria-hidden="true"
+            ></span>
+
+            <div>
+              <strong>
+                Payment confirmation
+              </strong>
+
+              <p>
+                UniBridge continues automatically
+                once your funding is confirmed.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="statusBox"
+          class="status-box"
+          aria-live="polite"
+        >
+          Preparing your bank payment…
+        </section>
+
+        <div class="actions">
+          <button
+            id="backAction"
+            class="button secondary"
+            type="button"
+          >
+            Back
+          </button>
+
+          <button
+            id="primaryAction"
+            class="button primary"
+            type="button"
+          >
+            Continue to bank
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <!--
+    ------------------------------------------------
+    Shared Pay footer
+
+    Loaded from:
+      /partials/pay/footer.html
+    ------------------------------------------------
+    -->
+
+    <div id="pay-footer"></div>
+  </main>
+
+  <!--
+  --------------------------------------------------
+  Shared Pay partial loader
+
+  Loads the shared Pay chrome, including:
+    /partials/pay/brand.html
+    /partials/pay/footer.html
+  --------------------------------------------------
+  -->
+
+  <script
+    src="/partials/pay/js/pay-includes.js?v=6"
+  ></script>
+
+  <!-- Pay-by-Bank orchestration -->
+
+  <script
+    type="module"
+    src="/pay-by-bank/js/flow.js?v=1"
+  ></script>
+</body>
+</html>
