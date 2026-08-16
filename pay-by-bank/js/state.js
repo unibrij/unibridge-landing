@@ -1,30 +1,44 @@
 // pay-by-bank/js/state.js
 
-const DEFAULT_STATE = Object.freeze({
-  sourceCountry:
-    null,
+const DEFAULT_STATE =
+  Object.freeze({
+    sourceCountry:
+      null,
 
-  amount:
-    null,
+    receiverCountry:
+      null,
 
-  currency:
-    "EUR",
+    amount:
+      null,
 
-  settlementId:
-    null,
+    currency:
+      "EUR",
 
-  transactionId:
-    null,
+    sessionId:
+      null,
 
-  paymentLink:
-    null,
+    selectedRoute:
+      null,
 
-  status:
-    "idle",
+    quote:
+      null,
 
-  error:
-    null
-});
+    settlementId:
+      null,
+
+    transactionId:
+      null,
+
+    paymentLink:
+      null,
+
+    status:
+      "idle",
+
+    error:
+      null
+  });
+
 
 let state = {
   ...DEFAULT_STATE
@@ -43,8 +57,11 @@ export function setState(
 ) {
   if (
     !patch ||
-    typeof patch !== "object" ||
-    Array.isArray(patch)
+    typeof patch !==
+      "object" ||
+    Array.isArray(
+      patch
+    )
   ) {
     return getState();
   }
@@ -70,99 +87,231 @@ export function resetState() {
 export function setSourceCountry(
   sourceCountry
 ) {
-  return setState({
-    sourceCountry:
+  state.sourceCountry =
+    normalizeCountry(
       sourceCountry
-        ? String(
-            sourceCountry
-          )
-            .toUpperCase()
-            .trim()
-        : null
-  });
+    );
+
+  return state.sourceCountry;
+}
+
+
+export function setReceiverCountry(
+  receiverCountry
+) {
+  state.receiverCountry =
+    normalizeCountry(
+      receiverCountry
+    );
+
+  return state.receiverCountry;
 }
 
 
 export function setAmount(
   amount
 ) {
-  const parsed =
-    Number(amount);
+  if (
+    amount === undefined ||
+    amount === null ||
+    amount === ""
+  ) {
+    state.amount =
+      null;
 
-  return setState({
-    amount:
-      Number.isFinite(parsed) &&
-      parsed > 0
-        ? parsed
-        : null
-  });
+    return state.amount;
+  }
+
+  const parsed =
+    Number(
+      amount
+    );
+
+  state.amount =
+    Number.isFinite(
+      parsed
+    ) &&
+    parsed > 0
+      ? parsed
+      : null;
+
+  return state.amount;
+}
+
+
+export function setCurrency(
+  currency
+) {
+  const normalized =
+    String(
+      currency ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  state.currency =
+    normalized ||
+    "EUR";
+
+  return state.currency;
+}
+
+
+export function setSessionId(
+  sessionId
+) {
+  state.sessionId =
+    normalizeString(
+      sessionId
+    );
+
+  return state.sessionId;
+}
+
+
+export function setSelectedRoute(
+  route
+) {
+  state.selectedRoute =
+    route &&
+    typeof route ===
+      "object" &&
+    !Array.isArray(
+      route
+    )
+      ? route
+      : null;
+
+  return state.selectedRoute;
+}
+
+
+export function setQuote(
+  quote
+) {
+  state.quote =
+    quote &&
+    typeof quote ===
+      "object" &&
+    !Array.isArray(
+      quote
+    )
+      ? quote
+      : null;
+
+  return state.quote;
+}
+
+
+export function clearQuoteState() {
+  state.selectedRoute =
+    null;
+
+  state.quote =
+    null;
+
+  state.settlementId =
+    null;
+
+  state.transactionId =
+    null;
+
+  state.paymentLink =
+    null;
+
+  state.error =
+    null;
+
+  return getState();
 }
 
 
 export function setSettlementId(
   settlementId
 ) {
-  return setState({
-    settlementId:
+  state.settlementId =
+    normalizeString(
       settlementId
-        ? String(
-            settlementId
-          ).trim()
-        : null
-  });
+    );
+
+  return state.settlementId;
 }
 
 
 export function setTransactionId(
   transactionId
 ) {
-  return setState({
-    transactionId:
+  state.transactionId =
+    normalizeString(
       transactionId
-        ? String(
-            transactionId
-          ).trim()
-        : null
-  });
+    );
+
+  return state.transactionId;
 }
 
 
 export function setPaymentLink(
   paymentLink
 ) {
-  return setState({
-    paymentLink:
+  state.paymentLink =
+    normalizeString(
       paymentLink
-        ? String(
-            paymentLink
-          ).trim()
-        : null
-  });
+    );
+
+  return state.paymentLink;
 }
 
 
 export function setStatus(
   status
 ) {
-  return setState({
-    status:
+  state.status =
+    normalizeString(
       status
-        ? String(
-            status
-          )
-            .toLowerCase()
-            .trim()
-        : "idle"
-  });
+    ) ||
+    "idle";
+
+  return state.status;
 }
 
 
 export function setError(
   error
 ) {
-  return setState({
-    error:
-      error ||
-      null
-  });
+  state.error =
+    error ||
+    null;
+
+  return state.error;
+}
+
+
+function normalizeString(
+  value
+) {
+  const normalized =
+    String(
+      value ??
+      ""
+    ).trim();
+
+  return normalized ||
+    null;
+}
+
+
+function normalizeCountry(
+  value
+) {
+  const normalized =
+    String(
+      value ??
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  return normalized ||
+    null;
 }
