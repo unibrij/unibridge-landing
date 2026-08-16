@@ -237,6 +237,43 @@
           aria-live="polite"
         ></section>
 
+        <!--
+        ----------------------------------------------
+        Route-specific recipient / destination fields
+
+        The selected payout route determines which
+        fields are required.
+
+        The browser renders those fields here and
+        collects them into the canonical destination
+        payload passed to settlement/create.
+
+        This section must remain hidden until a route
+        has been resolved and quoted.
+        ----------------------------------------------
+        -->
+
+        <section
+          id="destinationBox"
+          class="hidden"
+        >
+          <header class="entry-header">
+            <h2>
+              Recipient details
+            </h2>
+
+            <p>
+              Enter the destination details required
+              for this payout route.
+            </p>
+          </header>
+
+          <div
+            id="destinationFields"
+            class="form-grid"
+          ></div>
+        </section>
+
         <div class="actions">
           <button
             id="continueAction"
@@ -387,6 +424,19 @@
 
   <script
     src="/partials/pay/js/pay-includes.js?v=6"
+  ></script>
+
+  <!--
+  --------------------------------------------------
+  Shared Pay country configuration
+
+  Owns the existing source and destination country
+  option sets used by the Pay surfaces.
+  --------------------------------------------------
+  -->
+
+  <script
+    src="/partials/pay/js/pay-countries.js?v=3"
   ></script>
 
   <!--
