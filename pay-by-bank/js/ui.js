@@ -6,6 +6,11 @@ const elements = {
       "sourceCountry"
     ),
 
+  receiverCountry:
+    document.getElementById(
+      "receiverCountry"
+    ),
+
   amount:
     document.getElementById(
       "amount"
@@ -31,6 +36,11 @@ const elements = {
       "routeSummary"
     ),
 
+  pricingPreviewMount:
+    document.getElementById(
+      "pricingPreviewMount"
+    ),
+
   statusBox:
     document.getElementById(
       "statusBox"
@@ -39,6 +49,11 @@ const elements = {
   continueAction:
     document.getElementById(
       "continueAction"
+    ),
+
+  confirmAction:
+    document.getElementById(
+      "confirmAction"
     ),
 
   primaryAction:
@@ -75,6 +90,12 @@ function getRequiredElements() {
         "sourceCountry"
       ),
 
+    receiverCountry:
+      requireElement(
+        elements.receiverCountry,
+        "receiverCountry"
+      ),
+
     amount:
       requireElement(
         elements.amount,
@@ -105,6 +126,12 @@ function getRequiredElements() {
         "routeSummary"
       ),
 
+    pricingPreviewMount:
+      requireElement(
+        elements.pricingPreviewMount,
+        "pricingPreviewMount"
+      ),
+
     statusBox:
       requireElement(
         elements.statusBox,
@@ -115,6 +142,12 @@ function getRequiredElements() {
       requireElement(
         elements.continueAction,
         "continueAction"
+      ),
+
+    confirmAction:
+      requireElement(
+        elements.confirmAction,
+        "confirmAction"
       ),
 
     primaryAction:
@@ -231,7 +264,9 @@ function normalizeCountryOptions(
   countries = []
 ) {
   if (
-    !Array.isArray(countries)
+    !Array.isArray(
+      countries
+    )
   ) {
     return [];
   }
@@ -286,6 +321,7 @@ function normalizeCountryOptions(
 
       return {
         code,
+
         label:
           label ||
           code
@@ -295,73 +331,40 @@ function normalizeCountryOptions(
 }
 
 
-export function initializeUI({
+function populateCountrySelect(
+  select,
   countries = [],
-  currency = "EUR"
-} = {}) {
-  const ui =
-    getRequiredElements();
-
-  populateSourceCountries(
-    countries
-  );
-
-  setCurrency(
-    currency
-  );
-
-  showEntry();
-
-  clearStatus();
-
-  hideRouteSummary();
-
-  setContinueBusy(
-    false
-  );
-
-  setPrimaryBusy(
-    false
-  );
-
-  return ui;
-}
-
-
-export function populateSourceCountries(
-  countries = []
+  {
+    placeholder =
+      "Select country"
+  } = {}
 ) {
-  const {
-    sourceCountry
-  } =
-    getRequiredElements();
-
   const options =
     normalizeCountryOptions(
       countries
     );
 
-  sourceCountry.replaceChildren();
+  select.replaceChildren();
 
-  const placeholder =
+  const placeholderOption =
     document.createElement(
       "option"
     );
 
-  placeholder.value =
+  placeholderOption.value =
     "";
 
-  placeholder.textContent =
-    "Select country";
+  placeholderOption.textContent =
+    placeholder;
 
-  placeholder.disabled =
+  placeholderOption.disabled =
     true;
 
-  placeholder.selected =
+  placeholderOption.selected =
     true;
 
-  sourceCountry.appendChild(
-    placeholder
+  select.appendChild(
+    placeholderOption
   );
 
   for (
@@ -379,10 +382,100 @@ export function populateSourceCountries(
     option.textContent =
       country.label;
 
-    sourceCountry.appendChild(
+    select.appendChild(
       option
     );
   }
+}
+
+
+export function initializeUI({
+  sourceCountries = [],
+  receiverCountries = [],
+  currency = "EUR"
+} = {}) {
+  const ui =
+    getRequiredElements();
+
+  populateSourceCountries(
+    sourceCountries
+  );
+
+  populateReceiverCountries(
+    receiverCountries
+  );
+
+  setCurrency(
+    currency
+  );
+
+  showEntry();
+
+  clearStatus();
+
+  hideRouteSummary();
+
+  hidePricingPreview();
+
+  hideConfirmAction();
+
+  setContinueBusy(
+    false
+  );
+
+  setConfirmBusy(
+    false
+  );
+
+  setPrimaryBusy(
+    false
+  );
+
+  setPrimaryEnabled(
+    false
+  );
+
+  resetSteps();
+
+  return ui;
+}
+
+
+export function populateSourceCountries(
+  countries = []
+) {
+  const {
+    sourceCountry
+  } =
+    getRequiredElements();
+
+  populateCountrySelect(
+    sourceCountry,
+    countries,
+    {
+      placeholder:
+        "Select country"
+    }
+  );
+}
+
+
+export function populateReceiverCountries(
+  countries = []
+) {
+  const {
+    receiverCountry
+  } =
+    getRequiredElements();
+
+  populateCountrySelect(
+    receiverCountry,
+    countries,
+    {
+      placeholder:
+        "Select destination"
+    }
+  );
 }
 
 
@@ -410,6 +503,7 @@ export function setCurrency(
 export function readEntryForm() {
   const {
     sourceCountry,
+    receiverCountry,
     amount
   } =
     getRequiredElements();
@@ -418,6 +512,14 @@ export function readEntryForm() {
     sourceCountry:
       String(
         sourceCountry.value ||
+        ""
+      )
+        .trim()
+        .toUpperCase(),
+
+    receiverCountry:
+      String(
+        receiverCountry.value ||
         ""
       )
         .trim()
@@ -432,6 +534,7 @@ export function readEntryForm() {
 export function validateEntryForm() {
   const {
     sourceCountry,
+    receiverCountry,
     amount
   } =
     getRequiredElements();
@@ -441,22 +544,42 @@ export function validateEntryForm() {
   );
 
   clearFieldError(
+    receiverCountry
+  );
+
+  clearFieldError(
     amount
   );
 
   let valid =
     true;
 
-  const country =
+  const source =
     String(
       sourceCountry.value ||
       ""
     ).trim();
 
-  if (!country) {
+  if (!source) {
     showFieldError(
       sourceCountry,
-      "Choose your country."
+      "Choose where you are paying from."
+    );
+
+    valid =
+      false;
+  }
+
+  const receiver =
+    String(
+      receiverCountry.value ||
+      ""
+    ).trim();
+
+  if (!receiver) {
+    showFieldError(
+      receiverCountry,
+      "Choose where you are sending to."
     );
 
     valid =
@@ -527,32 +650,28 @@ export function showPreparation() {
 
 export function renderRouteSummary({
   sourceCountry,
-  amount,
-  currency = "EUR"
+  receiverCountry,
+  method =
+    "Bank transfer"
 } = {}) {
   const {
     routeSummary
   } =
     getRequiredElements();
 
-  const normalizedCurrency =
-    String(
-      currency || "EUR"
-    )
-      .trim()
-      .toUpperCase();
-
-  const normalizedCountry =
+  const normalizedSource =
     String(
       sourceCountry || ""
     )
       .trim()
       .toUpperCase();
 
-  const normalizedAmount =
-    Number(
-      amount
-    );
+  const normalizedReceiver =
+    String(
+      receiverCountry || ""
+    )
+      .trim()
+      .toUpperCase();
 
   routeSummary.replaceChildren();
 
@@ -570,28 +689,26 @@ export function renderRouteSummary({
         "Paying from",
 
       value:
-        normalizedCountry ||
+        normalizedSource ||
         "—"
     },
     {
       label:
-        "Amount",
+        "Sending to",
 
       value:
-        Number.isFinite(
-          normalizedAmount
-        )
-          ? `${normalizedAmount.toFixed(
-              2
-            )} ${normalizedCurrency}`
-          : "—"
+        normalizedReceiver ||
+        "—"
     },
     {
       label:
         "Method",
 
       value:
-        "Bank transfer"
+        String(
+          method ||
+          "Bank transfer"
+        )
     }
   ];
 
@@ -654,6 +771,94 @@ export function hideRouteSummary() {
 
   setHidden(
     routeSummary,
+    true
+  );
+}
+
+
+/*
+--------------------------------------------------
+Shared pricing mount visibility
+
+This module owns only the mount visibility.
+
+Pricing content, parsing, formatting and semantics
+must be owned by the shared Pay pricing module.
+--------------------------------------------------
+*/
+
+export function getPricingPreviewMount() {
+  const {
+    pricingPreviewMount
+  } =
+    getRequiredElements();
+
+  return pricingPreviewMount;
+}
+
+
+export function showPricingPreview() {
+  const {
+    pricingPreviewMount
+  } =
+    getRequiredElements();
+
+  setHidden(
+    pricingPreviewMount,
+    false
+  );
+}
+
+
+export function hidePricingPreview() {
+  const {
+    pricingPreviewMount
+  } =
+    getRequiredElements();
+
+  setHidden(
+    pricingPreviewMount,
+    true
+  );
+}
+
+
+export function clearPricingPreviewMount() {
+  const {
+    pricingPreviewMount
+  } =
+    getRequiredElements();
+
+  pricingPreviewMount.replaceChildren();
+
+  setHidden(
+    pricingPreviewMount,
+    true
+  );
+}
+
+
+export function showConfirmAction() {
+  const {
+    confirmAction
+  } =
+    getRequiredElements();
+
+  setHidden(
+    confirmAction,
+    false
+  );
+}
+
+
+export function hideConfirmAction() {
+  const {
+    confirmAction
+  } =
+    getRequiredElements();
+
+  setHidden(
+    confirmAction,
     true
   );
 }
@@ -771,9 +976,39 @@ export function setContinueBusy(
   setButtonBusy(
     continueAction,
     busy,
-    "Preparing…",
-    "Continue"
+    "Preparing preview…",
+    "Review payment"
   );
+}
+
+
+export function setConfirmBusy(
+  busy
+) {
+  const {
+    confirmAction
+  } =
+    getRequiredElements();
+
+  setButtonBusy(
+    confirmAction,
+    busy,
+    "Preparing payment…",
+    "Continue with bank"
+  );
+}
+
+
+export function setConfirmEnabled(
+  enabled
+) {
+  const {
+    confirmAction
+  } =
+    getRequiredElements();
+
+  confirmAction.disabled =
+    !enabled;
 }
 
 
@@ -822,6 +1057,21 @@ export function bindContinue(
 }
 
 
+export function bindConfirm(
+  handler
+) {
+  const {
+    confirmAction
+  } =
+    getRequiredElements();
+
+  confirmAction.addEventListener(
+    "click",
+    handler
+  );
+}
+
+
 export function bindPrimary(
   handler
 ) {
@@ -847,6 +1097,33 @@ export function bindBack(
 
   backAction.addEventListener(
     "click",
+    handler
+  );
+}
+
+
+export function bindEntryChange(
+  handler
+) {
+  const {
+    sourceCountry,
+    receiverCountry,
+    amount
+  } =
+    getRequiredElements();
+
+  sourceCountry.addEventListener(
+    "change",
+    handler
+  );
+
+  receiverCountry.addEventListener(
+    "change",
+    handler
+  );
+
+  amount.addEventListener(
+    "input",
     handler
   );
 }
