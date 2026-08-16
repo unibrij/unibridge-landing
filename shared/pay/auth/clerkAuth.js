@@ -1,4 +1,4 @@
-// fiat/bank-transfer/js/clerkAuth.js
+// shared/pay/auth/clerkAuth.js
 
 const FIAT_CUSTOMER_PROFILE_KEY =
   "unibridge_fiat_customer_profile";
@@ -37,7 +37,9 @@ function readTransientCustomerProfile() {
   }
 }
 
-function writeTransientCustomerProfile(values = {}) {
+function writeTransientCustomerProfile(
+  values = {}
+) {
   const existing =
     readTransientCustomerProfile();
 
@@ -46,7 +48,9 @@ function writeTransientCustomerProfile(values = {}) {
   };
 
   const email =
-    normalizeString(values.email);
+    normalizeString(
+      values.email
+    );
 
   const authSubjectId =
     normalizeString(
@@ -88,34 +92,46 @@ export function clearTransientCustomerProfile() {
   );
 }
 
-function isBridgeLoaded(bridge) {
+function isBridgeLoaded(
+  bridge
+) {
   return Boolean(
     bridge &&
     bridge.isLoaded
   );
 }
 
-function isBridgeSignedIn(bridge) {
+function isBridgeSignedIn(
+  bridge
+) {
   return Boolean(
-    isBridgeLoaded(bridge) &&
+    isBridgeLoaded(
+      bridge
+    ) &&
     bridge.isSignedIn &&
-    typeof bridge.getToken === "function"
+    typeof bridge.getToken ===
+      "function"
   );
 }
 
-function resolveBridgeEmail(bridge) {
+function resolveBridgeEmail(
+  bridge
+) {
   return (
     normalizeString(
       bridge?.email
     ) ||
     normalizeString(
-      readTransientCustomerProfile().email
+      readTransientCustomerProfile()
+        .email
     ) ||
     null
   );
 }
 
-function resolveBridgeUserId(bridge) {
+function resolveBridgeUserId(
+  bridge
+) {
   return (
     normalizeString(
       bridge?.userId
@@ -124,16 +140,20 @@ function resolveBridgeUserId(bridge) {
       bridge?.auth_subject_id
     ) ||
     normalizeString(
-      readTransientCustomerProfile().auth_subject_id
+      readTransientCustomerProfile()
+        .auth_subject_id
     ) ||
     normalizeString(
-      readTransientCustomerProfile().user_id
+      readTransientCustomerProfile()
+        .user_id
     ) ||
     null
   );
 }
 
-async function getFreshBridgeToken(bridge) {
+async function getFreshBridgeToken(
+  bridge
+) {
   try {
     return await bridge.getToken({
       skipCache:
@@ -148,80 +168,88 @@ function waitForAuthBridge({
   requireSignedIn = false,
   timeoutMs = DEFAULT_TIMEOUT_MS
 } = {}) {
-  return new Promise((resolve, reject) => {
-    const startedAt =
-      Date.now();
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      const startedAt =
+        Date.now();
 
-    let interval = null;
+      let interval = null;
 
-    function cleanup() {
-      window.removeEventListener(
+      function cleanup() {
+        window.removeEventListener(
+          AUTH_EVENT,
+          check
+        );
+
+        if (interval) {
+          window.clearInterval(
+            interval
+          );
+        }
+      }
+
+      function matches(
+        bridge
+      ) {
+        if (requireSignedIn) {
+          return isBridgeSignedIn(
+            bridge
+          );
+        }
+
+        return isBridgeLoaded(
+          bridge
+        );
+      }
+
+      function check() {
+        const bridge =
+          readAuthBridge();
+
+        if (matches(bridge)) {
+          cleanup();
+
+          resolve(
+            bridge
+          );
+
+          return;
+        }
+
+        if (
+          Date.now() -
+            startedAt >
+          timeoutMs
+        ) {
+          cleanup();
+
+          reject(
+            new Error(
+              requireSignedIn
+                ? "clerk_sign_in_timeout"
+                : "clerk_load_timeout"
+            )
+          );
+        }
+      }
+
+      window.addEventListener(
         AUTH_EVENT,
         check
       );
 
-      if (interval) {
-        window.clearInterval(
-          interval
+      interval =
+        window.setInterval(
+          check,
+          250
         );
-      }
+
+      check();
     }
-
-    function matches(bridge) {
-      if (requireSignedIn) {
-        return isBridgeSignedIn(
-          bridge
-        );
-      }
-
-      return isBridgeLoaded(
-        bridge
-      );
-    }
-
-    function check() {
-      const bridge =
-        readAuthBridge();
-
-      if (matches(bridge)) {
-        cleanup();
-
-        resolve(
-          bridge
-        );
-
-        return;
-      }
-
-      if (
-        Date.now() - startedAt >
-        timeoutMs
-      ) {
-        cleanup();
-
-        reject(
-          new Error(
-            requireSignedIn
-              ? "clerk_sign_in_timeout"
-              : "clerk_load_timeout"
-          )
-        );
-      }
-    }
-
-    window.addEventListener(
-      AUTH_EVENT,
-      check
-    );
-
-    interval =
-      window.setInterval(
-        check,
-        250
-      );
-
-    check();
-  });
+  );
 }
 
 export async function loadClerk() {
@@ -296,10 +324,7 @@ export async function ensureFiatClerkAuth() {
     auth_subject_id:
       userId,
 
-    email,
-
-    email_verified:
-      true
+    email
   };
 }
 
