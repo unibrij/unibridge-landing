@@ -4,28 +4,34 @@
 --------------------------------------------------
 Pay-by-Bank API
 
-Browser-side client for the existing generic
-UniBridge ramp flow.
+Browser-side client for the existing UniBridge
+fiat_bank_transfer partner flow.
 
 The browser never owns the HMAC secret.
 
 All requests go through:
 
-  /api/proxy
+  /api/proxy?partner=fiat_bank_transfer
 
-The proxy signs the upstream request using the
-existing Surface partner credentials.
+The proxy injects the existing fiat_bank_transfer
+partner identity into the backend request context.
 
-Pay-by-Bank remains:
+That partner identity already owns:
 
   funding_mode = ramp
-  funding_method = bank_transfer
 
-The generic Surface partner already owns
-funding_mode = ramp.
+and is the canonical routing trigger for the
+bank-transfer product surface.
 
-funding_method is supplied explicitly during
-session registration.
+Current routing policy:
+
+  fiat_bank_transfer + EU / UK
+    → Onramp Pay-by-Bank
+
+  fiat_bank_transfer + other countries
+    → Bridge bank-transfer flow
+
+No funding_method field is required.
 
 Canonical frontend flow:
 
@@ -45,6 +51,10 @@ next settlement lifecycle step are owned by the
 backend canonical funding verification path.
 --------------------------------------------------
 */
+
+const PARTNER_ID =
+  "fiat_bank_transfer";
+
 
 function normalizeString(
   value
@@ -81,6 +91,11 @@ function buildProxyUrl(
       "/api/proxy",
       window.location.origin
     );
+
+  url.searchParams.set(
+    "partner",
+    PARTNER_ID
+  );
 
   url.searchParams.set(
     "endpoint",
@@ -259,15 +274,15 @@ async function getJson(
 Session registration
 --------------------------------------------------
 
+Do not send partner_id or funding_mode in the body.
+
+The proxy owns partner identity.
+
+The backend partner registry derives funding_mode
+from fiat_bank_transfer.
+
 Do not send delivery_options from the browser.
-
 The backend resolver owns route/delivery discovery.
-
-Pay-by-Bank explicitly persists:
-
-  funding_method = bank_transfer
-
-on the session.
 --------------------------------------------------
 */
 
@@ -279,11 +294,7 @@ export async function registerPayByBankSession({
     "session/register",
     {
       source_country,
-
-      receiver_country,
-
-      funding_method:
-        "bank_transfer"
+      receiver_country
     }
   );
 }
@@ -331,11 +342,8 @@ export async function createSettlement({
     "settlement/create",
     {
       session_id,
-
       route_id,
-
       destination,
-
       redirect_url
     }
   );
@@ -347,10 +355,13 @@ export async function createSettlement({
 Funding session
 --------------------------------------------------
 
-The backend prepares the already-selected ramp sender.
+For EU / UK fiat_bank_transfer traffic the backend
+senderRouter selects Onramp.
 
-For Onramp Pay-by-Bank this ultimately returns a
-redirect next_action containing the provider
+Onramp then recognizes the same partner identity
+and prepares WhiteLabel Pay-by-Bank.
+
+The resulting next_action contains the provider
 paymentLink.
 --------------------------------------------------
 */
@@ -376,8 +387,8 @@ There is intentionally no frontend
 settlement/confirm step.
 
 The canonical backend funding watcher verifies the
-actual on-chain funding and dispatches the next
-settlement lifecycle step automatically.
+actual funding and dispatches the next settlement
+lifecycle step automatically.
 
 The browser only observes settlement status.
 --------------------------------------------------
