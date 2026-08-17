@@ -410,8 +410,9 @@ inline button sizing, so restore that contract here.
 --------------------------------------------------
 */
 
-.fiat-auth-session-bar button {
+.card .fiat-auth-session-bar button {
   width: auto;
+  min-width: 0;
   min-height: 0;
   margin-top: 0;
   flex: 0 0 auto;
