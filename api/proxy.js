@@ -242,32 +242,47 @@ function resolveAuthorizationHeader(
   );
 }
 
-function attachRequiredClerkAuthorization({
+/*
+--------------------------------------------------
+Clerk authorization forwarding
+--------------------------------------------------
+
+Any authenticated Pay surface may send a Clerk
+Bearer token through this proxy.
+
+The proxy forwards the token whenever present.
+
+Forwarding Authorization does NOT change upstream
+route authentication policy.
+
+Only endpoints explicitly listed in
+CLERK_AUTH_ENDPOINTS require the token to exist.
+--------------------------------------------------
+*/
+
+function attachClerkAuthorization({
   req,
   endpoint,
   headers
 }) {
-  if (
-    !CLERK_AUTH_ENDPOINTS.has(
-      endpoint
-    )
-  ) {
-    return null;
-  }
-
   const authorization =
     resolveAuthorizationHeader(
       req
     );
 
+  if (authorization) {
+    headers.authorization =
+      authorization;
+  }
+
   if (
+    CLERK_AUTH_ENDPOINTS.has(
+      endpoint
+    ) &&
     !authorization
   ) {
     return "missing_clerk_bearer_token";
   }
-
-  headers.authorization =
-    authorization;
 
   return null;
 }
@@ -415,7 +430,7 @@ export default async function handler(
       };
 
       const clerkAuthError =
-        attachRequiredClerkAuthorization({
+        attachClerkAuthorization({
           req,
           endpoint,
           headers
