@@ -1,5 +1,9 @@
 // pay-by-bank/js/api.js
 
+import {
+  buildClerkAuthorizationHeader
+} from "../../shared/pay/auth/clerkAuth.js";
+
 /*
 --------------------------------------------------
 Pay-by-Bank API
@@ -49,6 +53,12 @@ settlement/confirm call.
 Funding confirmation and the transition into the
 next settlement lifecycle step are owned by the
 backend canonical funding verification path.
+
+All Pay-by-Bank requests carry the current Clerk
+Bearer token through the landing proxy.
+
+The proxy only forwards Authorization. Upstream
+authentication policy remains owned by the backend.
 --------------------------------------------------
 */
 
@@ -212,6 +222,9 @@ async function postJson(
   endpoint,
   payload = {}
 ) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
   const response =
     await fetch(
       buildProxyUrl(
@@ -226,7 +239,9 @@ async function postJson(
             "application/json",
 
           Accept:
-            "application/json"
+            "application/json",
+
+          ...authHeaders
         },
 
         body:
@@ -246,6 +261,9 @@ async function getJson(
   endpoint,
   query = {}
 ) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
   const response =
     await fetch(
       buildProxyUrl(
@@ -258,7 +276,9 @@ async function getJson(
 
         headers: {
           Accept:
-            "application/json"
+            "application/json",
+
+          ...authHeaders
         }
       }
     );
