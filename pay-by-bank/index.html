@@ -59,6 +59,11 @@
 
   <link
     rel="stylesheet"
+    href="/fiat/bank-transfer/app/assets/fiat-auth.css"
+  />
+
+  <link
+    rel="stylesheet"
     href="/shared/pricing/pricing.css"
   />
 
@@ -130,6 +135,8 @@
       id="payByBankCard"
       class="card"
     >
+      <section id="fiatReactRoot"></section>
+
       <section
         id="entryBox"
         class="entry-box"
@@ -437,6 +444,23 @@
 
   <script
     src="/partials/pay/js/pay-countries.js?v=3"
+  ></script>
+
+  <!--
+  --------------------------------------------------
+  Shared Fiat authentication island
+
+  Publishes:
+    window.__fiatClerkAuth
+
+  Consumed by:
+    /shared/pay/auth/clerkAuth.js
+  --------------------------------------------------
+  -->
+
+  <script
+    type="module"
+    src="/fiat/bank-transfer/app/assets/fiat-auth.js"
   ></script>
 
   <!--
