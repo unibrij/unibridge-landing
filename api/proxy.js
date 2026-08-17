@@ -16,6 +16,7 @@ const FIAT_BANK_TRANSFER_SECRET =
 const ALLOWED =
   new Set([
     "session/register",
+    "fiat/session/register",
     "session/resolve",
     "session/quote",
     "settlement/create",
@@ -71,6 +72,7 @@ const ALLOWED =
 
 const CLERK_AUTH_ENDPOINTS =
   new Set([
+    "fiat/session/register",
     "fiat/kyc/create",
     "fiat/transak-virtual-account/create"
   ]);
