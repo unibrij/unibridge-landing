@@ -1,13 +1,29 @@
 // unibrij/unibridge-landing/surface/js/api.js
 
 window.UnibridgeApi = (() => {
+  async function buildAuthHeaders() {
+    const {
+      buildClerkAuthorizationHeader
+    } = await import(
+      "/shared/pay/auth/clerkAuth.js"
+    );
+
+    return (
+      await buildClerkAuthorizationHeader()
+    ) || {};
+  }
+
   function parseResponse(r) {
     return r.text().then((text) => {
       let data;
+
       try {
-        data = JSON.parse(text);
+        data =
+          JSON.parse(text);
       } catch {
-        data = { raw: text };
+        data = {
+          raw: text
+        };
       }
 
       if (!r.ok) {
@@ -19,58 +35,138 @@ window.UnibridgeApi = (() => {
               data?.raw ||
               "api_error";
 
-        throw new Error(msg);
+        throw new Error(
+          msg
+        );
       }
 
       return data;
     });
   }
 
-  async function apiPost(path, payload) {
-    const r = await fetch(
-      "/api/proxy?endpoint=" + encodeURIComponent(path),
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify(payload || {})
+  async function apiPost(
+    path,
+    payload
+  ) {
+    const authHeaders =
+      await buildAuthHeaders();
+
+    const r =
+      await fetch(
+        "/api/proxy?endpoint=" +
+          encodeURIComponent(
+            path
+          ),
+        {
+          method:
+            "POST",
+
+          headers: {
+            "content-type":
+              "application/json",
+
+            ...authHeaders
+          },
+
+          body:
+            JSON.stringify(
+              payload || {}
+            )
+        }
+      );
+
+    return parseResponse(
+      r
+    );
+  }
+
+  async function apiPatch(
+    path,
+    payload
+  ) {
+    const authHeaders =
+      await buildAuthHeaders();
+
+    const r =
+      await fetch(
+        "/api/proxy?endpoint=" +
+          encodeURIComponent(
+            path
+          ),
+        {
+          method:
+            "PATCH",
+
+          headers: {
+            "content-type":
+              "application/json",
+
+            ...authHeaders
+          },
+
+          body:
+            JSON.stringify(
+              payload || {}
+            )
+        }
+      );
+
+    return parseResponse(
+      r
+    );
+  }
+
+  async function apiGet(
+    path,
+    query = {}
+  ) {
+    const authHeaders =
+      await buildAuthHeaders();
+
+    const url =
+      new URL(
+        "/api/proxy",
+        window.location.origin
+      );
+
+    url.searchParams.set(
+      "endpoint",
+      path
+    );
+
+    Object.entries(
+      query || {}
+    ).forEach(
+      ([k, v]) => {
+        if (
+          v !== undefined &&
+          v !== null &&
+          v !== ""
+        ) {
+          url.searchParams.set(
+            k,
+            String(v)
+          );
+        }
       }
     );
 
-    return parseResponse(r);
-  }
+    const r =
+      await fetch(
+        url.toString(),
+        {
+          method:
+            "GET",
 
-  async function apiPatch(path, payload) {
-    const r = await fetch(
-      "/api/proxy?endpoint=" + encodeURIComponent(path),
-      {
-        method: "PATCH",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify(payload || {})
-      }
+          headers: {
+            ...authHeaders
+          }
+        }
+      );
+
+    return parseResponse(
+      r
     );
-
-    return parseResponse(r);
-  }
-
-  async function apiGet(path, query = {}) {
-    const url = new URL("/api/proxy", window.location.origin);
-    url.searchParams.set("endpoint", path);
-
-    Object.entries(query || {}).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== "") {
-        url.searchParams.set(k, String(v));
-      }
-    });
-
-    const r = await fetch(url.toString(), {
-      method: "GET"
-    });
-
-    return parseResponse(r);
   }
 
   return {
