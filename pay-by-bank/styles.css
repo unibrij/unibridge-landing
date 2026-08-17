@@ -177,14 +177,28 @@ Pay page layout
     visible;
 }
 
-.hero,
-.card,
-#pay-footer {
+.hero {
   position:
     relative;
 
   z-index:
     2;
+}
+
+.card {
+  position:
+    relative;
+
+  z-index:
+    10;
+}
+
+#pay-footer {
+  position:
+    relative;
+
+  z-index:
+    1;
 }
 
 
