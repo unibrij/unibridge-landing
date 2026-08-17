@@ -37,6 +37,42 @@
       ]
     },
     {
+      "source": "/pay-by-bank",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/pay-by-bank/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/fiat/bank-transfer",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/fiat/bank-transfer/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/partner-portal",
       "headers": [
         {
@@ -137,6 +173,22 @@
     {
       "source": "/pay",
       "destination": "/pay/index.html"
+    },
+    {
+      "source": "/pay-by-bank",
+      "destination": "/pay-by-bank/index.html"
+    },
+    {
+      "source": "/pay-by-bank/",
+      "destination": "/pay-by-bank/index.html"
+    },
+    {
+      "source": "/fiat/bank-transfer",
+      "destination": "/fiat/bank-transfer/index.html"
+    },
+    {
+      "source": "/fiat/bank-transfer/",
+      "destination": "/fiat/bank-transfer/index.html"
     },
     {
       "source": "/receipts/verify",
