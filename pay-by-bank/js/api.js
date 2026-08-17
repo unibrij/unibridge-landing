@@ -39,7 +39,7 @@ No funding_method field is required.
 
 Canonical frontend flow:
 
-  session/register
+  fiat/session/register
   → session/resolve
   → session/quote
   → settlement/create
@@ -59,6 +59,14 @@ Bearer token through the landing proxy.
 
 The proxy only forwards Authorization. Upstream
 authentication policy remains owned by the backend.
+
+Session registration intentionally enters through:
+
+  fiat/session/register
+
+so Clerk authentication is normalized into the
+canonical UniBridge customer context before the
+shared session registration handler executes.
 --------------------------------------------------
 */
 
@@ -303,6 +311,13 @@ from fiat_bank_transfer.
 
 Do not send delivery_options from the browser.
 The backend resolver owns route/delivery discovery.
+
+Pay-by-Bank enters through the Fiat authenticated
+session route so the Clerk identity is resolved into:
+
+  req.customer_context
+
+before the shared session registration handler runs.
 --------------------------------------------------
 */
 
@@ -311,7 +326,7 @@ export async function registerPayByBankSession({
   receiver_country
 } = {}) {
   return postJson(
-    "session/register",
+    "fiat/session/register",
     {
       source_country,
       receiver_country
