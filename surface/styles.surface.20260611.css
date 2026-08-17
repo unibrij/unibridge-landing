@@ -400,6 +400,23 @@ button:not(.country-select-trigger):not(.country-select-option):active:not(:disa
   transform: scale(0.98);
 }
 
+/*
+--------------------------------------------------
+Shared Fiat auth override
+
+Surface applies full-width styling to generic
+buttons. The shared Clerk session bar owns its own
+inline button sizing, so restore that contract here.
+--------------------------------------------------
+*/
+
+.fiat-auth-session-bar button {
+  width: auto;
+  min-height: 0;
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+
 /* Destination boxes */
 
 #pixBox,
