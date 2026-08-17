@@ -640,7 +640,7 @@ async function startFlow() {
 
     const reg =
       await apiPost(
-        "session/register",
+        "fiat/session/register",
         {
           source_country:
             getValue(
