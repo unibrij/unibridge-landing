@@ -20,7 +20,7 @@ import {
 
 import {
   createCoinsPhPicker
-} from "./coinsph-picker.js";
+} from "/shared/coinsph/coinsph-picker.js";
 
 import {
   setupSurfacePwaInstall
@@ -510,7 +510,55 @@ async function refreshSettlementState() {
 
 coinsPhPicker =
   createCoinsPhPicker({
-    apiGet,
+    loadChannelOptions:
+      async () => {
+        const response =
+          await apiGet(
+            "options/coinsph/ph-payout-channels",
+            {}
+          );
+
+        if (!response?.ok) {
+          throw new Error(
+            response?.error ||
+            "COINSPH_CHANNELS_LOAD_FAILED"
+          );
+        }
+
+        if (
+          Array.isArray(
+            response
+          )
+        ) {
+          return response;
+        }
+
+        if (
+          Array.isArray(
+            response.options
+          )
+        ) {
+          return response.options;
+        }
+
+        if (
+          Array.isArray(
+            response.channels
+          )
+        ) {
+          return response.channels;
+        }
+
+        if (
+          Array.isArray(
+            response.data
+          )
+        ) {
+          return response.data;
+        }
+
+        return [];
+      },
 
     isPhilippinesDestination,
 
