@@ -51,6 +51,28 @@
     href="/partials/pay/css/pay-common.css?v=1"
   />
 
+  <!--
+  --------------------------------------------------
+  Shared Fiat authentication island
+
+  Same authentication UI/bootstrap currently used by
+  Pay-by-Bank.
+
+  The island publishes:
+
+    window.__fiatClerkAuth
+
+  which is consumed by:
+
+    /shared/pay/auth/clerkAuth.js
+  --------------------------------------------------
+  -->
+
+  <link
+    rel="stylesheet"
+    href="/fiat/bank-transfer/app/assets/fiat-auth.css"
+  />
+
   <link
     rel="stylesheet"
     href="/surface/styles.surface.20260611.css"
@@ -114,6 +136,21 @@
     </section>
 
     <section class="card">
+      <!--
+      ------------------------------------------------
+      Shared Fiat authentication island
+
+      This is intentionally mounted inside the card,
+      matching the existing Pay-by-Bank integration.
+
+      It owns the Clerk UI/bootstrap and publishes:
+
+        window.__fiatClerkAuth
+      ------------------------------------------------
+      -->
+
+      <section id="fiatReactRoot"></section>
+
       <section
         class="steps"
         aria-label="Card payment steps"
@@ -510,6 +547,25 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://js.stripe.com/clover/stripe.js"></script>
   <script src="https://crypto-js.stripe.com/crypto-onramp-outer.js"></script>
+
+  <!--
+  --------------------------------------------------
+  Shared Fiat authentication island
+
+  Same bootstrap currently used by Pay-by-Bank.
+
+  Publishes:
+    window.__fiatClerkAuth
+
+  Consumed by:
+    /shared/pay/auth/clerkAuth.js
+  --------------------------------------------------
+  -->
+
+  <script
+    type="module"
+    src="/fiat/bank-transfer/app/assets/fiat-auth.js"
+  ></script>
 
   <script src="/surface/js/api.js"></script>
   <script src="/surface/js/nextAction.js"></script>
