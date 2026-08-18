@@ -67,6 +67,9 @@ Session registration intentionally enters through:
 so Clerk authentication is normalized into the
 canonical UniBridge customer context before the
 shared session registration handler executes.
+
+The sender phone number is stored on the session
+for first-time Onramp customer bootstrap.
 --------------------------------------------------
 */
 
@@ -318,18 +321,23 @@ session route so the Clerk identity is resolved into:
   req.customer_context
 
 before the shared session registration handler runs.
+
+phone_number is sender bootstrap data required for
+first-time Onramp customer creation.
 --------------------------------------------------
 */
 
 export async function registerPayByBankSession({
   source_country,
-  receiver_country
+  receiver_country,
+  phone_number
 } = {}) {
   return postJson(
     "fiat/session/register",
     {
       source_country,
-      receiver_country
+      receiver_country,
+      phone_number
     }
   );
 }
