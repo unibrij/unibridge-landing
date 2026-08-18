@@ -11,6 +11,28 @@ import {
 } from "./dom.js";
 
 
+function normalizePhoneNumber(
+  value
+) {
+  return String(
+    value ||
+    ""
+  )
+    .trim();
+}
+
+
+function isValidOnrampPhoneNumber(
+  value
+) {
+  return /^\+\d{1,4}-\d+$/.test(
+    normalizePhoneNumber(
+      value
+    )
+  );
+}
+
+
 export function setCurrency(
   currency
 ) {
@@ -36,7 +58,8 @@ export function readEntryForm() {
   const {
     sourceCountry,
     receiverCountry,
-    amount
+    amount,
+    phoneNumber
   } =
     getRequiredElements();
 
@@ -58,7 +81,12 @@ export function readEntryForm() {
         .toUpperCase(),
 
     amount:
-      amount.value
+      amount.value,
+
+    phoneNumber:
+      normalizePhoneNumber(
+        phoneNumber.value
+      )
   };
 }
 
@@ -67,7 +95,8 @@ export function validateEntryForm() {
   const {
     sourceCountry,
     receiverCountry,
-    amount
+    amount,
+    phoneNumber
   } =
     getRequiredElements();
 
@@ -81,6 +110,10 @@ export function validateEntryForm() {
 
   clearFieldError(
     amount
+  );
+
+  clearFieldError(
+    phoneNumber
   );
 
   let valid =
@@ -132,6 +165,34 @@ export function validateEntryForm() {
     showFieldError(
       amount,
       "Enter a valid amount."
+    );
+
+    valid =
+      false;
+  }
+
+  const phone =
+    normalizePhoneNumber(
+      phoneNumber.value
+    );
+
+  if (!phone) {
+    showFieldError(
+      phoneNumber,
+      "Enter your phone number."
+    );
+
+    valid =
+      false;
+  }
+  else if (
+    !isValidOnrampPhoneNumber(
+      phone
+    )
+  ) {
+    showFieldError(
+      phoneNumber,
+      "Use format +countryCode-phoneNumber."
     );
 
     valid =
