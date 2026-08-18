@@ -44,6 +44,7 @@ Canonical frontend flow:
   → session/quote
   → settlement/create
   → funding/session
+  → ramp/order/create
   → next_action redirect
   → settlement/status
 
@@ -401,11 +402,12 @@ Funding session
 For EU / UK fiat_bank_transfer traffic the backend
 senderRouter selects Onramp.
 
-Onramp then recognizes the same partner identity
-and prepares WhiteLabel Pay-by-Bank.
+Onramp recognizes the partner identity and persists
+the provider-local Pay-by-Bank funding mode together
+with the normalized funding target.
 
-The resulting next_action contains the provider
-paymentLink.
+No WhiteLabel provider mutation occurs during this
+step.
 --------------------------------------------------
 */
 
@@ -414,6 +416,43 @@ export async function getFundingSession({
 } = {}) {
   return postJson(
     "funding/session",
+    {
+      settlement_id
+    }
+  );
+}
+
+
+/*
+--------------------------------------------------
+Ramp order creation
+--------------------------------------------------
+
+This is the post-persistence WhiteLabel mutation
+boundary.
+
+For an Onramp Pay-by-Bank funding session the
+existing ramp command dispatches to:
+
+  onrampSender.createOrder()
+
+which performs:
+
+  customer bootstrap / binding
+  → provider quote
+  → transaction creation
+  → bank details
+  → paymentLink
+
+The returned next_action contains the redirect URL.
+--------------------------------------------------
+*/
+
+export async function createRampOrder({
+  settlement_id
+} = {}) {
+  return postJson(
+    "ramp/order/create",
     {
       settlement_id
     }
