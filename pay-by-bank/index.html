@@ -209,6 +209,40 @@
               </span>
             </div>
           </label>
+
+          <!--
+          --------------------------------------------
+          Sender phone number
+
+          Required for first-time Onramp customer
+          bootstrap.
+
+          Expected Onramp format:
+
+            +{countryCode}-{actualPhoneNumber}
+
+          Example:
+
+            +55-41999999999
+          --------------------------------------------
+          -->
+
+          <label class="field">
+            <span>
+              Phone number
+            </span>
+
+            <input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="+55-41999999999"
+              required
+              aria-label="Phone number"
+            />
+          </label>
         </div>
 
         <!--
