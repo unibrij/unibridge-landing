@@ -16,6 +16,11 @@ const elements = {
       "amount"
     ),
 
+  phoneNumber:
+    document.getElementById(
+      "phoneNumber"
+    ),
+
   amountCurrency:
     document.getElementById(
       "amountCurrency"
@@ -110,6 +115,12 @@ export function getRequiredElements() {
       requireElement(
         elements.amount,
         "amount"
+      ),
+
+    phoneNumber:
+      requireElement(
+        elements.phoneNumber,
+        "phoneNumber"
       ),
 
     amountCurrency:
