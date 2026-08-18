@@ -3,6 +3,7 @@
 import {
   createSettlement,
   getFundingSession,
+  createRampOrder,
   extractSettlementId,
   extractNextAction,
   extractRedirectUrl,
@@ -71,11 +72,30 @@ export async function ensureSettlement({
 
   return {
     settlementId,
+
     created:
       true
   };
 }
 
+
+/*
+--------------------------------------------------
+Prepare funding redirect
+--------------------------------------------------
+
+The funding session is prepared first so the
+canonical sender-side funding target and provider
+metadata exist durably.
+
+WhiteLabel Pay-by-Bank provider mutation then runs
+through the existing post-persistence ramp order
+command.
+
+The redirect next_action therefore belongs to the
+order result, not to the funding-session result.
+--------------------------------------------------
+*/
 
 export async function prepareFundingRedirect(
   settlementId
@@ -91,25 +111,43 @@ export async function prepareFundingRedirect(
     );
   }
 
+  /*
+  --------------------------------------------------
+  Funding-session preparation
+  --------------------------------------------------
+  */
+
   const funding =
     await getFundingSession({
       settlement_id:
         normalizedSettlementId
     });
 
+  /*
+  --------------------------------------------------
+  Post-persistence provider order
+  --------------------------------------------------
+  */
+
+  const order =
+    await createRampOrder({
+      settlement_id:
+        normalizedSettlementId
+    });
+
   const transactionId =
     extractTransactionId(
-      funding
+      order
     );
 
   const nextAction =
     extractNextAction(
-      funding
+      order
     );
 
   const redirectUrl =
     extractRedirectUrl(
-      funding
+      order
     );
 
   const nextActionType =
@@ -132,6 +170,7 @@ export async function prepareFundingRedirect(
 
   return {
     funding,
+    order,
     transactionId,
     nextAction,
     redirectUrl
