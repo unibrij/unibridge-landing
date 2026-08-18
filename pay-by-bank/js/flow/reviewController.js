@@ -4,6 +4,7 @@ import {
   setSourceCountry,
   setReceiverCountry,
   setAmount,
+  setPhoneNumber,
   setCurrency,
   setSessionId,
   setSelectedRoute,
@@ -87,6 +88,12 @@ export async function handleReviewPayment() {
       form.amount
     );
 
+  const phoneNumber =
+    String(
+      form.phoneNumber ||
+      ""
+    ).trim();
+
   const currency =
     syncCurrencyFromSource();
 
@@ -95,7 +102,10 @@ export async function handleReviewPayment() {
   but keep the orchestration boundary defensive.
   */
 
-  if (!amount) {
+  if (
+    !amount ||
+    !phoneNumber
+  ) {
     return;
   }
 
@@ -109,6 +119,10 @@ export async function handleReviewPayment() {
 
   setAmount(
     amount
+  );
+
+  setPhoneNumber(
+    phoneNumber
   );
 
   setCurrency(
@@ -157,6 +171,7 @@ export async function handleReviewPayment() {
         sourceCountry,
         receiverCountry,
         amount,
+        phoneNumber,
         currency
       });
 
@@ -235,7 +250,8 @@ export async function handleReviewPayment() {
     setConfirmEnabled(
       true
     );
-  } catch (error) {
+  }
+  catch (error) {
     if (
       !isCurrentReview(
         generation
@@ -280,7 +296,8 @@ export async function handleReviewPayment() {
           true
       }
     );
-  } finally {
+  }
+  finally {
     if (
       isCurrentReview(
         generation
