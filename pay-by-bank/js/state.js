@@ -11,6 +11,9 @@ const DEFAULT_STATE =
     amount:
       null,
 
+    phoneNumber:
+      null,
+
     currency:
       "EUR",
 
@@ -136,6 +139,18 @@ export function setAmount(
       : null;
 
   return state.amount;
+}
+
+
+export function setPhoneNumber(
+  phoneNumber
+) {
+  state.phoneNumber =
+    normalizeString(
+      phoneNumber
+    );
+
+  return state.phoneNumber;
 }
 
 
