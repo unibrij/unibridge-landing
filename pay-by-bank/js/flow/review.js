@@ -54,6 +54,7 @@ export async function preparePaymentReview({
   sourceCountry,
   receiverCountry,
   amount,
+  phoneNumber,
   currency
 }) {
   const registered =
@@ -62,7 +63,10 @@ export async function preparePaymentReview({
         sourceCountry,
 
       receiver_country:
-        receiverCountry
+        receiverCountry,
+
+      phone_number:
+        phoneNumber
     });
 
   const sessionId =
