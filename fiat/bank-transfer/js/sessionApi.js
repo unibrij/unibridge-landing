@@ -1,5 +1,10 @@
 // fiat/bank-transfer/js/sessionApi.js
 
+import {
+  buildClerkAuthorizationHeader
+} from "../../../shared/pay/auth/clerkAuth.js";
+
+
 function normalizeString(value) {
   return String(
     value ??
@@ -111,8 +116,16 @@ function buildProxyUrl(endpoint) {
 
 async function postJson(
   endpoint,
-  payload = {}
+  payload = {},
+  {
+    authenticated = false
+  } = {}
 ) {
+  const authHeaders =
+    authenticated
+      ? await buildClerkAuthorizationHeader()
+      : {};
+
   const response =
     await fetch(
       buildProxyUrl(
@@ -127,7 +140,9 @@ async function postJson(
             "application/json",
 
           Accept:
-            "application/json"
+            "application/json",
+
+          ...authHeaders
         },
 
         body:
@@ -146,8 +161,11 @@ export function registerSession(
   payload = {}
 ) {
   return postJson(
-    "session/register",
-    payload
+    "fiat/session/register",
+    payload,
+    {
+      authenticated: true
+    }
   );
 }
 
