@@ -15,7 +15,10 @@ import {
 
 import {
   createPricingViewModel,
-  renderPricing
+  formatRouteLimitMessage,
+  isRouteAmountAvailable,
+  renderPricing,
+  selectFirstAvailableRoute
 } from "/shared/pricing/index.js";
 
 import {
@@ -221,6 +224,72 @@ function getCustomerPaymentCurrency() {
   );
 }
 
+function getCurrentSelectedRoute() {
+  return (
+    currentRouteQuote?.route ||
+    null
+  );
+}
+
+function resolveNoAvailableRouteMessage(
+  routes = []
+) {
+  if (!Array.isArray(routes)) {
+    return null;
+  }
+
+  for (const route of routes) {
+    const message =
+      formatRouteLimitMessage(
+        route
+      );
+
+    if (message) {
+      return message;
+    }
+  }
+
+  return null;
+}
+
+function assertCurrentRouteAmountAvailable() {
+  const route =
+    getCurrentSelectedRoute();
+
+  if (!route) {
+    throw new Error(
+      "selected_route_missing"
+    );
+  }
+
+  if (
+    !isRouteAmountAvailable(
+      route
+    )
+  ) {
+    throw new Error(
+      formatRouteLimitMessage(
+        route
+      ) ||
+      "selected_route_amount_not_available"
+    );
+  }
+
+  return route;
+}
+
+function isCurrentRouteAmountAvailable() {
+  const route =
+    getCurrentSelectedRoute();
+
+  return Boolean(
+    route &&
+    isRouteAmountAvailable(
+      route
+    )
+  );
+}
+
 function resetPricingUi() {
   if (!quoteBox) {
     return;
@@ -301,10 +370,12 @@ function refreshAmountLimitUi() {
   --------------------------------------------------
   Quote button guard
 
+  This is funding-side validation only.
+
   Before quote, provider may be null. amount-limits.js
   falls back to source-country limits, so controlled
-  corridors such as AE are blocked visually before
-  any route/provider is known.
+  funding corridors can be blocked before an execution
+  Route has been selected.
   --------------------------------------------------
   */
 
@@ -315,6 +386,42 @@ function refreshAmountLimitUi() {
     sendBtn.disabled =
       !result.ok;
   }
+
+  return result;
+}
+
+function syncRouteLimitContinueUi() {
+  if (
+    settlementId ||
+    pendingWidgetUrl
+  ) {
+    return;
+  }
+
+  if (!currentRouteQuote) {
+    if (sessionId || routeId) {
+      setContinueButtonsDisabled(
+        true
+      );
+    }
+
+    return;
+  }
+
+  if (
+    !isCurrentRouteAmountAvailable()
+  ) {
+    setContinueButtonsDisabled(
+      true
+    );
+  }
+}
+
+function refreshLimitUi() {
+  const result =
+    refreshAmountLimitUi();
+
+  syncRouteLimitContinueUi();
 
   return result;
 }
@@ -347,7 +454,7 @@ function resetFlowForRouteInputChange() {
   setStatus("");
 
   const limitCheck =
-    refreshAmountLimitUi();
+    refreshLimitUi();
 
   if (sendBtn) {
     sendBtn.disabled =
@@ -567,7 +674,8 @@ coinsPhPicker =
     ) {
       if (coinsPhContinueBtn) {
         coinsPhContinueBtn.disabled =
-          Boolean(value);
+          Boolean(value) ||
+          !isCurrentRouteAmountAvailable();
       }
     }
   });
@@ -683,11 +791,28 @@ async function startFlow() {
     }
 
     const selectedRoute =
-      quote.routes[0];
+      selectFirstAvailableRoute(
+        quote.routes
+      );
+
+    if (!selectedRoute) {
+      throw new Error(
+        resolveNoAvailableRouteMessage(
+          quote.routes
+        ) ||
+        "no_routes_available_for_amount"
+      );
+    }
 
     routeId =
       selectedRoute.route_id ||
       selectedRoute.id;
+
+    if (!routeId) {
+      throw new Error(
+        "selected_route_missing"
+      );
+    }
 
     setCurrentFundingProvider(
       getRouteSelectedProvider(
@@ -697,10 +822,13 @@ async function startFlow() {
 
     /*
     --------------------------------------------------
-    Preserve the complete quote and route contracts.
+    Preserve the complete quote and Route contracts.
 
-    The shared pricing model reads both compatibility
-    fields and canonical pricing_result.quote / fees.
+    The selected Route includes the canonical backend
+    route_limits / route_limit_validation metadata.
+
+    Route selection remains backend-order driven and
+    executor agnostic.
     --------------------------------------------------
     */
 
@@ -725,7 +853,7 @@ async function startFlow() {
       "prepare_payment"
     );
 
-    refreshAmountLimitUi();
+    refreshLimitUi();
 
     if (
       isPhilippinesDestination()
@@ -734,6 +862,8 @@ async function startFlow() {
 
       coinsPhPicker
         .updateContinueState();
+
+      syncRouteLimitContinueUi();
 
       setStatus(
         "Select recipient institution."
@@ -744,7 +874,7 @@ async function startFlow() {
 
     if (continueBtn) {
       continueBtn.disabled =
-        false;
+        !isCurrentRouteAmountAvailable();
     }
 
     setStatus(
@@ -757,39 +887,54 @@ async function startFlow() {
     );
 
     const limitCheck =
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
     const activeBtn =
       getActiveContinueButton();
 
-    if (
-      activeBtn &&
-      (
-        !limitCheck ||
-        limitCheck.ok
-      )
-    ) {
+    const canContinue =
+      Boolean(
+        limitCheck?.ok &&
+        sessionId &&
+        routeId &&
+        isCurrentRouteAmountAvailable()
+      );
+
+    if (activeBtn) {
       if (
+        canContinue &&
         isPhilippinesDestination()
       ) {
         coinsPhPicker
           ?.updateContinueState();
+
+        syncRouteLimitContinueUi();
       } else {
         activeBtn.disabled =
-          false;
+          !canContinue;
       }
     }
   } finally {
     processing =
       false;
 
-    refreshAmountLimitUi();
+    refreshLimitUi();
 
     if (
-      isPhilippinesDestination()
+      isPhilippinesDestination() &&
+      isCurrentRouteAmountAvailable()
     ) {
       coinsPhPicker
         ?.updateContinueState();
+
+      syncRouteLimitContinueUi();
+    } else if (
+      !settlementId &&
+      !isCurrentRouteAmountAvailable()
+    ) {
+      setContinueButtonsDisabled(
+        true
+      );
     }
   }
 }
@@ -818,6 +963,13 @@ async function continueFlow() {
       throw new Error(
         limitCheck.message
       );
+    }
+
+    if (
+      !settlementId &&
+      !pendingWidgetUrl
+    ) {
+      assertCurrentRouteAmountAvailable();
     }
 
     if (pendingWidgetUrl) {
@@ -860,6 +1012,19 @@ async function continueFlow() {
           "missing_session_or_route"
         );
       }
+
+      /*
+      --------------------------------------------------
+      Final frontend execution-route guard
+      --------------------------------------------------
+
+      The backend remains authoritative. This prevents the
+      Surface from intentionally submitting a Route already
+      marked unavailable by the quoted Route contract.
+      --------------------------------------------------
+      */
+
+      assertCurrentRouteAmountAvailable();
 
       const destination =
         buildDestinationPayload();
@@ -1115,28 +1280,41 @@ async function continueFlow() {
     );
 
     const limitCheck =
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
-    if (
-      activeContinueBtn &&
-      (
-        !limitCheck ||
-        limitCheck.ok
-      )
-    ) {
+    const canContinue =
+      Boolean(
+        limitCheck?.ok &&
+        (
+          settlementId ||
+          (
+            sessionId &&
+            routeId &&
+            isCurrentRouteAmountAvailable()
+          )
+        )
+      );
+
+    if (activeContinueBtn) {
       if (
-        isPhilippinesDestination()
+        canContinue &&
+        isPhilippinesDestination() &&
+        !settlementId
       ) {
         coinsPhPicker
           ?.updateContinueState();
+
+        syncRouteLimitContinueUi();
       } else {
         activeContinueBtn.disabled =
-          false;
+          !canContinue;
       }
     }
   } finally {
     processing =
       false;
+
+    syncRouteLimitContinueUi();
   }
 }
 
@@ -1176,23 +1354,12 @@ async function resumeFlowFromState() {
       status?.status ===
       "waiting_ramp_payment"
     ) {
-      /*
-      --------------------------------------------------
-      Waiting ramp payment is not resumed on Surface.
-
-      If the user is back here, treat the previous ramp
-      session as abandoned / unpaid and allow a fresh flow.
-      Successful payments are handled by backend provider
-      webhooks / watchers, not by Surface return.
-      --------------------------------------------------
-      */
-
       clearState();
       resetUiToStart();
       resetStatusMemory();
       setStatus("");
 
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
       return;
     }
@@ -1237,15 +1404,6 @@ window.addEventListener(
     const fundingReturn =
       isFundingReturn();
 
-    /*
-    --------------------------------------------------
-    Ramp return means the user came back without a
-    completed payment. Successful payment completion is
-    handled by backend provider webhooks / watchers, not
-    by returning to the Surface page.
-    --------------------------------------------------
-    */
-
     if (
       sessionIdFromUrl &&
       fundingReturn
@@ -1257,7 +1415,7 @@ window.addEventListener(
       resetStatusMemory();
       setStatus("");
 
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
       return;
     }
@@ -1274,7 +1432,7 @@ window.addEventListener(
       clearState();
       resetUiToStart();
 
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
       return;
     }
@@ -1291,7 +1449,7 @@ window.addEventListener(
       clearState();
       resetUiToStart();
 
-      refreshAmountLimitUi();
+      refreshLimitUi();
 
       return;
     }
@@ -1363,14 +1521,14 @@ if (amountInput) {
         return;
       }
 
-      refreshAmountLimitUi();
+      refreshLimitUi();
     }
   );
 
   amountInput.addEventListener(
     "blur",
     () => {
-      refreshAmountLimitUi();
+      refreshLimitUi();
     }
   );
 }
