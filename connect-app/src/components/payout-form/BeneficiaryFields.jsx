@@ -40,10 +40,10 @@ export default function BeneficiaryFields({
             );
 
           /*
-           * Preserve the existing behavior:
+           * Dynamic select fields.
            *
-           * Only select fields backed by a dynamic
-           * endpoint render as SearchableSelect.
+           * These may also carry provider-specific
+           * schemas that add/remove dependent fields.
            */
           if (
             field.type ===
@@ -101,6 +101,64 @@ export default function BeneficiaryFields({
                           options
                         });
 
+                        return;
+                      }
+
+                      updateBeneficiaryField(
+                        fieldName,
+                        nextValue
+                      );
+                    }
+                  }
+                />
+              </label>
+            );
+          }
+
+          /*
+           * Static select fields.
+           *
+           * Options are defined directly by the
+           * execution route schema.
+           */
+          if (
+            field.type ===
+              "select" &&
+            Array.isArray(
+              field.options
+            )
+          ) {
+            const options =
+              getOptions(
+                field
+              );
+
+            return (
+              <label
+                key={
+                  fieldName
+                }
+              >
+                {field.label}
+
+                <SearchableSelect
+                  value={
+                    value
+                  }
+                  options={
+                    options
+                  }
+                  disabled={
+                    disabled
+                  }
+                  ariaLabel={`Select ${field.label}`}
+                  placeholder={
+                    field.placeholder ||
+                    `Select ${field.label}`
+                  }
+                  onChange={
+                    nextValue => {
+                      if (disabled) {
                         return;
                       }
 
