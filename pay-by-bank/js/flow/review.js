@@ -12,6 +12,11 @@ import {
 } from "/fiat/bank-transfer/js/routeResolver.js";
 
 import {
+  formatRouteLimitMessage,
+  selectFirstAvailableRoute
+} from "/shared/pricing/index.js";
+
+import {
   normalizeString
 } from "./normalization.js";
 
@@ -20,15 +25,15 @@ export function selectDefaultRoute(
   routes = []
 ) {
   if (
-    !Array.isArray(
-      routes
-    ) ||
+    !Array.isArray(routes) ||
     routes.length === 0
   ) {
     return null;
   }
 
-  return routes[0] || null;
+  return selectFirstAvailableRoute(
+    routes
+  );
 }
 
 
@@ -47,6 +52,28 @@ export function resolveRouteMethodLabel(
     ) ||
     "Bank transfer"
   );
+}
+
+
+function resolveNoAvailableRouteMessage(
+  routes = []
+) {
+  if (!Array.isArray(routes)) {
+    return null;
+  }
+
+  for (const route of routes) {
+    const message =
+      formatRouteLimitMessage(
+        route
+      );
+
+    if (message) {
+      return message;
+    }
+  }
+
+  return null;
 }
 
 
@@ -118,9 +145,7 @@ export async function preparePaymentReview({
     );
 
   if (
-    !Array.isArray(
-      routes
-    ) ||
+    !Array.isArray(routes) ||
     routes.length === 0
   ) {
     throw new Error(
@@ -133,9 +158,16 @@ export async function preparePaymentReview({
       routes
     );
 
-  if (
-    !selectedRoute?.route_id
-  ) {
+  if (!selectedRoute) {
+    throw new Error(
+      resolveNoAvailableRouteMessage(
+        routes
+      ) ||
+      "no_routes_available_for_amount"
+    );
+  }
+
+  if (!selectedRoute.route_id) {
     throw new Error(
       "selected_route_missing"
     );
