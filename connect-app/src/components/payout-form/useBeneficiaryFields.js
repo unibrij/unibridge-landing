@@ -199,10 +199,21 @@ export function useBeneficiaryFields({
    * Return route-aware options for one beneficiary
    * field without exposing source-cache details to
    * the rendering component.
+   *
+   * Static route options remain local to the route
+   * schema. Dynamic options are loaded by endpoint.
    */
   const getOptions =
     useCallback(
       field => {
+        if (
+          Array.isArray(
+            field?.options
+          )
+        ) {
+          return field.options;
+        }
+
         const endpoint =
           resolveDynamicOptionEndpoint(
             field
