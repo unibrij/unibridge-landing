@@ -25,6 +25,12 @@ import {
   hasProviderDestination
 } from "./providerDestinationRegistry.js";
 
+import {
+  formatRouteLimitMessage,
+  isRouteAmountAvailable,
+  selectFirstAvailableRoute
+} from "../../../shared/pricing/index.js";
+
 export {
   renderQuote
 } from "./quoteRenderer.js";
@@ -88,6 +94,17 @@ function showQuoteStageFields() {
     ?.classList.remove("hidden");
 }
 
+function showRouteFieldOnly() {
+  getRouteFieldContainer()
+    ?.classList.remove("hidden");
+
+  getEl("destinationFields")
+    ?.classList.add("hidden");
+
+  getEl("quoteBox")
+    ?.classList.add("hidden");
+}
+
 export async function loadBankTransferRoutes() {
   latestContext =
     renderContextSummary();
@@ -119,51 +136,144 @@ function getSelectedRoute() {
     getSelectedRouteId();
 
   const route =
-    availableRoutes.find((item) => {
-      return item.route_id === selectedRouteId;
-    });
+    availableRoutes.find(
+      item =>
+        item.route_id ===
+        selectedRouteId
+    );
 
   if (!route) {
-    throw new Error("selected_route_not_available");
+    throw new Error(
+      "selected_route_not_available"
+    );
+  }
+
+  if (
+    !isRouteAmountAvailable(
+      route
+    )
+  ) {
+    throw new Error(
+      formatRouteLimitMessage(
+        route
+      ) ||
+      "selected_route_amount_not_available"
+    );
   }
 
   return route;
 }
+
+/*
+--------------------------------------------------
+Route options
+--------------------------------------------------
+
+Route amount availability is fully backend-driven.
+
+No executor, provider, country, rail, or currency-specific
+limit logic belongs here.
+
+Routes outside their current amount limits remain visible
+but disabled.
+
+The first backend-ordered amount-available Route is selected
+automatically.
+--------------------------------------------------
+*/
 
 function renderRouteOptions() {
   const select =
     getEl("routeId");
 
   if (!select) {
-    return;
+    return null;
   }
 
   if (!availableRoutes.length) {
     select.disabled = true;
+
     select.innerHTML =
       `<option value="">No routes available</option>`;
-    return;
+
+    return null;
   }
 
-  select.disabled = false;
+  const selectedRoute =
+    selectFirstAvailableRoute(
+      availableRoutes
+    );
 
   select.innerHTML =
     availableRoutes
-      .map((route) => {
-        return `
-          <option value="${escapeHtml(route.route_id)}">
-            ${escapeHtml(route.label)}
-          </option>
-        `;
-      })
+      .map(
+        route => {
+          const available =
+            isRouteAmountAvailable(
+              route
+            );
+
+          const limitMessage =
+            available
+              ? null
+              : formatRouteLimitMessage(
+                  route
+                );
+
+          const label =
+            limitMessage
+              ? `${route.label} — ${limitMessage}`
+              : route.label;
+
+          const isSelected =
+            selectedRoute
+              ?.route_id ===
+            route.route_id;
+
+          return `
+            <option
+              value="${escapeHtml(route.route_id)}"
+              ${available ? "" : "disabled"}
+              ${isSelected ? "selected" : ""}
+            >
+              ${escapeHtml(label)}
+            </option>
+          `;
+        }
+      )
       .join("");
+
+  select.disabled =
+    !selectedRoute;
+
+  return selectedRoute;
+}
+
+function resolveNoAvailableRouteMessage() {
+  const limitedRoute =
+    availableRoutes.find(
+      route =>
+        !isRouteAmountAvailable(
+          route
+        )
+    );
+
+  if (!limitedRoute) {
+    return null;
+  }
+
+  return formatRouteLimitMessage(
+    limitedRoute
+  );
 }
 
 function renderSelectedDestinationFields() {
   renderDestinationFields({
     availableRoutes,
+
     selectedRouteId:
       getSelectedRouteId(),
+
     getSelectedRoute
   });
 }
@@ -181,6 +291,9 @@ function renderSelectedQuote() {
     return;
   }
 
+  const selectedRoute =
+    getSelectedRoute();
+
   renderQuote(
     quoteBox,
     {
@@ -190,8 +303,7 @@ function renderSelectedQuote() {
       quote:
         latestQuote,
 
-      selectedRoute:
-        getSelectedRoute()
+      selectedRoute
     }
   );
 }
@@ -205,26 +317,46 @@ function lockEntryForm() {
   }
 
   getEl("destinationFields")
-    ?.querySelectorAll("input, select, textarea")
-    .forEach((el) => {
-      el.disabled = true;
-    });
+    ?.querySelectorAll(
+      "input, select, textarea"
+    )
+    .forEach(
+      el => {
+        el.disabled = true;
+      }
+    );
 }
 
-function resolveSessionId(response = {}) {
+function resolveSessionId(
+  response = {}
+) {
   return (
-    normalizeString(response.session_id) ||
-    normalizeString(response.id) ||
-    normalizeString(response.session?.id) ||
+    normalizeString(
+      response.session_id
+    ) ||
+    normalizeString(
+      response.id
+    ) ||
+    normalizeString(
+      response.session?.id
+    ) ||
     null
   );
 }
 
-function resolveSettlementId(response = {}) {
+function resolveSettlementId(
+  response = {}
+) {
   return (
-    normalizeString(response.settlement_id) ||
-    normalizeString(response.id) ||
-    normalizeString(response.settlement?.id) ||
+    normalizeString(
+      response.settlement_id
+    ) ||
+    normalizeString(
+      response.id
+    ) ||
+    normalizeString(
+      response.settlement?.id
+    ) ||
     null
   );
 }
@@ -251,7 +383,9 @@ export async function prepareBankTransferSettlement() {
     );
 
   if (!sessionId) {
-    throw new Error("session_id_missing");
+    throw new Error(
+      "session_id_missing"
+    );
   }
 
   const resolved =
@@ -280,17 +414,30 @@ export async function prepareBankTransferSettlement() {
     );
 
   if (!availableRoutes.length) {
-    throw new Error("no_enabled_bank_transfer_routes");
+    throw new Error(
+      "no_enabled_bank_transfer_routes"
+    );
   }
 
-  renderRouteOptions();
-
   const selectedRoute =
-    getSelectedRoute();
+    renderRouteOptions();
+
+  if (!selectedRoute) {
+    showRouteFieldOnly();
+
+    throw new Error(
+      resolveNoAvailableRouteMessage() ||
+      "no_routes_available_for_amount"
+    );
+  }
 
   if (
-    !selectedRoute.required_destination_fields?.length &&
-    !hasProviderDestination(selectedRoute)
+    !selectedRoute
+      .required_destination_fields
+      ?.length &&
+    !hasProviderDestination(
+      selectedRoute
+    )
   ) {
     hideQuoteStageFields();
 
@@ -302,6 +449,7 @@ export async function prepareBankTransferSettlement() {
   renderSelectedDestinationFields();
 
   showQuoteStageFields();
+
   renderSelectedQuote();
 
   return {
@@ -327,13 +475,22 @@ export async function prepareBankTransferSettlement() {
   };
 }
 
-export async function createSettlementFromPreparedQuote(prepared) {
+export async function createSettlementFromPreparedQuote(
+  prepared
+) {
   if (!prepared?.session_id) {
-    throw new Error("missing_prepared_session");
+    throw new Error(
+      "missing_prepared_session"
+    );
   }
 
-  if (!latestContext || !latestQuote) {
-    throw new Error("missing_prepared_quote");
+  if (
+    !latestContext ||
+    !latestQuote
+  ) {
+    throw new Error(
+      "missing_prepared_quote"
+    );
   }
 
   const route =
@@ -363,7 +520,9 @@ export async function createSettlementFromPreparedQuote(prepared) {
     );
 
   if (!settlementId) {
-    throw new Error("settlement_id_missing");
+    throw new Error(
+      "settlement_id_missing"
+    );
   }
 
   return {
@@ -380,10 +539,11 @@ export async function createSettlementFromPreparedQuote(prepared) {
   };
 }
 
-getEl("routeId")?.addEventListener(
-  "change",
-  () => {
-    renderSelectedDestinationFields();
-    renderSelectedQuote();
-  }
-);
+getEl("routeId")
+  ?.addEventListener(
+    "change",
+    () => {
+      renderSelectedDestinationFields();
+      renderSelectedQuote();
+    }
+  );
