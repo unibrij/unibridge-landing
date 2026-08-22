@@ -7,6 +7,8 @@ window.UnibridgeStripeOnramp = (() => {
   const STRIPE_ONRAMP_SRC =
     "https://crypto-js.stripe.com/crypto-onramp-outer.js";
 
+  let activeSession = null;
+
 
   function loadScriptOnce(
     src,
@@ -110,9 +112,7 @@ window.UnibridgeStripeOnramp = (() => {
         );
       };
 
-      document.head.appendChild(
-        script
-      );
+      document.head.appendChild(script);
     });
   }
 
@@ -167,6 +167,38 @@ window.UnibridgeStripeOnramp = (() => {
     }
 
     return container;
+  }
+
+
+  function reset() {
+    const session =
+      activeSession;
+
+    activeSession = null;
+
+    if (
+      session &&
+      typeof session.unmount ===
+        "function"
+    ) {
+      try {
+        session.unmount();
+      } catch (error) {
+        console.warn(
+          "STRIPE_ONRAMP_UNMOUNT_FAILED",
+          error
+        );
+      }
+    }
+
+    const container =
+      document.getElementById(
+        "stripeOnrampContainer"
+      );
+
+    if (container) {
+      container.remove();
+    }
   }
 
 
@@ -225,11 +257,14 @@ window.UnibridgeStripeOnramp = (() => {
 
     await ensureSdk();
 
+    /*
+    Always tear down any previous Stripe session before
+    mounting a new quote/session.
+    */
+    reset();
+
     const container =
       getContainer();
-
-    container.innerHTML =
-      "";
 
     ctx.setContinueDisabled(true);
 
@@ -261,6 +296,9 @@ window.UnibridgeStripeOnramp = (() => {
       );
     }
 
+    activeSession =
+      session;
+
     if (
       typeof session.addEventListener ===
       "function"
@@ -268,6 +306,17 @@ window.UnibridgeStripeOnramp = (() => {
       session.addEventListener(
         "onramp_session_updated",
         (event) => {
+          /*
+          Ignore events from a session that has already
+          been replaced/reset.
+          */
+          if (
+            activeSession !==
+            session
+          ) {
+            return;
+          }
+
           const stripeSession =
             event?.payload?.session ||
             null;
@@ -346,6 +395,7 @@ window.UnibridgeStripeOnramp = (() => {
 
 
   return {
-    mount
+    mount,
+    reset
   };
 })();
