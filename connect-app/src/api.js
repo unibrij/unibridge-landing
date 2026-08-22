@@ -320,6 +320,78 @@ export async function startKyc({
   return data;
 }
 
+export async function getKycStatus({
+  connectSessionId
+}) {
+  const normalizedConnectSessionId =
+    String(
+      connectSessionId ||
+      ""
+    ).trim();
+
+  if (
+    !normalizedConnectSessionId
+  ) {
+    throw new Error(
+      "connect_session_id_required"
+    );
+  }
+
+  const params =
+    new URLSearchParams({
+      connect_session_id:
+        normalizedConnectSessionId
+    });
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/kyc?${params.toString()}`,
+      {
+        method:
+          "GET",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        }
+      }
+    );
+
+  const data =
+    await parseJson(
+      response
+    );
+
+  assertOk(
+    response,
+    data,
+    "get_kyc_status_failed"
+  );
+
+  const kycStatus =
+    String(
+      data.kyc_status ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (!kycStatus) {
+    throw new Error(
+      "kyc_status_missing"
+    );
+  }
+
+  return {
+    connect_session_id:
+      data.connect_session_id ||
+      normalizedConnectSessionId,
+
+    kyc_status:
+      kycStatus
+  };
+}
+
 export async function createPayoutIntent({
   connectSessionId,
   walletAddress,
