@@ -1,11 +1,18 @@
 // connect-app/src/flow/payoutKycFlow.js
 
 import {
+  getKycStatus
+} from "../api";
+
+import {
   startDiditVerification
 } from "./diditSdk";
 
-const DIDIT_BACKEND_PROPAGATION_DELAY_MS =
-  1500;
+const KYC_STATUS_POLL_INTERVAL_MS =
+  1000;
+
+const KYC_STATUS_POLL_MAX_ATTEMPTS =
+  30;
 
 function wait(
   milliseconds
@@ -17,6 +24,84 @@ function wait(
         milliseconds
       );
     }
+  );
+}
+
+async function waitForBackendKycConfirmation({
+  connectSessionId,
+  flowGeneration,
+  isFlowCurrent,
+  writeDebug
+}) {
+  for (
+    let attempt = 1;
+    attempt <=
+      KYC_STATUS_POLL_MAX_ATTEMPTS;
+    attempt += 1
+  ) {
+    if (
+      !isFlowCurrent(
+        flowGeneration
+      )
+    ) {
+      return null;
+    }
+
+    const result =
+      await getKycStatus({
+        connectSessionId
+      });
+
+    const kycStatus =
+      String(
+        result?.kyc_status ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+    writeDebug(
+      "Verification backend status checked.",
+      {
+        connect_session_id:
+          connectSessionId,
+
+        kyc_status:
+          kycStatus ||
+          null,
+
+        attempt
+      }
+    );
+
+    if (
+      kycStatus ===
+      "passed"
+    ) {
+      return result;
+    }
+
+    if (
+      kycStatus ===
+      "failed"
+    ) {
+      throw new Error(
+        "kyc_verification_failed"
+      );
+    }
+
+    if (
+      attempt <
+        KYC_STATUS_POLL_MAX_ATTEMPTS
+    ) {
+      await wait(
+        KYC_STATUS_POLL_INTERVAL_MS
+      );
+    }
+  }
+
+  throw new Error(
+    "kyc_verification_processing"
   );
 }
 
@@ -150,13 +235,12 @@ export function openPayoutKyc({
         }
 
         /*
-         * SDK completion replaces the callback-navigation
-         * boundary used by the old redirect flow.
+         * Didit SDK completion means the user finished
+         * the verification UI.
          *
-         * Keep this flag set until post-KYC continuation
-         * succeeds. If the immediate continuation fails,
-         * the next Continue must resume after KYC instead
-         * of opening another verification session.
+         * It does NOT guarantee that the backend has
+         * already received and persisted the final
+         * Didit webhook.
          */
         if (
           kycCompletionPendingRef
@@ -185,35 +269,39 @@ export function openPayoutKyc({
           }
         );
 
-        /*
-         * Preserve the small timing boundary that the
-         * old redirect/navigation flow naturally had
-         * before post-KYC continuation.
-         */
-        await wait(
-          DIDIT_BACKEND_PROPAGATION_DELAY_MS
-        );
-
-        if (
-          !isFlowCurrent(
-            flowGeneration
-          )
-        ) {
-          return;
-        }
-
         try {
+          /*
+           * Wait for server-side KYC confirmation.
+           *
+           * pending / not_started:
+           * keep polling.
+           *
+           * passed:
+           * continue payout flow.
+           *
+           * failed:
+           * stop.
+           */
+          await waitForBackendKycConfirmation({
+            connectSessionId,
+            flowGeneration,
+            isFlowCurrent,
+            writeDebug
+          });
+
+          if (
+            !isFlowCurrent(
+              flowGeneration
+            )
+          ) {
+            return;
+          }
+
           await continueAfterKyc(
             null,
             flowGeneration
           );
 
-          /*
-           * Post-KYC continuation succeeded.
-           *
-           * The SDK flow no longer needs to emulate
-           * the old returned-flow state.
-           */
           if (
             kycCompletionPendingRef
           ) {
@@ -231,11 +319,10 @@ export function openPayoutKyc({
           }
 
           /*
-           * Intentionally keep
-           * kycCompletionPendingRef.current === true.
+           * Keep the flag true.
            *
-           * The next Continue will retry the post-KYC
-           * path instead of calling startKyc() again.
+           * A later Continue retries the post-KYC path
+           * instead of starting another Didit session.
            */
           setIsBusy(
             false
