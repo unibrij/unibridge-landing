@@ -1,25 +1,12 @@
 // unibridge-landing/surface/app.js
 
 import {
-  applyAmountLimitUi
-} from "./amount-limits.js";
-
-import {
-  getRouteSelectedProvider,
-  getFundingSelectedProvider
-} from "./funding-context.js";
-
-import {
   buildKycPayload as buildGenericKycPayload
 } from "./kyc-payload.js";
 
 import {
-  createPricingViewModel,
-  formatRouteLimitMessage,
-  isRouteAmountAvailable,
-  renderPricing,
-  selectFirstAvailableRoute
-} from "/shared/pricing/index.js";
+  clearPersistedSurfaceSettlement
+} from "./storage.js";
 
 import {
   createCoinsPhPicker
@@ -28,19 +15,6 @@ import {
 import {
   setupSurfacePwaInstall
 } from "./pwa-install.js";
-
-import {
-  buildFundingReturnUrl,
-  getSessionIdFromUrl,
-  isFundingReturn,
-  cleanupFundingReturnUrl
-} from "./return-url.js";
-
-import {
-  persistSurfaceSettlement,
-  getPersistedSurfaceSettlement,
-  clearPersistedSurfaceSettlement
-} from "./storage.js";
 
 import {
   createCountryHelpers
@@ -54,6 +28,19 @@ import {
   createDestinationPayloadBuilders
 } from "./destination-payload.js";
 
+import {
+  createQuoteFlow
+} from "./quote-flow.js";
+
+import {
+  createPaymentFlow
+} from "./payment-flow.js";
+
+
+/* =========================
+   PLATFORM
+========================= */
+
 const tg =
   window.Telegram?.WebApp;
 
@@ -61,25 +48,27 @@ if (tg) {
   tg.expand();
 }
 
+
 /* =========================
-   STATE
+   SHARED STATE
 ========================= */
 
-let sessionId = null;
-let routeId = null;
-let settlementId = null;
+const state = {
+  sessionId: null,
+  routeId: null,
+  settlementId: null,
 
-let pendingWidgetUrl = null;
-let currentNextAction = null;
-let currentFundingProvider = null;
+  pendingWidgetUrl: null,
+  currentNextAction: null,
+  currentFundingProvider: null,
 
-let processing = false;
-let nextActionProcessing = false;
+  processing: false,
+  nextActionProcessing: false,
 
-let currentRouteQuote = null;
-let paymentStarted = false;
+  currentRouteQuote: null,
+  paymentStarted: false
+};
 
-let coinsPhPicker = null;
 
 /* =========================
    UI
@@ -105,6 +94,7 @@ const statusBox =
 const quoteBox =
   document.getElementById("quoteBox");
 
+
 if (signBtn) {
   signBtn.disabled = true;
   signBtn.style.display = "none";
@@ -114,8 +104,9 @@ if (coinsPhContinueBtn) {
   coinsPhContinueBtn.disabled = true;
 }
 
+
 /* =========================
-   SHORTCUTS
+   GLOBAL SERVICES
 ========================= */
 
 const {
@@ -125,8 +116,7 @@ const {
 
 const {
   resetStatusMemory,
-  setStatus:
-    setStatusInternal,
+  setStatus: setStatusInternal,
   handleSettlementStatus
 } = window.UnibridgeStatus;
 
@@ -139,8 +129,9 @@ const {
   isPostFundingSettlementStatus
 } = window.UnibridgeSettlementViewState;
 
+
 /* =========================
-   EVENTS
+   BASIC HELPERS
 ========================= */
 
 function emit(name) {
@@ -149,23 +140,55 @@ function emit(name) {
   );
 }
 
+
 function setStatus(
-  msg,
+  message,
   type
 ) {
   setStatusInternal(
     statusBox,
-    msg,
+    message,
     type
   );
 }
 
+
 function getValue(id) {
-  return document.getElementById(id);
+  return document.getElementById(
+    id
+  );
 }
 
+
+function resetUiToStart() {
+  window.resetUiToStart?.();
+}
+
+
+function getCustomerPaymentCurrency() {
+  return (
+    getValue("amountCurrency")
+      ?.textContent
+      ?.trim() ||
+    "USD"
+  );
+}
+
+
+function setCurrentFundingProvider(
+  value
+) {
+  if (!value) {
+    return;
+  }
+
+  state.currentFundingProvider =
+    value;
+}
+
+
 /* =========================
-   HELPERS
+   COUNTRY
 ========================= */
 
 const {
@@ -177,6 +200,11 @@ const {
   getValue
 });
 
+
+/* =========================
+   CONTINUE BUTTONS
+========================= */
+
 const {
   getActiveContinueButton,
   setContinueButtonsDisabled,
@@ -187,358 +215,73 @@ const {
   isPhilippinesDestination
 });
 
-const {
-  buildDestinationPayload
-} = createDestinationPayloadBuilders({
-  getValue,
 
-  getCoinsPhPicker() {
-    return coinsPhPicker;
-  },
+/* =========================
+   FLOW REFERENCES
+========================= */
 
-  isPhilippinesDestination,
-  isBrazilDestination
-});
+let quoteFlow = null;
+let paymentFlow = null;
+let coinsPhPicker = null;
 
-function resetUiToStart() {
-  window.resetUiToStart?.();
-}
 
-function setCurrentFundingProvider(
-  value
-) {
-  if (!value) {
-    return;
-  }
+/* =========================
+   RESET BOUNDARY
+========================= */
 
-  currentFundingProvider =
-    value;
-}
+function resetFundingProviderUi() {
+  const providers = [
+    window.UnibridgeStripeOnramp,
+    window.UnibridgeOnrampMoney
+  ];
 
-function getCustomerPaymentCurrency() {
-  return (
-    getValue("amountCurrency")
-      ?.textContent
-      ?.trim() ||
-    "USD"
-  );
-}
-
-function getCurrentSelectedRoute() {
-  return (
-    currentRouteQuote?.route ||
-    null
-  );
-}
-
-function resolveNoAvailableRouteMessage(
-  routes = []
-) {
-  if (!Array.isArray(routes)) {
-    return null;
-  }
-
-  for (const route of routes) {
-    const message =
-      formatRouteLimitMessage(
-        route
+  for (const provider of providers) {
+    try {
+      provider?.reset?.();
+    } catch (error) {
+      console.warn(
+        "FUNDING_PROVIDER_RESET_FAILED",
+        error
       );
-
-    if (message) {
-      return message;
     }
   }
-
-  return null;
 }
 
-function assertCurrentRouteAmountAvailable() {
-  const route =
-    getCurrentSelectedRoute();
 
-  if (!route) {
-    throw new Error(
-      "selected_route_missing"
-    );
-  }
-
-  if (
-    !isRouteAmountAvailable(
-      route
-    )
-  ) {
-    throw new Error(
-      formatRouteLimitMessage(
-        route
-      ) ||
-      "selected_route_amount_not_available"
-    );
-  }
-
-  return route;
-}
-
-function isCurrentRouteAmountAvailable() {
-  const route =
-    getCurrentSelectedRoute();
-
-  return Boolean(
-    route &&
-    isRouteAmountAvailable(
-      route
-    )
-  );
-}
-
-function resetPricingUi() {
-  if (!quoteBox) {
-    return;
-  }
-
-  quoteBox.replaceChildren();
-
-  quoteBox.classList.add(
-    "hidden"
-  );
-}
-
-function renderRoutePricing({
-  quote,
-  route,
-  amount
-} = {}) {
-  if (!quoteBox) {
-    throw new Error(
-      "missing_quote_box"
-    );
-  }
-
-  const model =
-    createPricingViewModel({
-      quote,
-      route,
-
-      customerPaymentAmount:
-        amount,
-
-      customerPaymentCurrency:
-        getCustomerPaymentCurrency(),
-
-      sourceLabel:
-        getSourceCountryCode(),
-
-      destinationLabel:
-        getCountryLabel()
-    });
-
-  renderPricing(
-    quoteBox,
-    model
-  );
-
-  quoteBox.classList.remove(
-    "hidden"
-  );
-}
-
-function refreshAmountLimitUi() {
-  const activeContinueBtn =
-    getActiveContinueButton() ||
-    continueBtn;
-
-  const result =
-    applyAmountLimitUi({
-      amountInput:
-        getValue("amount"),
-
-      messageEl:
-        document.getElementById(
-          "amountLimitHint"
-        ),
-
-      continueBtn:
-        activeContinueBtn,
-
-      provider:
-        currentFundingProvider,
-
-      country:
-        getSourceCountryCode()
-    });
-
+function resetFlowState() {
   /*
-  --------------------------------------------------
-  Quote button guard
+  Provider UI must be torn down before clearing the
+  canonical local flow state.
 
-  This is funding-side validation only.
-
-  Before quote, provider may be null. amount-limits.js
-  falls back to source-country limits, so controlled
-  funding corridors can be blocked before an execution
-  Route has been selected.
-  --------------------------------------------------
+  This prevents an old Stripe iframe or Onramp overlay
+  from surviving a new quote.
   */
+  resetFundingProviderUi();
 
-  if (
-    sendBtn &&
-    !settlementId
-  ) {
-    sendBtn.disabled =
-      !result.ok;
-  }
+  state.sessionId = null;
+  state.routeId = null;
+  state.settlementId = null;
 
-  return result;
-}
+  state.pendingWidgetUrl = null;
+  state.currentNextAction = null;
+  state.currentFundingProvider = null;
 
-function syncRouteLimitContinueUi() {
-  if (
-    settlementId ||
-    pendingWidgetUrl
-  ) {
-    return;
-  }
+  state.processing = false;
+  state.nextActionProcessing = false;
 
-  if (!currentRouteQuote) {
-    if (sessionId || routeId) {
-      setContinueButtonsDisabled(
-        true
-      );
-    }
+  state.currentRouteQuote = null;
+  state.paymentStarted = false;
 
-    return;
-  }
+  clearPersistedSurfaceSettlement();
 
-  if (
-    !isCurrentRouteAmountAvailable()
-  ) {
-    setContinueButtonsDisabled(
-      true
-    );
-  }
-}
+  quoteFlow?.resetQuoteState();
 
-function refreshLimitUi() {
-  const result =
-    refreshAmountLimitUi();
-
-  syncRouteLimitContinueUi();
-
-  return result;
-}
-
-function setAmountInputDisabled(
-  disabled
-) {
   const amountInput =
     getValue("amount");
 
   if (amountInput) {
-    amountInput.disabled =
-      Boolean(disabled);
+    amountInput.disabled = false;
   }
-}
-
-function resetQuoteState() {
-  currentRouteQuote = null;
-  currentFundingProvider = null;
-
-  resetPricingUi();
-
-  coinsPhPicker?.reset();
-}
-
-function resetFlowForRouteInputChange() {
-  clearState();
-  resetUiToStart();
-  resetStatusMemory();
-  setStatus("");
-
-  const limitCheck =
-    refreshLimitUi();
-
-  if (sendBtn) {
-    sendBtn.disabled =
-      !limitCheck.ok;
-  }
-
-  setContinueButtonsDisabled(
-    true
-  );
-}
-
-/* =========================
-   STORAGE
-========================= */
-
-function persistState(
-  extra = {}
-) {
-  const id =
-    extra.id ||
-    settlementId;
-
-  if (!id) {
-    return;
-  }
-
-  persistSurfaceSettlement({
-    id,
-
-    paymentStarted:
-      extra.payment_started ??
-      paymentStarted ??
-      false
-  });
-}
-
-function persistSettlement(id) {
-  if (!id) {
-    return;
-  }
-
-  settlementId =
-    id;
-
-  persistState({
-    id,
-
-    payment_started:
-      false
-  });
-}
-
-function markPaymentStarted() {
-  paymentStarted =
-    true;
-
-  persistState({
-    payment_started:
-      true
-  });
-}
-
-function clearState() {
-  sessionId = null;
-  routeId = null;
-  settlementId = null;
-
-  pendingWidgetUrl = null;
-  currentNextAction = null;
-  currentFundingProvider = null;
-
-  processing = false;
-  nextActionProcessing = false;
-
-  currentRouteQuote = null;
-  paymentStarted = false;
-
-  clearPersistedSurfaceSettlement();
-
-  resetQuoteState();
-
-  setAmountInputDisabled(
-    false
-  );
 
   if (signBtn) {
     signBtn.disabled = true;
@@ -557,6 +300,7 @@ function clearState() {
   );
 }
 
+
 /* =========================
    KYC
 ========================= */
@@ -571,48 +315,50 @@ function buildKycPayload() {
   });
 }
 
+
 /* =========================
-   STATUS / REFRESH
+   QUOTE FLOW
 ========================= */
 
-async function refreshSettlementState() {
-  if (!settlementId) {
-    return null;
-  }
+quoteFlow =
+  createQuoteFlow({
+    state,
 
-  const status =
-    await apiGet(
-      "settlement/status",
-      {
-        settlement_id:
-          settlementId
-      }
-    );
-
-  setCurrentFundingProvider(
-    getFundingSelectedProvider(
-      status
-    )
-  );
-
-  handleSettlementStatus({
-    status,
-    signBtn,
-
-    continueBtn:
-      getActiveContinueButton() ||
+    elements: {
+      sendBtn,
       continueBtn,
+      quoteBox
+    },
 
+    apiPost,
+    getValue,
     emit,
     setStatus,
-    clearState
+
+    resetUiToStart,
+    resetStatusMemory,
+    resetFlowState,
+
+    setCurrentFundingProvider,
+
+    getCountryLabel,
+    getSourceCountryCode,
+    getCustomerPaymentCurrency,
+
+    getActiveContinueButton,
+    setContinueButtonsDisabled,
+    setContinueButtonMode,
+
+    isPhilippinesDestination,
+
+    getCoinsPhPicker() {
+      return coinsPhPicker;
+    }
   });
 
-  return status;
-}
 
 /* =========================
-   COINSPH PICKER INIT
+   COINSPH PICKER
 ========================= */
 
 coinsPhPicker =
@@ -632,11 +378,7 @@ coinsPhPicker =
           );
         }
 
-        if (
-          Array.isArray(
-            response
-          )
-        ) {
+        if (Array.isArray(response)) {
           return response;
         }
 
@@ -669,903 +411,112 @@ coinsPhPicker =
 
     isPhilippinesDestination,
 
-    setContinueDisabled(
-      value
-    ) {
-      if (coinsPhContinueBtn) {
-        coinsPhContinueBtn.disabled =
-          Boolean(value) ||
-          !isCurrentRouteAmountAvailable();
+    setContinueDisabled(value) {
+      if (!coinsPhContinueBtn) {
+        return;
       }
+
+      coinsPhContinueBtn.disabled =
+        Boolean(value) ||
+        !quoteFlow
+          .isCurrentRouteAmountAvailable();
     }
   });
 
 coinsPhPicker.bindEvents();
 
+
+/* =========================
+   DESTINATION
+========================= */
+
+const {
+  buildDestinationPayload
+} = createDestinationPayloadBuilders({
+  getValue,
+
+  getCoinsPhPicker() {
+    return coinsPhPicker;
+  },
+
+  isPhilippinesDestination,
+  isBrazilDestination
+});
+
+
+/* =========================
+   PAYMENT FLOW
+========================= */
+
+paymentFlow =
+  createPaymentFlow({
+    state,
+
+    elements: {
+      continueBtn,
+      signBtn
+    },
+
+    apiGet,
+    apiPost,
+
+    emit,
+    setStatus,
+
+    resetFlowState,
+    resetUiToStart,
+    resetStatusMemory,
+
+    setCurrentFundingProvider,
+
+    getActiveContinueButton,
+    setContinueButtonMode,
+
+    isPhilippinesDestination,
+    buildDestinationPayload,
+    buildKycPayload,
+
+    getCoinsPhPicker() {
+      return coinsPhPicker;
+    },
+
+    handleSettlementStatus,
+    normalizeNextAction,
+    extractWidgetUrlFromFunding,
+    isPostFundingSettlementStatus,
+
+    quoteFlow
+  });
+
+
+/* =========================
+   PWA
+========================= */
+
 setupSurfacePwaInstall({
   setStatus
 });
 
-/* =========================
-   START
-========================= */
-
-async function startFlow() {
-  if (processing) {
-    return;
-  }
-
-  try {
-    clearState();
-    resetUiToStart();
-    resetStatusMemory();
-
-    processing =
-      true;
-
-    if (sendBtn) {
-      sendBtn.disabled = true;
-    }
-
-    setContinueButtonsDisabled(
-      true
-    );
-
-    if (signBtn) {
-      signBtn.disabled = true;
-    }
-
-    setStatus(
-      "Registering..."
-    );
-
-    const amount =
-      Number(
-        getValue("amount")
-          ?.value
-      );
-
-    if (
-      !Number.isFinite(amount) ||
-      amount <= 0
-    ) {
-      throw new Error(
-        "invalid_amount"
-      );
-    }
-
-    const limitCheck =
-      refreshAmountLimitUi();
-
-    if (
-      limitCheck &&
-      !limitCheck.ok
-    ) {
-      throw new Error(
-        limitCheck.message
-      );
-    }
-
-    const reg =
-      await apiPost(
-        "fiat/session/register",
-        {
-          source_country:
-            getValue(
-              "source_country"
-            )?.value,
-
-          receiver_country:
-            getValue(
-              "country"
-            )?.value
-        }
-      );
-
-    sessionId =
-      reg.session_id;
-
-    await apiPost(
-      "session/resolve",
-      {
-        session_id:
-          sessionId
-      }
-    );
-
-    const quote =
-      await apiPost(
-        "session/quote",
-        {
-          session_id:
-            sessionId,
-
-          amount
-        }
-      );
-
-    if (!quote.routes?.length) {
-      throw new Error(
-        "no_routes"
-      );
-    }
-
-    const selectedRoute =
-      selectFirstAvailableRoute(
-        quote.routes
-      );
-
-    if (!selectedRoute) {
-      throw new Error(
-        resolveNoAvailableRouteMessage(
-          quote.routes
-        ) ||
-        "no_routes_available_for_amount"
-      );
-    }
-
-    routeId =
-      selectedRoute.route_id ||
-      selectedRoute.id;
-
-    if (!routeId) {
-      throw new Error(
-        "selected_route_missing"
-      );
-    }
-
-    setCurrentFundingProvider(
-      getRouteSelectedProvider(
-        selectedRoute
-      )
-    );
-
-    /*
-    --------------------------------------------------
-    Preserve the complete quote and Route contracts.
-
-    The selected Route includes the canonical backend
-    route_limits / route_limit_validation metadata.
-
-    Route selection remains backend-order driven and
-    executor agnostic.
-    --------------------------------------------------
-    */
-
-    currentRouteQuote = {
-      quote,
-      route:
-        selectedRoute
-    };
-
-    renderRoutePricing({
-      quote,
-      route:
-        selectedRoute,
-      amount
-    });
-
-    emit(
-      "unibridge:quote"
-    );
-
-    setContinueButtonMode(
-      "prepare_payment"
-    );
-
-    refreshLimitUi();
-
-    if (
-      isPhilippinesDestination()
-    ) {
-      await coinsPhPicker.load();
-
-      coinsPhPicker
-        .updateContinueState();
-
-      syncRouteLimitContinueUi();
-
-      setStatus(
-        "Select recipient institution."
-      );
-
-      return;
-    }
-
-    if (continueBtn) {
-      continueBtn.disabled =
-        !isCurrentRouteAmountAvailable();
-    }
-
-    setStatus(
-      "Enter PIX key"
-    );
-  } catch (e) {
-    setStatus(
-      e,
-      "error"
-    );
-
-    const limitCheck =
-      refreshLimitUi();
-
-    const activeBtn =
-      getActiveContinueButton();
-
-    const canContinue =
-      Boolean(
-        limitCheck?.ok &&
-        sessionId &&
-        routeId &&
-        isCurrentRouteAmountAvailable()
-      );
-
-    if (activeBtn) {
-      if (
-        canContinue &&
-        isPhilippinesDestination()
-      ) {
-        coinsPhPicker
-          ?.updateContinueState();
-
-        syncRouteLimitContinueUi();
-      } else {
-        activeBtn.disabled =
-          !canContinue;
-      }
-    }
-  } finally {
-    processing =
-      false;
-
-    refreshLimitUi();
-
-    if (
-      isPhilippinesDestination() &&
-      isCurrentRouteAmountAvailable()
-    ) {
-      coinsPhPicker
-        ?.updateContinueState();
-
-      syncRouteLimitContinueUi();
-    } else if (
-      !settlementId &&
-      !isCurrentRouteAmountAvailable()
-    ) {
-      setContinueButtonsDisabled(
-        true
-      );
-    }
-  }
-}
 
 /* =========================
-   CONTINUE
+   EVENT WIRING
 ========================= */
 
-async function continueFlow() {
-  if (processing) {
-    return;
-  }
+quoteFlow.bindRouteInputEvents();
+paymentFlow.bindLifecycleEvents();
 
-  const activeContinueBtn =
-    getActiveContinueButton() ||
-    continueBtn;
-
-  try {
-    const limitCheck =
-      refreshAmountLimitUi();
-
-    if (
-      limitCheck &&
-      !limitCheck.ok
-    ) {
-      throw new Error(
-        limitCheck.message
-      );
-    }
-
-    if (
-      !settlementId &&
-      !pendingWidgetUrl
-    ) {
-      assertCurrentRouteAmountAvailable();
-    }
-
-    if (pendingWidgetUrl) {
-      markPaymentStarted();
-
-      setAmountInputDisabled(
-        true
-      );
-
-      window.location.href =
-        pendingWidgetUrl;
-
-      return;
-    }
-
-    processing =
-      true;
-
-    if (activeContinueBtn) {
-      activeContinueBtn.disabled =
-        true;
-    }
-
-    if (!sessionId) {
-      const sessionIdFromUrl =
-        getSessionIdFromUrl();
-
-      if (sessionIdFromUrl) {
-        sessionId =
-          sessionIdFromUrl;
-      }
-    }
-
-    if (!settlementId) {
-      if (
-        !sessionId ||
-        !routeId
-      ) {
-        throw new Error(
-          "missing_session_or_route"
-        );
-      }
-
-      /*
-      --------------------------------------------------
-      Final frontend execution-route guard
-      --------------------------------------------------
-
-      The backend remains authoritative. This prevents the
-      Surface from intentionally submitting a Route already
-      marked unavailable by the quoted Route contract.
-      --------------------------------------------------
-      */
-
-      assertCurrentRouteAmountAvailable();
-
-      const destination =
-        buildDestinationPayload();
-
-      const redirect_url =
-        buildFundingReturnUrl(
-          sessionId
-        );
-
-      if (!redirect_url) {
-        throw new Error(
-          "missing_redirect_url"
-        );
-      }
-
-      const create =
-        await apiPost(
-          "settlement/create",
-          {
-            session_id:
-              sessionId,
-
-            route_id:
-              routeId,
-
-            destination,
-            redirect_url
-          }
-        );
-
-      setCurrentFundingProvider(
-        getFundingSelectedProvider(
-          create
-        )
-      );
-
-      persistSettlement(
-        create.settlement_id
-      );
-    }
-
-    const latestStatus =
-      await refreshSettlementState();
-
-    if (
-      isPostFundingSettlementStatus(
-        latestStatus?.status
-      )
-    ) {
-      return;
-    }
-
-    if (
-      !currentNextAction &&
-      !pendingWidgetUrl
-    ) {
-      const funding =
-        await apiPost(
-          "funding/session",
-          {
-            settlement_id:
-              settlementId
-          }
-        );
-
-      setCurrentFundingProvider(
-        getFundingSelectedProvider(
-          funding
-        )
-      );
-
-      currentNextAction =
-        normalizeNextAction(
-          funding?.next_action
-        );
-
-      pendingWidgetUrl =
-        extractWidgetUrlFromFunding(
-          funding
-        );
-    }
-
-    const action =
-      normalizeNextAction(
-        currentNextAction
-      );
-
-    if (
-      action?.type ===
-      "redirect"
-    ) {
-      const redirectUrl =
-        action.url ||
-        pendingWidgetUrl;
-
-      if (!redirectUrl) {
-        throw new Error(
-          "missing_redirect_url"
-        );
-      }
-
-      pendingWidgetUrl =
-        redirectUrl;
-
-      emit(
-        "unibridge:quote"
-      );
-
-      emit(
-        "unibridge:payment"
-      );
-
-      markPaymentStarted();
-
-      setAmountInputDisabled(
-        true
-      );
-
-      window.location.href =
-        redirectUrl;
-
-      return;
-    }
-
-    if (
-      action?.type ===
-      "await_confirmation"
-    ) {
-      emit(
-        "unibridge:quote"
-      );
-
-      emit(
-        "unibridge:payment"
-      );
-
-      setStatus(
-        action.label ||
-        "Waiting for payment confirmation..."
-      );
-
-      if (activeContinueBtn) {
-        activeContinueBtn.disabled =
-          false;
-      }
-
-      return;
-    }
-
-    if (
-      action?.type ===
-      "step"
-    ) {
-      await window.UnibridgeRampFlow
-        .processStepNextActions({
-          emit,
-          buildKycPayload,
-          setStatus,
-
-          setContinueDisabled(
-            value
-          ) {
-            if (activeContinueBtn) {
-              activeContinueBtn.disabled =
-                value;
-            }
-          },
-
-          setContinueMode(
-            mode
-          ) {
-            setContinueButtonMode(
-              mode
-            );
-          },
-
-          getSettlementId() {
-            return settlementId;
-          },
-
-          getCurrentNextAction() {
-            return currentNextAction;
-          },
-
-          setCurrentNextAction(
-            value
-          ) {
-            currentNextAction =
-              value;
-          },
-
-          getPendingWidgetUrl() {
-            return pendingWidgetUrl;
-          },
-
-          setPendingWidgetUrl(
-            value
-          ) {
-            pendingWidgetUrl =
-              value ||
-              null;
-
-            if (pendingWidgetUrl) {
-              setContinueButtonMode(
-                "open_payment"
-              );
-            }
-          },
-
-          getNextActionProcessing() {
-            return nextActionProcessing;
-          },
-
-          setNextActionProcessing(
-            value
-          ) {
-            nextActionProcessing =
-              value;
-          }
-        });
-
-      return;
-    }
-
-    if (pendingWidgetUrl) {
-      emit(
-        "unibridge:quote"
-      );
-
-      emit(
-        "unibridge:payment"
-      );
-
-      markPaymentStarted();
-
-      setAmountInputDisabled(
-        true
-      );
-
-      window.location.href =
-        pendingWidgetUrl;
-
-      return;
-    }
-
-    throw new Error(
-      "no_funding_flow"
-    );
-  } catch (e) {
-    setStatus(
-      e,
-      "error"
-    );
-
-    const limitCheck =
-      refreshLimitUi();
-
-    const canContinue =
-      Boolean(
-        limitCheck?.ok &&
-        (
-          settlementId ||
-          (
-            sessionId &&
-            routeId &&
-            isCurrentRouteAmountAvailable()
-          )
-        )
-      );
-
-    if (activeContinueBtn) {
-      if (
-        canContinue &&
-        isPhilippinesDestination() &&
-        !settlementId
-      ) {
-        coinsPhPicker
-          ?.updateContinueState();
-
-        syncRouteLimitContinueUi();
-      } else {
-        activeContinueBtn.disabled =
-          !canContinue;
-      }
-    }
-  } finally {
-    processing =
-      false;
-
-    syncRouteLimitContinueUi();
-  }
-}
-
-/* =========================
-   RESUME
-========================= */
-
-async function resumeFlowFromState() {
-  if (
-    !settlementId ||
-    processing
-  ) {
-    return;
-  }
-
-  try {
-    const status =
-      await apiGet(
-        "settlement/status",
-        {
-          settlement_id:
-            settlementId
-        }
-      );
-
-    setCurrentFundingProvider(
-      getFundingSelectedProvider(
-        status
-      )
-    );
-
-    const activeContinueBtn =
-      getActiveContinueButton() ||
-      continueBtn;
-
-    if (
-      status?.status ===
-      "waiting_ramp_payment"
-    ) {
-      clearState();
-      resetUiToStart();
-      resetStatusMemory();
-      setStatus("");
-
-      refreshLimitUi();
-
-      return;
-    }
-
-    setAmountInputDisabled(
-      true
-    );
-
-    emit(
-      "unibridge:quote"
-    );
-
-    handleSettlementStatus({
-      status,
-      signBtn,
-
-      continueBtn:
-        activeContinueBtn,
-
-      emit,
-      setStatus,
-      clearState
-    });
-  } catch (e) {
-    setStatus(
-      e,
-      "error"
-    );
-  }
-}
-
-/* =========================
-   LOAD / RESUME
-========================= */
-
-window.addEventListener(
-  "load",
-  async () => {
-    const sessionIdFromUrl =
-      getSessionIdFromUrl();
-
-    const fundingReturn =
-      isFundingReturn();
-
-    if (
-      sessionIdFromUrl &&
-      fundingReturn
-    ) {
-      cleanupFundingReturnUrl();
-
-      clearState();
-      resetUiToStart();
-      resetStatusMemory();
-      setStatus("");
-
-      refreshLimitUi();
-
-      return;
-    }
-
-    if (sessionIdFromUrl) {
-      sessionId =
-        sessionIdFromUrl;
-    }
-
-    const saved =
-      getPersistedSurfaceSettlement();
-
-    if (!saved) {
-      clearState();
-      resetUiToStart();
-
-      refreshLimitUi();
-
-      return;
-    }
-
-    settlementId =
-      saved.id;
-
-    paymentStarted =
-      Boolean(
-        saved.payment_started
-      );
-
-    if (!paymentStarted) {
-      clearState();
-      resetUiToStart();
-
-      refreshLimitUi();
-
-      return;
-    }
-
-    await resumeFlowFromState();
-  }
-);
-
-window.addEventListener(
-  "focus",
-  async () => {
-    if (
-      !settlementId ||
-      !paymentStarted
-    ) {
-      return;
-    }
-
-    await resumeFlowFromState();
-  }
-);
-
-document.addEventListener(
-  "visibilitychange",
-  async () => {
-    if (
-      document.visibilityState !==
-      "visible"
-    ) {
-      return;
-    }
-
-    if (
-      !settlementId ||
-      !paymentStarted
-    ) {
-      return;
-    }
-
-    await resumeFlowFromState();
-  }
-);
-
-/* =========================
-   FIELD EVENTS
-========================= */
-
-const amountInput =
-  getValue("amount");
-
-const sourceCountryInput =
-  getValue("source_country");
-
-const countryInput =
-  getValue("country");
-
-if (amountInput) {
-  amountInput.addEventListener(
-    "input",
-    () => {
-      if (
-        sessionId ||
-        routeId ||
-        settlementId ||
-        currentRouteQuote
-      ) {
-        resetFlowForRouteInputChange();
-
-        return;
-      }
-
-      refreshLimitUi();
-    }
-  );
-
-  amountInput.addEventListener(
-    "blur",
-    () => {
-      refreshLimitUi();
-    }
-  );
-}
-
-if (sourceCountryInput) {
-  sourceCountryInput.addEventListener(
-    "change",
-    () => {
-      resetFlowForRouteInputChange();
-    }
-  );
-}
-
-if (countryInput) {
-  countryInput.addEventListener(
-    "change",
-    () => {
-      resetFlowForRouteInputChange();
-    }
-  );
-}
-
-/* =========================
-   BUTTON EVENTS
-========================= */
 
 if (sendBtn) {
   sendBtn.onclick =
-    startFlow;
+    quoteFlow.startFlow;
 }
 
 if (continueBtn) {
   continueBtn.onclick =
-    continueFlow;
+    paymentFlow.continueFlow;
 }
 
 if (coinsPhContinueBtn) {
   coinsPhContinueBtn.onclick =
-    continueFlow;
+    paymentFlow.continueFlow;
 }
