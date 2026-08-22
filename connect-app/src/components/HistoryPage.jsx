@@ -10,10 +10,6 @@ import {
   getPayoutHistory
 } from "../api";
 
-import {
-  readPayoutAccessToken
-} from "../flow/payoutAccessTokenStorage";
-
 function normalizeString(
   value
 ) {
@@ -510,25 +506,14 @@ export default function HistoryPage({
   ]);
 
   async function handleDownloadReceipt({
-    item,
-    accessToken:
-      receiptAccessToken
+    item
   }) {
     const receiptId =
       normalizeString(
         item?.receipt_id
       );
 
-    const payoutIntentId =
-      normalizeString(
-        item
-          ?.payout_intent_id
-      );
-
-    if (
-      !receiptId ||
-      !payoutIntentId
-    ) {
+    if (!receiptId) {
       setReceiptError(
         "Receipt is not available for this payout."
       );
@@ -536,11 +521,9 @@ export default function HistoryPage({
       return;
     }
 
-    if (
-      !receiptAccessToken
-    ) {
+    if (!accessToken) {
       setReceiptError(
-        "Receipt access has expired or is unavailable."
+        "Receipt access is unavailable."
       );
 
       return;
@@ -558,9 +541,7 @@ export default function HistoryPage({
       const result =
         await downloadReceiptPdf({
           receiptId,
-
-          accessToken:
-            receiptAccessToken
+          accessToken
         });
 
       triggerBlobDownload({
@@ -738,23 +719,10 @@ export default function HistoryPage({
                       payout
                     );
 
-                  const storedReceiptAccess =
-                    payoutIntentId
-                      ? readPayoutAccessToken(
-                          payoutIntentId
-                        )
-                      : null;
-
-                  const receiptAccessToken =
-                    storedReceiptAccess
-                      ?.token ||
-                    null;
-
                   const canDownloadReceipt =
                     Boolean(
                       receiptId &&
-                      payoutIntentId &&
-                      receiptAccessToken
+                      accessToken
                     );
 
                   const isDownloading =
@@ -850,10 +818,7 @@ export default function HistoryPage({
                             onClick={() =>
                               handleDownloadReceipt({
                                 item:
-                                  payout,
-
-                                accessToken:
-                                  receiptAccessToken
+                                  payout
                               })
                             }
                           >
