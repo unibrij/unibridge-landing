@@ -35,8 +35,7 @@ window.UnibridgeOnrampMoney = (() => {
             );
           }
 
-          window.OnrampWebSDK =
-            Constructor;
+          window.OnrampWebSDK = Constructor;
 
           return Constructor;
         })
@@ -402,39 +401,17 @@ window.UnibridgeOnrampMoney = (() => {
       "Opening bank payment..."
     );
 
-    console.log(
-      "ONRAMP_SDK_OPTIONS",
-      {
-        appId:
-          options.appId,
-
-        walletAddress:
-          options.walletAddress,
-
-        flowType:
-          options.flowType,
-
-        fiatType:
-          options.fiatType,
-
-        fiatAmount:
-          options.fiatAmount,
-
-        paymentMethod:
-          options.paymentMethod,
-
-        coinCode:
-          options.coinCode,
-
-        network:
-          options.network,
-
-        merchantRecognitionId:
-          options.merchantRecognitionId,
-
-        isRestricted:
-          options.isRestricted
-      }
+    alert(
+      [
+        "ONRAMP SDK OPTIONS",
+        "",
+        `coinCode: ${options.coinCode}`,
+        `network: ${options.network}`,
+        `walletAddress: ${options.walletAddress}`,
+        `fiatType: ${options.fiatType}`,
+        `fiatAmount: ${options.fiatAmount}`,
+        `paymentMethod: ${options.paymentMethod}`
+      ].join("\n")
     );
 
     const instance =
