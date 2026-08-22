@@ -401,19 +401,6 @@ window.UnibridgeOnrampMoney = (() => {
       "Opening bank payment..."
     );
 
-    alert(
-      [
-        "ONRAMP SDK OPTIONS",
-        "",
-        `coinCode: ${options.coinCode}`,
-        `network: ${options.network}`,
-        `walletAddress: ${options.walletAddress}`,
-        `fiatType: ${options.fiatType}`,
-        `fiatAmount: ${options.fiatAmount}`,
-        `paymentMethod: ${options.paymentMethod}`
-      ].join("\n")
-    );
-
     const instance =
       new OnrampWebSDK(
         options
