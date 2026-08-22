@@ -1,266 +1,67 @@
 // unibrij/unibridge-landing/surface/js/ramp/onrampMoney.js
 
 window.UnibridgeOnrampMoney = (() => {
-  const ONRAMP_WEB_SDK_SRC =
-    "https://cdn.jsdelivr.net/npm/@onramp.money/onramp-web-sdk@2.0.1/dist/onramp-web-sdk.umd.js";
-
-  const SCRIPT_LOAD_TIMEOUT_MS = 15000;
+  const ONRAMP_WEB_SDK_MODULE =
+    "https://cdn.skypack.dev/@onramp.money/onramp-web-sdk";
 
   let activeInstance = null;
   let sdkLoadPromise = null;
 
+  const TX_FAILURE_EVENTS = new Set([
+    "ONRAMP_WIDGET_TX_SENDING_FAILED",
+    "ONRAMP_WIDGET_TX_PURCHASING_FAILED",
+    "ONRAMP_WIDGET_TX_FINDING_FAILED"
+  ]);
 
-  function getSdkConstructor() {
-    return typeof window.OnrampWebSDK === "function"
-      ? window.OnrampWebSDK
-      : null;
-  }
 
+  /* =========================
+     SDK
+  ========================= */
 
-  function loadSdkScript() {
-    const existingConstructor =
-      getSdkConstructor();
-
-    if (existingConstructor) {
-      return Promise.resolve(
-        existingConstructor
-      );
+  async function ensureSdk() {
+    if (
+      typeof window.OnrampWebSDK ===
+      "function"
+    ) {
+      return window.OnrampWebSDK;
     }
 
-    if (sdkLoadPromise) {
-      return sdkLoadPromise;
+    if (!sdkLoadPromise) {
+      sdkLoadPromise =
+        import(
+          ONRAMP_WEB_SDK_MODULE
+        )
+          .then((module) => {
+            const Constructor =
+              module?.OnrampWebSDK;
+
+            if (
+              typeof Constructor !==
+              "function"
+            ) {
+              throw new Error(
+                "onramp_web_sdk_missing"
+              );
+            }
+
+            window.OnrampWebSDK =
+              Constructor;
+
+            return Constructor;
+          })
+          .catch((error) => {
+            sdkLoadPromise = null;
+            throw error;
+          });
     }
-
-    sdkLoadPromise = new Promise((resolve, reject) => {
-      const absoluteSrc =
-        new URL(
-          ONRAMP_WEB_SDK_SRC,
-          document.baseURI
-        ).href;
-
-      let script =
-        Array.from(document.scripts)
-          .find((item) => item.src === absoluteSrc) ||
-        null;
-
-      let settled = false;
-      let timeoutId = null;
-
-
-      const cleanup = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-
-        if (script) {
-          script.removeEventListener(
-            "load",
-            onLoad
-          );
-
-          script.removeEventListener(
-            "error",
-            onError
-          );
-        }
-      };
-
-
-      const finish = (
-        error = null,
-        Constructor = null
-      ) => {
-        if (settled) {
-          return;
-        }
-
-        settled = true;
-        cleanup();
-
-        if (error) {
-          reject(error);
-          return;
-        }
-
-        resolve(Constructor);
-      };
-
-
-      const verifySdk = () => {
-        const Constructor =
-          getSdkConstructor();
-
-        if (!Constructor) {
-          finish(
-            new Error(
-              "onramp_web_sdk_missing"
-            )
-          );
-
-          return;
-        }
-
-        if (script) {
-          script.dataset.unibridgeLoaded =
-            "true";
-        }
-
-        finish(
-          null,
-          Constructor
-        );
-      };
-
-
-      const onLoad = () => {
-        queueMicrotask(
-          verifySdk
-        );
-      };
-
-
-      const onError = () => {
-        finish(
-          new Error(
-            "onramp_sdk_script_load_failed"
-          )
-        );
-      };
-
-
-      /*
-      If this script was previously loaded by UniBridge
-      but the expected constructor is still missing,
-      fail immediately instead of waiting another 15s.
-      */
-      if (
-        script?.dataset?.unibridgeLoaded ===
-        "true"
-      ) {
-        finish(
-          new Error(
-            "onramp_web_sdk_missing"
-          )
-        );
-
-        return;
-      }
-
-
-      timeoutId = setTimeout(() => {
-        const Constructor =
-          getSdkConstructor();
-
-        if (Constructor) {
-          finish(
-            null,
-            Constructor
-          );
-
-          return;
-        }
-
-        finish(
-          new Error(
-            "onramp_sdk_script_timeout"
-          )
-        );
-      }, SCRIPT_LOAD_TIMEOUT_MS);
-
-
-      if (script) {
-        script.addEventListener(
-          "load",
-          onLoad,
-          {
-            once: true
-          }
-        );
-
-        script.addEventListener(
-          "error",
-          onError,
-          {
-            once: true
-          }
-        );
-
-        /*
-        Close the race where the script finishes between
-        our initial constructor check and listener setup.
-        */
-        queueMicrotask(() => {
-          const Constructor =
-            getSdkConstructor();
-
-          if (Constructor) {
-            finish(
-              null,
-              Constructor
-            );
-          }
-        });
-
-        return;
-      }
-
-
-      script =
-        document.createElement(
-          "script"
-        );
-
-      script.src =
-        ONRAMP_WEB_SDK_SRC;
-
-      script.async =
-        true;
-
-      script.dataset.unibridgeOnrampSdk =
-        "true";
-
-      script.addEventListener(
-        "load",
-        onLoad,
-        {
-          once: true
-        }
-      );
-
-      script.addEventListener(
-        "error",
-        onError,
-        {
-          once: true
-        }
-      );
-
-      document.head.appendChild(
-        script
-      );
-    });
-
-    sdkLoadPromise =
-      sdkLoadPromise.finally(() => {
-        sdkLoadPromise = null;
-      });
 
     return sdkLoadPromise;
   }
 
 
-  async function ensureSdk() {
-    const Constructor =
-      getSdkConstructor();
-
-    if (Constructor) {
-      return Constructor;
-    }
-
-    return loadSdkScript();
-  }
-
+  /* =========================
+     CONFIG
+  ========================= */
 
   function requirePositiveNumber(
     value,
@@ -299,74 +100,62 @@ window.UnibridgeOnrampMoney = (() => {
   }
 
 
-  function resolveNetwork(value) {
-    const network =
-      requireString(
-        value,
-        "missing_onramp_network"
-      ).toLowerCase();
-
-    const map = {
-      polygon: "polygon",
-      matic: "polygon",
-      matic20: "polygon",
-      "polygon-pos": "polygon",
-      tron: "tron",
-      trc20: "tron"
-    };
-
-    const resolved =
-      map[network];
-
-    if (!resolved) {
-      throw new Error(
-        "unsupported_onramp_sdk_network"
-      );
-    }
-
-    return resolved;
-  }
-
-
   function buildSdkOptions(meta = {}) {
     return {
-      appId: requirePositiveNumber(
-        meta.app_id,
-        "missing_onramp_app_id"
-      ),
+      appId:
+        requirePositiveNumber(
+          meta.app_id,
+          "missing_onramp_app_id"
+        ),
 
-      walletAddress: requireString(
-        meta.wallet_address,
-        "missing_onramp_wallet_address"
-      ),
+      walletAddress:
+        requireString(
+          meta.wallet_address,
+          "missing_onramp_wallet_address"
+        ),
 
-      flowType: requirePositiveNumber(
-        meta.flow_type,
-        "missing_onramp_flow_type"
-      ),
+      flowType:
+        requirePositiveNumber(
+          meta.flow_type,
+          "missing_onramp_flow_type"
+        ),
 
-      fiatAmount: requirePositiveNumber(
-        meta.fiat_amount,
-        "missing_onramp_fiat_amount"
-      ),
+      fiatType:
+        requirePositiveNumber(
+          meta.fiat_type,
+          "missing_onramp_fiat_type"
+        ),
 
-      paymentMethod: requirePositiveNumber(
-        meta.payment_method,
-        "missing_onramp_payment_method"
-      ),
+      fiatAmount:
+        requirePositiveNumber(
+          meta.fiat_amount,
+          "missing_onramp_fiat_amount"
+        ),
 
-      coinCode: requireString(
-        meta.coin_code,
-        "missing_onramp_coin_code"
-      ).toUpperCase(),
+      paymentMethod:
+        requirePositiveNumber(
+          meta.payment_method,
+          "missing_onramp_payment_method"
+        ),
 
-      network:
-        resolveNetwork(
-          meta.network
-        )
+      merchantRecognitionId:
+        requireString(
+          meta.merchant_recognition_id,
+          "missing_onramp_merchant_recognition_id"
+        ),
+
+      /*
+      UniBridge owns the route and the user should remain
+      inside the preconfigured checkout flow.
+      */
+      isRestricted: true
     };
   }
 
+
+  /* =========================
+     INSTANCE LIFECYCLE
+  ========================= */
 
   function closeActiveInstance() {
     const instance =
@@ -376,7 +165,8 @@ window.UnibridgeOnrampMoney = (() => {
 
     if (
       !instance ||
-      typeof instance.close !== "function"
+      typeof instance.close !==
+        "function"
     ) {
       return;
     }
@@ -397,6 +187,10 @@ window.UnibridgeOnrampMoney = (() => {
   }
 
 
+  /* =========================
+     EVENTS
+  ========================= */
+
   function resolveEventType(event) {
     return String(
       event?.type || ""
@@ -412,7 +206,8 @@ window.UnibridgeOnrampMoney = (() => {
   ) {
     if (
       !instance ||
-      typeof instance.on !== "function"
+      typeof instance.on !==
+        "function"
     ) {
       return;
     }
@@ -421,26 +216,30 @@ window.UnibridgeOnrampMoney = (() => {
       "TX_EVENTS",
       (event) => {
         if (
-          activeInstance !== instance
+          activeInstance !==
+          instance
         ) {
           return;
         }
 
         const type =
-          resolveEventType(event);
+          resolveEventType(
+            event
+          );
 
         console.log(
           "ONRAMP_TX_EVENT",
           {
             type,
             data:
-              event?.data || null
+              event?.data ||
+              null
           }
         );
 
         if (
           type ===
-          "ONRAMP_WIDGET_TX_INITIATED"
+          "ONRAMP_WIDGET_TX_INIT"
         ) {
           ctx.setStatus(
             "Complete the payment in Onramp."
@@ -451,7 +250,26 @@ window.UnibridgeOnrampMoney = (() => {
 
         if (
           type ===
-          "ONRAMP_WIDGET_TX_SUCCESSFUL"
+            "ONRAMP_WIDGET_TX_FINDING" ||
+          type ===
+            "ONRAMP_WIDGET_TX_PURCHASING" ||
+          type ===
+            "ONRAMP_WIDGET_TX_SENDING"
+        ) {
+          ctx.setContinueDisabled(
+            true
+          );
+
+          ctx.setStatus(
+            "Payment received. Processing your transfer..."
+          );
+
+          return;
+        }
+
+        if (
+          type ===
+          "ONRAMP_WIDGET_TX_COMPLETED"
         ) {
           ctx.emit(
             "unibridge:payment"
@@ -469,8 +287,9 @@ window.UnibridgeOnrampMoney = (() => {
         }
 
         if (
-          type ===
-          "ONRAMP_WIDGET_TX_FAILED"
+          TX_FAILURE_EVENTS.has(
+            type
+          )
         ) {
           ctx.setContinueDisabled(
             false
@@ -488,18 +307,24 @@ window.UnibridgeOnrampMoney = (() => {
       "WIDGET_EVENTS",
       (event) => {
         if (
-          activeInstance !== instance
+          activeInstance !==
+          instance
         ) {
           return;
         }
 
         const type =
-          resolveEventType(event);
+          resolveEventType(
+            event
+          );
 
         console.log(
           "ONRAMP_WIDGET_EVENT",
           {
-            type
+            type,
+            data:
+              event?.data ||
+              null
           }
         );
 
@@ -553,6 +378,10 @@ window.UnibridgeOnrampMoney = (() => {
   }
 
 
+  /* =========================
+     MOUNT
+  ========================= */
+
   async function mount(
     ctx,
     action
@@ -565,6 +394,10 @@ window.UnibridgeOnrampMoney = (() => {
     const OnrampWebSDK =
       await ensureSdk();
 
+    /*
+    One SDK instance maps to one widget instance.
+    Reopening requires a fresh initialization.
+    */
     closeActiveInstance();
 
     ctx.setContinueDisabled(
@@ -582,7 +415,8 @@ window.UnibridgeOnrampMoney = (() => {
 
     if (
       !instance ||
-      typeof instance.show !== "function"
+      typeof instance.show !==
+        "function"
     ) {
       throw new Error(
         "onramp_sdk_instance_invalid"
@@ -601,7 +435,8 @@ window.UnibridgeOnrampMoney = (() => {
       instance.show();
     } catch (error) {
       if (
-        activeInstance === instance
+        activeInstance ===
+        instance
       ) {
         activeInstance =
           null;
