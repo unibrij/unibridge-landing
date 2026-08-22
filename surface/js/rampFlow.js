@@ -1,6 +1,8 @@
 // unibrij/unibridge-landing/surface/js/rampFlow.js
 
 window.UnibridgeRampFlow = (() => {
+  const MAX_NEXT_ACTION_STEPS = 12;
+
   function getAuthElements() {
     return {
       authBox: document.getElementById("authBox"),
@@ -73,11 +75,12 @@ window.UnibridgeRampFlow = (() => {
     }
 
     if (authHint) {
-      authHint.innerText = "Enter the OTP sent to your email.";
+      authHint.innerText =
+        "Enter the OTP sent to your email.";
     }
   }
 
-  async function waitForAuthAction(mode) {
+  function waitForAuthAction(mode) {
     return new Promise((resolve, reject) => {
       const {
         authEmail,
@@ -91,10 +94,9 @@ window.UnibridgeRampFlow = (() => {
       }
 
       const handler = () => {
-        authBtn.removeEventListener("click", handler);
-
         if (mode === "email") {
-          const email = String(authEmail?.value || "").trim();
+          const email =
+            String(authEmail?.value || "").trim();
 
           if (!email) {
             reject(new Error("email_required"));
@@ -106,7 +108,8 @@ window.UnibridgeRampFlow = (() => {
         }
 
         if (mode === "otp") {
-          const otp = String(authOtp?.value || "").trim();
+          const otp =
+            String(authOtp?.value || "").trim();
 
           if (!otp) {
             reject(new Error("otp_required"));
@@ -120,22 +123,38 @@ window.UnibridgeRampFlow = (() => {
         reject(new Error("invalid_auth_mode"));
       };
 
-      authBtn.addEventListener("click", handler, {
-        once: true
-      });
+      authBtn.addEventListener(
+        "click",
+        handler,
+        { once: true }
+      );
     });
   }
 
-  function resolveRedirectUrl(action, res, getPendingWidgetUrl) {
+  function normalizeNextAction(value) {
+    return window.UnibridgeNextAction
+      .normalizeNextAction(value);
+  }
+
+  function resolveRedirectUrl(
+    action,
+    response,
+    getPendingWidgetUrl
+  ) {
     return (
       action?.url ||
-      window.UnibridgeNextAction.extractWidgetUrlFromFunding(res) ||
+      window.UnibridgeNextAction
+        .extractWidgetUrlFromFunding(response) ||
       getPendingWidgetUrl() ||
       null
     );
   }
 
-  function finalizePreparedPayment(ctx, redirectUrl, message) {
+  function finalizePreparedPayment(
+    ctx,
+    redirectUrl,
+    message = "Payment prepared. Tap again to continue."
+  ) {
     if (!redirectUrl) {
       throw new Error("missing_redirect_url");
     }
@@ -150,279 +169,248 @@ window.UnibridgeRampFlow = (() => {
     ctx.emit("unibridge:quote");
     ctx.emit("unibridge:payment");
     ctx.setContinueDisabled(false);
-    ctx.setStatus(
-      message || "Payment prepared. Tap again to continue."
-    );
+    ctx.setStatus(message);
   }
 
-  function getStripeOnrampContainer() {
-    let container =
-      document.getElementById("stripeOnrampContainer");
-
-    if (container) {
-      return container;
+  async function executeProviderStep(
+    ctx,
+    action
+  ) {
+    if (action?.step !== "mount_embedded_onramp") {
+      return false;
     }
 
-    const statusBox =
-      document.getElementById("status");
+    if (action.provider === "stripe_onramp") {
+      const provider =
+        window.UnibridgeStripeOnramp;
 
-    container =
-      document.createElement("div");
-
-    container.id =
-      "stripeOnrampContainer";
-
-    container.style.width =
-      "100%";
-
-    container.style.minHeight =
-      "620px";
-
-    container.style.marginTop =
-      "16px";
-
-    container.style.borderRadius =
-      "20px";
-
-    container.style.overflow =
-      "hidden";
-
-    if (statusBox?.parentNode) {
-      statusBox.parentNode.insertBefore(
-        container,
-        statusBox
-      );
-    } else {
-      document.body.appendChild(container);
-    }
-
-    return container;
-  }
-
-  function loadScriptOnce(src, globalName) {
-    return new Promise((resolve, reject) => {
       if (
-        globalName &&
-        window[globalName]
+        !provider ||
+        typeof provider.mount !== "function"
       ) {
-        resolve(true);
-        return;
+        throw new Error(
+          "stripe_onramp_runtime_missing"
+        );
       }
 
-      const existing =
-        document.querySelector(
-          `script[src="${src}"]`
-        );
+      await provider.mount(ctx, action);
 
-      if (existing) {
-        existing.addEventListener(
-          "load",
-          () => resolve(true),
-          { once: true }
-        );
+      /*
+      Stripe embedded session consumes the action.
+      */
+      ctx.setCurrentNextAction(null);
 
-        existing.addEventListener(
-          "error",
-          () => reject(new Error("script_load_failed")),
-          { once: true }
-        );
+      return true;
+    }
 
-        return;
+    if (action.provider === "onramp") {
+      const provider =
+        window.UnibridgeOnrampMoney;
+
+      if (
+        !provider ||
+        typeof provider.mount !== "function"
+      ) {
+        throw new Error(
+          "onramp_money_runtime_missing"
+        );
       }
 
-      const script =
-        document.createElement("script");
+      await provider.mount(ctx, action);
 
-      script.src =
-        src;
+      /*
+      Keep canonical action so the Overlay can be
+      reopened using a fresh SDK instance.
+      */
+      return true;
+    }
 
-      script.async =
-        true;
-
-      script.onload =
-        () => resolve(true);
-
-      script.onerror =
-        () => reject(new Error("script_load_failed"));
-
-      document.head.appendChild(script);
-    });
+    return false;
   }
 
-  async function ensureStripeOnrampSdk() {
-    await loadScriptOnce(
-      "https://js.stripe.com/clover/stripe.js",
-      "Stripe"
-    );
+  async function executeLegacyStep(
+    ctx,
+    action
+  ) {
+    const step = action?.step;
+    const settlementId =
+      ctx.getSettlementId();
 
-    await loadScriptOnce(
-      "https://crypto-js.stripe.com/crypto-onramp-outer.js",
-      "StripeOnramp"
-    );
+    if (step === "email_otp") {
+      showEmailUi();
+      ctx.setContinueDisabled(true);
 
-    if (
-      typeof window.StripeOnramp !== "function"
-    ) {
-      throw new Error("stripe_onramp_sdk_missing");
-    }
-  }
+      const email =
+        await waitForAuthAction("email");
 
-  async function mountStripeEmbeddedOnramp(ctx, action) {
-    const meta =
-      action?.meta || {};
-
-    const clientSecret =
-      typeof meta.client_secret === "string"
-        ? meta.client_secret.trim()
-        : "";
-
-    const publishableKey =
-      typeof meta.publishable_key === "string"
-        ? meta.publishable_key.trim()
-        : "";
-
-    if (!clientSecret) {
-      throw new Error("missing_stripe_onramp_client_secret");
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiPost(
+            "ramp/auth/start",
+            {
+              settlement_id: settlementId,
+              email
+            }
+          )
+      };
     }
 
-    if (!publishableKey) {
-      throw new Error("missing_stripe_publishable_key");
-    }
+    if (step === "otp_verify") {
+      showOtpUi();
+      ctx.setContinueDisabled(true);
 
-    await ensureStripeOnrampSdk();
+      const otp =
+        await waitForAuthAction("otp");
+
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiPost(
+            "ramp/auth/verify",
+            {
+              settlement_id: settlementId,
+              otp
+            }
+          )
+      };
+    }
 
     hideAuthUi();
 
-    const container =
-      getStripeOnrampContainer();
-
-    container.innerHTML =
-      "";
-
-    if (typeof ctx.setCurrentNextAction === "function") {
-      ctx.setCurrentNextAction(null);
+    if (step === "fetch_user") {
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiGet(
+            "ramp/user",
+            {
+              settlement_id: settlementId
+            }
+          )
+      };
     }
 
-    ctx.setContinueDisabled(true);
+    if (step === "kyc_requirement") {
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiGet(
+            "ramp/kyc/requirement",
+            {
+              settlement_id: settlementId
+            }
+          )
+      };
+    }
 
-    ctx.setStatus(
-      "Opening Stripe payment..."
-    );
+    if (step === "kyc_user") {
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiPatch(
+            "ramp/kyc/user",
+            {
+              settlement_id: settlementId,
+              user: ctx.buildKycPayload()
+            }
+          )
+      };
+    }
 
-    const stripeOnramp =
-      window.StripeOnramp(publishableKey);
+    if (step === "order_create") {
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiPost(
+            "ramp/order/create",
+            {
+              settlement_id: settlementId
+            }
+          )
+      };
+    }
 
-    const session =
-      stripeOnramp.createSession({
-        clientSecret,
-        appearance: {
-          theme: "dark"
-        }
-      });
+    if (step === "order_confirm_payment") {
+      return {
+        handled: true,
+        response:
+          await window.UnibridgeApi.apiPost(
+            "ramp/order/confirm-payment",
+            {
+              settlement_id: settlementId
+            }
+          )
+      };
+    }
 
-    if (
-      session &&
-      typeof session.addEventListener === "function"
-    ) {
-      session.addEventListener(
-        "onramp_session_updated",
-        (event) => {
-          const stripeSession =
-            event?.payload?.session || null;
-
-          const status =
-            stripeSession?.status || null;
-
-          console.log("STRIPE_ONRAMP_SESSION_UPDATED", {
-            status,
-            session_id:
-              stripeSession?.id || null
-          });
-
-          if (
-            status === "fulfillment_complete"
-          ) {
-            ctx.emit("unibridge:payment");
-            ctx.setStatus(
-              "Payment submitted. Waiting for on-chain confirmation..."
-            );
-            return;
-          }
-
-          if (
-            status === "rejected"
-          ) {
-            ctx.setContinueDisabled(false);
-            ctx.setStatus(
-              "Stripe payment was not completed.",
-              "error"
-            );
-            return;
-          }
-
-          ctx.setStatus(
-            "Complete the payment in the Stripe widget."
-          );
+    if (step === "order_status") {
+      await window.UnibridgeApi.apiGet(
+        "ramp/order/status",
+        {
+          settlement_id: settlementId
         }
       );
+
+      ctx.setCurrentNextAction(null);
+
+      ctx.emit("unibridge:quote");
+      ctx.emit("unibridge:payment");
+
+      ctx.setContinueDisabled(false);
+      ctx.setStatus(
+        "Waiting for payment confirmation..."
+      );
+
+      return {
+        handled: true,
+        terminal: true
+      };
     }
 
-    if (
-      !session ||
-      typeof session.mount !== "function"
-    ) {
-      throw new Error("stripe_onramp_session_mount_missing");
-    }
+    return {
+      handled: false
+    };
+  }
 
-    session.mount(
-      "#stripeOnrampContainer"
+  function isRetryableProviderAction(action) {
+    return (
+      action?.type === "step" &&
+      action?.provider === "onramp" &&
+      action?.step === "mount_embedded_onramp"
     );
-
-    ctx.emit("unibridge:quote");
-    ctx.emit("unibridge:payment");
-
-    ctx.setStatus(
-      "Complete the payment in the Stripe widget."
-    );
-
-    return true;
   }
 
   async function processStepNextActions(ctx) {
-    const {
-      getCurrentNextAction,
-      setCurrentNextAction,
-      getPendingWidgetUrl,
-      getSettlementId,
-      setStatus,
-      setContinueDisabled,
-      buildKycPayload
-    } = ctx;
+    if (ctx.getNextActionProcessing()) {
+      return;
+    }
 
-    if (ctx.getNextActionProcessing()) return;
     ctx.setNextActionProcessing(true);
 
     try {
       let steps = 0;
 
-      while (getCurrentNextAction() && steps < 12) {
+      while (
+        ctx.getCurrentNextAction() &&
+        steps < MAX_NEXT_ACTION_STEPS
+      ) {
         const action =
-          window.UnibridgeNextAction.normalizeNextAction(
-            getCurrentNextAction()
+          normalizeNextAction(
+            ctx.getCurrentNextAction()
           );
 
         if (!action) {
-          setCurrentNextAction(null);
+          ctx.setCurrentNextAction(null);
           hideAuthUi();
           return;
         }
 
         /*
         --------------------------------------------------
-        Redirect handling aligned with app.js
+        Redirect
         --------------------------------------------------
-        Do NOT navigate immediately.
-        Prepare payment and let app.js open it on next tap.
+        Prepare only. app.js opens it on the next tap.
         --------------------------------------------------
         */
         if (action.type === "redirect") {
@@ -430,14 +418,14 @@ window.UnibridgeRampFlow = (() => {
             resolveRedirectUrl(
               action,
               null,
-              getPendingWidgetUrl
+              ctx.getPendingWidgetUrl
             );
 
           finalizePreparedPayment(
             ctx,
-            redirectUrl,
-            "Payment prepared. Tap again to continue."
+            redirectUrl
           );
+
           return;
         }
 
@@ -448,202 +436,149 @@ window.UnibridgeRampFlow = (() => {
 
         steps += 1;
 
-        const step = action.step;
-        let res = null;
-
-        if (step === "email_otp") {
-          showEmailUi();
-          setContinueDisabled(true);
-
-          const email =
-            await waitForAuthAction("email");
-
-          res = await window.UnibridgeApi.apiPost(
-            "ramp/auth/start",
-            {
-              settlement_id: getSettlementId(),
-              email
-            }
-          );
-        }
-
-        else if (step === "otp_verify") {
-          showOtpUi();
-          setContinueDisabled(true);
-
-          const otp =
-            await waitForAuthAction("otp");
-
-          res = await window.UnibridgeApi.apiPost(
-            "ramp/auth/verify",
-            {
-              settlement_id: getSettlementId(),
-              otp
-            }
-          );
-        }
-
-        else if (step === "fetch_user") {
-          hideAuthUi();
-
-          res = await window.UnibridgeApi.apiGet(
-            "ramp/user",
-            {
-              settlement_id: getSettlementId()
-            }
-          );
-        }
-
-        else if (step === "kyc_requirement") {
-          hideAuthUi();
-
-          res = await window.UnibridgeApi.apiGet(
-            "ramp/kyc/requirement",
-            {
-              settlement_id: getSettlementId()
-            }
-          );
-        }
-
-        else if (step === "kyc_user") {
-          hideAuthUi();
-
-          res = await window.UnibridgeApi.apiPatch(
-            "ramp/kyc/user",
-            {
-              settlement_id: getSettlementId(),
-              user: buildKycPayload()
-            }
-          );
-        }
-
-        else if (step === "order_create") {
-          hideAuthUi();
-
-          res = await window.UnibridgeApi.apiPost(
-            "ramp/order/create",
-            {
-              settlement_id: getSettlementId()
-            }
-          );
-        }
-
-        else if (step === "order_confirm_payment") {
-          hideAuthUi();
-
-          res = await window.UnibridgeApi.apiPost(
-            "ramp/order/confirm-payment",
-            {
-              settlement_id: getSettlementId()
-            }
-          );
-        }
-
-        else if (step === "order_status") {
-          hideAuthUi();
-
-          await window.UnibridgeApi.apiGet(
-            "ramp/order/status",
-            {
-              settlement_id: getSettlementId()
-            }
-          );
-
-          setCurrentNextAction(null);
-
-          ctx.emit("unibridge:quote");
-          ctx.emit("unibridge:payment");
-          setContinueDisabled(false);
-          setStatus("Waiting for payment confirmation...");
-
-          return;
-        }
-
-        else if (
-          step === "mount_embedded_onramp" &&
-          action.provider === "stripe_onramp"
-        ) {
-          await mountStripeEmbeddedOnramp(
+        /*
+        --------------------------------------------------
+        Provider SDK step
+        --------------------------------------------------
+        */
+        const providerHandled =
+          await executeProviderStep(
             ctx,
             action
           );
 
-          setCurrentNextAction(null);
-
+        if (providerHandled) {
           return;
         }
 
-        else {
-          hideAuthUi();
-          throw new Error("unhandled_step_" + step);
+        /*
+        --------------------------------------------------
+        Legacy / WhiteLabel step
+        --------------------------------------------------
+        */
+        const result =
+          await executeLegacyStep(
+            ctx,
+            action
+          );
+
+        if (!result?.handled) {
+          throw new Error(
+            "unhandled_step_" +
+            action.step
+          );
         }
 
-        if (!res) {
-          hideAuthUi();
-          throw new Error("empty_response");
+        if (result.terminal) {
+          return;
         }
 
-        setCurrentNextAction(
-          window.UnibridgeNextAction.normalizeNextAction(
-            res.next_action
-          ) || null
+        const response =
+          result.response;
+
+        if (!response) {
+          throw new Error(
+            "empty_response"
+          );
+        }
+
+        /*
+        --------------------------------------------------
+        Advance canonical next_action
+        --------------------------------------------------
+        */
+        ctx.setCurrentNextAction(
+          normalizeNextAction(
+            response.next_action
+          ) ||
+          null
         );
 
         const updatedAction =
-          window.UnibridgeNextAction.normalizeNextAction(
-            getCurrentNextAction()
+          normalizeNextAction(
+            ctx.getCurrentNextAction()
           );
 
         /*
         --------------------------------------------------
-        If response switched to redirect, prepare payment
-        but do NOT navigate immediately.
+        Response switched to redirect
         --------------------------------------------------
         */
         if (updatedAction?.type === "redirect") {
           const redirectUrl =
             resolveRedirectUrl(
               updatedAction,
-              res,
-              getPendingWidgetUrl
+              response,
+              ctx.getPendingWidgetUrl
             );
 
           finalizePreparedPayment(
             ctx,
-            redirectUrl,
-            "Payment prepared. Tap again to continue."
+            redirectUrl
           );
+
           return;
         }
 
-        if (!getCurrentNextAction()) {
-          hideAuthUi();
-
+        /*
+        --------------------------------------------------
+        Legacy redirect recovery
+        --------------------------------------------------
+        */
+        if (!ctx.getCurrentNextAction()) {
           const redirectUrl =
-            window.UnibridgeNextAction.extractWidgetUrlFromFunding(res) ||
-            getPendingWidgetUrl() ||
+            window.UnibridgeNextAction
+              .extractWidgetUrlFromFunding(
+                response
+              ) ||
+            ctx.getPendingWidgetUrl() ||
             null;
 
           if (redirectUrl) {
             finalizePreparedPayment(
               ctx,
-              redirectUrl,
-              "Payment prepared. Tap again to continue."
+              redirectUrl
             );
+
             return;
           }
         }
       }
 
-      if (steps >= 12) {
-        hideAuthUi();
-        throw new Error("next_action_loop_detected");
+      if (
+        steps >=
+        MAX_NEXT_ACTION_STEPS
+      ) {
+        throw new Error(
+          "next_action_loop_detected"
+        );
       }
-    } catch (e) {
+    } catch (error) {
       hideAuthUi();
-      setStatus(e, "error");
-      setCurrentNextAction(null);
-      setContinueDisabled(false);
+
+      ctx.setStatus(
+        error,
+        "error"
+      );
+
+      const currentAction =
+        normalizeNextAction(
+          ctx.getCurrentNextAction()
+        );
+
+      /*
+      Onramp Overlay can be reopened from the same
+      canonical action. Other failed actions are cleared.
+      */
+      if (
+        !isRetryableProviderAction(
+          currentAction
+        )
+      ) {
+        ctx.setCurrentNextAction(null);
+      }
+
+      ctx.setContinueDisabled(false);
     } finally {
       ctx.setNextActionProcessing(false);
     }
