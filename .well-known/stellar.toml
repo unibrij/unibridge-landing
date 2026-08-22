@@ -21,7 +21,7 @@ ORG_LOGO="https://www.unibrij.io/unibrij-logo.png"
 ORG_DESCRIPTION="Cross-border directory infrastructure (BKD) enabling wallet-to-anchor routing and settlement."
 ORG_GITHUB="https://github.com/unibridge-tech"
 ORG_TWITTER="https://twitter.com/unibrij"
-ORG_EMAIL="ceo@unibrij.io"
+ORG_EMAIL="support@unibrij.io"
 
 # -----------------------------------------------------
 # No currencies for MVP (skip to avoid warnings)
