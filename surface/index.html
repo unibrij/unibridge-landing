@@ -8,11 +8,11 @@
     content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   />
 
-  <title>UniBridge — Card Payment Funding</title>
+  <title>UniBridge — Payment Funding</title>
 
   <meta
     name="description"
-    content="Pay with Visa or Mastercard through a payment partner to fund a UniBridge payout route."
+    content="Fund a UniBridge payout route using an available payment method."
   />
 
   <link
@@ -118,20 +118,20 @@
 
     <section
       class="hero"
-      aria-labelledby="cardPaymentTitle"
+      aria-labelledby="paymentFundingTitle"
     >
       <h1
-        id="cardPaymentTitle"
+        id="paymentFundingTitle"
         class="sr-only"
       >
-        Fund your payout by card
+        Fund your payout
       </h1>
 
       <p
         class="eyebrow"
         aria-hidden="true"
       >
-        Card payment funding
+        Payment funding
       </p>
     </section>
 
@@ -153,7 +153,7 @@
 
       <section
         class="steps"
-        aria-label="Card payment steps"
+        aria-label="Payment steps"
       >
         <div
           id="step1"
@@ -202,7 +202,7 @@
 
           <p>
             Confirm the amount and destination, then continue
-            to the available card payment option.
+            to the available payment option.
           </p>
         </div>
 
@@ -545,8 +545,6 @@
   <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://js.stripe.com/clover/stripe.js"></script>
-  <script src="https://crypto-js.stripe.com/crypto-onramp-outer.js"></script>
 
   <!--
   --------------------------------------------------
@@ -571,6 +569,18 @@
   <script src="/surface/js/nextAction.js"></script>
   <script src="/surface/js/settlementViewState.js"></script>
   <script src="/surface/js/status.js"></script>
+
+  <!--
+  --------------------------------------------------
+  Funding provider runtimes
+
+  Each provider owns its SDK loading and provider-specific
+  behavior. rampFlow.js only orchestrates next_action.
+  --------------------------------------------------
+  -->
+
+  <script src="/surface/js/ramp/stripeOnramp.js"></script>
+  <script src="/surface/js/ramp/onrampMoney.js"></script>
   <script src="/surface/js/rampFlow.js"></script>
 
   <script
