@@ -20,40 +20,30 @@ window.UnibridgeOnrampMoney = (() => {
   ========================= */
 
   async function ensureSdk() {
-    if (
-      typeof window.OnrampWebSDK ===
-      "function"
-    ) {
+    if (typeof window.OnrampWebSDK === "function") {
       return window.OnrampWebSDK;
     }
 
     if (!sdkLoadPromise) {
-      sdkLoadPromise =
-        import(
-          ONRAMP_WEB_SDK_MODULE
-        )
-          .then((module) => {
-            const Constructor =
-              module?.OnrampWebSDK;
+      sdkLoadPromise = import(ONRAMP_WEB_SDK_MODULE)
+        .then((module) => {
+          const Constructor = module?.OnrampWebSDK;
 
-            if (
-              typeof Constructor !==
-              "function"
-            ) {
-              throw new Error(
-                "onramp_web_sdk_missing"
-              );
-            }
+          if (typeof Constructor !== "function") {
+            throw new Error(
+              "onramp_web_sdk_missing"
+            );
+          }
 
-            window.OnrampWebSDK =
-              Constructor;
+          window.OnrampWebSDK =
+            Constructor;
 
-            return Constructor;
-          })
-          .catch((error) => {
-            sdkLoadPromise = null;
-            throw error;
-          });
+          return Constructor;
+        })
+        .catch((error) => {
+          sdkLoadPromise = null;
+          throw error;
+        });
     }
 
     return sdkLoadPromise;
@@ -68,16 +58,13 @@ window.UnibridgeOnrampMoney = (() => {
     value,
     errorCode
   ) {
-    const parsed =
-      Number(value);
+    const parsed = Number(value);
 
     if (
       !Number.isFinite(parsed) ||
       parsed <= 0
     ) {
-      throw new Error(
-        errorCode
-      );
+      throw new Error(errorCode);
     }
 
     return parsed;
@@ -92,9 +79,7 @@ window.UnibridgeOnrampMoney = (() => {
       String(value || "").trim();
 
     if (!normalized) {
-      throw new Error(
-        errorCode
-      );
+      throw new Error(errorCode);
     }
 
     return normalized;
@@ -172,8 +157,7 @@ window.UnibridgeOnrampMoney = (() => {
   ) {
     if (
       !instance ||
-      typeof instance.close !==
-        "function"
+      typeof instance.close !== "function"
     ) {
       return;
     }
@@ -227,8 +211,7 @@ window.UnibridgeOnrampMoney = (() => {
   ) {
     if (
       !instance ||
-      typeof instance.on !==
-        "function"
+      typeof instance.on !== "function"
     ) {
       return;
     }
@@ -237,24 +220,19 @@ window.UnibridgeOnrampMoney = (() => {
       "TX_EVENTS",
       (event) => {
         if (
-          activeInstance !==
-          instance
+          activeInstance !== instance
         ) {
           return;
         }
 
         const type =
-          resolveEventType(
-            event
-          );
+          resolveEventType(event);
 
         console.log(
           "ONRAMP_TX_EVENT",
           {
             type,
-            data:
-              event?.data ||
-              null
+            data: event?.data || null
           }
         );
 
@@ -270,16 +248,11 @@ window.UnibridgeOnrampMoney = (() => {
         }
 
         if (
-          type ===
-            "ONRAMP_WIDGET_TX_FINDING" ||
-          type ===
-            "ONRAMP_WIDGET_TX_PURCHASING" ||
-          type ===
-            "ONRAMP_WIDGET_TX_SENDING"
+          type === "ONRAMP_WIDGET_TX_FINDING" ||
+          type === "ONRAMP_WIDGET_TX_PURCHASING" ||
+          type === "ONRAMP_WIDGET_TX_SENDING"
         ) {
-          ctx.setContinueDisabled(
-            true
-          );
+          ctx.setContinueDisabled(true);
 
           ctx.setStatus(
             "Payment received. Processing your transfer..."
@@ -296,9 +269,7 @@ window.UnibridgeOnrampMoney = (() => {
             "unibridge:payment"
           );
 
-          ctx.setContinueDisabled(
-            true
-          );
+          ctx.setContinueDisabled(true);
 
           ctx.setStatus(
             "Payment submitted. Waiting for on-chain confirmation..."
@@ -313,24 +284,18 @@ window.UnibridgeOnrampMoney = (() => {
           );
 
           if (
-            activeInstance ===
-            instance
+            activeInstance === instance
           ) {
-            activeInstance =
-              null;
+            activeInstance = null;
           }
 
           return;
         }
 
         if (
-          TX_FAILURE_EVENTS.has(
-            type
-          )
+          TX_FAILURE_EVENTS.has(type)
         ) {
-          ctx.setContinueDisabled(
-            false
-          );
+          ctx.setContinueDisabled(false);
 
           ctx.setStatus(
             "Payment was not completed. Tap Continue to try again.",
@@ -344,25 +309,19 @@ window.UnibridgeOnrampMoney = (() => {
       "WIDGET_EVENTS",
       (event) => {
         const type =
-          resolveEventType(
-            event
-          );
+          resolveEventType(event);
 
         if (
           type ===
             "ONRAMP_WIDGET_CLOSE_REQUEST_CONFIRMED" &&
-          completedInstance ===
-            instance
+          completedInstance === instance
         ) {
-          completedInstance =
-            null;
-
+          completedInstance = null;
           return;
         }
 
         if (
-          activeInstance !==
-          instance
+          activeInstance !== instance
         ) {
           return;
         }
@@ -371,9 +330,7 @@ window.UnibridgeOnrampMoney = (() => {
           "ONRAMP_WIDGET_EVENT",
           {
             type,
-            data:
-              event?.data ||
-              null
+            data: event?.data || null
           }
         );
 
@@ -392,12 +349,9 @@ window.UnibridgeOnrampMoney = (() => {
           type ===
           "ONRAMP_WIDGET_FAILED"
         ) {
-          activeInstance =
-            null;
+          activeInstance = null;
 
-          ctx.setContinueDisabled(
-            false
-          );
+          ctx.setContinueDisabled(false);
 
           ctx.setStatus(
             "Unable to open Onramp. Tap Continue to try again.",
@@ -411,12 +365,9 @@ window.UnibridgeOnrampMoney = (() => {
           type ===
           "ONRAMP_WIDGET_CLOSE_REQUEST_CONFIRMED"
         ) {
-          activeInstance =
-            null;
+          activeInstance = null;
 
-          ctx.setContinueDisabled(
-            false
-          );
+          ctx.setContinueDisabled(false);
 
           ctx.setStatus(
             "Payment window closed. Tap Continue to reopen it."
@@ -445,12 +396,45 @@ window.UnibridgeOnrampMoney = (() => {
 
     closeActiveInstance();
 
-    ctx.setContinueDisabled(
-      true
-    );
+    ctx.setContinueDisabled(true);
 
     ctx.setStatus(
       "Opening bank payment..."
+    );
+
+    console.log(
+      "ONRAMP_SDK_OPTIONS",
+      {
+        appId:
+          options.appId,
+
+        walletAddress:
+          options.walletAddress,
+
+        flowType:
+          options.flowType,
+
+        fiatType:
+          options.fiatType,
+
+        fiatAmount:
+          options.fiatAmount,
+
+        paymentMethod:
+          options.paymentMethod,
+
+        coinCode:
+          options.coinCode,
+
+        network:
+          options.network,
+
+        merchantRecognitionId:
+          options.merchantRecognitionId,
+
+        isRestricted:
+          options.isRestricted
+      }
     );
 
     const instance =
@@ -460,8 +444,7 @@ window.UnibridgeOnrampMoney = (() => {
 
     if (
       !instance ||
-      typeof instance.show !==
-        "function"
+      typeof instance.show !== "function"
     ) {
       throw new Error(
         "onramp_sdk_instance_invalid"
@@ -480,19 +463,14 @@ window.UnibridgeOnrampMoney = (() => {
       instance.show();
     } catch (error) {
       if (
-        activeInstance ===
-        instance
+        activeInstance === instance
       ) {
-        activeInstance =
-          null;
+        activeInstance = null;
       }
 
-      completedInstance =
-        null;
+      completedInstance = null;
 
-      ctx.setContinueDisabled(
-        false
-      );
+      ctx.setContinueDisabled(false);
 
       throw error;
     }
