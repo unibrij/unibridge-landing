@@ -44,7 +44,7 @@ function buildRepeatUrl({
   params
 }) {
   return (
-    "./?" +
+    "/fiat/bank-transfer/?" +
     params.toString()
   );
 }
@@ -148,19 +148,19 @@ async function initHistoryView() {
   }
 
   /*
+  History is a separate view.
+  The bank-transfer form does not belong
+  in the History DOM.
+  */
+
+  app.remove();
+
+  /*
   Shared Clerk auth owns the auth lifecycle.
-  If the user is not signed in yet, the existing
-  Fiat auth UI remains visible while this waits.
   */
 
   const accessToken =
     await getFiatClerkToken();
-
-  app.hidden =
-    true;
-
-  history.hidden =
-    false;
 
   await initPayHistory({
     partner:
