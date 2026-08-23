@@ -1,89 +1,61 @@
 /* partials/pay/css/pay-common.css */
 
-#pay-brand {
-  position: fixed;
-  top: max(18px, env(safe-area-inset-top));
-  left: 28px;
-  right: 28px;
-  z-index: 20;
-  width: auto;
-  pointer-events: none;
+html,
+body {
+  min-height: 100%;
 }
 
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #000e2d;
+  color: #ffffff;
+}
+
+#pay-brand,
+#pay-nav,
+#pay-history,
 #pay-guide,
 #pay-footer {
-  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+#pay-nav,
+#pay-history,
+#pay-guide,
+#pay-footer {
+  width: min(100%, 440px);
 }
 
 /* --------------------------------------------------
-   Shared brand bar
--------------------------------------------------- */
-
-.pay-brandbar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 0;
-}
-
-.pay-brandbar-logo-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  pointer-events: auto;
-}
-
-.pay-brandbar-logo {
-  width: 260px;
-  max-width: 62vw;
-  height: auto;
-  display: block;
-  opacity: 0.94;
-  filter: none;
-}
-
-.pay-domain-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 0 13px;
-  border-radius: 999px;
-  border: 1px solid rgba(94, 234, 212, 0.22);
-  background: rgba(20, 184, 166, 0.08);
-  color: #5eead4;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-decoration: none;
-  box-shadow: 0 0 18px rgba(20, 184, 166, 0.08);
-  white-space: nowrap;
-  pointer-events: auto;
-}
-
-.pay-domain-pill:hover {
-  background: rgba(20, 184, 166, 0.14);
-  border-color: rgba(94, 234, 212, 0.34);
-  color: #99f6e4;
-  text-decoration: none;
-}
-
-.pay-domain-pill:active {
-  transform: scale(0.98);
-}
-
-/* --------------------------------------------------
-   Shared page background shell
+   Page shell — mirrors Connect
 -------------------------------------------------- */
 
 .pay-page-shell {
   position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100vh;
   min-height: 100svh;
-  overflow: hidden;
+  margin: 0;
+  padding: 18px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  text-align: center;
   background: #000e2d;
 }
 
@@ -94,10 +66,11 @@
   left: 0;
   right: 0;
   height: 560px;
-  z-index: 0;
+  z-index: -2;
   pointer-events: none;
+
   background:
-    url("/public/icons/social/connect-map-bg.png")
+    url("/connect/connect-map-bg.png")
     center top / 1120px auto
     no-repeat;
 
@@ -128,8 +101,9 @@
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+
   background:
     radial-gradient(
       circle at 50% 26%,
@@ -138,68 +112,172 @@
     ),
     linear-gradient(
       180deg,
-      rgba(0, 14, 45, 0.00) 0%,
-      rgba(0, 14, 45, 0.10) 48%,
+      rgba(0, 14, 45, 0) 0%,
+      rgba(0, 14, 45, 0.1) 48%,
       rgba(0, 14, 45, 0.18) 100%
     );
 }
 
 /* --------------------------------------------------
-   Shared payout navigation
+   Brand — mirrors Connect
 -------------------------------------------------- */
 
-.pay-navigation {
-  width: min(100%, 440px);
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 12px;
-  background: rgba(8, 30, 66, 0.58);
+#pay-brand {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  left: 28px;
+  right: 28px;
+  z-index: 20;
+  width: auto;
+  pointer-events: none;
 }
 
-.pay-navigation-link {
-  min-width: 0;
-  min-height: 36px;
+.pay-brandbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pay-brandbar-logo-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 14px;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
   text-decoration: none;
+  pointer-events: auto;
+}
+
+.pay-brandbar-logo {
+  width: 260px;
+  max-width: 62vw;
+  height: auto;
+  display: block;
+  opacity: 0.94;
+}
+
+.pay-domain-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 13px;
+
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 999px;
+
+  background: rgba(20, 184, 166, 0.08);
+  color: #5eead4;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-decoration: none;
+
+  box-shadow:
+    0 0 18px rgba(20, 184, 166, 0.08);
+
   white-space: nowrap;
+  pointer-events: auto;
+}
+
+.pay-domain-pill:hover {
+  background: rgba(20, 184, 166, 0.14);
+  border-color: rgba(94, 234, 212, 0.34);
+  color: #99f6e4;
+}
+
+/* --------------------------------------------------
+   Tabs — exact Connect geometry
+-------------------------------------------------- */
+
+.pay-navigation {
+  position: relative;
+  width: min(100%, 440px);
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  margin: 0 0 18px;
+  padding: 0;
+  gap: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 9px 9px 0 0;
+
+  background: rgba(9, 30, 65, 0.72);
+
+  overflow: hidden;
+  text-align: center;
+}
+
+.pay-navigation-link {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+  min-height: 43px;
+  padding: 12px 14px;
+
+  border: 0;
+  border-radius: 0;
+
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+
+  cursor: pointer;
+
   transition:
-    background 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.pay-navigation-link + .pay-navigation-link {
+  border-left: 1px solid rgba(255, 255, 255, 0.045);
 }
 
 .pay-navigation-link:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.045);
-  text-decoration: none;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .pay-navigation-link.is-active,
 .pay-navigation-link[aria-current="page"] {
-  background: rgba(20, 184, 166, 0.12);
+  background: transparent;
   color: #5eead4;
-  box-shadow:
-    inset 0 0 0 1px rgba(94, 234, 212, 0.18);
+  font-weight: 750;
+  box-shadow: none;
 }
 
-.pay-navigation-link:active {
-  transform: scale(0.98);
+.pay-navigation-link.is-active::after,
+.pay-navigation-link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+
+  height: 2px;
+  border-radius: 999px 999px 0 0;
+
+  background: #2dd4bf;
+
+  box-shadow:
+    0 0 10px rgba(45, 212, 191, 0.38);
 }
 
 /* --------------------------------------------------
-   Shared guide link
+   Guide
 -------------------------------------------------- */
 
 .pay-guide-link-wrap {
@@ -213,40 +291,39 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   min-height: 36px;
   padding: 0 14px;
+
+  border: 1px solid rgba(45, 212, 191, 0.3);
   border-radius: 999px;
-  border: 1px solid rgba(45, 212, 191, 0.30);
+
   background: rgba(20, 184, 166, 0.06);
   color: #5eead4;
+
   font-size: 12px;
   font-weight: 750;
   line-height: 1;
   text-decoration: none;
 }
 
-.pay-guide-link:hover {
-  background: rgba(20, 184, 166, 0.12);
-  border-color: rgba(45, 212, 191, 0.42);
-}
-
-.pay-guide-link:active {
-  transform: scale(0.98);
-}
-
 /* --------------------------------------------------
-   Shared footer
+   Footer — mirrors Connect
 -------------------------------------------------- */
 
 .pay-lite-footer {
   width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+
   margin-top: 44px;
   padding: 26px 0 8px;
+
   color: rgba(255, 255, 255, 0.56);
+
   font-size: 12px;
 }
 
@@ -265,6 +342,10 @@
   color: #ffffff;
 }
 
+/* --------------------------------------------------
+   Responsive — copied from Connect
+-------------------------------------------------- */
+
 @media (max-width: 900px) {
   .pay-brandbar-logo {
     width: 220px;
@@ -272,15 +353,50 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 430px) {
+  .pay-page-shell {
+    gap: 12px;
+
+    padding: 14px;
+
+    justify-content: flex-start;
+
+    padding-top:
+      max(
+        24px,
+        env(safe-area-inset-top)
+      );
+
+    padding-bottom:
+      max(
+        14px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .pay-page-shell::before {
+    top: 78px;
+    height: 500px;
+
+    background:
+      url("/connect/connect-map-bg.png")
+      center top / 780px auto
+      no-repeat;
+  }
+
   #pay-brand {
     position: relative;
+
     top: auto;
     left: auto;
     right: auto;
-    width: 100%;
-    z-index: 20;
+
+    width: min(100%, 392px);
+
+    justify-content: center;
+
     margin: 0 0 4px;
+
     pointer-events: none;
   }
 
@@ -289,30 +405,31 @@
   }
 
   .pay-brandbar-logo {
-    width: 200px;
-    max-width: 68vw;
+    width: 150px;
+    max-width: 52vw;
   }
 
   .pay-domain-pill {
     display: none;
   }
 
-  .pay-page-shell::before {
-    top: 78px;
-    height: 500px;
-    background:
-      url("/public/icons/social/connect-map-bg.png")
-      center top / 780px auto
-      no-repeat;
+  #pay-nav,
+  #pay-history,
+  #pay-guide,
+  #pay-footer {
+    width: min(100%, 392px);
   }
 
   .pay-navigation {
-    width: 100%;
+    width: min(100%, 392px);
+    margin-top: 2px;
+    margin-bottom: 12px;
   }
 
   .pay-navigation-link {
-    min-height: 35px;
-    padding: 0 10px;
+    min-height: 41px;
+    padding: 12px 10px;
+    font-size: 13px;
   }
 
   .pay-guide-link-wrap {
@@ -329,8 +446,17 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+
     gap: 10px;
+
     margin-top: 36px;
+
     padding-bottom: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .pay-brandbar-logo {
+    width: 140px;
   }
 }
