@@ -43,12 +43,12 @@
 
   <link
     rel="stylesheet"
-    href="/partials/pay/css/pay-common.css?v=10"
+    href="/partials/pay/css/pay-common.css?v=11"
   />
 
   <link
     rel="stylesheet"
-    href="/fiat/bank-transfer/styles.css?v=10"
+    href="/fiat/bank-transfer/styles.css?v=11"
   />
 
   <link
@@ -80,7 +80,26 @@
   <main class="page pay-page-shell">
     <div id="pay-brand"></div>
 
-    <div id="pay-nav"></div>
+    <nav
+      class="pay-navigation"
+      aria-label="Payout navigation"
+    >
+      <a
+        id="payNavNewPayout"
+        class="pay-navigation-link"
+        href="/fiat/bank-transfer/"
+      >
+        New payout
+      </a>
+
+      <a
+        id="payNavHistory"
+        class="pay-navigation-link"
+        href="/fiat/bank-transfer/?view=history"
+      >
+        History
+      </a>
+    </nav>
 
     <div
       id="pay-history"
@@ -435,7 +454,7 @@
     <div id="pay-footer"></div>
   </main>
 
-  <script src="/partials/pay/js/pay-includes.js?v=8"></script>
+  <script src="/partials/pay/js/pay-includes.js?v=9"></script>
 
   <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
