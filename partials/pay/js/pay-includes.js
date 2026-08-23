@@ -85,11 +85,6 @@
       ),
 
       loadPartial(
-        "pay-history",
-        "/partials/pay/history.html"
-      ),
-
-      loadPartial(
         "pay-footer",
         "/partials/pay/footer.html"
       )
