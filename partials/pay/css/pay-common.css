@@ -1,3 +1,5 @@
+/* partials/pay/css/pay-common.css */
+
 #pay-brand {
   position: fixed;
   top: max(18px, env(safe-area-inset-top));
@@ -143,6 +145,60 @@
 }
 
 /* --------------------------------------------------
+   Shared payout navigation
+-------------------------------------------------- */
+
+.pay-navigation {
+  width: min(100%, 440px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 12px;
+  background: rgba(8, 30, 66, 0.58);
+}
+
+.pay-navigation-link {
+  min-width: 0;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.pay-navigation-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.045);
+  text-decoration: none;
+}
+
+.pay-navigation-link.is-active,
+.pay-navigation-link[aria-current="page"] {
+  background: rgba(20, 184, 166, 0.12);
+  color: #5eead4;
+  box-shadow:
+    inset 0 0 0 1px rgba(94, 234, 212, 0.18);
+}
+
+.pay-navigation-link:active {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------
    Shared guide link
 -------------------------------------------------- */
 
@@ -248,6 +304,15 @@
       url("/public/icons/social/connect-map-bg.png")
       center top / 780px auto
       no-repeat;
+  }
+
+  .pay-navigation {
+    width: 100%;
+  }
+
+  .pay-navigation-link {
+    min-height: 35px;
+    padding: 0 10px;
   }
 
   .pay-guide-link-wrap {
