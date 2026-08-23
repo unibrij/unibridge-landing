@@ -48,25 +48,8 @@
 
   <link
     rel="stylesheet"
-    href="/partials/pay/css/pay-common.css?v=1"
+    href="/partials/pay/css/pay-common.css?v=11"
   />
-
-  <!--
-  --------------------------------------------------
-  Shared Fiat authentication island
-
-  Same authentication UI/bootstrap currently used by
-  Pay-by-Bank.
-
-  The island publishes:
-
-    window.__fiatClerkAuth
-
-  which is consumed by:
-
-    /shared/pay/auth/clerkAuth.js
-  --------------------------------------------------
-  -->
 
   <link
     rel="stylesheet"
@@ -116,420 +99,424 @@
   <main class="page pay-page-shell">
     <div id="pay-brand"></div>
 
-    <section
-      class="hero"
-      aria-labelledby="paymentFundingTitle"
+    <nav
+      class="pay-navigation"
+      aria-label="Payout navigation"
     >
-      <h1
-        id="paymentFundingTitle"
-        class="sr-only"
+      <a
+        id="payNavNewPayout"
+        class="pay-navigation-link"
+        href="/surface/"
       >
-        Fund your payout
-      </h1>
+        New payout
+      </a>
 
-      <p
-        class="eyebrow"
-        aria-hidden="true"
+      <a
+        id="payNavHistory"
+        class="pay-navigation-link"
+        href="/surface/?view=history"
       >
-        Payment funding
-      </p>
-    </section>
+        History
+      </a>
+    </nav>
 
-    <section class="card">
-      <!--
-      ------------------------------------------------
-      Shared Fiat authentication island
-
-      This is intentionally mounted inside the card,
-      matching the existing Pay-by-Bank integration.
-
-      It owns the Clerk UI/bootstrap and publishes:
-
-        window.__fiatClerkAuth
-      ------------------------------------------------
-      -->
-
-      <section id="fiatReactRoot"></section>
-
+    <div id="pay-history">
       <section
-        class="steps"
-        aria-label="Payment steps"
+        id="payHistory"
+        class="history-content"
+        aria-live="polite"
+      ></section>
+    </div>
+
+    <div id="surfaceApp">
+      <section
+        class="hero"
+        aria-labelledby="paymentFundingTitle"
       >
-        <div
-          id="step1"
-          class="step active"
+        <h1
+          id="paymentFundingTitle"
+          class="sr-only"
         >
-          Route
-        </div>
+          Fund your payout
+        </h1>
 
-        <div
-          id="step2"
-          class="step"
+        <p
+          class="eyebrow"
+          aria-hidden="true"
         >
-          Details
-        </div>
-
-        <div
-          id="step3"
-          class="step"
-        >
-          Payment
-        </div>
-
-        <div
-          id="step4"
-          class="step"
-        >
-          Processing
-        </div>
-
-        <div
-          id="step5"
-          class="step"
-        >
-          Done
-        </div>
+          Payment funding
+        </p>
       </section>
 
-      <section
-        id="entryBox"
-        class="entry-box"
-      >
-        <div class="entry-header">
-          <h2>
-            Start your payout
-          </h2>
-
-          <p>
-            Confirm the amount and destination, then continue
-            to the available payment option.
-          </p>
-        </div>
-
-        <div class="form-grid route-grid">
-          <label class="field amount-field">
-            <span>
-              You pay
-            </span>
-
-            <div class="amount-input-wrap">
-              <input
-                id="amount"
-                type="number"
-                step="0.01"
-                value="10"
-                placeholder="Amount"
-                aria-label="Amount"
-              />
-
-              <span
-                id="amountCurrency"
-                class="amount-currency"
-                aria-hidden="true"
-              >
-                USD
-              </span>
-            </div>
-
-            <small class="field-hint">
-              Fees and final amount are shown before
-              confirmation.
-            </small>
-          </label>
-
-          <div id="amountLimitHint"></div>
-
-          <label class="field">
-            <span>
-              Source country
-            </span>
-
-            <select
-              id="source_country"
-              data-country-select="source"
-              required
-            ></select>
-          </label>
-
-          <label class="field">
-            <span>
-              Destination country
-            </span>
-
-            <select
-              id="country"
-              data-country-select="destination"
-              required
-            ></select>
-          </label>
-        </div>
-
-        <button
-          id="sendBtn"
-          type="button"
-          class="button primary"
-        >
-          Get quote
-        </button>
-
-        <!--
-        --------------------------------------------------
-        Shared pricing view
-
-        Pricing content is rendered exclusively through:
-
-        /shared/pricing/index.js
-        /shared/pricing/pricing.css
-
-        No financial calculation or local pricing markup is
-        maintained in this HTML.
-        --------------------------------------------------
-        -->
+      <section class="card">
+        <section id="fiatReactRoot"></section>
 
         <section
-          id="quoteBox"
-          class="quote-box hidden"
-          aria-label="Payout pricing summary"
-          aria-live="polite"
-        ></section>
+          class="steps"
+          aria-label="Payment steps"
+        >
+          <div
+            id="step1"
+            class="step active"
+          >
+            Route
+          </div>
+
+          <div
+            id="step2"
+            class="step"
+          >
+            Details
+          </div>
+
+          <div
+            id="step3"
+            class="step"
+          >
+            Payment
+          </div>
+
+          <div
+            id="step4"
+            class="step"
+          >
+            Processing
+          </div>
+
+          <div
+            id="step5"
+            class="step"
+          >
+            Done
+          </div>
+        </section>
 
         <section
-          id="pixBox"
-          class="hidden"
+          id="entryBox"
+          class="entry-box"
         >
-          <div class="entry-header compact">
+          <div class="entry-header">
             <h2>
-              Destination details
+              Start your payout
             </h2>
 
             <p>
-              Enter the payout details required for this
-              route.
+              Confirm the amount and destination, then continue
+              to the available payment option.
             </p>
           </div>
 
-          <div class="form-grid">
-            <label class="field">
+          <div class="form-grid route-grid">
+            <label class="field amount-field">
               <span>
-                PIX key
+                You pay
               </span>
 
-              <input
-                id="pix"
-                placeholder="Enter PIX key"
-              />
+              <div class="amount-input-wrap">
+                <input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  value="10"
+                  placeholder="Amount"
+                  aria-label="Amount"
+                />
+
+                <span
+                  id="amountCurrency"
+                  class="amount-currency"
+                  aria-hidden="true"
+                >
+                  USD
+                </span>
+              </div>
+
+              <small class="field-hint">
+                Fees and final amount are shown before
+                confirmation.
+              </small>
             </label>
 
-            <div id="taxBox">
+            <div id="amountLimitHint"></div>
+
+            <label class="field">
+              <span>
+                Source country
+              </span>
+
+              <select
+                id="source_country"
+                data-country-select="source"
+                required
+              ></select>
+            </label>
+
+            <label class="field">
+              <span>
+                Destination country
+              </span>
+
+              <select
+                id="country"
+                data-country-select="destination"
+                required
+              ></select>
+            </label>
+          </div>
+
+          <button
+            id="sendBtn"
+            type="button"
+            class="button primary"
+          >
+            Get quote
+          </button>
+
+          <section
+            id="quoteBox"
+            class="quote-box hidden"
+            aria-label="Payout pricing summary"
+            aria-live="polite"
+          ></section>
+
+          <section
+            id="pixBox"
+            class="hidden"
+          >
+            <div class="entry-header compact">
+              <h2>
+                Destination details
+              </h2>
+
+              <p>
+                Enter the payout details required for this
+                route.
+              </p>
+            </div>
+
+            <div class="form-grid">
               <label class="field">
                 <span>
-                  Tax ID
+                  PIX key
                 </span>
 
                 <input
-                  id="taxId"
-                  placeholder="CPF / CNPJ"
+                  id="pix"
+                  placeholder="Enter PIX key"
+                />
+              </label>
+
+              <div id="taxBox">
+                <label class="field">
+                  <span>
+                    Tax ID
+                  </span>
+
+                  <input
+                    id="taxId"
+                    placeholder="CPF / CNPJ"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <button
+              id="continueBtn"
+              type="button"
+              class="button primary"
+              disabled
+            >
+              Continue to payment
+            </button>
+
+            <div class="muted">
+              Enter a valid PIX key for the recipient.
+            </div>
+          </section>
+
+          <section
+            id="coinsPhBox"
+            class="hidden"
+          >
+            <div class="entry-header compact">
+              <h2>
+                Recipient institution
+              </h2>
+
+              <p>
+                Select the receiving bank or wallet.
+              </p>
+            </div>
+
+            <input
+              id="coinsPhBank"
+              type="hidden"
+              value=""
+            />
+
+            <input
+              id="coinsPhChannelName"
+              type="hidden"
+              value=""
+            />
+
+            <input
+              id="coinsPhChannelSubject"
+              type="hidden"
+              value=""
+            />
+
+            <label class="field">
+              <span>
+                Bank or wallet
+              </span>
+
+              <input
+                id="coinsPhBankSearch"
+                type="text"
+                autocomplete="off"
+                placeholder="Search bank or wallet"
+              />
+            </label>
+
+            <div
+              id="coinsPhSearchCount"
+              class="muted"
+            ></div>
+
+            <div
+              id="coinsPhBankResults"
+              class="coinsph-results"
+              aria-live="polite"
+            ></div>
+
+            <div
+              id="coinsPhSelectedBank"
+              class="coinsph-selected-bank"
+            >
+              <div id="coinsPhSelectedBankLabel"></div>
+              <div id="coinsPhSelectedBankMeta"></div>
+              <div id="coinsPhChannelTabs"></div>
+            </div>
+
+            <div
+              id="coinsPhRecipientFields"
+              class="form-grid hidden"
+            >
+              <label class="field">
+                <span>
+                  Recipient full legal name
+                </span>
+
+                <input
+                  id="coinsPhRecipientName"
+                  type="text"
+                  placeholder="Recipient name"
+                />
+              </label>
+
+              <label class="field">
+                <span>
+                  Recipient account or wallet number
+                </span>
+
+                <input
+                  id="coinsPhRecipientAccount"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="Enter account or wallet number"
                 />
               </label>
             </div>
-          </div>
 
-          <button
-            id="continueBtn"
-            type="button"
-            class="button primary"
-            disabled
+            <button
+              id="coinsPhContinueBtn"
+              type="button"
+              class="button primary"
+              disabled
+            >
+              Prepare payment
+            </button>
+
+            <div
+              id="coinsPhHint"
+              class="muted"
+            ></div>
+          </section>
+
+          <section
+            id="authBox"
+            class="hidden"
           >
-            Continue to payment
-          </button>
+            <div class="entry-header compact">
+              <h2 id="authTitle">
+                Authentication
+              </h2>
 
-          <div class="muted">
-            Enter a valid PIX key for the recipient.
-          </div>
-        </section>
+              <p id="authHint">
+                Complete the required authentication step.
+              </p>
+            </div>
 
-        <section
-          id="coinsPhBox"
-          class="hidden"
-        >
-          <div class="entry-header compact">
-            <h2>
-              Recipient institution
-            </h2>
+            <div class="form-grid">
+              <label class="field">
+                <span>
+                  Email
+                </span>
 
-            <p>
-              Select the receiving bank or wallet.
-            </p>
-          </div>
+                <input
+                  id="authEmail"
+                  type="email"
+                  placeholder="Enter email"
+                />
+              </label>
 
-          <input
-            id="coinsPhBank"
-            type="hidden"
-            value=""
-          />
+              <label
+                id="authOtpLabel"
+                class="field"
+                style="display:none;"
+              >
+                <span>
+                  OTP
+                </span>
 
-          <input
-            id="coinsPhChannelName"
-            type="hidden"
-            value=""
-          />
+                <input
+                  id="authOtp"
+                  type="text"
+                  placeholder="Enter OTP"
+                  style="display:none;"
+                />
+              </label>
+            </div>
 
-          <input
-            id="coinsPhChannelSubject"
-            type="hidden"
-            value=""
-          />
-
-          <label class="field">
-            <span>
-              Bank or wallet
-            </span>
-
-            <input
-              id="coinsPhBankSearch"
-              type="text"
-              autocomplete="off"
-              placeholder="Search bank or wallet"
-            />
-          </label>
-
-          <div
-            id="coinsPhSearchCount"
-            class="muted"
-          ></div>
-
-          <div
-            id="coinsPhBankResults"
-            class="coinsph-results"
-            aria-live="polite"
-          ></div>
-
-          <div
-            id="coinsPhSelectedBank"
-            class="coinsph-selected-bank"
-          >
-            <div id="coinsPhSelectedBankLabel"></div>
-            <div id="coinsPhSelectedBankMeta"></div>
-            <div id="coinsPhChannelTabs"></div>
-          </div>
-
-          <div
-            id="coinsPhRecipientFields"
-            class="form-grid hidden"
-          >
-            <label class="field">
-              <span>
-                Recipient full legal name
-              </span>
-
-              <input
-                id="coinsPhRecipientName"
-                type="text"
-                placeholder="Recipient name"
-              />
-            </label>
-
-            <label class="field">
-              <span>
-                Recipient account or wallet number
-              </span>
-
-              <input
-                id="coinsPhRecipientAccount"
-                type="text"
-                inputmode="numeric"
-                autocomplete="off"
-                placeholder="Enter account or wallet number"
-              />
-            </label>
-          </div>
-
-          <button
-            id="coinsPhContinueBtn"
-            type="button"
-            class="button primary"
-            disabled
-          >
-            Prepare payment
-          </button>
-
-          <div
-            id="coinsPhHint"
-            class="muted"
-          ></div>
-        </section>
-
-        <section
-          id="authBox"
-          class="hidden"
-        >
-          <div class="entry-header compact">
-            <h2 id="authTitle">
-              Authentication
-            </h2>
-
-            <p id="authHint">
-              Complete the required authentication step.
-            </p>
-          </div>
-
-          <div class="form-grid">
-            <label class="field">
-              <span>
-                Email
-              </span>
-
-              <input
-                id="authEmail"
-                type="email"
-                placeholder="Enter email"
-              />
-            </label>
-
-            <label
-              id="authOtpLabel"
-              class="field"
+            <button
+              id="authBtn"
+              type="button"
+              class="button primary"
               style="display:none;"
             >
-              <span>
-                OTP
-              </span>
+              Continue
+            </button>
+          </section>
 
-              <input
-                id="authOtp"
-                type="text"
-                placeholder="Enter OTP"
-                style="display:none;"
-              />
-            </label>
+          <section
+            id="status"
+            class="status-box"
+            aria-live="polite"
+          ></section>
+
+          <div class="disclaimer">
+            <strong>
+              Non-custodial flow.
+            </strong>
+
+            UniBridge coordinates the payout path and tracks
+            execution without holding customer funds.
           </div>
-
-          <button
-            id="authBtn"
-            type="button"
-            class="button primary"
-            style="display:none;"
-          >
-            Continue
-          </button>
         </section>
-
-        <section
-          id="status"
-          class="status-box"
-          aria-live="polite"
-        ></section>
-
-        <div class="disclaimer">
-          <strong>
-            Non-custodial flow.
-          </strong>
-
-          UniBridge coordinates the payout path and tracks
-          execution without holding customer funds.
-        </div>
       </section>
-    </section>
+    </div>
 
     <div
       id="pay-guide"
@@ -541,24 +528,10 @@
     <div id="pay-footer"></div>
   </main>
 
-  <script src="/partials/pay/js/pay-includes.js?v=7"></script>
+  <script src="/partials/pay/js/pay-includes.js?v=9"></script>
   <script src="/partials/pay/js/pay-countries.js?v=3"></script>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!--
-  --------------------------------------------------
-  Shared Fiat authentication island
-
-  Same bootstrap currently used by Pay-by-Bank.
-
-  Publishes:
-    window.__fiatClerkAuth
-
-  Consumed by:
-    /shared/pay/auth/clerkAuth.js
-  --------------------------------------------------
-  -->
 
   <script
     type="module"
@@ -570,22 +543,13 @@
   <script src="/surface/js/settlementViewState.js"></script>
   <script src="/surface/js/status.js"></script>
 
-  <!--
-  --------------------------------------------------
-  Funding provider runtimes
-
-  Each provider owns its SDK loading and provider-specific
-  behavior. rampFlow.js only orchestrates next_action.
-  --------------------------------------------------
-  -->
-
   <script src="/surface/js/ramp/stripeOnramp.js"></script>
   <script src="/surface/js/ramp/onrampMoney.js?v=20260822-2"></script>
   <script src="/surface/js/rampFlow.js"></script>
 
   <script
     type="module"
-    src="/surface/app.js"
+    src="/surface/history.js"
   ></script>
 
   <script>
