@@ -71,22 +71,17 @@
 
   async function initPayPartials() {
     loadStylesheetOnce(
-      "/partials/pay/css/pay-common.css?v=10"
+      "/partials/pay/css/pay-common.css?v=11"
     );
 
     loadStylesheetOnce(
-      "/partials/pay/css/pay-history.css?v=1"
+      "/partials/pay/css/pay-history.css?v=2"
     );
 
     await Promise.all([
       loadPartial(
         "pay-brand",
         "/partials/pay/brand.html"
-      ),
-
-      loadPartial(
-        "pay-nav",
-        "/partials/pay/nav.html"
       ),
 
       loadPartial(
