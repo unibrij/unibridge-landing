@@ -53,8 +53,44 @@ import {
   createBankTransferHandlers
 } from "./flowHandlers.js";
 
+import {
+  isRepeatPayoutView,
+  loadRepeatPayoutSource,
+  applyRepeatEntryPrefill,
+  applyRepeatRoutePrefill
+} from "./repeatPayout.js";
+
+
 const FIAT_CONTEXT_KEY =
   "unibridge_fiat_context";
+
+
+/*
+--------------------------------------------------
+View
+--------------------------------------------------
+*/
+
+function isHistoryView() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  return (
+    params.get(
+      "view"
+    ) ===
+    "history"
+  );
+}
+
+
+/*
+--------------------------------------------------
+State
+--------------------------------------------------
+*/
 
 const query =
   readQueryParams();
@@ -71,20 +107,36 @@ const runtime = {
       : null,
 
   autoResumeStarted:
-    false
+    false,
+
+  repeatSource:
+    null
 };
 
+
 const quoteBox =
-  document.getElementById("quoteBox");
+  document.getElementById(
+    "quoteBox"
+  );
 
 const instructionsBox =
-  document.getElementById("instructionsBox");
+  document.getElementById(
+    "instructionsBox"
+  );
+
+
+/*
+--------------------------------------------------
+Fiat context
+--------------------------------------------------
+*/
 
 function readFiatContext() {
   return window.localStorage.getItem(
     FIAT_CONTEXT_KEY
   );
 }
+
 
 function readFiatContextObject() {
   const raw =
@@ -95,11 +147,15 @@ function readFiatContextObject() {
   }
 
   try {
-    return JSON.parse(raw) || {};
-  } catch {
+    return JSON.parse(
+      raw
+    ) || {};
+  }
+  catch {
     return {};
   }
 }
+
 
 function readFiatContextStartedAt() {
   const context =
@@ -114,16 +170,46 @@ function readFiatContextStartedAt() {
   );
 }
 
+
 function hasFiatContext() {
   return Boolean(
     readFiatContext()
   );
 }
 
+
+/*
+--------------------------------------------------
+Entry context
+--------------------------------------------------
+
+Normal flow requires the Pay-created fiat context.
+
+Repeat flow is allowed to rebuild that context from
+the visible entry form. The user may therefore choose
+a source country before requesting the new quote.
+--------------------------------------------------
+*/
+
+function hasEntryContext() {
+  return (
+    hasFiatContext() ||
+    isRepeatPayoutView()
+  );
+}
+
+
+/*
+--------------------------------------------------
+Navigation
+--------------------------------------------------
+*/
+
 function goToPayEntry() {
   window.location.href =
     "/pay";
 }
+
 
 function startNewTransfer() {
   clearStoredState();
@@ -137,6 +223,13 @@ function startNewTransfer() {
   goToPayEntry();
 }
 
+
+/*
+--------------------------------------------------
+Persistence
+--------------------------------------------------
+*/
+
 function persist(values = {}) {
   Object.assign(
     state,
@@ -147,17 +240,28 @@ function persist(values = {}) {
     state
   );
 
-  if (values.bank_customer_ref) {
+  if (
+    values.bank_customer_ref
+  ) {
     writeBankCustomerRef(
       values.bank_customer_ref
     );
   }
 }
 
+
+/*
+--------------------------------------------------
+Entry routes
+--------------------------------------------------
+*/
+
 async function initEntryRoutes() {
   hideCustomerProfileForm();
 
-  if (state.settlement_id) {
+  if (
+    state.settlement_id
+  ) {
     hideCustomerProfileForm();
 
     return;
@@ -170,11 +274,12 @@ async function initEntryRoutes() {
 
     setEntryButtonsForQuoteIdle({
       hasFiatContext:
-        hasFiatContext()
+        hasEntryContext()
     });
 
     hideCustomerProfileForm();
-  } catch (err) {
+  }
+  catch (err) {
     hideCustomerProfileForm();
 
     console.error(
@@ -184,10 +289,17 @@ async function initEntryRoutes() {
 
     setEntryButtonsForQuoteIdle({
       hasFiatContext:
-        false
+        hasEntryContext()
     });
   }
 }
+
+
+/*
+--------------------------------------------------
+Initial auth
+--------------------------------------------------
+*/
 
 async function syncInitialAuthBeforeResume({
   handlers
@@ -208,7 +320,66 @@ async function syncInitialAuthBeforeResume({
   });
 }
 
+
+/*
+--------------------------------------------------
+Repeat payout
+--------------------------------------------------
+*/
+
+async function initRepeatPayout() {
+  if (
+    !isRepeatPayoutView()
+  ) {
+    return;
+  }
+
+  const source =
+    await loadRepeatPayoutSource();
+
+  if (!source) {
+    return;
+  }
+
+  runtime.repeatSource =
+    source;
+
+  applyRepeatEntryPrefill(
+    source
+  );
+}
+
+
+function createQuoteHandler(
+  handleQuote
+) {
+  return async function handleQuoteWithRepeat() {
+    await handleQuote();
+
+    if (
+      runtime.repeatSource
+    ) {
+      applyRepeatRoutePrefill(
+        runtime.repeatSource
+      );
+    }
+  };
+}
+
+
+/*
+--------------------------------------------------
+Init
+--------------------------------------------------
+*/
+
 async function init() {
+  if (
+    isHistoryView()
+  ) {
+    return;
+  }
+
   resetStaleSettlementAttempt({
     state,
     query,
@@ -226,12 +397,17 @@ async function init() {
       quoteBox,
       instructionsBox,
       persist,
-      hasFiatContext,
+
+      hasFiatContext:
+        hasEntryContext,
+
       goToPayEntry,
       readFiatContextStartedAt,
 
       syncAuthOwnerOrReset:
-        ({ resetUi } = {}) => {
+        ({
+          resetUi
+        } = {}) => {
           return syncAuthOwnerOrReset({
             state,
             query,
@@ -242,9 +418,15 @@ async function init() {
       showEntryMode
     });
 
+
+  const handleQuote =
+    createQuoteHandler(
+      handlers.handleQuote
+    );
+
+
   attachBankTransferEvents({
-    handleQuote:
-      handlers.handleQuote,
+    handleQuote,
 
     handleCreateSettlement:
       handlers.handleCreateSettlement,
@@ -267,8 +449,10 @@ async function init() {
         });
       },
 
-    hasFiatContext
+    hasFiatContext:
+      hasEntryContext
   });
+
 
   try {
     const authSync =
@@ -276,7 +460,9 @@ async function init() {
         handlers
       });
 
-    if (authSync?.reset) {
+    if (
+      authSync?.reset
+    ) {
       invalidatePreparedQuote();
 
       runtime.preparedQuote =
@@ -291,14 +477,15 @@ async function init() {
 
       resetEntryButtonsAfterAuthReset({
         hasFiatContext:
-          hasFiatContext()
+          hasEntryContext()
       });
 
       await initEntryRoutes();
 
       return;
     }
-  } catch (err) {
+  }
+  catch (err) {
     console.error(
       "BANK_TRANSFER_INITIAL_AUTH_SYNC_FAILED",
       err
@@ -310,7 +497,7 @@ async function init() {
 
     resetEntryButtonsAfterAuthReset({
       hasFiatContext:
-        hasFiatContext()
+        hasEntryContext()
     });
 
     setStatus({
@@ -318,12 +505,15 @@ async function init() {
         "failed",
 
       message:
-        resolveErrorMessage(err) ||
+        resolveErrorMessage(
+          err
+        ) ||
         "Could not verify the signed-in account."
     });
 
     return;
   }
+
 
   initResumeState({
     state,
@@ -336,7 +526,38 @@ async function init() {
       handlers.runBankTransferFlow
   });
 
+
   await initEntryRoutes();
+
+
+  try {
+    await initRepeatPayout();
+
+    if (
+      runtime.repeatSource &&
+      hasFiatContext()
+    ) {
+      await handleQuote();
+    }
+  }
+  catch (err) {
+    console.error(
+      "BANK_TRANSFER_REPEAT_INIT_FAILED",
+      err
+    );
+
+    setStatus({
+      kind:
+        "warning",
+
+      message:
+        resolveErrorMessage(
+          err
+        ) ||
+        "Could not load the previous payout."
+    });
+  }
 }
+
 
 init();
