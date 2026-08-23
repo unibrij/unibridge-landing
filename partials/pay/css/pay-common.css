@@ -38,7 +38,6 @@ body {
 
 .pay-page-shell {
   position: relative;
-  isolation: isolate;
   width: 100%;
   min-height: 100vh;
   min-height: 100svh;
@@ -65,11 +64,11 @@ body {
   left: 0;
   right: 0;
   height: 560px;
-  z-index: -2;
+  z-index: 0;
   pointer-events: none;
 
   background:
-    url("/connect/connect-map-bg.png")
+    url("/public/icons/social/connect-map-bg.png")
     center top / 1120px auto
     no-repeat;
 
@@ -100,7 +99,7 @@ body {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
 
   background:
@@ -376,7 +375,7 @@ body {
     height: 500px;
 
     background:
-      url("/connect/connect-map-bg.png")
+      url("/public/icons/social/connect-map-bg.png")
       center top / 780px auto
       no-repeat;
   }
