@@ -18,15 +18,14 @@ body {
 }
 
 #pay-brand,
-#pay-nav,
 #pay-history,
 #pay-guide,
-#pay-footer {
+#pay-footer,
+.pay-navigation {
   position: relative;
   z-index: 2;
 }
 
-#pay-nav,
 #pay-history,
 #pay-guide,
 #pay-footer {
@@ -356,9 +355,7 @@ body {
 @media (max-width: 430px) {
   .pay-page-shell {
     gap: 12px;
-
     padding: 14px;
-
     justify-content: flex-start;
 
     padding-top:
@@ -394,7 +391,6 @@ body {
     width: min(100%, 392px);
 
     justify-content: center;
-
     margin: 0 0 4px;
 
     pointer-events: none;
@@ -413,7 +409,6 @@ body {
     display: none;
   }
 
-  #pay-nav,
   #pay-history,
   #pay-guide,
   #pay-footer {
@@ -448,9 +443,7 @@ body {
     text-align: center;
 
     gap: 10px;
-
     margin-top: 36px;
-
     padding-bottom: 10px;
   }
 }
