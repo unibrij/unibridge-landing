@@ -87,41 +87,30 @@
       hidden
     ></div>
 
-    <div id="bankTransferApp">
+    <div
+      id="bankTransferApp"
+      class="bank-transfer-content"
+    >
+      <h1
+        id="bankTransferTitle"
+        class="sr-only"
+      >
+        Pay by bank transfer
+      </h1>
+
       <section
-        class="hero"
+        id="fiatReactRoot"
+        class="bank-transfer-auth"
+      ></section>
+
+      <section
+        class="card bank-transfer-card"
         aria-labelledby="bankTransferTitle"
       >
-        <h1
-          id="bankTransferTitle"
-          class="sr-only"
-        >
-          Pay by bank transfer
-        </h1>
-
-        <p
-          class="eyebrow"
-          aria-hidden="true"
-        >
-          Bank transfer funding
-        </p>
-      </section>
-
-      <section class="card">
-        <section id="fiatReactRoot"></section>
-
         <section
           id="entryBox"
           class="entry-box"
         >
-          <div class="entry-header">
-            <h2>Create bank-transfer route</h2>
-
-            <p>
-              Select the funding source, payout destination, and amount for this bank-transfer route.
-            </p>
-          </div>
-
           <div class="form-grid">
             <label class="field">
               <span>Source country</span>
