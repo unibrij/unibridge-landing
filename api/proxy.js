@@ -26,6 +26,14 @@ const ALLOWED =
 
     /*
     --------------------------------------------------
+    Customer payout history
+    --------------------------------------------------
+    */
+
+    "connect/payout-history",
+
+    /*
+    --------------------------------------------------
     Fiat bank-transfer / Bridge
     --------------------------------------------------
     */
@@ -74,7 +82,8 @@ const CLERK_AUTH_ENDPOINTS =
   new Set([
     "fiat/session/register",
     "fiat/kyc/create",
-    "fiat/transak-virtual-account/create"
+    "fiat/transak-virtual-account/create",
+    "connect/payout-history"
   ]);
 
 function normalizeEndpoint(value) {
@@ -107,6 +116,41 @@ function normalizeHeader(value) {
   return (
     value ||
     ""
+  );
+}
+
+function isRepeatPayoutEndpoint(
+  endpoint
+) {
+  return /^connect\/repeat-payout\/[^/]+$/
+    .test(
+      endpoint
+    );
+}
+
+function isAllowedEndpoint(
+  endpoint
+) {
+  return (
+    ALLOWED.has(
+      endpoint
+    ) ||
+    isRepeatPayoutEndpoint(
+      endpoint
+    )
+  );
+}
+
+function requiresClerkAuthorization(
+  endpoint
+) {
+  return (
+    CLERK_AUTH_ENDPOINTS.has(
+      endpoint
+    ) ||
+    isRepeatPayoutEndpoint(
+      endpoint
+    )
   );
 }
 
@@ -201,7 +245,12 @@ function getAllowedMethod(
     endpoint ===
       "options/elementpay/ng-banks" ||
     endpoint ===
-      "fiat/bridge-tos/ping"
+      "fiat/bridge-tos/ping" ||
+    endpoint ===
+      "connect/payout-history" ||
+    isRepeatPayoutEndpoint(
+      endpoint
+    )
   ) {
     return "GET";
   }
@@ -257,8 +306,8 @@ The proxy forwards the token whenever present.
 Forwarding Authorization does NOT change upstream
 route authentication policy.
 
-Only endpoints explicitly listed in
-CLERK_AUTH_ENDPOINTS require the token to exist.
+Only endpoints explicitly marked as requiring
+Clerk authorization reject missing tokens here.
 --------------------------------------------------
 */
 
@@ -278,7 +327,7 @@ function attachClerkAuthorization({
   }
 
   if (
-    CLERK_AUTH_ENDPOINTS.has(
+    requiresClerkAuthorization(
       endpoint
     ) &&
     !authorization
@@ -343,7 +392,7 @@ export default async function handler(
     }
 
     if (
-      !ALLOWED.has(
+      !isAllowedEndpoint(
         endpoint
       )
     ) {
