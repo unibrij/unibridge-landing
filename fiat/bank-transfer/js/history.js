@@ -12,6 +12,18 @@ import {
 const PARTNER =
   "fiat_bank_transfer";
 
+let appNode =
+  null;
+
+let historyNode =
+  null;
+
+let historyRoot =
+  null;
+
+let historyLoadPromise =
+  null;
+
 
 /*
 --------------------------------------------------
@@ -52,7 +64,7 @@ function buildRepeatUrl({
 
 /*
 --------------------------------------------------
-Navigation
+Navigation state
 --------------------------------------------------
 */
 
@@ -116,60 +128,205 @@ History
 --------------------------------------------------
 */
 
-async function initHistoryView() {
+function loadHistory() {
+  if (historyLoadPromise) {
+    return historyLoadPromise;
+  }
+
+  historyLoadPromise =
+    (async () => {
+      const accessToken =
+        await getFiatClerkToken();
+
+      await initPayHistory({
+        root:
+          historyRoot,
+
+        partner:
+          PARTNER,
+
+        accessToken,
+
+        buildRepeatUrl
+      });
+    })()
+      .finally(
+        () => {
+          historyLoadPromise =
+            null;
+        }
+      );
+
+  return historyLoadPromise;
+}
+
+
+/*
+--------------------------------------------------
+View
+--------------------------------------------------
+*/
+
+async function renderView() {
   const historyMode =
     isHistoryView();
+
+  const navigation =
+    document.querySelector(
+      ".pay-navigation"
+    );
+
+  if (!navigation) {
+    throw new Error(
+      "bank_transfer_navigation_missing"
+    );
+  }
 
   setActiveNavigation(
     historyMode
   );
 
-  if (!historyMode) {
+  if (historyMode) {
+    appNode.remove();
+
+    if (
+      !historyNode.isConnected
+    ) {
+      navigation.insertAdjacentElement(
+        "afterend",
+        historyNode
+      );
+    }
+
+    await loadHistory();
+
     return;
   }
 
-  const app =
+  historyNode.remove();
+
+  if (
+    !appNode.isConnected
+  ) {
+    navigation.insertAdjacentElement(
+      "afterend",
+      appNode
+    );
+  }
+}
+
+
+/*
+--------------------------------------------------
+Client-side navigation
+--------------------------------------------------
+*/
+
+function navigate(
+  url
+) {
+  const next =
+    new URL(
+      url,
+      window.location.origin
+    );
+
+  const target =
+    next.pathname +
+    next.search;
+
+  const current =
+    window.location.pathname +
+    window.location.search;
+
+  if (
+    target ===
+    current
+  ) {
+    return;
+  }
+
+  window.history.pushState(
+    {},
+    "",
+    target
+  );
+
+  renderView()
+    .catch(
+      error => {
+        console.error(
+          "BANK_TRANSFER_VIEW_ERROR",
+          error
+        );
+      }
+    );
+}
+
+function bindNavigation() {
+  const newPayout =
     document.getElementById(
-      "bankTransferApp"
+      "payNavNewPayout"
     );
 
   const history =
     document.getElementById(
-      "pay-history"
+      "payNavHistory"
     );
 
   if (
-    !app ||
+    !newPayout ||
     !history
   ) {
     throw new Error(
-      "bank_transfer_history_mount_missing"
+      "bank_transfer_navigation_missing"
     );
   }
 
-  /*
-  History is a separate view.
-  The bank-transfer form does not belong
-  in the History DOM.
-  */
+  for (
+    const link of
+      [
+        newPayout,
+        history
+      ]
+  ) {
+    link.addEventListener(
+      "click",
+      event => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
 
-  app.remove();
+        event.preventDefault();
 
-  /*
-  Shared Clerk auth owns the auth lifecycle.
-  */
+        navigate(
+          link.href
+        );
+      }
+    );
+  }
 
-  const accessToken =
-    await getFiatClerkToken();
-
-  await initPayHistory({
-    partner:
-      PARTNER,
-
-    accessToken,
-
-    buildRepeatUrl
-  });
+  window.addEventListener(
+    "popstate",
+    () => {
+      renderView()
+        .catch(
+          error => {
+            console.error(
+              "BANK_TRANSFER_VIEW_ERROR",
+              error
+            );
+          }
+        );
+    }
+  );
 }
 
 
@@ -182,15 +339,54 @@ Lifecycle
 document.addEventListener(
   "pay-partials-ready",
   () => {
-    initHistoryView()
-      .catch(
-        error => {
-          console.error(
-            "BANK_TRANSFER_HISTORY_INIT_ERROR",
-            error
-          );
-        }
+    appNode =
+      document.getElementById(
+        "bankTransferApp"
       );
+
+    historyNode =
+      document.getElementById(
+        "pay-history"
+      );
+
+    historyRoot =
+      document.getElementById(
+        "payHistory"
+      );
+
+    if (
+      !appNode ||
+      !historyNode ||
+      !historyRoot
+    ) {
+      console.error(
+        "BANK_TRANSFER_VIEW_MOUNT_MISSING"
+      );
+
+      return;
+    }
+
+    try {
+      bindNavigation();
+
+      renderView()
+        .catch(
+          error => {
+            console.error(
+              "BANK_TRANSFER_VIEW_ERROR",
+              error
+            );
+          }
+        );
+    }
+    catch (
+      error
+    ) {
+      console.error(
+        "BANK_TRANSFER_HISTORY_INIT_ERROR",
+        error
+      );
+    }
   },
   {
     once:
