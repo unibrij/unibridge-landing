@@ -24,6 +24,9 @@ let historyRoot =
 let historyLoadPromise =
   null;
 
+let bankTransferFlowPromise =
+  null;
+
 
 /*
 --------------------------------------------------
@@ -163,6 +166,39 @@ function loadHistory() {
 
 /*
 --------------------------------------------------
+Bank transfer flow
+--------------------------------------------------
+*/
+
+function loadBankTransferFlow() {
+  if (bankTransferFlowPromise) {
+    return bankTransferFlowPromise;
+  }
+
+  bankTransferFlowPromise =
+    import(
+      "/fiat/bank-transfer/js/bankTransferFlow.js"
+    )
+      .then(
+        module => {
+          return module.initBankTransferFlow();
+        }
+      )
+      .catch(
+        error => {
+          bankTransferFlowPromise =
+            null;
+
+          throw error;
+        }
+      );
+
+  return bankTransferFlowPromise;
+}
+
+
+/*
+--------------------------------------------------
 View
 --------------------------------------------------
 */
@@ -213,6 +249,8 @@ async function renderView() {
       appNode
     );
   }
+
+  await loadBankTransferFlow();
 }
 
 
