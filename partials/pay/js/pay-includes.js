@@ -1,63 +1,138 @@
+// partials/pay/js/pay-includes.js
+
 (function () {
-  function loadStylesheetOnce(href) {
-    const existing = document.querySelector(`link[href="${href}"]`);
-    if (existing) return;
-
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    document.head.appendChild(link);
-  }
-
-  async function loadPartial(targetId, url, options = {}) {
-    const target = document.getElementById(targetId);
-    if (!target) return;
-
-    const {
-      fallback = null,
-      onLoaded = null
-    } = options;
-
-    try {
-      const response = await fetch(url, {
-        cache: "no-cache"
-      });
-
-      if (!response.ok) {
-        throw new Error(`Partial load failed: ${url}`);
-      }
-
-      const html = await response.text();
-
-      if (!html || !html.trim()) {
-        throw new Error(`Partial empty: ${url}`);
-      }
-
-      target.innerHTML = html;
-
-      if (typeof onLoaded === "function") {
-        onLoaded(target);
-      }
-    } catch (error) {
-      console.error(error);
-
-      if (typeof fallback === "function") {
-        fallback(target);
-      }
+  function loadStylesheetOnce(
+    href
+  ) {
+    if (
+      document.querySelector(
+        `link[href="${href}"]`
+      )
+    ) {
+      return;
     }
+
+    const link =
+      document.createElement(
+        "link"
+      );
+
+    link.rel =
+      "stylesheet";
+
+    link.href =
+      href;
+
+    document.head.appendChild(
+      link
+    );
   }
 
-  function initPayPartials() {
-    loadStylesheetOnce("/partials/pay/css/pay-common.css?v=9");
+  async function loadPartial(
+    targetId,
+    url
+  ) {
+    const target =
+      document.getElementById(
+        targetId
+      );
 
-    loadPartial("pay-brand", "/partials/pay/brand.html");
+    if (!target) {
+      return;
+    }
 
-    loadPartial("pay-footer", "/partials/pay/footer.html");
+    const response =
+      await fetch(
+        url,
+        {
+          cache:
+            "no-cache"
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `Partial load failed: ${url}`
+      );
+    }
+
+    const html =
+      await response.text();
+
+    if (!html.trim()) {
+      throw new Error(
+        `Partial empty: ${url}`
+      );
+    }
+
+    target.innerHTML =
+      html;
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initPayPartials);
-  } else {
-    initPayPartials();
+  async function initPayPartials() {
+    loadStylesheetOnce(
+      "/partials/pay/css/pay-common.css?v=10"
+    );
+
+    loadStylesheetOnce(
+      "/partials/pay/css/pay-history.css?v=1"
+    );
+
+    await Promise.all([
+      loadPartial(
+        "pay-brand",
+        "/partials/pay/brand.html"
+      ),
+
+      loadPartial(
+        "pay-nav",
+        "/partials/pay/nav.html"
+      ),
+
+      loadPartial(
+        "pay-history",
+        "/partials/pay/history.html"
+      ),
+
+      loadPartial(
+        "pay-footer",
+        "/partials/pay/footer.html"
+      )
+    ]);
+
+    document.dispatchEvent(
+      new CustomEvent(
+        "pay-partials-ready"
+      )
+    );
+  }
+
+  function start() {
+    initPayPartials()
+      .catch(
+        error => {
+          console.error(
+            "PAY_PARTIALS_INIT_ERROR",
+            error
+          );
+        }
+      );
+  }
+
+  if (
+    document.readyState ===
+    "loading"
+  ) {
+    document.addEventListener(
+      "DOMContentLoaded",
+      start,
+      {
+        once:
+          true
+      }
+    );
+  }
+  else {
+    start();
   }
 })();
