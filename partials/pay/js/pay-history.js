@@ -37,26 +37,10 @@ function requireElement(
   return element;
 }
 
-function setHidden(
-  element,
-  hidden
-) {
-  element.hidden =
-    Boolean(
-      hidden
-    );
-}
-
 function clearElement(
   element
 ) {
-  while (
-    element.firstChild
-  ) {
-    element.removeChild(
-      element.firstChild
-    );
-  }
+  element.replaceChildren();
 }
 
 function createElement(
@@ -77,10 +61,8 @@ function createElement(
   }
 
   if (
-    text !==
-      undefined &&
-    text !==
-      null
+    text !== undefined &&
+    text !== null
   ) {
     element.textContent =
       String(
@@ -89,50 +71,6 @@ function createElement(
   }
 
   return element;
-}
-
-
-/*
---------------------------------------------------
-Status helpers
---------------------------------------------------
-*/
-
-function resolveStatusClass(
-  status
-) {
-  const normalized =
-    normalizeStatus(
-      status
-    );
-
-  if (
-    normalized ===
-      "completed" ||
-    normalized ===
-      "complete" ||
-    normalized ===
-      "executed" ||
-    normalized ===
-      "success" ||
-    normalized ===
-      "succeeded" ||
-    normalized ===
-      "payout_completed" ||
-    normalized ===
-      "execution_completed"
-  ) {
-    return "is-completed";
-  }
-
-  if (
-    normalized ===
-      "failed"
-  ) {
-    return "is-failed";
-  }
-
-  return "is-pending";
 }
 
 
@@ -155,10 +93,21 @@ function resolvePayoutDate(
   item
 ) {
   return (
-    item?.completed_at ||
-    item?.updated_at ||
     item?.created_at ||
     null
+  );
+}
+
+function resolveStatusClass(
+  status
+) {
+  const normalized =
+    normalizeStatus(
+      status
+    );
+
+  return (
+    `history-status-${normalized || "unknown"}`
   );
 }
 
@@ -173,37 +122,35 @@ function triggerBlobDownload({
   blob,
   filename
 }) {
-  const url =
+  const objectUrl =
     URL.createObjectURL(
       blob
     );
 
-  const anchor =
+  const link =
     document.createElement(
       "a"
     );
 
-  anchor.href =
-    url;
+  link.href =
+    objectUrl;
 
-  anchor.download =
-    filename;
-
-  anchor.style.display =
-    "none";
+  link.download =
+    filename ||
+    "unibridge-receipt.pdf";
 
   document.body.appendChild(
-    anchor
+    link
   );
 
-  anchor.click();
+  link.click();
 
-  anchor.remove();
+  link.remove();
 
-  setTimeout(
+  globalThis.setTimeout(
     () => {
       URL.revokeObjectURL(
-        url
+        objectUrl
       );
     },
     0
@@ -213,40 +160,95 @@ function triggerBlobDownload({
 
 /*
 --------------------------------------------------
-Payout card
+State rendering
 --------------------------------------------------
 */
 
-function buildPayoutCard({
-  item,
-  accessToken,
-  buildRepeatUrl,
-  onReceiptError
+function buildStateCard({
+  title,
+  message,
+  role
 }) {
   const card =
     createElement(
-      "article",
+      "div",
       {
         className:
-          "history-payout-card"
+          "history-state-card"
       }
     );
 
-  const main =
+  if (role) {
+    card.setAttribute(
+      "role",
+      role
+    );
+  }
+
+  if (title) {
+    card.appendChild(
+      createElement(
+        "strong",
+        {
+          text:
+            title
+        }
+      )
+    );
+  }
+
+  if (message) {
+    card.appendChild(
+      createElement(
+        "span",
+        {
+          text:
+            message
+        }
+      )
+    );
+  }
+
+  return card;
+}
+
+function renderState(
+  root,
+  {
+    title,
+    message,
+    role
+  }
+) {
+  clearElement(
+    root
+  );
+
+  root.appendChild(
+    buildStateCard({
+      title,
+      message,
+      role
+    })
+  );
+}
+
+
+/*
+--------------------------------------------------
+Recipient
+--------------------------------------------------
+*/
+
+function buildRecipientMain(
+  item
+) {
+  const recipientMain =
     createElement(
       "div",
       {
         className:
-          "history-payout-main"
-      }
-    );
-
-  const identity =
-    createElement(
-      "div",
-      {
-        className:
-          "history-recipient-identity"
+          "history-recipient-main"
       }
     );
 
@@ -269,12 +271,12 @@ function buildPayoutCard({
     "true"
   );
 
-  const recipientText =
+  const recipientCopy =
     createElement(
       "div",
       {
         className:
-          "history-recipient-text"
+          "history-recipient-copy"
       }
     );
 
@@ -292,12 +294,12 @@ function buildPayoutCard({
       }
     );
 
-  const recipientSummary =
+  const recipientDestination =
     createElement(
       "span",
       {
         className:
-          "history-recipient-summary",
+          "history-recipient-destination",
 
         text:
           buildHistoryRecipientSummary(
@@ -306,22 +308,52 @@ function buildPayoutCard({
       }
     );
 
-  recipientText.append(
+  const payoutDate =
+    createElement(
+      "span",
+      {
+        className:
+          "history-payout-date",
+
+        text:
+          formatHistoryDate(
+            resolvePayoutDate(
+              item
+            )
+          )
+      }
+    );
+
+  recipientCopy.append(
     recipientName,
-    recipientSummary
+    recipientDestination,
+    payoutDate
   );
 
-  identity.append(
+  recipientMain.append(
     avatar,
-    recipientText
+    recipientCopy
   );
 
-  const details =
+  return recipientMain;
+}
+
+
+/*
+--------------------------------------------------
+Payout summary
+--------------------------------------------------
+*/
+
+function buildPayoutSummary(
+  item
+) {
+  const summary =
     createElement(
       "div",
       {
         className:
-          "history-payout-details"
+          "history-payout-summary"
       }
     );
 
@@ -339,21 +371,12 @@ function buildPayoutCard({
       }
     );
 
-  const meta =
-    createElement(
-      "div",
-      {
-        className:
-          "history-payout-meta"
-      }
-    );
-
   const status =
     createElement(
       "span",
       {
         className:
-          `history-status ${resolveStatusClass(
+          `history-status-pill ${resolveStatusClass(
             item?.status
           )}`,
 
@@ -364,41 +387,27 @@ function buildPayoutCard({
       }
     );
 
-  const date =
-    createElement(
-      "span",
-      {
-        className:
-          "history-payout-date",
-
-        text:
-          formatHistoryDate(
-            resolvePayoutDate(
-              item
-            )
-          )
-      }
-    );
-
-  meta.append(
-    status,
-    date
-  );
-
-  details.append(
+  summary.append(
     amount,
-    meta
+    status
   );
 
-  main.append(
-    identity,
-    details
-  );
+  return summary;
+}
 
-  card.appendChild(
-    main
-  );
 
+/*
+--------------------------------------------------
+Payout actions
+--------------------------------------------------
+*/
+
+function buildPayoutActions({
+  item,
+  accessToken,
+  buildRepeatUrl,
+  onReceiptError
+}) {
   const actions =
     createElement(
       "div",
@@ -431,7 +440,7 @@ function buildPayoutCard({
           "a",
           {
             className:
-              "history-action-button",
+              "history-secondary-button",
 
             text:
               "Send again"
@@ -461,7 +470,7 @@ function buildPayoutCard({
         "button",
         {
           className:
-            "history-action-button history-receipt-button",
+            "history-secondary-button",
 
           text:
             "Receipt"
@@ -474,9 +483,6 @@ function buildPayoutCard({
     receiptButton.addEventListener(
       "click",
       async () => {
-        const previousLabel =
-          receiptButton.textContent;
-
         receiptButton.disabled =
           true;
 
@@ -490,23 +496,30 @@ function buildPayoutCard({
               accessToken
             });
 
-          triggerBlobDownload(
-            result
-          );
+          triggerBlobDownload({
+            blob:
+              result.blob,
+
+            filename:
+              result.filename
+          });
         }
         catch (
           error
         ) {
-          onReceiptError(
+          console.error(
+            "RECEIPT_DOWNLOAD_FAILED",
             error
           );
+
+          onReceiptError();
         }
         finally {
           receiptButton.disabled =
             false;
 
           receiptButton.textContent =
-            previousLabel;
+            "Receipt";
         }
       }
     );
@@ -516,16 +529,155 @@ function buildPayoutCard({
     );
   }
 
-  if (
-    actions.childElementCount >
-    0
+  return actions;
+}
+
+
+/*
+--------------------------------------------------
+Payout card
+--------------------------------------------------
+*/
+
+function buildPayoutCard({
+  item,
+  accessToken,
+  buildRepeatUrl,
+  onReceiptError
+}) {
+  const card =
+    createElement(
+      "article",
+      {
+        className:
+          "history-payout-card"
+      }
+    );
+
+  const header =
+    createElement(
+      "div",
+      {
+        className:
+          "history-payout-header"
+      }
+    );
+
+  header.append(
+    buildRecipientMain(
+      item
+    ),
+
+    buildPayoutSummary(
+      item
+    )
+  );
+
+  card.append(
+    header,
+
+    buildPayoutActions({
+      item,
+      accessToken,
+      buildRepeatUrl,
+      onReceiptError
+    })
+  );
+
+  return card;
+}
+
+
+/*
+--------------------------------------------------
+Ready history
+--------------------------------------------------
+*/
+
+function renderPayoutHistory({
+  root,
+  payouts,
+  accessToken,
+  buildRepeatUrl,
+  onReceiptError
+}) {
+  clearElement(
+    root
+  );
+
+  const section =
+    createElement(
+      "section",
+      {
+        className:
+          "history-section history-payouts-section"
+      }
+    );
+
+  section.setAttribute(
+    "aria-labelledby",
+    "recent-payouts-heading"
+  );
+
+  const header =
+    createElement(
+      "div",
+      {
+        className:
+          "history-section-header"
+      }
+    );
+
+  const title =
+    createElement(
+      "h2",
+      {
+        className:
+          "history-section-title",
+
+        text:
+          "Recent payouts"
+      }
+    );
+
+  title.id =
+    "recent-payouts-heading";
+
+  header.appendChild(
+    title
+  );
+
+  const list =
+    createElement(
+      "div",
+      {
+        className:
+          "history-payout-list"
+      }
+    );
+
+  for (
+    const item of
+      payouts
   ) {
-    card.appendChild(
-      actions
+    list.appendChild(
+      buildPayoutCard({
+        item,
+        accessToken,
+        buildRepeatUrl,
+        onReceiptError
+      })
     );
   }
 
-  return card;
+  section.append(
+    header,
+    list
+  );
+
+  root.appendChild(
+    section
+  );
 }
 
 
@@ -546,204 +698,177 @@ export async function initPayHistory({
       "payHistory"
     );
 
-  const unavailable =
-    requireElement(
-      "payHistoryUnavailable"
-    );
+  let destroyed =
+    false;
 
-  const loading =
-    requireElement(
-      "payHistoryLoading"
-    );
+  let receiptErrorCard =
+    null;
 
-  const error =
-    requireElement(
-      "payHistoryError"
-    );
+  function removeReceiptError() {
+    if (!receiptErrorCard) {
+      return;
+    }
 
-  const errorMessage =
-    requireElement(
-      "payHistoryErrorMessage"
-    );
+    receiptErrorCard.remove();
 
-  const receiptError =
-    requireElement(
-      "payHistoryReceiptError"
-    );
-
-  const receiptErrorMessage =
-    requireElement(
-      "payHistoryReceiptErrorMessage"
-    );
-
-  const empty =
-    requireElement(
-      "payHistoryEmpty"
-    );
-
-  const payouts =
-    requireElement(
-      "payHistoryPayouts"
-    );
-
-  const payoutList =
-    requireElement(
-      "payHistoryPayoutList"
-    );
-
-  function hideStates() {
-    setHidden(
-      unavailable,
-      true
-    );
-
-    setHidden(
-      loading,
-      true
-    );
-
-    setHidden(
-      error,
-      true
-    );
-
-    setHidden(
-      empty,
-      true
-    );
-
-    setHidden(
-      payouts,
-      true
-    );
+    receiptErrorCard =
+      null;
   }
 
-  function hideReceiptError() {
-    setHidden(
-      receiptError,
-      true
-    );
-  }
+  function showReceiptError() {
+    if (destroyed) {
+      return;
+    }
 
-  function showReceiptError(
-    requestError
-  ) {
-    receiptErrorMessage.textContent =
-      requestError?.message ||
-      "Unable to download receipt. Please try again.";
+    removeReceiptError();
 
-    setHidden(
-      receiptError,
-      false
+    receiptErrorCard =
+      buildStateCard({
+        message:
+          "Unable to download receipt. Please try again.",
+
+        role:
+          "alert"
+      });
+
+    root.prepend(
+      receiptErrorCard
     );
   }
 
   clearElement(
-    payoutList
+    root
   );
 
-  hideStates();
-  hideReceiptError();
-
   if (!accessToken) {
-    setHidden(
-      unavailable,
-      false
+    renderState(
+      root,
+      {
+        title:
+          "History unavailable",
+
+        message:
+          "This session does not have access to payout history."
+      }
     );
 
     return {
-      destroy() {}
+      root,
+
+      destroy() {
+        destroyed =
+          true;
+
+        clearElement(
+          root
+        );
+      }
     };
   }
 
-  setHidden(
-    loading,
-    false
+  renderState(
+    root,
+    {
+      message:
+        "Loading history..."
+    }
   );
 
   try {
-    const data =
+    const result =
       await getPayoutHistory({
         partner,
         accessToken,
         limit
       });
 
+    if (destroyed) {
+      return {
+        root,
+
+        destroy() {}
+      };
+    }
+
     const recentPayouts =
       Array.isArray(
-        data?.recent_payouts
+        result?.recent_payouts
       )
-        ? data.recent_payouts
+        ? result.recent_payouts
         : [];
-
-    setHidden(
-      loading,
-      true
-    );
 
     if (
       recentPayouts.length ===
       0
     ) {
-      setHidden(
-        empty,
-        false
+      renderState(
+        root,
+        {
+          title:
+            "No payouts yet",
+
+          message:
+            "Completed payouts will appear here."
+        }
       );
 
       return {
-        destroy() {}
+        root,
+
+        destroy() {
+          destroyed =
+            true;
+
+          clearElement(
+            root
+          );
+        }
       };
     }
 
-    for (
-      const item of
-        recentPayouts
-    ) {
-      payoutList.appendChild(
-        buildPayoutCard({
-          item,
-          accessToken,
-          buildRepeatUrl,
-
-          onReceiptError:
-            showReceiptError
-        })
-      );
-    }
-
-    setHidden(
-      payouts,
-      false
-    );
+    renderPayoutHistory({
+      root,
+      payouts:
+        recentPayouts,
+      accessToken,
+      buildRepeatUrl,
+      onReceiptError:
+        showReceiptError
+    });
   }
   catch (
-    requestError
+    error
   ) {
-    setHidden(
-      loading,
-      true
-    );
+    if (!destroyed) {
+      renderState(
+        root,
+        {
+          title:
+            "Could not load history",
 
-    errorMessage.textContent =
-      requestError?.message ||
-      "History could not be loaded.";
+          message:
+            error?.message ||
+            "History could not be loaded.",
 
-    setHidden(
-      error,
-      false
-    );
+          role:
+            "alert"
+        }
+      );
+    }
   }
 
   return {
     root,
 
     destroy() {
-      clearElement(
-        payoutList
-      );
+      destroyed =
+        true;
 
-      hideStates();
-      hideReceiptError();
+      removeReceiptError();
+
+      clearElement(
+        root
+      );
     }
   };
 }
