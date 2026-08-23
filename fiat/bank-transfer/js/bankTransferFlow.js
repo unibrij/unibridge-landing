@@ -64,65 +64,8 @@ import {
 const FIAT_CONTEXT_KEY =
   "unibridge_fiat_context";
 
-
-/*
---------------------------------------------------
-View
---------------------------------------------------
-*/
-
-function isHistoryView() {
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-  return (
-    params.get(
-      "view"
-    ) ===
-    "history"
-  );
-}
-
-
-/*
---------------------------------------------------
-State
---------------------------------------------------
-*/
-
-const query =
-  readQueryParams();
-
-const state =
-  resolveInitialState(
-    getDefaultSourceRail()
-  );
-
-const runtime = {
-  preparedQuote:
-    state.settlement_id
-      ? state.prepared_quote || null
-      : null,
-
-  autoResumeStarted:
-    false,
-
-  repeatSource:
-    null
-};
-
-
-const quoteBox =
-  document.getElementById(
-    "quoteBox"
-  );
-
-const instructionsBox =
-  document.getElementById(
-    "instructionsBox"
-  );
+let initPromise =
+  null;
 
 
 /*
@@ -147,9 +90,11 @@ function readFiatContextObject() {
   }
 
   try {
-    return JSON.parse(
-      raw
-    ) || {};
+    return (
+      JSON.parse(
+        raw
+      ) || {}
+    );
   }
   catch {
     return {};
@@ -177,19 +122,6 @@ function hasFiatContext() {
   );
 }
 
-
-/*
---------------------------------------------------
-Entry context
---------------------------------------------------
-
-Normal flow requires the Pay-created fiat context.
-
-Repeat flow is allowed to rebuild that context from
-the visible entry form. The user may therefore choose
-a source country before requesting the new quote.
---------------------------------------------------
-*/
 
 function hasEntryContext() {
   return (
@@ -226,159 +158,153 @@ function startNewTransfer() {
 
 /*
 --------------------------------------------------
-Persistence
---------------------------------------------------
-*/
-
-function persist(values = {}) {
-  Object.assign(
-    state,
-    values
-  );
-
-  writeStoredState(
-    state
-  );
-
-  if (
-    values.bank_customer_ref
-  ) {
-    writeBankCustomerRef(
-      values.bank_customer_ref
-    );
-  }
-}
-
-
-/*
---------------------------------------------------
-Entry routes
---------------------------------------------------
-*/
-
-async function initEntryRoutes() {
-  hideCustomerProfileForm();
-
-  if (
-    state.settlement_id
-  ) {
-    hideCustomerProfileForm();
-
-    return;
-  }
-
-  setEntryButtonsForPreparing();
-
-  try {
-    await loadBankTransferRoutes();
-
-    setEntryButtonsForQuoteIdle({
-      hasFiatContext:
-        hasEntryContext()
-    });
-
-    hideCustomerProfileForm();
-  }
-  catch (err) {
-    hideCustomerProfileForm();
-
-    console.error(
-      "BANK_TRANSFER_CONTEXT_LOAD_FAILED",
-      err
-    );
-
-    setEntryButtonsForQuoteIdle({
-      hasFiatContext:
-        hasEntryContext()
-    });
-  }
-}
-
-
-/*
---------------------------------------------------
-Initial auth
---------------------------------------------------
-*/
-
-async function syncInitialAuthBeforeResume({
-  handlers
-} = {}) {
-  if (
-    !hasFiatContext() &&
-    !state.settlement_id
-  ) {
-    return {
-      reset:
-        false
-    };
-  }
-
-  return syncAuthOwnerOrReset({
-    state,
-    query
-  });
-}
-
-
-/*
---------------------------------------------------
-Repeat payout
---------------------------------------------------
-*/
-
-async function initRepeatPayout() {
-  if (
-    !isRepeatPayoutView()
-  ) {
-    return;
-  }
-
-  const source =
-    await loadRepeatPayoutSource();
-
-  if (!source) {
-    return;
-  }
-
-  runtime.repeatSource =
-    source;
-
-  applyRepeatEntryPrefill(
-    source
-  );
-}
-
-
-function createQuoteHandler(
-  handleQuote
-) {
-  return async function handleQuoteWithRepeat() {
-    await handleQuote();
-
-    if (
-      runtime.repeatSource
-    ) {
-      applyRepeatRoutePrefill(
-        runtime.repeatSource
-      );
-    }
-  };
-}
-
-
-/*
---------------------------------------------------
-Init
+Initialization
 --------------------------------------------------
 */
 
 async function init() {
+  const query =
+    readQueryParams();
+
+  const state =
+    resolveInitialState(
+      getDefaultSourceRail()
+    );
+
+  const runtime = {
+    preparedQuote:
+      state.settlement_id
+        ? state.prepared_quote || null
+        : null,
+
+    autoResumeStarted:
+      false,
+
+    repeatSource:
+      null
+  };
+
+
+  const quoteBox =
+    document.getElementById(
+      "quoteBox"
+    );
+
+  const instructionsBox =
+    document.getElementById(
+      "instructionsBox"
+    );
+
   if (
-    isHistoryView()
+    !quoteBox ||
+    !instructionsBox
   ) {
-    return;
+    throw new Error(
+      "bank_transfer_flow_mount_missing"
+    );
   }
+
+
+  /*
+  ------------------------------------------------
+  Persistence
+  ------------------------------------------------
+  */
+
+  function persist(
+    values = {}
+  ) {
+    Object.assign(
+      state,
+      values
+    );
+
+    writeStoredState(
+      state
+    );
+
+    if (
+      values.bank_customer_ref
+    ) {
+      writeBankCustomerRef(
+        values.bank_customer_ref
+      );
+    }
+  }
+
+
+  /*
+  ------------------------------------------------
+  Entry routes
+  ------------------------------------------------
+  */
+
+  async function initEntryRoutes() {
+    hideCustomerProfileForm();
+
+    if (
+      state.settlement_id
+    ) {
+      return;
+    }
+
+    setEntryButtonsForPreparing();
+
+    try {
+      await loadBankTransferRoutes();
+    }
+    catch (
+      error
+    ) {
+      console.error(
+        "BANK_TRANSFER_CONTEXT_LOAD_FAILED",
+        error
+      );
+    }
+
+    setEntryButtonsForQuoteIdle({
+      hasFiatContext:
+        hasEntryContext()
+    });
+
+    hideCustomerProfileForm();
+  }
+
+
+  /*
+  ------------------------------------------------
+  Repeat payout
+  ------------------------------------------------
+  */
+
+  async function initRepeatPayout() {
+    if (
+      !isRepeatPayoutView()
+    ) {
+      return;
+    }
+
+    const source =
+      await loadRepeatPayoutSource();
+
+    if (!source) {
+      return;
+    }
+
+    runtime.repeatSource =
+      source;
+
+    applyRepeatEntryPrefill(
+      source
+    );
+  }
+
+
+  /*
+  ------------------------------------------------
+  State recovery
+  ------------------------------------------------
+  */
 
   resetStaleSettlementAttempt({
     state,
@@ -388,6 +314,13 @@ async function init() {
   });
 
   hideCustomerProfileForm();
+
+
+  /*
+  ------------------------------------------------
+  Handlers
+  ------------------------------------------------
+  */
 
   const handlers =
     createBankTransferHandlers({
@@ -420,10 +353,24 @@ async function init() {
 
 
   const handleQuote =
-    createQuoteHandler(
-      handlers.handleQuote
-    );
+    async () => {
+      await handlers.handleQuote();
 
+      if (
+        runtime.repeatSource
+      ) {
+        applyRepeatRoutePrefill(
+          runtime.repeatSource
+        );
+      }
+    };
+
+
+  /*
+  ------------------------------------------------
+  Events
+  ------------------------------------------------
+  */
 
   attachBankTransferEvents({
     handleQuote,
@@ -454,22 +401,55 @@ async function init() {
   });
 
 
-  try {
-    const authSync =
-      await syncInitialAuthBeforeResume({
-        handlers
-      });
+  /*
+  ------------------------------------------------
+  Auth
+  ------------------------------------------------
+  */
 
-    if (
-      authSync?.reset
+  if (
+    hasFiatContext() ||
+    state.settlement_id
+  ) {
+    try {
+      const authSync =
+        await syncAuthOwnerOrReset({
+          state,
+          query
+        });
+
+      if (
+        authSync?.reset
+      ) {
+        invalidatePreparedQuote();
+
+        runtime.preparedQuote =
+          null;
+
+        runtime.autoResumeStarted =
+          false;
+
+        hideCustomerProfileForm();
+
+        showEntryMode();
+
+        resetEntryButtonsAfterAuthReset({
+          hasFiatContext:
+            hasEntryContext()
+        });
+
+        await initEntryRoutes();
+
+        return;
+      }
+    }
+    catch (
+      error
     ) {
-      invalidatePreparedQuote();
-
-      runtime.preparedQuote =
-        null;
-
-      runtime.autoResumeStarted =
-        false;
+      console.error(
+        "BANK_TRANSFER_INITIAL_AUTH_SYNC_FAILED",
+        error
+      );
 
       hideCustomerProfileForm();
 
@@ -480,40 +460,27 @@ async function init() {
           hasEntryContext()
       });
 
-      await initEntryRoutes();
+      setStatus({
+        kind:
+          "failed",
+
+        message:
+          resolveErrorMessage(
+            error
+          ) ||
+          "Could not verify the signed-in account."
+      });
 
       return;
     }
   }
-  catch (err) {
-    console.error(
-      "BANK_TRANSFER_INITIAL_AUTH_SYNC_FAILED",
-      err
-    );
 
-    hideCustomerProfileForm();
 
-    showEntryMode();
-
-    resetEntryButtonsAfterAuthReset({
-      hasFiatContext:
-        hasEntryContext()
-    });
-
-    setStatus({
-      kind:
-        "failed",
-
-      message:
-        resolveErrorMessage(
-          err
-        ) ||
-        "Could not verify the signed-in account."
-    });
-
-    return;
-  }
-
+  /*
+  ------------------------------------------------
+  Resume
+  ------------------------------------------------
+  */
 
   initResumeState({
     state,
@@ -527,8 +494,20 @@ async function init() {
   });
 
 
+  /*
+  ------------------------------------------------
+  Entry
+  ------------------------------------------------
+  */
+
   await initEntryRoutes();
 
+
+  /*
+  ------------------------------------------------
+  Repeat
+  ------------------------------------------------
+  */
 
   try {
     await initRepeatPayout();
@@ -540,10 +519,12 @@ async function init() {
       await handleQuote();
     }
   }
-  catch (err) {
+  catch (
+    error
+  ) {
     console.error(
       "BANK_TRANSFER_REPEAT_INIT_FAILED",
-      err
+      error
     );
 
     setStatus({
@@ -552,7 +533,7 @@ async function init() {
 
       message:
         resolveErrorMessage(
-          err
+          error
         ) ||
         "Could not load the previous payout."
     });
@@ -560,4 +541,25 @@ async function init() {
 }
 
 
-init();
+/*
+--------------------------------------------------
+Public init
+--------------------------------------------------
+*/
+
+export function initBankTransferFlow() {
+  if (!initPromise) {
+    initPromise =
+      init()
+        .catch(
+          error => {
+            initPromise =
+              null;
+
+            throw error;
+          }
+        );
+  }
+
+  return initPromise;
+}
