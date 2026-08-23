@@ -711,6 +711,63 @@ export async function getPayoutHistory({
   };
 }
 
+export async function getRepeatPayoutSource({
+  sourcePayoutIntentId,
+  accessToken
+}) {
+  const normalizedSourcePayoutIntentId =
+    String(
+      sourcePayoutIntentId ||
+      ""
+    ).trim();
+
+  if (
+    !normalizedSourcePayoutIntentId
+  ) {
+    throw new Error(
+      "source_payout_intent_id_required"
+    );
+  }
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/repeat-payout/${encodeURIComponent(
+        normalizedSourcePayoutIntentId
+      )}`,
+      {
+        method:
+          "GET",
+
+        headers:
+          buildCustomerAuthHeaders(
+            accessToken
+          )
+      }
+    );
+
+  const data =
+    await parseJson(
+      response
+    );
+
+  assertOk(
+    response,
+    data,
+    "get_repeat_payout_source_failed"
+  );
+
+  if (
+    !data.route_id ||
+    !data.beneficiary
+  ) {
+    throw new Error(
+      "repeat_payout_source_incomplete"
+    );
+  }
+
+  return data;
+}
+
 export async function repeatPayout({
   sourcePayoutIntentId,
   connectSessionId,
