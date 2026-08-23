@@ -25,6 +25,10 @@ import {
 } from "./routes";
 
 import {
+  getRepeatPayoutSource
+} from "./api";
+
+import {
   readStoredFlow,
   storeFlowSnapshot,
   clearStoredFlow
@@ -272,10 +276,11 @@ export default function App() {
   });
 
   /*
-   * Current / repeat flow access token.
+   * Flow-specific token.
    *
-   * Repeat always uses the source payout token.
-   * Never fall back to an unrelated last token.
+   * Prefer the token belonging to the payout that
+   * established the current flow when one is still
+   * available.
    */
   const [
     flowAccessToken
@@ -303,13 +308,17 @@ export default function App() {
     );
   });
 
+  /*
+   * Customer-auth fallback.
+   *
+   * History and repeat are customer-scoped by Core.
+   * Prefer the most recently stored customer access
+   * token because a source payout token may still be
+   * present locally after it has expired.
+   */
   const [
-    historyFallbackAccessToken
+    fallbackAccessToken
   ] = useState(() => {
-    if (!isHistoryPage) {
-      return null;
-    }
-
     return (
       readLastPayoutAccessToken()
         ?.token ||
@@ -320,15 +329,19 @@ export default function App() {
   const historyAccessToken =
     isHistoryPage
       ? (
+          fallbackAccessToken ||
           flowAccessToken ||
-          historyFallbackAccessToken ||
           null
         )
       : null;
 
   const repeatAccessToken =
     repeatSourcePayoutIntentId
-      ? flowAccessToken
+      ? (
+          fallbackAccessToken ||
+          flowAccessToken ||
+          null
+        )
       : null;
 
   const isReturnedFlow =
@@ -442,71 +455,210 @@ export default function App() {
         .EDITABLE;
 
   /*
-   * Repeat links initialize their own fresh local
-   * payout attempt while preserving the source
-   * payout reference.
+   * Repeat links hydrate their transfer specification
+   * from the authenticated source payout.
+   *
+   * Core is authoritative for the source route,
+   * amount, asset and beneficiary. No recipient data
+   * is carried in the URL.
    */
   useEffect(() => {
     if (
       repeatInitializedRef.current ||
       !repeatSourceFromUrl ||
-      !repeatRouteIdFromUrl
+      !repeatAccessToken
     ) {
       return;
     }
 
-    const repeatRoute =
-      getRouteById(
-        repeatRouteIdFromUrl,
-        routes
-      );
+    let cancelled =
+      false;
 
-    if (!repeatRoute) {
-      return;
+    async function initializeRepeat() {
+      try {
+        setIsBusy(
+          true
+        );
+
+        writeDebug(
+          "Preparing repeat payout..."
+        );
+
+        const source =
+          await getRepeatPayoutSource({
+            sourcePayoutIntentId:
+              repeatSourceFromUrl,
+
+            accessToken:
+              repeatAccessToken
+          });
+
+        if (cancelled) {
+          return;
+        }
+
+        const sourceRouteId =
+          String(
+            source?.route_id ||
+            repeatRouteIdFromUrl ||
+            ""
+          ).trim();
+
+        const repeatRoute =
+          getRouteById(
+            sourceRouteId,
+            routes
+          );
+
+        /*
+         * Route discovery may still be replacing the
+         * bundled catalog. Leave initialization open
+         * so this effect can run again when routes
+         * become available.
+         */
+        if (!repeatRoute) {
+          writeDebug(
+            "Repeat payout route is unavailable.",
+            {
+              route_id:
+                sourceRouteId ||
+                null
+            }
+          );
+
+          return;
+        }
+
+        const emptyForm =
+          buildEmptyForm(
+            repeatRoute
+          );
+
+        repeatInitializedRef.current =
+          true;
+
+        setRepeatSourcePayoutIntentId(
+          repeatSourceFromUrl
+        );
+
+        setSelectedRouteId(
+          repeatRoute.id
+        );
+
+        payoutIntentIdStateRef.current =
+          null;
+
+        setPayoutIntentId(
+          null
+        );
+
+        resetPayoutAttemptLifecycle();
+
+        setSettlement(
+          null
+        );
+
+        setFundingTxHash(
+          null
+        );
+
+        setForm({
+          ...emptyForm,
+
+          amount:
+            source?.amount !==
+              undefined &&
+            source?.amount !==
+              null
+              ? String(
+                  source.amount
+                )
+              : "",
+
+          asset:
+            String(
+              source?.asset ||
+              emptyForm?.asset ||
+              repeatRoute
+                ?.assets
+                ?.[0] ||
+              "USDT"
+            ).trim(),
+
+          beneficiary: {
+            ...(
+              emptyForm
+                ?.beneficiary ||
+              {}
+            ),
+
+            ...(
+              source
+                ?.beneficiary &&
+              typeof source
+                .beneficiary ===
+                "object" &&
+              !Array.isArray(
+                source
+                  .beneficiary
+              )
+                ? source
+                    .beneficiary
+                : {}
+            )
+          }
+        });
+
+        writeDebug(
+          "Repeat payout ready.",
+          {
+            source_payout_intent_id:
+              repeatSourceFromUrl,
+
+            route_id:
+              repeatRoute.id
+          }
+        );
+      }
+      catch (
+        err
+      ) {
+        if (cancelled) {
+          return;
+        }
+
+        writeDebug(
+          "Unable to prepare repeat payout.",
+          {
+            error:
+              err?.message ||
+              "get_repeat_payout_source_failed"
+          }
+        );
+      }
+      finally {
+        if (!cancelled) {
+          setIsBusy(
+            false
+          );
+        }
+      }
     }
 
-    repeatInitializedRef.current =
-      true;
+    initializeRepeat();
 
-    setRepeatSourcePayoutIntentId(
-      repeatSourceFromUrl
-    );
-
-    setSelectedRouteId(
-      repeatRoute.id
-    );
-
-    payoutIntentIdStateRef.current =
-      null;
-
-    setPayoutIntentId(
-      null
-    );
-
-    resetPayoutAttemptLifecycle();
-
-    setSettlement(
-      null
-    );
-
-    setFundingTxHash(
-      null
-    );
-
-    setForm({
-      ...buildEmptyForm(
-        repeatRoute
-      ),
-
-      amount:
-        ""
-    });
+    return () => {
+      cancelled =
+        true;
+    };
   }, [
+    repeatAccessToken,
     repeatRouteIdFromUrl,
     repeatSourceFromUrl,
     resetPayoutAttemptLifecycle,
     routes,
-    setSelectedRouteId
+    setSelectedRouteId,
+    writeDebug
   ]);
 
   const {
@@ -719,6 +871,9 @@ export default function App() {
           null
         );
 
+        repeatInitializedRef.current =
+          false;
+
         setReturnedFlowDismissed(
           true
         );
@@ -880,6 +1035,9 @@ export default function App() {
         setRepeatSourcePayoutIntentId(
           null
         );
+
+        repeatInitializedRef.current =
+          false;
 
         setReturnedFlowDismissed(
           true
