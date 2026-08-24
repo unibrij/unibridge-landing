@@ -75,7 +75,15 @@ const ALLOWED =
     "ramp/kyc/user",
     "ramp/order/create",
     "ramp/order/confirm-payment",
-    "ramp/order/status"
+    "ramp/order/status",
+
+    /*
+    --------------------------------------------------
+    Transak widget
+    --------------------------------------------------
+    */
+
+    "ramp/transak/widget"
   ]);
 
 const CLERK_AUTH_ENDPOINTS =
