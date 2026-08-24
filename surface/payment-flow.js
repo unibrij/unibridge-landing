@@ -168,10 +168,13 @@ export function createPaymentFlow({
         }
       );
 
-    setCurrentFundingProvider(
+    const fundingProvider =
       getFundingSelectedProvider(
         funding
-      )
+      );
+
+    setCurrentFundingProvider(
+      fundingProvider
     );
 
     state.currentNextAction =
@@ -183,6 +186,48 @@ export function createPaymentFlow({
       extractWidgetUrlFromFunding(
         funding
       );
+
+    /*
+    --------------------------------------------------
+    Transak widget handoff
+
+    Generic funding/session remains unchanged.
+
+    If Transak is the selected funding provider and the
+    funding session does not already contain a generic
+    next_action or widget URL, create/reuse the Transak
+    widget session through its dedicated backend route.
+    --------------------------------------------------
+    */
+
+    if (
+      fundingProvider ===
+        "transak" &&
+      !state.currentNextAction &&
+      !state.pendingWidgetUrl
+    ) {
+      const widget =
+        await apiPost(
+          "ramp/transak/widget",
+          {
+            settlement_id:
+              state.settlementId
+          }
+        );
+
+      state.pendingWidgetUrl =
+        widget?.widget_url ||
+        widget?.url ||
+        null;
+
+      if (
+        !state.pendingWidgetUrl
+      ) {
+        throw new Error(
+          "transak_missing_widget_url"
+        );
+      }
+    }
 
     return funding;
   }
