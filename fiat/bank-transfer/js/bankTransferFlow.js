@@ -166,6 +166,27 @@ async function init() {
   const query =
     readQueryParams();
 
+  /*
+  ------------------------------------------------
+  Repeat always starts a new payout attempt.
+
+  The previous completed settlement is only a source
+  for prefilling recipient and payout data.
+
+  Clear any persisted attempt state before restoring
+  local state so a stale settlement_id cannot resume.
+
+  FIAT_CONTEXT_KEY is intentionally preserved.
+  ------------------------------------------------
+  */
+
+  if (
+    isRepeatPayoutView()
+  ) {
+    clearStoredState();
+    invalidatePreparedQuote();
+  }
+
   const state =
     resolveInitialState(
       getDefaultSourceRail()
