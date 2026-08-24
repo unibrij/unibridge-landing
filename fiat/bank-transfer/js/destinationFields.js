@@ -12,85 +12,147 @@ import {
   resetProviderDestinations
 } from "./providerDestinationRegistry.js";
 
-function normalizeString(value) {
-  return String(value || "").trim();
+import {
+  renderDestinationFields as renderSharedDestinationFields,
+  collectDestination as collectSharedDestination,
+  prefillDestination,
+  clearDestinationFields as clearSharedDestinationFields
+} from "/shared/pay/destination/fields.js";
+
+import {
+  createDestinationOptionsResolver
+} from "/shared/pay/destination/options.js";
+
+import {
+  getRouteDestinationFields
+} from "/shared/pay/destination/schema.js";
+
+import {
+  normalizeString
+} from "/shared/pay/destination/fieldModel.js";
+
+
+function getEl(
+  id
+) {
+  return document.getElementById(
+    id
+  );
 }
 
-function escapeHtml(value) {
-  return normalizeString(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+function getContainer() {
+  return getEl(
+    "destinationFields"
+  );
 }
 
-function getEl(id) {
-  return document.getElementById(id);
-}
 
-function resolveFieldType(field = {}) {
-  const type =
-    normalizeString(field.type).toLowerCase();
+function getDestinationField(
+  name
+) {
+  const fieldName =
+    normalizeString(
+      name
+    );
 
-  if (
-    type === "email" ||
-    type === "tel" ||
-    type === "number"
-  ) {
-    return type;
+  if (!fieldName) {
+    return null;
   }
 
-  return "text";
+
+  const container =
+    getContainer();
+
+  if (!container) {
+    return null;
+  }
+
+
+  return (
+    container.querySelector(
+      `[data-destination-field-name="${CSS.escape(
+        fieldName
+      )}"]`
+    ) ||
+    getEl(
+      `destination_${fieldName}`
+    )
+  );
 }
+
+
+/*
+--------------------------------------------------
+Values
+--------------------------------------------------
+*/
 
 export function readDestinationFieldValues() {
-  const values = {};
+  const container =
+    getContainer();
 
-  getEl("destinationFields")
-    ?.querySelectorAll("input, select, textarea")
-    .forEach((el) => {
-      const name =
-        normalizeString(el.name);
+  if (!container) {
+    return {};
+  }
 
-      if (name) {
-        values[name] = el.value;
-      }
-    });
 
-  return values;
+  return collectSharedDestination({
+    container
+  });
 }
 
-export function restoreDestinationFieldValues(values = {}) {
-  getEl("destinationFields")
-    ?.querySelectorAll("input, select, textarea")
-    .forEach((el) => {
-      const name =
-        normalizeString(el.name);
 
-      if (
-        name &&
-        Object.prototype.hasOwnProperty.call(values, name)
-      ) {
-        el.value = values[name];
-      }
-    });
+export async function restoreDestinationFieldValues(
+  values = {}
+) {
+  const container =
+    getContainer();
+
+  if (!container) {
+    return;
+  }
+
+
+  await prefillDestination({
+    container,
+
+    beneficiary:
+      values
+  });
 }
+
+
+/*
+--------------------------------------------------
+Errors
+--------------------------------------------------
+*/
 
 export function clearDestinationErrors() {
-  getEl("destinationFields")
-    ?.querySelectorAll("input, select, textarea")
-    .forEach((el) => {
-      clearFieldError(el);
-    });
+  getContainer()
+    ?.querySelectorAll(
+      "input, select, textarea"
+    )
+    .forEach(
+      field => {
+        clearFieldError(
+          field
+        );
+      }
+    );
 }
 
-export function markDestinationFieldInvalid(name, message) {
-  const fieldName =
-    normalizeString(name);
 
+export function markDestinationFieldInvalid(
+  name,
+  message
+) {
   const input =
-    getEl(`destination_${fieldName}`);
+    getDestinationField(
+      name
+    );
+
 
   markFieldInvalid(
     input,
@@ -98,44 +160,117 @@ export function markDestinationFieldInvalid(name, message) {
   );
 }
 
-function bindClearErrorOnEdit(container) {
-  container
-    ?.querySelectorAll("input, select, textarea")
-    .forEach((el) => {
-      el.addEventListener("input", () => {
-        clearFieldError(el);
-      });
 
-      el.addEventListener("change", () => {
-        clearFieldError(el);
-      });
-    });
+function bindClearErrorOnEdit(
+  container
+) {
+  if (
+    !container ||
+    container.dataset
+      .clearErrorOnEditBound ===
+      "1"
+  ) {
+    return;
+  }
+
+
+  const clearEditedFieldError =
+    event => {
+      const field =
+        event.target;
+
+
+      if (
+        !field?.matches?.(
+          "input, select, textarea"
+        )
+      ) {
+        return;
+      }
+
+
+      clearFieldError(
+        field
+      );
+    };
+
+
+  container.addEventListener(
+    "input",
+    clearEditedFieldError
+  );
+
+
+  container.addEventListener(
+    "change",
+    clearEditedFieldError
+  );
+
+
+  container.dataset
+    .clearErrorOnEditBound =
+    "1";
 }
 
-export function renderDestinationFields({
+
+/*
+--------------------------------------------------
+Render
+--------------------------------------------------
+*/
+
+export async function renderDestinationFields({
   availableRoutes = [],
   selectedRouteId = "",
   getSelectedRoute,
   onChange
 } = {}) {
   const container =
-    getEl("destinationFields");
+    getContainer();
+
 
   if (!container) {
     return;
   }
 
+
   const previousValues =
     readDestinationFieldValues();
 
-  if (!availableRoutes.length || !selectedRouteId) {
-    container.innerHTML = "";
+
+  if (
+    !availableRoutes.length ||
+    !selectedRouteId
+  ) {
+    clearSharedDestinationFields({
+      container
+    });
+
     resetProviderDestinations();
+
     return;
   }
 
+
+  if (
+    typeof getSelectedRoute !==
+    "function"
+  ) {
+    throw new Error(
+      "destination_selected_route_resolver_missing"
+    );
+  }
+
+
   const route =
     getSelectedRoute();
+
+
+  /*
+  ------------------------------------------------
+  Temporary provider-specific adapter
+  --------------------------------------------------
+  */
 
   if (
     renderProviderDestination({
@@ -144,112 +279,201 @@ export function renderDestinationFields({
       onChange
     })
   ) {
+    bindClearErrorOnEdit(
+      container
+    );
+
     return;
   }
 
+
   resetProviderDestinations();
 
+
   const fields =
-    route.required_destination_fields || [];
+    getRouteDestinationFields(
+      route
+    );
 
-  container.innerHTML =
-    fields
-      .map((field) => {
-        const name =
-          normalizeString(field.name);
 
-        if (!name) {
-          return "";
-        }
+  const resolveOptions =
+    createDestinationOptionsResolver({
+      route
+    });
 
-        return `
-          <label class="field">
-            <span>${escapeHtml(field.label || name)}</span>
-            <input
-              id="destination_${escapeHtml(name)}"
-              name="${escapeHtml(name)}"
-              type="${escapeHtml(resolveFieldType(field))}"
-              ${field.required !== false ? "required" : ""}
-            />
-          </label>
-        `;
-      })
-      .join("");
 
-  restoreDestinationFieldValues(
-    previousValues
-  );
+  await renderSharedDestinationFields({
+    container,
+    route,
+    fields,
+    resolveOptions,
+    initialValues:
+      previousValues,
+    onChange
+  });
+
 
   bindClearErrorOnEdit(
     container
   );
 }
 
-export function collectDestination(route = {}) {
-  clearDestinationErrors();
 
-  const providerDestination =
-    collectProviderDestination(route);
+/*
+--------------------------------------------------
+Validation
+--------------------------------------------------
+*/
 
-  if (providerDestination) {
-    return providerDestination;
-  }
+function validateDestination({
+  route,
+  destination
+}) {
+  const container =
+    getContainer();
 
-  const destination = {};
 
-  for (const field of route.required_destination_fields || []) {
+  const renderedFields =
+    container
+      ? Array.from(
+          container.querySelectorAll(
+            "[data-destination-field='1']"
+          )
+        )
+      : [];
+
+
+  for (
+    const field of
+      renderedFields
+  ) {
     const name =
-      normalizeString(field.name);
+      normalizeString(
+        field.name ||
+        field.dataset
+          ?.destinationFieldName
+      );
+
 
     if (!name) {
       continue;
     }
 
-    const input =
-      getEl(`destination_${name}`);
 
     const value =
-      normalizeString(input?.value);
+      normalizeString(
+        destination[
+          name
+        ]
+      );
 
-    if (field.required !== false && !value) {
+
+    if (
+      field.required &&
+      !value
+    ) {
+      const label =
+        field
+          .closest(
+            ".destination-field"
+          )
+          ?.querySelector(
+            ".destination-field-label"
+          )
+          ?.childNodes?.[0]
+          ?.textContent
+          ?.trim() ||
+        name;
+
+
       const code =
         `destination_field_required_${name}`;
 
+
       const message =
-        `${field.label || name} is required.`;
+        `${label} is required.`;
+
 
       markDestinationFieldInvalid(
         name,
         message
       );
 
+
       throw createHandledFieldError({
         code,
+
         field:
           `destination_${name}`,
+
         message
       });
     }
-
-    if (value) {
-      destination[name] = value;
-    }
   }
 
+
   if (
-    route.destination_required !== false &&
-    route.required_destination_fields?.length &&
-    !Object.keys(destination).length
+    route.destination_required !==
+      false &&
+    renderedFields.length &&
+    !Object.keys(
+      destination
+    ).length
   ) {
     throw createHandledFieldError({
       code:
         "destination_required",
+
       field:
         "destinationFields",
+
       message:
         "Destination details are required."
     });
   }
+}
+
+
+/*
+--------------------------------------------------
+Collect
+--------------------------------------------------
+*/
+
+export function collectDestination(
+  route = {}
+) {
+  clearDestinationErrors();
+
+
+  const providerDestination =
+    collectProviderDestination(
+      route
+    );
+
+
+  if (
+    providerDestination
+  ) {
+    return providerDestination;
+  }
+
+
+  const container =
+    getContainer();
+
+
+  const destination =
+    collectSharedDestination({
+      container
+    });
+
+
+  validateDestination({
+    route,
+    destination
+  });
+
 
   return destination;
 }
