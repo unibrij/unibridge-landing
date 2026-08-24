@@ -129,24 +129,12 @@
     </div>
 
     <div id="surfaceApp">
-      <section
-        class="hero"
-        aria-labelledby="paymentFundingTitle"
+      <h1
+        id="paymentFundingTitle"
+        class="sr-only"
       >
-        <h1
-          id="paymentFundingTitle"
-          class="sr-only"
-        >
-          Fund your payout
-        </h1>
-
-        <p
-          class="eyebrow"
-          aria-hidden="true"
-        >
-          Payment funding
-        </p>
-      </section>
+        Fund your payout
+      </h1>
 
       <section class="card">
         <section id="fiatReactRoot"></section>
@@ -280,7 +268,7 @@
           ></section>
 
           <section
-            id="pixBox"
+            id="destinationBox"
             class="hidden"
           >
             <div class="entry-header compact">
@@ -294,31 +282,10 @@
               </p>
             </div>
 
-            <div class="form-grid">
-              <label class="field">
-                <span>
-                  PIX key
-                </span>
-
-                <input
-                  id="pix"
-                  placeholder="Enter PIX key"
-                />
-              </label>
-
-              <div id="taxBox">
-                <label class="field">
-                  <span>
-                    Tax ID
-                  </span>
-
-                  <input
-                    id="taxId"
-                    placeholder="CPF / CNPJ"
-                  />
-                </label>
-              </div>
-            </div>
+            <div
+              id="destinationFields"
+              class="form-grid"
+            ></div>
 
             <button
               id="continueBtn"
@@ -328,10 +295,6 @@
             >
               Continue to payment
             </button>
-
-            <div class="muted">
-              Enter a valid PIX key for the recipient.
-            </div>
           </section>
 
           <section
@@ -553,7 +516,9 @@
   ></script>
 
   <script>
-    function setStep(n) {
+    function setStep(
+      n
+    ) {
       for (
         let i = 1;
         i <= 5;
@@ -579,6 +544,7 @@
         );
     }
 
+
     function showElement(
       element
     ) {
@@ -593,6 +559,7 @@
       element.style.display =
         "";
     }
+
 
     function hideElement(
       element
@@ -609,19 +576,15 @@
         "none";
     }
 
+
     const quoteBox =
       document.getElementById(
         "quoteBox"
       );
 
-    const pixBox =
+    const destinationBox =
       document.getElementById(
-        "pixBox"
-      );
-
-    const taxBox =
-      document.getElementById(
-        "taxBox"
+        "destinationBox"
       );
 
     const authBox =
@@ -639,6 +602,7 @@
         "coinsPhRecipientFields"
       );
 
+
     function getSelectedDestinationCountry() {
       return (
         document
@@ -646,9 +610,10 @@
             "country"
           )
           ?.value ||
-        "BR"
+        ""
       );
     }
+
 
     function showQuote() {
       if (
@@ -663,35 +628,27 @@
       );
     }
 
+
     function hideQuote() {
       hideElement(
         quoteBox
       );
     }
 
-    function showPixBox() {
+
+    function showGenericDestinationBox() {
       showElement(
-        pixBox
+        destinationBox
       );
     }
 
-    function hidePixBox() {
+
+    function hideGenericDestinationBox() {
       hideElement(
-        pixBox
+        destinationBox
       );
     }
 
-    function showTaxBox() {
-      showElement(
-        taxBox
-      );
-    }
-
-    function hideTaxBox() {
-      hideElement(
-        taxBox
-      );
-    }
 
     function showAuthBox() {
       showElement(
@@ -699,17 +656,20 @@
       );
     }
 
+
     function hideAuthBox() {
       hideElement(
         authBox
       );
     }
 
+
     function showCoinsPhBox() {
       showElement(
         coinsPhBox
       );
     }
+
 
     function hideCoinsPhBox() {
       hideElement(
@@ -725,34 +685,44 @@
       }
     }
 
+
     function showDestinationBox() {
       if (
         getSelectedDestinationCountry() ===
         "PH"
       ) {
-        hidePixBox();
-        hideTaxBox();
+        hideGenericDestinationBox();
+
         showCoinsPhBox();
 
         return;
       }
 
       hideCoinsPhBox();
-      showPixBox();
+
+      showGenericDestinationBox();
     }
 
+
     function hideDestinationBoxes() {
-      hidePixBox();
-      hideTaxBox();
+      hideGenericDestinationBox();
+
       hideCoinsPhBox();
     }
 
+
     function resetUiToStart() {
       hideQuote();
+
       hideDestinationBoxes();
+
       hideAuthBox();
-      setStep(1);
+
+      setStep(
+        1
+      );
     }
+
 
     window.resetUiToStart =
       resetUiToStart;
@@ -769,81 +739,91 @@
     window.hideCoinsPhBox =
       hideCoinsPhBox;
 
+
     window.addEventListener(
       "unibridge:quote",
       () => {
         showQuote();
+
         showDestinationBox();
+
         hideAuthBox();
-        setStep(2);
+
+        setStep(
+          2
+        );
       }
     );
+
 
     window.addEventListener(
       "unibridge:payment",
       () => {
         showQuote();
+
         showDestinationBox();
+
         hideAuthBox();
-        setStep(3);
+
+        setStep(
+          3
+        );
       }
     );
+
 
     window.addEventListener(
       "unibridge:funding",
       () => {
         showQuote();
+
         hideDestinationBoxes();
+
         hideAuthBox();
-        setStep(4);
+
+        setStep(
+          4
+        );
       }
     );
+
 
     window.addEventListener(
       "unibridge:auth",
       () => {
         showQuote();
+
         hideDestinationBoxes();
+
         showAuthBox();
-        setStep(3);
+
+        setStep(
+          3
+        );
       }
     );
+
 
     window.addEventListener(
       "unibridge:done",
       () => {
         showQuote();
+
         hideDestinationBoxes();
+
         hideAuthBox();
-        setStep(5);
+
+        setStep(
+          5
+        );
       }
     );
+
 
     document.addEventListener(
       "DOMContentLoaded",
       () => {
         resetUiToStart();
-
-        const countrySelect =
-          document.getElementById(
-            "country"
-          );
-
-        countrySelect
-          ?.addEventListener(
-            "change",
-            () => {
-              if (
-                quoteBox &&
-                quoteBox.childElementCount > 0 &&
-                !quoteBox.classList.contains(
-                  "hidden"
-                )
-              ) {
-                showDestinationBox();
-              }
-            }
-          );
       }
     );
   </script>
