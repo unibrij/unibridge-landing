@@ -37,7 +37,7 @@ function normalizeField(
     return null;
   }
 
-  const normalized = {
+  return {
     ...source,
 
     name,
@@ -59,8 +59,6 @@ function normalizeField(
       source.required !==
       false
   };
-
-  return normalized;
 }
 
 
@@ -138,6 +136,11 @@ function normalizeFields(
     },
     required: [...]
   }
+
+  Semantics:
+  - if root required[] exists, it is authoritative
+  - if root required[] is absent, field.required is used
+  - fields remain required by default unless explicitly false
   ------------------------------------------------
   */
 
@@ -149,11 +152,14 @@ function normalizeFields(
       candidate.properties
     )
   ) {
+    const hasRequiredList =
+      Array.isArray(
+        candidate.required
+      );
+
     const requiredNames =
       new Set(
-        Array.isArray(
-          candidate.required
-        )
+        hasRequiredList
           ? candidate.required
               .map(
                 normalizeString
@@ -173,24 +179,29 @@ function normalizeFields(
           name,
           field
         ]) => {
+          const source =
+            (
+              field &&
+              typeof field ===
+                "object" &&
+              !Array.isArray(
+                field
+              )
+            )
+              ? field
+              : {};
+
           return normalizeField(
             {
-              ...(
-                field &&
-                typeof field ===
-                  "object"
-                  ? field
-                  : {}
-              ),
+              ...source,
 
               required:
-                requiredNames.has(
-                  name
-                ) ||
-                field?.required ===
-                  true
+                hasRequiredList
+                  ? requiredNames.has(
+                      name
+                    )
+                  : source.required
             },
-
             name
           );
         }
