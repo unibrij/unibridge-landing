@@ -322,17 +322,25 @@ export function getHistoryRecipientInitials(
 /*
 --------------------------------------------------
 Repeat state
+
+Fiat repeat is settlement-based.
+
+The previous completed settlement is used only as
+the source for prefilling the new payout flow.
+
+A new quote and a new settlement are still required
+for every repeated payout.
 --------------------------------------------------
 */
 
 export function buildRepeatParams(
   item
 ) {
-  const sourcePayoutIntentId =
+  const sourceSettlementId =
     normalizeString(
       item
-        ?.repeat_source_payout_intent_id ||
-      item?.payout_intent_id
+        ?.repeat_source_settlement_id ||
+      item?.settlement_id
     );
 
   const routeId =
@@ -341,7 +349,7 @@ export function buildRepeatParams(
     );
 
   if (
-    !sourcePayoutIntentId ||
+    !sourceSettlementId ||
     !routeId ||
     item?.repeat_available ===
       false
@@ -350,8 +358,8 @@ export function buildRepeatParams(
   }
 
   return new URLSearchParams({
-    repeat_source_payout_intent_id:
-      sourcePayoutIntentId,
+    repeat_source_settlement_id:
+      sourceSettlementId,
 
     route_id:
       routeId
@@ -526,7 +534,7 @@ function buildProxyUrl({
 
 /*
 --------------------------------------------------
-Payout history
+Fiat payout history
 --------------------------------------------------
 */
 
@@ -559,7 +567,7 @@ export async function getPayoutHistory({
         partner,
 
         endpoint:
-          "connect/payout-history",
+          "fiat/payout-history",
 
         query: {
           limit:
@@ -611,31 +619,36 @@ export async function getPayoutHistory({
 
 /*
 --------------------------------------------------
-Repeat payout source
+Fiat repeat payout source
+
+Repeat source is a completed settlement.
+
+The endpoint only returns the previous payout data
+required to prefill the normal Fiat flow.
 --------------------------------------------------
 */
 
 export async function getRepeatPayoutSource({
   partner,
-  sourcePayoutIntentId,
+  sourceSettlementId,
   accessToken
 }) {
-  const normalizedSourcePayoutIntentId =
+  const normalizedSourceSettlementId =
     normalizeString(
-      sourcePayoutIntentId
+      sourceSettlementId
     );
 
   if (
-    !normalizedSourcePayoutIntentId
+    !normalizedSourceSettlementId
   ) {
     throw new Error(
-      "source_payout_intent_id_required"
+      "source_settlement_id_required"
     );
   }
 
   const endpoint =
-    `connect/repeat-payout/${encodeURIComponent(
-      normalizedSourcePayoutIntentId
+    `fiat/repeat-payout/${encodeURIComponent(
+      normalizedSourceSettlementId
     )}`;
 
   const response =
