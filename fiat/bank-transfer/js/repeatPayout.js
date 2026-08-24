@@ -6,6 +6,14 @@ import {
   loadRepeatPayoutSource as loadSharedRepeatPayoutSource
 } from "/shared/pay/history/repeat.js";
 
+import {
+  restoreDestinationFieldValues
+} from "./destinationFields.js";
+
+import {
+  selectBankTransferRoute
+} from "./entryForm.js";
+
 
 const PARTNER =
   "fiat_bank_transfer";
@@ -52,15 +60,18 @@ export async function loadRepeatPayoutSource() {
   } =
     readRepeatPayoutRequest();
 
+
   if (!sourceSettlementId) {
     return null;
   }
+
 
   const source =
     await loadSharedRepeatPayoutSource({
       partner:
         PARTNER
     });
+
 
   if (
     !source ||
@@ -71,6 +82,7 @@ export async function loadRepeatPayoutSource() {
       "repeat_payout_source_unavailable"
     );
   }
+
 
   return {
     source_settlement_id:
@@ -140,6 +152,7 @@ function setFieldValue(
       id
     );
 
+
   if (
     !field ||
     value ===
@@ -151,6 +164,7 @@ function setFieldValue(
   ) {
     return;
   }
+
 
   field.value =
     String(
@@ -167,10 +181,12 @@ export function applyRepeatEntryPrefill(
     source.receiver_country
   );
 
+
   setFieldValue(
     "amount",
     source.amount
   );
+
 
   document
     .getElementById(
@@ -185,6 +201,7 @@ export function applyRepeatEntryPrefill(
         }
       )
     );
+
 
   document
     .getElementById(
@@ -208,80 +225,7 @@ Route + beneficiary prefill
 --------------------------------------------------
 */
 
-function applyGenericBeneficiary(
-  beneficiary = {}
-) {
-  const container =
-    document.getElementById(
-      "destinationFields"
-    );
-
-  if (!container) {
-    return;
-  }
-
-  Object
-    .entries(
-      beneficiary
-    )
-    .forEach(
-      ([
-        name,
-        value
-      ]) => {
-        if (
-          value ===
-            undefined ||
-          value ===
-            null
-        ) {
-          return;
-        }
-
-        const field =
-          container.querySelector(
-            `[name="${CSS.escape(
-              name
-            )}"]`
-          ) ||
-          document.getElementById(
-            `destination_${name}`
-          );
-
-        if (!field) {
-          return;
-        }
-
-        field.value =
-          String(
-            value
-          );
-
-        field.dispatchEvent(
-          new Event(
-            "input",
-            {
-              bubbles:
-                true
-            }
-          )
-        );
-
-        field.dispatchEvent(
-          new Event(
-            "change",
-            {
-              bubbles:
-                true
-            }
-          )
-        );
-      }
-    );
-}
-
-
-export function applyRepeatRoutePrefill(
+export async function applyRepeatRoutePrefill(
   source = {}
 ) {
   const routeId =
@@ -289,40 +233,28 @@ export function applyRepeatRoutePrefill(
       source.route_id
     );
 
-  const routeSelect =
-    document.getElementById(
-      "routeId"
-    );
 
-  if (
-    routeId &&
-    routeSelect &&
-    Array
-      .from(
-        routeSelect.options
-      )
-      .some(
-        option =>
-          option.value ===
-          routeId &&
-          !option.disabled
-      )
-  ) {
-    routeSelect.value =
-      routeId;
-
-    routeSelect.dispatchEvent(
-      new Event(
-        "change",
-        {
-          bubbles:
-            true
-        }
-      )
+  if (!routeId) {
+    throw new Error(
+      "repeat_route_missing"
     );
   }
 
-  applyGenericBeneficiary(
+
+  const selected =
+    await selectBankTransferRoute(
+      routeId
+    );
+
+
+  if (!selected) {
+    throw new Error(
+      "repeat_route_not_available"
+    );
+  }
+
+
+  await restoreDestinationFieldValues(
     source.beneficiary
   );
 }
