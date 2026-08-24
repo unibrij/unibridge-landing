@@ -25,6 +25,10 @@ import {
 } from "./continue-buttons.js";
 
 import {
+  createSurfaceDestinationFields
+} from "./destination-fields.js";
+
+import {
   createDestinationPayloadBuilders
 } from "./destination-payload.js";
 
@@ -113,10 +117,16 @@ async function init() {
       "quoteBox"
     );
 
+  const destinationFieldsContainer =
+    document.getElementById(
+      "destinationFields"
+    );
+
   if (
     !sendBtn ||
     !statusBox ||
-    !quoteBox
+    !quoteBox ||
+    !destinationFieldsContainer
   ) {
     throw new Error(
       "surface_app_mount_missing"
@@ -248,7 +258,6 @@ async function init() {
 
   const {
     isPhilippinesDestination,
-    isBrazilDestination,
     getCountryLabel,
     getSourceCountryCode
   } =
@@ -285,6 +294,86 @@ async function init() {
 
   let coinsPhPicker =
     null;
+
+  let destinationFields =
+    null;
+
+
+  /* =========================
+     DESTINATION FIELDS
+  ========================= */
+
+  function syncGenericDestinationContinueState() {
+    if (
+      !continueBtn ||
+      isPhilippinesDestination()
+    ) {
+      return;
+    }
+
+    let destinationValid =
+      false;
+
+    try {
+      destinationFields
+        ?.collect();
+
+      destinationValid =
+        true;
+    }
+    catch {
+      destinationValid =
+        false;
+    }
+
+    continueBtn.disabled =
+      !destinationValid ||
+      !quoteFlow
+        ?.isCurrentRouteAmountAvailable();
+  }
+
+
+  destinationFields =
+    createSurfaceDestinationFields({
+      container:
+        destinationFieldsContainer,
+
+      onChange() {
+        syncGenericDestinationContinueState();
+      }
+    });
+
+
+  async function renderDestinationRoute(
+    route
+  ) {
+    if (
+      isPhilippinesDestination()
+    ) {
+      destinationFields.clear();
+
+      return false;
+    }
+
+    const rendered =
+      await destinationFields.renderRoute(
+        route
+      );
+
+    syncGenericDestinationContinueState();
+
+    return rendered;
+  }
+
+
+  function clearDestinationRoute() {
+    destinationFields.clear();
+
+    if (continueBtn) {
+      continueBtn.disabled =
+        true;
+    }
+  }
 
 
   /* =========================
@@ -358,6 +447,8 @@ async function init() {
       false;
 
     clearPersistedSurfaceSettlement();
+
+    clearDestinationRoute();
 
     quoteFlow
       ?.resetQuoteState();
@@ -443,6 +534,10 @@ async function init() {
       setContinueButtonMode,
 
       isPhilippinesDestination,
+
+      renderDestinationRoute,
+      clearDestinationRoute,
+      syncGenericDestinationContinueState,
 
       getCoinsPhPicker() {
         return coinsPhPicker;
@@ -532,21 +627,22 @@ async function init() {
 
 
   /* =========================
-     DESTINATION
+     DESTINATION PAYLOAD
   ========================= */
 
   const {
     buildDestinationPayload
   } =
     createDestinationPayloadBuilders({
-      getValue,
-
       getCoinsPhPicker() {
         return coinsPhPicker;
       },
 
       isPhilippinesDestination,
-      isBrazilDestination
+
+      collectSharedDestination() {
+        return destinationFields.collect();
+      }
     });
 
 
