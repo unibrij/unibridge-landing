@@ -254,6 +254,7 @@ export function FiatAuthIsland() {
 
     writeAuthToProfile({
       email,
+
       userId:
         authSubjectId
     });
@@ -351,6 +352,14 @@ export function FiatAuthIsland() {
             routing="hash"
             forceRedirectUrl={returnUrl}
             signUpForceRedirectUrl={returnUrl}
+            appearance={{
+              elements: {
+                headerTitle: {
+                  display:
+                    "none"
+                }
+              }
+            }}
           />
         </SignedOut>
       </div>
