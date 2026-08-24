@@ -26,6 +26,10 @@ import {
 } from "./providerDestinationRegistry.js";
 
 import {
+  getRouteDestinationFields
+} from "../../../shared/pay/destination/schema.js";
+
+import {
   formatRouteLimitMessage,
   isRouteAmountAvailable,
   selectFirstAvailableRoute
@@ -39,71 +43,165 @@ import {
   renderQuote
 } from "./quoteRenderer.js";
 
+
 let availableRoutes = [];
 let latestContext = null;
 let latestQuote = null;
 
-function normalizeString(value) {
-  return String(value || "").trim();
+
+/*
+--------------------------------------------------
+Helpers
+--------------------------------------------------
+*/
+
+function normalizeString(
+  value
+) {
+  return String(
+    value ||
+    ""
+  ).trim();
 }
 
-function escapeHtml(value) {
-  return normalizeString(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+function escapeHtml(
+  value
+) {
+  return normalizeString(
+    value
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
-function getEl(id) {
-  return document.getElementById(id);
+
+function getEl(
+  id
+) {
+  return document.getElementById(
+    id
+  );
 }
+
 
 function getRouteFieldContainer() {
   const routeSelect =
-    getEl("routeId");
+    getEl(
+      "routeId"
+    );
 
   return (
-    routeSelect?.closest(".route-grid") ||
-    routeSelect?.closest(".field") ||
-    routeSelect?.parentElement ||
+    routeSelect
+      ?.closest(
+        ".route-grid"
+      ) ||
+    routeSelect
+      ?.closest(
+        ".field"
+      ) ||
+    routeSelect
+      ?.parentElement ||
     null
   );
 }
 
+
+/*
+--------------------------------------------------
+Stage visibility
+--------------------------------------------------
+*/
+
 function hideQuoteStageFields() {
   getRouteFieldContainer()
-    ?.classList.add("hidden");
+    ?.classList.add(
+      "hidden"
+    );
 
-  getEl("destinationFields")
-    ?.classList.add("hidden");
+  getEl(
+    "destinationFields"
+  )
+    ?.classList.add(
+      "hidden"
+    );
 
-  getEl("quoteBox")
-    ?.classList.add("hidden");
+  getEl(
+    "quoteBox"
+  )
+    ?.classList.add(
+      "hidden"
+    );
 }
+
 
 function showQuoteStageFields() {
   getRouteFieldContainer()
-    ?.classList.remove("hidden");
+    ?.classList.remove(
+      "hidden"
+    );
 
-  getEl("destinationFields")
-    ?.classList.remove("hidden");
+  getEl(
+    "destinationFields"
+  )
+    ?.classList.remove(
+      "hidden"
+    );
 
-  getEl("quoteBox")
-    ?.classList.remove("hidden");
+  getEl(
+    "quoteBox"
+  )
+    ?.classList.remove(
+      "hidden"
+    );
 }
+
 
 function showRouteFieldOnly() {
   getRouteFieldContainer()
-    ?.classList.remove("hidden");
+    ?.classList.remove(
+      "hidden"
+    );
 
-  getEl("destinationFields")
-    ?.classList.add("hidden");
+  getEl(
+    "destinationFields"
+  )
+    ?.classList.add(
+      "hidden"
+    );
 
-  getEl("quoteBox")
-    ?.classList.add("hidden");
+  getEl(
+    "quoteBox"
+  )
+    ?.classList.add(
+      "hidden"
+    );
 }
+
+
+/*
+--------------------------------------------------
+Initial state
+--------------------------------------------------
+*/
 
 export async function loadBankTransferRoutes() {
   latestContext =
@@ -114,26 +212,44 @@ export async function loadBankTransferRoutes() {
 
   hideQuoteStageFields();
 
+
   const select =
-    getEl("routeId");
+    getEl(
+      "routeId"
+    );
 
   if (select) {
-    select.disabled = true;
-    select.innerHTML = "";
+    select.disabled =
+      true;
+
+    select.innerHTML =
+      "";
   }
+
 
   return [];
 }
 
+
+/*
+--------------------------------------------------
+Selected route
+--------------------------------------------------
+*/
+
 function getSelectedRouteId() {
   return normalizeString(
-    getEl("routeId")?.value
+    getEl(
+      "routeId"
+    )?.value
   );
 }
+
 
 function getSelectedRoute() {
   const selectedRouteId =
     getSelectedRouteId();
+
 
   const route =
     availableRoutes.find(
@@ -142,11 +258,13 @@ function getSelectedRoute() {
         selectedRouteId
     );
 
+
   if (!route) {
     throw new Error(
       "selected_route_not_available"
     );
   }
+
 
   if (
     !isRouteAmountAvailable(
@@ -161,8 +279,10 @@ function getSelectedRoute() {
     );
   }
 
+
   return route;
 }
+
 
 /*
 --------------------------------------------------
@@ -184,14 +304,21 @@ automatically.
 
 function renderRouteOptions() {
   const select =
-    getEl("routeId");
+    getEl(
+      "routeId"
+    );
+
 
   if (!select) {
     return null;
   }
 
-  if (!availableRoutes.length) {
-    select.disabled = true;
+
+  if (
+    !availableRoutes.length
+  ) {
+    select.disabled =
+      true;
 
     select.innerHTML =
       `<option value="">No routes available</option>`;
@@ -199,10 +326,12 @@ function renderRouteOptions() {
     return null;
   }
 
+
   const selectedRoute =
     selectFirstAvailableRoute(
       availableRoutes
     );
+
 
   select.innerHTML =
     availableRoutes
@@ -213,6 +342,7 @@ function renderRouteOptions() {
               route
             );
 
+
           const limitMessage =
             available
               ? null
@@ -220,34 +350,46 @@ function renderRouteOptions() {
                   route
                 );
 
+
           const label =
             limitMessage
               ? `${route.label} — ${limitMessage}`
               : route.label;
+
 
           const isSelected =
             selectedRoute
               ?.route_id ===
             route.route_id;
 
+
           return `
             <option
-              value="${escapeHtml(route.route_id)}"
+              value="${escapeHtml(
+                route.route_id
+              )}"
               ${available ? "" : "disabled"}
               ${isSelected ? "selected" : ""}
             >
-              ${escapeHtml(label)}
+              ${escapeHtml(
+                label
+              )}
             </option>
           `;
         }
       )
-      .join("");
+      .join(
+        ""
+      );
+
 
   select.disabled =
     !selectedRoute;
 
+
   return selectedRoute;
 }
+
 
 function resolveNoAvailableRouteMessage() {
   const limitedRoute =
@@ -258,17 +400,26 @@ function resolveNoAvailableRouteMessage() {
         )
     );
 
+
   if (!limitedRoute) {
     return null;
   }
+
 
   return formatRouteLimitMessage(
     limitedRoute
   );
 }
 
-function renderSelectedDestinationFields() {
-  renderDestinationFields({
+
+/*
+--------------------------------------------------
+Destination
+--------------------------------------------------
+*/
+
+async function renderSelectedDestinationFields() {
+  await renderDestinationFields({
     availableRoutes,
 
     selectedRouteId:
@@ -278,9 +429,19 @@ function renderSelectedDestinationFields() {
   });
 }
 
+
+/*
+--------------------------------------------------
+Quote
+--------------------------------------------------
+*/
+
 function renderSelectedQuote() {
   const quoteBox =
-    getEl("quoteBox");
+    getEl(
+      "quoteBox"
+    );
+
 
   if (
     !quoteBox ||
@@ -291,8 +452,10 @@ function renderSelectedQuote() {
     return;
   }
 
+
   const selectedRoute =
     getSelectedRoute();
+
 
   renderQuote(
     quoteBox,
@@ -308,24 +471,107 @@ function renderSelectedQuote() {
   );
 }
 
-function lockEntryForm() {
-  const routeSelect =
-    getEl("routeId");
 
-  if (routeSelect) {
-    routeSelect.disabled = true;
+/*
+--------------------------------------------------
+Programmatic route selection
+--------------------------------------------------
+*/
+
+export async function selectBankTransferRoute(
+  routeId
+) {
+  const normalizedRouteId =
+    normalizeString(
+      routeId
+    );
+
+
+  const select =
+    getEl(
+      "routeId"
+    );
+
+
+  if (
+    !select ||
+    !normalizedRouteId
+  ) {
+    return false;
   }
 
-  getEl("destinationFields")
+
+  const available =
+    Array
+      .from(
+        select.options
+      )
+      .some(
+        option =>
+          option.value ===
+            normalizedRouteId &&
+          !option.disabled
+      );
+
+
+  if (!available) {
+    return false;
+  }
+
+
+  select.value =
+    normalizedRouteId;
+
+
+  await renderSelectedDestinationFields();
+
+
+  renderSelectedQuote();
+
+
+  return true;
+}
+
+
+/*
+--------------------------------------------------
+Lock
+--------------------------------------------------
+*/
+
+function lockEntryForm() {
+  const routeSelect =
+    getEl(
+      "routeId"
+    );
+
+
+  if (routeSelect) {
+    routeSelect.disabled =
+      true;
+  }
+
+
+  getEl(
+    "destinationFields"
+  )
     ?.querySelectorAll(
       "input, select, textarea"
     )
     .forEach(
       el => {
-        el.disabled = true;
+        el.disabled =
+          true;
       }
     );
 }
+
+
+/*
+--------------------------------------------------
+Identifiers
+--------------------------------------------------
+*/
 
 function resolveSessionId(
   response = {}
@@ -344,6 +590,7 @@ function resolveSessionId(
   );
 }
 
+
 function resolveSettlementId(
   response = {}
 ) {
@@ -361,12 +608,21 @@ function resolveSettlementId(
   );
 }
 
+
+/*
+--------------------------------------------------
+Prepare
+--------------------------------------------------
+*/
+
 export async function prepareBankTransferSettlement() {
   const form =
     readFiatContext();
 
+
   latestContext =
     form;
+
 
   const registered =
     await registerSession({
@@ -377,10 +633,12 @@ export async function prepareBankTransferSettlement() {
         form.receiver_country
     });
 
+
   const sessionId =
     resolveSessionId(
       registered
     );
+
 
   if (!sessionId) {
     throw new Error(
@@ -388,11 +646,13 @@ export async function prepareBankTransferSettlement() {
     );
   }
 
+
   const resolved =
     await resolveSession({
       session_id:
         sessionId
     });
+
 
   const quote =
     await quoteSession({
@@ -403,8 +663,10 @@ export async function prepareBankTransferSettlement() {
         form.amount
     });
 
+
   latestQuote =
     quote;
+
 
   availableRoutes =
     resolveRoutesPayload(
@@ -413,14 +675,19 @@ export async function prepareBankTransferSettlement() {
       form
     );
 
-  if (!availableRoutes.length) {
+
+  if (
+    !availableRoutes.length
+  ) {
     throw new Error(
       "no_enabled_bank_transfer_routes"
     );
   }
 
+
   const selectedRoute =
     renderRouteOptions();
+
 
   if (!selectedRoute) {
     showRouteFieldOnly();
@@ -431,10 +698,15 @@ export async function prepareBankTransferSettlement() {
     );
   }
 
+
+  const destinationFields =
+    getRouteDestinationFields(
+      selectedRoute
+    );
+
+
   if (
-    !selectedRoute
-      .required_destination_fields
-      ?.length &&
+    !destinationFields.length &&
     !hasProviderDestination(
       selectedRoute
     )
@@ -446,11 +718,15 @@ export async function prepareBankTransferSettlement() {
     );
   }
 
-  renderSelectedDestinationFields();
+
+  await renderSelectedDestinationFields();
+
 
   showQuoteStageFields();
 
+
   renderSelectedQuote();
+
 
   return {
     form,
@@ -475,14 +751,24 @@ export async function prepareBankTransferSettlement() {
   };
 }
 
+
+/*
+--------------------------------------------------
+Settlement
+--------------------------------------------------
+*/
+
 export async function createSettlementFromPreparedQuote(
   prepared
 ) {
-  if (!prepared?.session_id) {
+  if (
+    !prepared?.session_id
+  ) {
     throw new Error(
       "missing_prepared_session"
     );
   }
+
 
   if (
     !latestContext ||
@@ -493,13 +779,16 @@ export async function createSettlementFromPreparedQuote(
     );
   }
 
+
   const route =
     getSelectedRoute();
+
 
   const destination =
     collectDestination(
       route
     );
+
 
   const settlement =
     await createSettlement({
@@ -512,18 +801,22 @@ export async function createSettlementFromPreparedQuote(
       destination
     });
 
+
   lockEntryForm();
+
 
   const settlementId =
     resolveSettlementId(
       settlement
     );
 
+
   if (!settlementId) {
     throw new Error(
       "settlement_id_missing"
     );
   }
+
 
   return {
     settlement_id:
@@ -539,11 +832,31 @@ export async function createSettlementFromPreparedQuote(
   };
 }
 
-getEl("routeId")
+
+/*
+--------------------------------------------------
+Route change
+--------------------------------------------------
+*/
+
+getEl(
+  "routeId"
+)
   ?.addEventListener(
     "change",
-    () => {
-      renderSelectedDestinationFields();
-      renderSelectedQuote();
+    async event => {
+      try {
+        await selectBankTransferRoute(
+          event.target.value
+        );
+      }
+      catch (
+        error
+      ) {
+        console.error(
+          "BANK_TRANSFER_DESTINATION_RENDER_FAILED",
+          error
+        );
+      }
     }
   );
