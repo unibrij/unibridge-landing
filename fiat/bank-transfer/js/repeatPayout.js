@@ -1,21 +1,21 @@
 // fiat/bank-transfer/js/repeatPayout.js
 
 import {
-  getFiatClerkToken
-} from "/shared/pay/auth/clerkAuth.js";
-
-import {
-  getRepeatPayoutSource
-} from "/shared/pay/history/history.js";
+  getRepeatSourceSettlementId,
+  isRepeatPayoutEntry,
+  loadRepeatPayoutSource as loadSharedRepeatPayoutSource
+} from "/shared/pay/history/repeat.js";
 
 
 const PARTNER =
   "fiat_bank_transfer";
 
 
-function normalizeString(value) {
+function normalizeString(
+  value
+) {
   return String(
-    value ||
+    value ??
     ""
   ).trim();
 }
@@ -28,34 +28,15 @@ Query
 */
 
 export function readRepeatPayoutRequest() {
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
   return {
-    sourcePayoutIntentId:
-      normalizeString(
-        params.get(
-          "repeat_source_payout_intent_id"
-        )
-      ),
-
-    routeId:
-      normalizeString(
-        params.get(
-          "route_id"
-        )
-      )
+    sourceSettlementId:
+      getRepeatSourceSettlementId()
   };
 }
 
 
 export function isRepeatPayoutView() {
-  return Boolean(
-    readRepeatPayoutRequest()
-      .sourcePayoutIntentId
-  );
+  return isRepeatPayoutEntry();
 }
 
 
@@ -67,26 +48,18 @@ Source
 
 export async function loadRepeatPayoutSource() {
   const {
-    sourcePayoutIntentId,
-    routeId
+    sourceSettlementId
   } =
     readRepeatPayoutRequest();
 
-  if (!sourcePayoutIntentId) {
+  if (!sourceSettlementId) {
     return null;
   }
 
-  const accessToken =
-    await getFiatClerkToken();
-
   const source =
-    await getRepeatPayoutSource({
+    await loadSharedRepeatPayoutSource({
       partner:
-        PARTNER,
-
-      accessToken,
-
-      sourcePayoutIntentId
+        PARTNER
     });
 
   if (
@@ -100,11 +73,10 @@ export async function loadRepeatPayoutSource() {
   }
 
   return {
-    source_payout_intent_id:
-      sourcePayoutIntentId,
+    source_settlement_id:
+      sourceSettlementId,
 
     route_id:
-      routeId ||
       normalizeString(
         source.route_id
       ) ||
@@ -135,13 +107,17 @@ export async function loadRepeatPayoutSource() {
       null,
 
     amount:
-      source.amount ?? null,
+      source.amount ??
+      null,
 
     beneficiary:
       (
         source.beneficiary &&
         typeof source.beneficiary ===
-          "object"
+          "object" &&
+        !Array.isArray(
+          source.beneficiary
+        )
       )
         ? source.beneficiary
         : {}
