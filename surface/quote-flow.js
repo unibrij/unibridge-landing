@@ -35,6 +35,9 @@ export function createQuoteFlow({
   setContinueButtonsDisabled,
   setContinueButtonMode,
   isPhilippinesDestination,
+  renderDestinationRoute,
+  clearDestinationRoute,
+  syncGenericDestinationContinueState,
   getCoinsPhPicker
 }) {
   const {
@@ -42,6 +45,19 @@ export function createQuoteFlow({
     continueBtn,
     quoteBox
   } = elements;
+
+  let flowGeneration =
+    0;
+
+
+  function isFlowCurrent(
+    generation
+  ) {
+    return (
+      generation ===
+      flowGeneration
+    );
+  }
 
 
   function getCurrentSelectedRoute() {
@@ -59,9 +75,14 @@ export function createQuoteFlow({
       return null;
     }
 
-    for (const route of routes) {
+    for (
+      const route of
+        routes
+    ) {
       const message =
-        formatRouteLimitMessage(route);
+        formatRouteLimitMessage(
+          route
+        );
 
       if (message) {
         return message;
@@ -82,9 +103,15 @@ export function createQuoteFlow({
       );
     }
 
-    if (!isRouteAmountAvailable(route)) {
+    if (
+      !isRouteAmountAvailable(
+        route
+      )
+    ) {
       throw new Error(
-        formatRouteLimitMessage(route) ||
+        formatRouteLimitMessage(
+          route
+        ) ||
         "selected_route_amount_not_available"
       );
     }
@@ -99,7 +126,9 @@ export function createQuoteFlow({
 
     return Boolean(
       route &&
-      isRouteAmountAvailable(route)
+      isRouteAmountAvailable(
+        route
+      )
     );
   }
 
@@ -110,6 +139,7 @@ export function createQuoteFlow({
     }
 
     quoteBox.replaceChildren();
+
     quoteBox.classList.add(
       "hidden"
     );
@@ -117,10 +147,22 @@ export function createQuoteFlow({
 
 
   function resetQuoteState() {
+    /*
+    Any reset invalidates an in-flight quote flow.
+
+    Old async responses may still resolve, but they
+    must no longer mutate canonical state or UI.
+    */
+
+    flowGeneration +=
+      1;
+
     state.currentRouteQuote =
       null;
 
     resetPricingUi();
+
+    clearDestinationRoute?.();
 
     getCoinsPhPicker()
       ?.reset();
@@ -175,7 +217,9 @@ export function createQuoteFlow({
     const result =
       applyAmountLimitUi({
         amountInput:
-          getValue("amount"),
+          getValue(
+            "amount"
+          ),
 
         messageEl:
           document.getElementById(
@@ -219,7 +263,9 @@ export function createQuoteFlow({
       return;
     }
 
-    if (!state.currentRouteQuote) {
+    if (
+      !state.currentRouteQuote
+    ) {
       if (
         state.sessionId ||
         state.routeId
@@ -256,20 +302,29 @@ export function createQuoteFlow({
     disabled
   ) {
     const amountInput =
-      getValue("amount");
+      getValue(
+        "amount"
+      );
 
     if (amountInput) {
       amountInput.disabled =
-        Boolean(disabled);
+        Boolean(
+          disabled
+        );
     }
   }
 
 
   function resetFlowForRouteInputChange() {
     resetFlowState();
+
     resetUiToStart();
+
     resetStatusMemory();
-    setStatus("");
+
+    setStatus(
+      ""
+    );
 
     const limitCheck =
       refreshLimitUi();
@@ -286,19 +341,43 @@ export function createQuoteFlow({
 
 
   async function startFlow() {
-    if (state.processing) {
+    if (
+      state.processing
+    ) {
       return;
     }
+
+    let generation =
+      null;
+
+    let destinationReady =
+      false;
 
     try {
       /*
       A new quote invalidates the previous funding UI,
       settlement state and provider session through the
       single shared reset boundary.
+
+      resetFlowState() also reaches resetQuoteState(),
+      which invalidates any previous flow generation.
       */
+
       resetFlowState();
+
       resetUiToStart();
+
       resetStatusMemory();
+
+
+      /*
+      Start a new canonical quote generation only after
+      the reset boundary has completed.
+      */
+
+      generation =
+        ++flowGeneration;
+
 
       state.processing =
         true;
@@ -316,20 +395,26 @@ export function createQuoteFlow({
         "Registering..."
       );
 
+
       const amount =
         Number(
-          getValue("amount")
-            ?.value
+          getValue(
+            "amount"
+          )?.value
         );
 
       if (
-        !Number.isFinite(amount) ||
-        amount <= 0
+        !Number.isFinite(
+          amount
+        ) ||
+        amount <=
+          0
       ) {
         throw new Error(
           "invalid_amount"
         );
       }
+
 
       const limitCheck =
         refreshAmountLimitUi();
@@ -342,6 +427,7 @@ export function createQuoteFlow({
           limitCheck.message
         );
       }
+
 
       const reg =
         await apiPost(
@@ -359,8 +445,19 @@ export function createQuoteFlow({
           }
         );
 
+
+      if (
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
+
       state.sessionId =
         reg.session_id;
+
 
       await apiPost(
         "session/resolve",
@@ -369,6 +466,16 @@ export function createQuoteFlow({
             state.sessionId
         }
       );
+
+
+      if (
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
 
       const quote =
         await apiPost(
@@ -381,16 +488,30 @@ export function createQuoteFlow({
           }
         );
 
-      if (!quote.routes?.length) {
+
+      if (
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
+
+      if (
+        !quote.routes?.length
+      ) {
         throw new Error(
           "no_routes"
         );
       }
 
+
       const selectedRoute =
         selectFirstAvailableRoute(
           quote.routes
         );
+
 
       if (!selectedRoute) {
         throw new Error(
@@ -401,9 +522,11 @@ export function createQuoteFlow({
         );
       }
 
+
       state.routeId =
         selectedRoute.route_id ||
         selectedRoute.id;
+
 
       if (!state.routeId) {
         throw new Error(
@@ -411,11 +534,13 @@ export function createQuoteFlow({
         );
       }
 
+
       setCurrentFundingProvider(
         getRouteSelectedProvider(
           selectedRoute
         )
       );
+
 
       /*
       Keep the complete backend quote + Route contract.
@@ -423,42 +548,71 @@ export function createQuoteFlow({
       The Route remains authoritative for execution-side
       limits and backend-driven ordering.
       */
+
       state.currentRouteQuote = {
         quote,
+
         route:
           selectedRoute
       };
 
+
       renderRoutePricing({
         quote,
+
         route:
           selectedRoute,
+
         amount
       });
 
-      emit(
-        "unibridge:quote"
-      );
 
       setContinueButtonMode(
         "prepare_payment"
       );
 
+
       refreshLimitUi();
+
+
+      /*
+      ------------------------------------------------
+      Destination
+      ------------------------------------------------
+      */
 
       if (
         isPhilippinesDestination()
       ) {
+        clearDestinationRoute?.();
+
         const coinsPhPicker =
           getCoinsPhPicker();
 
         await coinsPhPicker
           ?.load();
 
+
+        if (
+          !isFlowCurrent(
+            generation
+          )
+        ) {
+          return;
+        }
+
+
+        destinationReady =
+          true;
+
         coinsPhPicker
           ?.updateContinueState();
 
         syncRouteLimitContinueUi();
+
+        emit(
+          "unibridge:quote"
+        );
 
         setStatus(
           "Select recipient institution."
@@ -467,19 +621,81 @@ export function createQuoteFlow({
         return;
       }
 
-      if (continueBtn) {
-        continueBtn.disabled =
-          !isCurrentRouteAmountAvailable();
+
+      if (
+        typeof renderDestinationRoute !==
+        "function"
+      ) {
+        throw new Error(
+          "destination_renderer_missing"
+        );
       }
 
-      setStatus(
-        "Enter PIX key"
+
+      const rendered =
+        await renderDestinationRoute(
+          selectedRoute
+        );
+
+
+      if (
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
+
+      if (!rendered) {
+        throw new Error(
+          "destination_schema_missing"
+        );
+      }
+
+
+      destinationReady =
+        true;
+
+
+      syncGenericDestinationContinueState?.();
+
+      syncRouteLimitContinueUi();
+
+
+      emit(
+        "unibridge:quote"
       );
-    } catch (error) {
+
+
+      setStatus(
+        "Enter destination details."
+      );
+    }
+    catch (
+      error
+    ) {
+      /*
+      An invalidated flow owns neither state nor UI.
+      Ignore its late failure completely.
+      */
+
+      if (
+        generation !==
+          null &&
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
+
       setStatus(
         error,
         "error"
       );
+
 
       const limitCheck =
         refreshLimitUi();
@@ -487,13 +703,16 @@ export function createQuoteFlow({
       const activeBtn =
         getActiveContinueButton();
 
+
       const canContinue =
         Boolean(
+          destinationReady &&
           limitCheck?.ok &&
           state.sessionId &&
           state.routeId &&
           isCurrentRouteAmountAvailable()
         );
+
 
       if (activeBtn) {
         if (
@@ -504,18 +723,45 @@ export function createQuoteFlow({
             ?.updateContinueState();
 
           syncRouteLimitContinueUi();
-        } else {
+        }
+        else if (
+          canContinue
+        ) {
+          syncGenericDestinationContinueState?.();
+
+          syncRouteLimitContinueUi();
+        }
+        else {
           activeBtn.disabled =
-            !canContinue;
+            true;
         }
       }
-    } finally {
+    }
+    finally {
+      /*
+      A stale flow must not clear processing or alter
+      controls owned by a newer flow.
+      */
+
+      if (
+        generation !==
+          null &&
+        !isFlowCurrent(
+          generation
+        )
+      ) {
+        return;
+      }
+
+
       state.processing =
         false;
 
       refreshLimitUi();
 
+
       if (
+        destinationReady &&
         isPhilippinesDestination() &&
         isCurrentRouteAmountAvailable()
       ) {
@@ -523,9 +769,17 @@ export function createQuoteFlow({
           ?.updateContinueState();
 
         syncRouteLimitContinueUi();
-      } else if (
-        !state.settlementId &&
-        !isCurrentRouteAmountAvailable()
+      }
+      else if (
+        destinationReady &&
+        isCurrentRouteAmountAvailable()
+      ) {
+        syncGenericDestinationContinueState?.();
+
+        syncRouteLimitContinueUi();
+      }
+      else if (
+        !state.settlementId
       ) {
         setContinueButtonsDisabled(
           true
@@ -537,13 +791,19 @@ export function createQuoteFlow({
 
   function bindRouteInputEvents() {
     const amountInput =
-      getValue("amount");
+      getValue(
+        "amount"
+      );
 
     const sourceCountryInput =
-      getValue("source_country");
+      getValue(
+        "source_country"
+      );
 
     const countryInput =
-      getValue("country");
+      getValue(
+        "country"
+      );
 
 
     amountInput
@@ -557,6 +817,7 @@ export function createQuoteFlow({
             state.currentRouteQuote
           ) {
             resetFlowForRouteInputChange();
+
             return;
           }
 
