@@ -22,6 +22,9 @@ export function createSurfaceDestinationFields({
   let currentRoute =
     null;
 
+  let renderGeneration =
+    0;
+
 
   function requireContainer() {
     if (!container) {
@@ -34,6 +37,9 @@ export function createSurfaceDestinationFields({
 
   function clear() {
     requireContainer();
+
+    renderGeneration +=
+      1;
 
     currentRoute =
       null;
@@ -49,6 +55,9 @@ export function createSurfaceDestinationFields({
   ) {
     requireContainer();
 
+    const generation =
+      ++renderGeneration;
+
     currentRoute =
       route || null;
 
@@ -60,9 +69,12 @@ export function createSurfaceDestinationFields({
       return false;
     }
 
+    const routeToRender =
+      currentRoute;
+
     const fields =
       getRouteDestinationFields(
-        currentRoute
+        routeToRender
       );
 
     if (!fields.length) {
@@ -72,21 +84,56 @@ export function createSurfaceDestinationFields({
     const resolveOptions =
       createDestinationOptionsResolver({
         route:
-          currentRoute
+          routeToRender
       });
 
-    await renderDestinationFields({
-      container,
+    const stagingContainer =
+      document.createElement(
+        "div"
+      );
 
-      route:
-        currentRoute,
+    try {
+      await renderDestinationFields({
+        container:
+          stagingContainer,
 
-      fields,
+        route:
+          routeToRender,
 
-      resolveOptions,
+        fields,
 
-      onChange
-    });
+        resolveOptions,
+
+        onChange
+      });
+    }
+    catch (
+      error
+    ) {
+      if (
+        generation !==
+          renderGeneration ||
+        currentRoute !==
+          routeToRender
+      ) {
+        return false;
+      }
+
+      throw error;
+    }
+
+    if (
+      generation !==
+        renderGeneration ||
+      currentRoute !==
+        routeToRender
+    ) {
+      return false;
+    }
+
+    container.replaceChildren(
+      ...stagingContainer.childNodes
+    );
 
     return true;
   }
@@ -115,11 +162,14 @@ export function createSurfaceDestinationFields({
         continue;
       }
 
+      const name =
+        field.name ||
+        field.dataset
+          ?.destinationFieldName;
+
       const value =
         destination[
-          field.name ||
-          field.dataset
-            ?.destinationFieldName
+          name
         ];
 
       if (
