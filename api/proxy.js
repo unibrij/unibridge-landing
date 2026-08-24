@@ -26,11 +26,11 @@ const ALLOWED =
 
     /*
     --------------------------------------------------
-    Customer payout history
+    Fiat payout history
     --------------------------------------------------
     */
 
-    "connect/payout-history",
+    "fiat/payout-history",
 
     /*
     --------------------------------------------------
@@ -83,7 +83,7 @@ const CLERK_AUTH_ENDPOINTS =
     "fiat/session/register",
     "fiat/kyc/create",
     "fiat/transak-virtual-account/create",
-    "connect/payout-history"
+    "fiat/payout-history"
   ]);
 
 function normalizeEndpoint(value) {
@@ -122,7 +122,7 @@ function normalizeHeader(value) {
 function isRepeatPayoutEndpoint(
   endpoint
 ) {
-  return /^connect\/repeat-payout\/[^/]+$/
+  return /^fiat\/repeat-payout\/[^/]+$/
     .test(
       endpoint
     );
@@ -247,7 +247,7 @@ function getAllowedMethod(
     endpoint ===
       "fiat/bridge-tos/ping" ||
     endpoint ===
-      "connect/payout-history" ||
+      "fiat/payout-history" ||
     isRepeatPayoutEndpoint(
       endpoint
     )
