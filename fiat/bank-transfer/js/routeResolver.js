@@ -98,6 +98,8 @@ export function normalizeField(field = {}, fallbackName = "") {
   }
 
   return {
+    ...field,
+
     name,
 
     label:
