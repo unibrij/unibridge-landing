@@ -7,6 +7,10 @@ import {
   staticOptionsOf
 } from "./fieldModel.js";
 
+import {
+  createDestinationSelect
+} from "./selectRenderer.js";
+
 
 /*
 --------------------------------------------------
@@ -196,77 +200,6 @@ function createInput(
 }
 
 
-function createSelect(
-  field,
-  options = []
-) {
-  const select =
-    createElement(
-      "select",
-      "destination-field-input destination-field-select"
-    );
-
-  applyCommonAttributes(
-    select,
-    field
-  );
-
-
-  const placeholder =
-    createElement(
-      "option"
-    );
-
-  placeholder.value =
-    "";
-
-  placeholder.textContent =
-    normalizeString(
-      field.placeholder ||
-      field.option_placeholder
-    ) ||
-    `Select ${field.label || field.name}`;
-
-  placeholder.disabled =
-    field.required !==
-    false;
-
-  placeholder.selected =
-    true;
-
-  select.appendChild(
-    placeholder
-  );
-
-
-  for (
-    const option of
-      options
-  ) {
-    const element =
-      createElement(
-        "option"
-      );
-
-    element.value =
-      option.value;
-
-    element.textContent =
-      option.label;
-
-    element.__destinationOption =
-      option;
-
-    select.appendChild(
-      element
-    );
-  }
-
-
-  return select;
-}
-
-
 /*
 --------------------------------------------------
 Options
@@ -350,6 +283,80 @@ function clearDependentValues({
 
 /*
 --------------------------------------------------
+Field type
+--------------------------------------------------
+*/
+
+function shouldRenderSelect({
+  field,
+  options
+}) {
+  if (
+    Array.isArray(options) &&
+    options.length
+  ) {
+    return true;
+  }
+
+  return (
+    normalizeString(
+      field.type
+    ).toLowerCase() ===
+    "select"
+  );
+}
+
+
+/*
+--------------------------------------------------
+Change lifecycle
+--------------------------------------------------
+*/
+
+function bindChangeHandler({
+  input,
+  handleChange
+}) {
+  input.addEventListener(
+    "change",
+    () => {
+      const changePromise =
+        handleChange()
+          .catch(
+            error => {
+              console.error(
+                "DESTINATION_FIELD_CHANGE_FAILED",
+                error
+              );
+            }
+          );
+
+
+      input.__destinationChangePromise =
+        changePromise;
+
+
+      changePromise
+        .finally(
+          () => {
+            if (
+              input
+                .__destinationChangePromise ===
+              changePromise
+            ) {
+              input
+                .__destinationChangePromise =
+                null;
+            }
+          }
+        );
+    }
+  );
+}
+
+
+/*
+--------------------------------------------------
 Field renderer
 --------------------------------------------------
 */
@@ -386,29 +393,48 @@ async function renderField({
     });
 
 
-  const shouldUseSelect =
-    options.length >
-      0 ||
-    normalizeString(
-      field.type
-    ).toLowerCase() ===
-      "select";
+  const useSelect =
+    shouldRenderSelect({
+      field,
+      options
+    });
 
 
-  const input =
-    shouldUseSelect
-      ? createSelect(
-          field,
-          options
-        )
-      : createInput(
-          field
-        );
+  let input =
+    null;
+
+  let getSelectedOption =
+    () => null;
 
 
-  wrapper.appendChild(
-    input
-  );
+  if (useSelect) {
+    const select =
+      createDestinationSelect({
+        field,
+        options,
+
+        applyCommonAttributes
+      });
+
+    input =
+      select.input;
+
+    getSelectedOption =
+      select.getSelectedOption;
+
+    wrapper.appendChild(
+      select.element
+    );
+  } else {
+    input =
+      createInput(
+        field
+      );
+
+    wrapper.appendChild(
+      input
+    );
+  }
 
 
   const dependentContainer =
@@ -439,18 +465,9 @@ async function renderField({
       .replaceChildren();
 
 
-    if (
-      input.tagName ===
-      "SELECT"
-    ) {
-      const selected =
-        input.options[
-          input.selectedIndex
-        ];
-
+    if (useSelect) {
       const option =
-        selected
-          ?.__destinationOption;
+        getSelectedOption();
 
 
       const dependentFields =
@@ -494,50 +511,21 @@ async function renderField({
   }
 
 
-  input.addEventListener(
-    "change",
-    () => {
-      const changePromise =
-        handleChange()
-          .catch(
-            error => {
-              console.error(
-                "DESTINATION_FIELD_CHANGE_FAILED",
-                error
-              );
-            }
-          );
+  bindChangeHandler({
+    input,
+    handleChange
+  });
 
 
-      input.__destinationChangePromise =
-        changePromise;
-
-
-      changePromise
-        .finally(
-          () => {
-            if (
-              input
-                .__destinationChangePromise ===
-              changePromise
-            ) {
-              input
-                .__destinationChangePromise =
-                null;
-            }
-          }
-        );
-    }
-  );
-
-
-  input.addEventListener(
-    "input",
-    () => {
-      values[field.name] =
-        input.value;
-    }
-  );
+  if (!useSelect) {
+    input.addEventListener(
+      "input",
+      () => {
+        values[field.name] =
+          input.value;
+      }
+    );
+  }
 
 
   container.appendChild(
