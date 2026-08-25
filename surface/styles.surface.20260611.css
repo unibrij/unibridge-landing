@@ -175,25 +175,53 @@ h1 {
   grid-template-columns: 1fr;
 }
 
-.field {
+/*
+--------------------------------------------------
+Form fields
+
+The legacy Surface form uses `.field`.
+
+The shared destination renderer uses:
+- `.destination-field`
+- `.destination-field-label`
+- `.destination-field-input`
+
+Both contracts intentionally share the same visual
+language here.
+--------------------------------------------------
+*/
+
+.field,
+.destination-field {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 0;
+  min-width: 0;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
 }
 
-.field span {
+.field span,
+.destination-field-label {
+  display: block;
   color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
+  line-height: 1.35;
+}
+
+.destination-field-required {
+  color: inherit;
 }
 
 .field input,
 .field select,
-.field textarea {
+.field textarea,
+.destination-field-input {
+  display: block;
   width: 100%;
+  min-width: 0;
   min-height: 42px;
   box-sizing: border-box;
   padding: 10px 12px;
@@ -206,32 +234,37 @@ h1 {
   outline: none;
 }
 
-.field textarea {
+.field textarea,
+textarea.destination-field-input {
   resize: vertical;
 }
 
 .field input::placeholder,
-.field textarea::placeholder {
+.field textarea::placeholder,
+.destination-field-input::placeholder {
   color: rgba(255, 255, 255, 0.38);
 }
 
 .field input:focus,
 .field select:focus,
-.field textarea:focus {
+.field textarea:focus,
+.destination-field-input:focus {
   border-color: rgba(45, 212, 191, 0.55);
   box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
 .field input:disabled,
 .field select:disabled,
-.field textarea:disabled {
+.field textarea:disabled,
+.destination-field-input:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 .field input.field-invalid,
 .field select.field-invalid,
-.field textarea.field-invalid {
+.field textarea.field-invalid,
+.destination-field-input.field-invalid {
   border-color: rgba(248, 113, 113, 0.85) !important;
   box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.16) !important;
 }
@@ -242,6 +275,13 @@ h1 {
   color: #ff8f8f;
   font-size: 11px;
   line-height: 1.35;
+}
+
+.destination-dependent-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  min-width: 0;
 }
 
 option {
