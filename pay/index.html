@@ -20,7 +20,7 @@
 
   <meta
     name="description"
-    content="Pay with UniBridge lets users fund a payout route using wallet, bank transfer, card payment, or the UniBridge Pay Agent."
+    content="Pay with UniBridge lets users fund a payout route using wallet, fiat, or the UniBridge Pay Agent."
   />
 
   <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
@@ -106,43 +106,11 @@
       </button>
     </section>
 
-    <section id="fiatCard" class="card hidden">
-      <form id="fiatForm">
-        <section class="method-grid">
-          <label class="method-card">
-            <input type="radio" name="paymentMethod" value="bank_transfer" checked />
-            <span>
-              <strong>Bank transfer</strong>
-              <small>ACH, SEPA, or Faster Payments funding.</small>
-            </span>
-          </label>
-
-          <label class="method-card">
-            <input type="radio" name="paymentMethod" value="ramp" />
-            <span>
-              <strong>Card payment</strong>
-              <small>Pay with Visa or Mastercard through a payment partner.</small>
-            </span>
-          </label>
-        </section>
-
-        <div class="actions">
-          <button id="backAction" class="button secondary" type="button">
-            Back
-          </button>
-
-          <button class="button primary" type="submit">
-            Continue
-          </button>
-        </div>
-      </form>
-    </section>
-
     <div id="pay-footer"></div>
   </main>
 
   <script src="/partials/pay/js/pay-includes.js?v=6"></script>
 
-  <script type="module" src="/pay/js/pay.js?v=7"></script>
+  <script type="module" src="/pay/js/pay.js?v=8"></script>
 </body>
 </html>
