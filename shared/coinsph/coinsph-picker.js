@@ -58,6 +58,24 @@ export function createCoinsPhPicker({
   let eventsBound = false;
   let mounted = false;
 
+  /*
+  --------------------------------------------------
+  Async load lifecycle
+
+  A generation identifies the currently authoritative
+  channel load.
+
+  reset() invalidates pending work.
+
+  activeLoadPromise ensures callers share one in-flight
+  request instead of starting concurrent loads.
+  --------------------------------------------------
+  */
+
+  let loadGeneration = 0;
+  let activeLoadGeneration = 0;
+  let activeLoadPromise = null;
+
   function call(fn, ...args) {
     if (typeof fn !== "function") {
       return null;
@@ -137,8 +155,13 @@ export function createCoinsPhPicker({
     getElement("coinsPhHint");
 
   function getDestinationCountry() {
-    if (typeof getDestinationCountryCode === "function") {
-      return String(getDestinationCountryCode() || "")
+    if (
+      typeof getDestinationCountryCode ===
+      "function"
+    ) {
+      return String(
+        getDestinationCountryCode() || ""
+      )
         .toUpperCase()
         .trim();
     }
@@ -147,17 +170,37 @@ export function createCoinsPhPicker({
   }
 
   function isActivePh() {
-    if (typeof isPhilippinesDestination === "function") {
-      return Boolean(isPhilippinesDestination());
+    if (
+      typeof isPhilippinesDestination ===
+      "function"
+    ) {
+      return Boolean(
+        isPhilippinesDestination()
+      );
     }
 
     const country =
       getDestinationCountry();
 
-    return !country || country === "PH";
+    return (
+      !country ||
+      country === "PH"
+    );
   }
 
-  function setContinueStateDisabled(disabled) {
+  function isCurrentLoad(
+    generation
+  ) {
+    return (
+      generation === loadGeneration &&
+      generation === activeLoadGeneration &&
+      isActivePh()
+    );
+  }
+
+  function setContinueStateDisabled(
+    disabled
+  ) {
     const value =
       Boolean(disabled);
 
@@ -173,10 +216,15 @@ export function createCoinsPhPicker({
   }
 
   function getSelectedChannelOption() {
-    return selectedChannelOption || null;
+    return (
+      selectedChannelOption ||
+      null
+    );
   }
 
-  function setHiddenSelection(option = {}) {
+  function setHiddenSelection(
+    option = {}
+  ) {
     const channelName =
       getOptionChannel(option);
 
@@ -244,8 +292,13 @@ export function createCoinsPhPicker({
     });
   }
 
-  function selectChannelOption(option = {}) {
-    if (!option || typeof option !== "object") {
+  function selectChannelOption(
+    option = {}
+  ) {
+    if (
+      !option ||
+      typeof option !== "object"
+    ) {
       clearSelection();
 
       return;
@@ -254,14 +307,24 @@ export function createCoinsPhPicker({
     selectedChannelOption =
       option;
 
-    setHiddenSelection(option);
+    setHiddenSelection(
+      option
+    );
+
     renderSelectedBank();
     updateRecipientFieldsVisibility();
     notifyChange();
   }
 
-  function selectBankGroup(group = {}) {
-    if (!group || !Array.isArray(group.options)) {
+  function selectBankGroup(
+    group = {}
+  ) {
+    if (
+      !group ||
+      !Array.isArray(
+        group.options
+      )
+    ) {
       clearSelection();
 
       return;
@@ -271,10 +334,14 @@ export function createCoinsPhPicker({
       group;
 
     const preferred =
-      group.options.find((option) => {
-        return getOptionChannel(option)
-          .toUpperCase() === "INSTAPAY";
-      }) ||
+      group.options.find(
+        (option) => {
+          return getOptionChannel(
+            option
+          ).toUpperCase() ===
+            "INSTAPAY";
+        }
+      ) ||
       group.options[0];
 
     if (bankSearchInput) {
@@ -283,13 +350,19 @@ export function createCoinsPhPicker({
     }
 
     if (bankResults) {
-      bankResults.classList.remove("active");
+      bankResults.classList.remove(
+        "active"
+      );
     }
 
-    selectChannelOption(preferred);
+    selectChannelOption(
+      preferred
+    );
   }
 
-  function renderSearchResults(query = "") {
+  function renderSearchResults(
+    query = ""
+  ) {
     visibleBankGroups =
       renderCoinsPhSearchResults({
         bankResults,
@@ -301,7 +374,9 @@ export function createCoinsPhPicker({
       });
   }
 
-  function renderBankOptions(options = []) {
+  function renderBankOptions(
+    options = []
+  ) {
     channelOptions =
       Array.isArray(options)
         ? options
@@ -329,18 +404,25 @@ export function createCoinsPhPicker({
     }
 
     if (selectedBank) {
-      selectedBank.classList.remove("active");
+      selectedBank.classList.remove(
+        "active"
+      );
     }
 
     if (channelTabs) {
-      channelTabs.innerHTML = "";
-      channelTabs.classList.remove("active");
+      channelTabs.innerHTML =
+        "";
+
+      channelTabs.classList.remove(
+        "active"
+      );
     }
 
     updateRecipientFieldsVisibility();
 
     renderSearchResults(
-      bankSearchInput?.value || ""
+      bankSearchInput?.value ||
+      ""
     );
   }
 
@@ -363,15 +445,28 @@ export function createCoinsPhPicker({
     updateRecipientFieldsVisibility();
 
     if (!isActivePh()) {
-      setContinueStateDisabled(true);
-      call(onInvalid);
+      setContinueStateDisabled(
+        true
+      );
+
+      call(
+        onInvalid
+      );
 
       return false;
     }
 
-    if (channelsLoading || !channelsLoaded) {
-      setContinueStateDisabled(true);
-      call(onInvalid);
+    if (
+      channelsLoading ||
+      !channelsLoaded
+    ) {
+      setContinueStateDisabled(
+        true
+      );
+
+      call(
+        onInvalid
+      );
 
       return false;
     }
@@ -401,7 +496,10 @@ export function createCoinsPhPicker({
   }
 
   function notifyChange() {
-    call(onChange);
+    call(
+      onChange
+    );
+
     updateContinueState();
   }
 
@@ -421,16 +519,38 @@ export function createCoinsPhPicker({
       channelOptions.length
     ) {
       renderSearchResults(
-        bankSearchInput.value || ""
+        bankSearchInput.value ||
+        ""
       );
 
       updateContinueState();
-      call(onReady);
+
+      call(
+        onReady
+      );
 
       return true;
     }
 
-    if (typeof loadChannelOptions !== "function") {
+    /*
+    --------------------------------------------------
+    Reuse current in-flight load
+    --------------------------------------------------
+    */
+
+    if (
+      channelsLoading &&
+      activeLoadPromise &&
+      activeLoadGeneration ===
+        loadGeneration
+    ) {
+      return activeLoadPromise;
+    }
+
+    if (
+      typeof loadChannelOptions !==
+      "function"
+    ) {
       const error =
         new Error(
           "COINSPH_CHANNEL_OPTIONS_LOADER_MISSING"
@@ -443,6 +563,12 @@ export function createCoinsPhPicker({
 
       throw error;
     }
+
+    const generation =
+      ++loadGeneration;
+
+    activeLoadGeneration =
+      generation;
 
     channelsLoading =
       true;
@@ -476,81 +602,140 @@ export function createCoinsPhPicker({
     }
 
     updateRecipientFieldsVisibility();
-    setContinueStateDisabled(true);
 
-    try {
-      const options =
-        await loadChannelOptions();
+    setContinueStateDisabled(
+      true
+    );
 
-      channelsLoaded =
-        true;
+    const promise =
+      (async () => {
+        try {
+          const options =
+            await loadChannelOptions();
 
-      bankSearchInput.disabled =
-        false;
+          /*
+          The request lost authority while it was pending.
+          Ignore its result completely.
+          */
 
-      bankSearchInput.placeholder =
-        "Search bank or payout institution";
+          if (
+            !isCurrentLoad(
+              generation
+            )
+          ) {
+            return false;
+          }
 
-      renderBankOptions(
-        options
-      );
+          channelsLoaded =
+            true;
 
-      if (hint) {
-        hint.innerText =
-          bankGroups.length
-            ? "Search for the receiving bank or wallet, select the payout channel, then enter recipient details."
-            : "No payout institutions are currently available.";
-      }
+          bankSearchInput.disabled =
+            false;
 
-      updateContinueState();
-      call(onReady);
+          bankSearchInput.placeholder =
+            "Search bank or payout institution";
 
-      return true;
-    } catch (err) {
-      channelOptions = [];
-      bankGroups = [];
-      visibleBankGroups = [];
-      selectedBankGroup = null;
-      selectedChannelOption = null;
-      channelsLoaded = false;
+          renderBankOptions(
+            options
+          );
 
-      bankSearchInput.disabled =
-        true;
+          if (hint) {
+            hint.innerText =
+              bankGroups.length
+                ? "Search for the receiving bank or wallet, select the payout channel, then enter recipient details."
+                : "No payout institutions are currently available.";
+          }
 
-      bankSearchInput.placeholder =
-        "Could not load payout institutions";
+          updateContinueState();
 
-      if (bankResults) {
-        bankResults.innerHTML =
-          "";
+          call(
+            onReady
+          );
 
-        bankResults.classList.remove(
-          "active"
-        );
-      }
+          return true;
+        } catch (error) {
+          /*
+          A stale request has no authority to report an
+          error or modify current picker state.
+          */
 
-      if (searchCount) {
-        searchCount.innerText =
-          "Could not load payout institutions.";
-      }
+          if (
+            !isCurrentLoad(
+              generation
+            )
+          ) {
+            return false;
+          }
 
-      if (hint) {
-        hint.innerText =
-          "Could not load Philippines payout institutions. Please try again.";
-      }
+          channelOptions = [];
+          bankGroups = [];
+          visibleBankGroups = [];
+          selectedBankGroup = null;
+          selectedChannelOption = null;
+          channelsLoaded = false;
 
-      call(
-        onError,
-        err
-      );
+          bankSearchInput.disabled =
+            true;
 
-      throw err;
-    } finally {
-      channelsLoading =
-        false;
+          bankSearchInput.placeholder =
+            "Could not load payout institutions";
 
-      updateContinueState();
-    }
+          if (bankResults) {
+            bankResults.innerHTML =
+              "";
+
+            bankResults.classList.remove(
+              "active"
+            );
+          }
+
+          if (searchCount) {
+            searchCount.innerText =
+              "Could not load payout institutions.";
+          }
+
+          if (hint) {
+            hint.innerText =
+              "Could not load Philippines payout institutions. Please try again.";
+          }
+
+          call(
+            onError,
+            error
+          );
+
+          throw error;
+        } finally {
+          /*
+          Only the authoritative load may release loading
+          state and update the active UI.
+          */
+
+          const isAuthoritative =
+            generation ===
+              loadGeneration &&
+            generation ===
+              activeLoadGeneration;
+
+          if (isAuthoritative) {
+            channelsLoading =
+              false;
+
+            activeLoadGeneration =
+              0;
+
+            activeLoadPromise =
+              null;
+
+            updateContinueState();
+          }
+        }
+      })();
+
+    activeLoadPromise =
+      promise;
+
+    return promise;
   }
 
   async function refresh() {
@@ -569,20 +754,37 @@ export function createCoinsPhPicker({
   }
 
   function reset() {
+    /*
+    --------------------------------------------------
+    Invalidate pending async work first
+    --------------------------------------------------
+    */
+
+    loadGeneration += 1;
+
+    activeLoadGeneration =
+      0;
+
+    activeLoadPromise =
+      null;
+
     channelOptions = [];
     bankGroups = [];
     visibleBankGroups = [];
     selectedBankGroup = null;
     selectedChannelOption = null;
+
     channelsLoaded = false;
     channelsLoading = false;
 
     if (bankInput) {
-      bankInput.value = "";
+      bankInput.value =
+        "";
     }
 
     if (bankSearchInput) {
-      bankSearchInput.value = "";
+      bankSearchInput.value =
+        "";
 
       bankSearchInput.disabled =
         false;
@@ -592,11 +794,13 @@ export function createCoinsPhPicker({
     }
 
     if (channelNameInput) {
-      channelNameInput.value = "";
+      channelNameInput.value =
+        "";
     }
 
     if (channelSubjectInput) {
-      channelSubjectInput.value = "";
+      channelSubjectInput.value =
+        "";
     }
 
     if (bankResults) {
@@ -672,7 +876,9 @@ export function createCoinsPhPicker({
         "Search for the receiving bank or wallet, select the payout channel, then enter recipient details.";
     }
 
-    setContinueStateDisabled(true);
+    setContinueStateDisabled(
+      true
+    );
   }
 
   function bindEvents() {
@@ -717,7 +923,8 @@ export function createCoinsPhPicker({
           updateRecipientFieldsVisibility();
 
           renderSearchResults(
-            bankSearchInput.value || ""
+            bankSearchInput.value ||
+            ""
           );
 
           notifyChange();
@@ -734,7 +941,8 @@ export function createCoinsPhPicker({
             )
           ) {
             renderSearchResults(
-              bankSearchInput.value || ""
+              bankSearchInput.value ||
+              ""
             );
           }
         }
@@ -761,18 +969,26 @@ export function createCoinsPhPicker({
               )
             );
 
-          if (!Number.isInteger(index)) {
+          if (
+            !Number.isInteger(
+              index
+            )
+          ) {
             return;
           }
 
           const group =
-            visibleBankGroups[index];
+            visibleBankGroups[
+              index
+            ];
 
           if (!group) {
             return;
           }
 
-          selectBankGroup(group);
+          selectBankGroup(
+            group
+          );
         }
       );
     }
@@ -786,7 +1002,10 @@ export function createCoinsPhPicker({
               "[data-option-index]"
             );
 
-          if (!button || !selectedBankGroup) {
+          if (
+            !button ||
+            !selectedBankGroup
+          ) {
             return;
           }
 
@@ -797,23 +1016,33 @@ export function createCoinsPhPicker({
               )
             );
 
-          if (!Number.isInteger(optionIndex)) {
+          if (
+            !Number.isInteger(
+              optionIndex
+            )
+          ) {
             return;
           }
 
           const option =
-            selectedBankGroup.options.find((item) => {
-              return (
-                Number(item.__coinsPhIndex) ===
-                optionIndex
-              );
-            });
+            selectedBankGroup.options.find(
+              (item) => {
+                return (
+                  Number(
+                    item.__coinsPhIndex
+                  ) ===
+                  optionIndex
+                );
+              }
+            );
 
           if (!option) {
             return;
           }
 
-          selectChannelOption(option);
+          selectChannelOption(
+            option
+          );
         }
       );
     }
@@ -823,21 +1052,23 @@ export function createCoinsPhPicker({
       recipientAccountInput,
       recipientAddressInput,
       remarksInput
-    ].forEach((input) => {
-      if (!input) {
-        return;
+    ].forEach(
+      (input) => {
+        if (!input) {
+          return;
+        }
+
+        input.addEventListener(
+          "input",
+          notifyChange
+        );
+
+        input.addEventListener(
+          "blur",
+          notifyChange
+        );
       }
-
-      input.addEventListener(
-        "input",
-        notifyChange
-      );
-
-      input.addEventListener(
-        "blur",
-        notifyChange
-      );
-    });
+    );
 
     return true;
   }
@@ -853,12 +1084,14 @@ export function createCoinsPhPicker({
     bindEvents();
 
     if (isActivePh()) {
-      load().catch((error) => {
-        call(
-          onError,
-          error
-        );
-      });
+      /*
+      load() owns error reporting through onError.
+      Catch here only to prevent an unhandled rejection.
+      */
+
+      load().catch(
+        () => {}
+      );
     } else {
       reset();
     }
