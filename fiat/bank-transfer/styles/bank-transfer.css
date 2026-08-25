@@ -1,0 +1,1132 @@
+/* fiat/bank-transfer/styles/bank-transfer.css */
+
+:root {
+  --bt-text: #fff;
+  --bt-muted: rgba(255, 255, 255, 0.72);
+  --bt-muted-2: rgba(255, 255, 255, 0.52);
+  --bt-accent: #14b8a6;
+  --bt-accent-soft: #5eead4;
+  --bt-danger: #ff8f8f;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --------------------------------------------------
+   Bank transfer shell
+-------------------------------------------------- */
+
+.bank-transfer-content {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 440px);
+  display: grid;
+  gap: 12px;
+}
+
+.bank-transfer-auth {
+  width: min(100%, 440px);
+}
+
+.bank-transfer-card {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 14px;
+
+  border: 1px solid rgba(94, 234, 212, 0.26);
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
+    );
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 26px rgba(94, 234, 212, 0.045);
+
+  backdrop-filter: blur(4.5px) saturate(125%);
+  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
+
+  text-align: left;
+  overflow: visible;
+}
+
+/* --------------------------------------------------
+   Entry / form
+-------------------------------------------------- */
+
+.entry-box,
+.form-grid,
+.profile-box,
+#fundingBox,
+.steps,
+#destinationFields {
+  display: grid;
+  gap: 10px;
+}
+
+.entry-header {
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.entry-header h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 14px;
+}
+
+.entry-header p {
+  margin: 5px 0 0;
+  color: var(--bt-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  color: var(--bt-muted);
+  font-size: 12px;
+}
+
+.field > span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.field input,
+.field select,
+.field textarea,
+.country-select-trigger {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.075);
+
+  color: var(--bt-text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.country-select-trigger:focus {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.field input.field-invalid,
+.field select.field-invalid,
+.field textarea.field-invalid {
+  border-color: rgba(248, 113, 113, 0.85) !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.16) !important;
+}
+
+.field-error-message {
+  display: block;
+  margin-top: 2px;
+  color: var(--bt-danger);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+/* --------------------------------------------------
+   Amount
+-------------------------------------------------- */
+
+.amount-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.amount-input-wrap input {
+  padding-right: 58px;
+}
+
+.amount-currency {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--bt-muted-2);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+#destinationFields:empty {
+  display: none;
+}
+
+/* --------------------------------------------------
+   Summary
+-------------------------------------------------- */
+
+.summary-box,
+.quote-box,
+.status-box {
+  padding: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 16px;
+  background: rgba(20, 184, 166, 0.08);
+  color: var(--bt-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.summary-grid,
+.quote-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.summary-item,
+.quote-grid > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.summary-item {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.summary-item span,
+.quote-grid span {
+  color: var(--bt-muted-2);
+  font-size: 10px;
+}
+
+.summary-item strong,
+.quote-grid strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.summary-empty {
+  display: grid;
+  gap: 8px;
+}
+
+.summary-empty strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.summary-empty span {
+  color: var(--bt-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.summary-link {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background: var(--bt-accent);
+  color: #04111f;
+
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 800;
+
+  box-shadow:
+    0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+/* --------------------------------------------------
+   Quote
+-------------------------------------------------- */
+
+.quote-box {
+  padding: 0;
+  overflow: hidden;
+}
+
+.quote-header {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quote-header strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.quote-header span {
+  color: var(--bt-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.quote-grid {
+  gap: 0;
+}
+
+.quote-grid > div {
+  min-width: 0;
+  padding: 8px 10px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+.quote-grid > div:first-child {
+  border-top: 0;
+}
+
+/* --------------------------------------------------
+   Country picker
+-------------------------------------------------- */
+
+.country-native-select {
+  display: none;
+}
+
+.country-select-shell {
+  position: relative;
+  width: 100%;
+}
+
+.country-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.country-select-value {
+  min-width: 0;
+  color: #fff;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-select-chevron {
+  flex: 0 0 auto;
+  color: rgba(94, 234, 212, 0.92);
+  font-size: 15px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.country-select-menu {
+  display: none;
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  padding: 6px;
+
+  border:
+    1px solid rgba(94, 234, 212, 0.24);
+
+  border-radius: 16px;
+
+  background:
+    rgba(2, 18, 48, 0.96);
+
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  backdrop-filter:
+    blur(14px)
+    saturate(130%);
+
+  -webkit-backdrop-filter:
+    blur(14px)
+    saturate(130%);
+}
+
+.country-select-shell.is-open .country-select-menu {
+  display: grid;
+  gap: 4px;
+}
+
+.country-select-option {
+  width: 100%;
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 9px 10px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: transparent;
+  color: #fff;
+
+  font: inherit;
+  font-size: 14px;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.country-select-option:hover,
+.country-select-option.is-selected {
+  background: rgba(20, 184, 166, 0.14);
+  color: var(--bt-accent-soft);
+}
+
+.country-select-option:active {
+  transform: scale(0.99);
+}
+
+/* --------------------------------------------------
+   CoinsPH
+-------------------------------------------------- */
+
+.coinsph-bank-transfer-destination,
+.coinsph-recipient-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.coinsph-recipient-fields.hidden {
+  display: none !important;
+}
+
+.coinsph-results {
+  display: none;
+  gap: 6px;
+
+  max-height: 240px;
+  overflow: auto;
+
+  padding: 6px;
+
+  border:
+    1px solid rgba(94, 234, 212, 0.2);
+
+  border-radius: 14px;
+
+  background:
+    rgba(2, 18, 48, 0.86);
+
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.coinsph-results.active {
+  display: grid;
+}
+
+.coinsph-result {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 10px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: transparent;
+  color: #fff;
+
+  font: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.coinsph-result:hover {
+  background:
+    rgba(20, 184, 166, 0.14);
+}
+
+.coinsph-result strong {
+  display: block;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.coinsph-result span,
+.coinsph-selected-bank span {
+  display: block;
+  margin-top: 3px;
+  color: var(--bt-muted-2);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.coinsph-empty {
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.coinsph-selected-bank {
+  display: none;
+  gap: 4px;
+  padding: 10px 12px;
+
+  border:
+    1px solid rgba(45, 212, 191, 0.22);
+
+  border-radius: 14px;
+
+  background:
+    rgba(20, 184, 166, 0.08);
+}
+
+.coinsph-selected-bank.active {
+  display: grid;
+}
+
+.coinsph-selected-bank strong {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.coinsph-channel-tabs {
+  display: none;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.coinsph-channel-tabs.active {
+  display: grid;
+}
+
+.coinsph-channel-tab {
+  min-height: 38px;
+  padding: 8px 10px;
+
+  border:
+    1px solid rgba(45, 212, 191, 0.26);
+
+  border-radius: 12px;
+
+  background:
+    rgba(20, 184, 166, 0.07);
+
+  color: var(--bt-accent-soft);
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+.coinsph-channel-tab.active,
+.coinsph-channel-tab:hover {
+  border-color:
+    rgba(94, 234, 212, 0.48);
+
+  background:
+    rgba(20, 184, 166, 0.16);
+
+  color: #fff;
+}
+
+/* --------------------------------------------------
+   Funding
+-------------------------------------------------- */
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.09);
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.28);
+
+  flex: 0 0 auto;
+}
+
+.step strong {
+  display: block;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.step p {
+  margin: 3px 0 0;
+  color: var(--bt-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.step.active {
+  border-color:
+    rgba(45, 212, 191, 0.32);
+
+  background:
+    rgba(20, 184, 166, 0.075);
+}
+
+.step.active .step-dot {
+  background: var(--bt-accent-soft);
+}
+
+.step.done {
+  border-color:
+    rgba(45, 212, 191, 0.24);
+
+  background:
+    rgba(20, 184, 166, 0.08);
+}
+
+.step.done .step-dot {
+  background: #99f6e4;
+}
+
+.step.failed {
+  border-color:
+    rgba(248, 113, 113, 0.28);
+
+  background:
+    rgba(248, 113, 113, 0.12);
+}
+
+.step.failed .step-dot {
+  background: var(--bt-danger);
+}
+
+.status-box {
+  word-break: break-word;
+}
+
+.status-box.success {
+  background:
+    rgba(20, 184, 166, 0.08);
+
+  color: #99f6e4;
+}
+
+.status-box.warning {
+  background:
+    rgba(251, 191, 36, 0.12);
+
+  color: #fbbf24;
+}
+
+.status-box.failed {
+  background:
+    rgba(248, 113, 113, 0.12);
+
+  color: var(--bt-danger);
+}
+
+/* --------------------------------------------------
+   Bank instructions
+-------------------------------------------------- */
+
+.bank-instructions-card {
+  overflow: hidden;
+
+  border:
+    1px solid rgba(45, 212, 191, 0.24);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 31, 66, 0.96),
+      rgba(7, 18, 43, 0.96)
+    );
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.bank-instructions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 14px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(45, 212, 191, 0.18),
+      transparent 45%
+    ),
+    rgba(20, 184, 166, 0.06);
+}
+
+.bank-instructions-header > div {
+  min-width: 0;
+}
+
+.bank-instructions-kicker {
+  margin-bottom: 5px;
+
+  color: var(--bt-accent-soft);
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.bank-instructions-title {
+  margin: 0;
+
+  color: #fff;
+
+  font-size: 17px;
+  line-height: 1.18;
+}
+
+.bank-instructions-subtext {
+  margin: 7px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.bank-transfer-id {
+  display: grid;
+  gap: 4px;
+
+  padding: 10px 14px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  background:
+    rgba(255, 255, 255, 0.035);
+}
+
+.bank-transfer-id span,
+.bank-instruction-label {
+  color:
+    rgba(255, 255, 255, 0.54);
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bank-transfer-id strong {
+  color:
+    rgba(255, 255, 255, 0.72);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  line-height: 1.45;
+
+  word-break: break-all;
+}
+
+.bank-instructions-list {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.bank-instruction-item {
+  display: grid;
+  gap: 8px;
+
+  padding: 11px;
+
+  border:
+    1px solid rgba(148, 163, 184, 0.16);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.03)
+    );
+}
+
+.bank-instruction-item.important {
+  border-color:
+    rgba(45, 212, 191, 0.36);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 184, 166, 0.13),
+      rgba(20, 184, 166, 0.055)
+    );
+}
+
+.bank-instruction-item.reference {
+  border-color:
+    rgba(251, 191, 36, 0.42);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 191, 36, 0.15),
+      rgba(251, 191, 36, 0.055)
+    );
+}
+
+.bank-instruction-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bank-instruction-value {
+  color:
+    rgba(255, 255, 255, 0.94);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  line-height: 1.38;
+
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  user-select: text;
+}
+
+.bank-instruction-value.mono {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  font-size: 12px;
+  letter-spacing: -0.01em;
+}
+
+.bank-copy-all-button,
+.bank-copy-button {
+  border:
+    1px solid rgba(94, 234, 212, 0.28);
+
+  border-radius: 999px;
+
+  background:
+    rgba(20, 184, 166, 0.08);
+
+  color: #99f6e4;
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease,
+    color 160ms ease;
+}
+
+.bank-copy-all-button {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.bank-copy-button {
+  padding: 6px 9px;
+}
+
+.bank-copy-all-button:hover,
+.bank-copy-button:hover {
+  border-color:
+    rgba(94, 234, 212, 0.5);
+
+  background:
+    rgba(20, 184, 166, 0.16);
+}
+
+.bank-copy-all-button:active,
+.bank-copy-button:active {
+  transform: translateY(1px);
+}
+
+.bank-copy-button.copied,
+.bank-copy-all-button.copied {
+  border-color:
+    rgba(45, 212, 191, 0.65);
+
+  background:
+    rgba(45, 212, 191, 0.18);
+
+  color: #fff;
+}
+
+.bank-copy-button.failed,
+.bank-copy-all-button.failed {
+  border-color:
+    rgba(251, 191, 36, 0.5);
+
+  background:
+    rgba(251, 191, 36, 0.12);
+
+  color: #fbbf24;
+}
+
+.bank-instructions-note {
+  margin: 0 12px 12px;
+  padding: 11px 12px;
+
+  border:
+    1px solid rgba(251, 191, 36, 0.25);
+
+  border-radius: 14px;
+
+  background:
+    rgba(251, 191, 36, 0.09);
+
+  color: #fde68a;
+
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------
+   Actions
+-------------------------------------------------- */
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.button {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+
+  padding: 11px 14px;
+
+  border: 0;
+  border-radius: 14px;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button.primary {
+  background: var(--bt-accent);
+  color: #04111f;
+
+  box-shadow:
+    0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+.button.secondary {
+  border:
+    1px solid rgba(45, 212, 191, 0.32);
+
+  background:
+    rgba(20, 184, 166, 0.07);
+
+  color: var(--bt-accent-soft);
+}
+
+.button:active:not(:disabled),
+.summary-link:active {
+  transform: scale(0.98);
+}
+
+option {
+  color: #04111f;
+}
+
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+
+@media (min-width: 640px) {
+  .bank-instructions-list {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .bank-instruction-item.wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 430px) {
+  .bank-transfer-content,
+  .bank-transfer-auth,
+  .bank-transfer-card {
+    width: min(100%, 392px);
+  }
+
+  .bank-transfer-card {
+    margin-top: 2px;
+    padding: 13px;
+
+    border-radius: 20px;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(9, 34, 72, 0.22) 0%,
+        rgba(0, 14, 45, 0.12) 100%
+      );
+
+    backdrop-filter:
+      blur(4px)
+      saturate(124%);
+
+    -webkit-backdrop-filter:
+      blur(4px)
+      saturate(124%);
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .bank-instructions-header {
+    padding: 13px;
+  }
+
+  .bank-instructions-title {
+    font-size: 16px;
+  }
+
+  .bank-instructions-list {
+    padding: 10px;
+  }
+
+  .bank-instruction-item {
+    padding: 10px;
+  }
+
+  .bank-instruction-value {
+    font-size: 12px;
+  }
+
+  .bank-instruction-value.mono {
+    font-size: 11px;
+  }
+}
