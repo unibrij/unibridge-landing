@@ -17,40 +17,6 @@ function openPayAgent() {
   );
 }
 
-function showChoice() {
-  getEl("choiceCard")?.classList.remove("hidden");
-  getEl("fiatCard")?.classList.add("hidden");
-  getEl("guideCard")?.classList.remove("hidden");
-}
-
-function showFiat() {
-  getEl("choiceCard")?.classList.add("hidden");
-  getEl("fiatCard")?.classList.remove("hidden");
-  getEl("guideCard")?.classList.add("hidden");
-}
-
-function getPaymentMethod() {
-  return (
-    document.querySelector(
-      'input[name="paymentMethod"]:checked'
-    )?.value || "bank_transfer"
-  );
-}
-
-function redirectByPaymentMethod(paymentMethod) {
-  if (paymentMethod === "bank_transfer") {
-    goTo("/fiat/bank-transfer");
-    return;
-  }
-
-  if (paymentMethod === "ramp") {
-    goTo("/surface");
-    return;
-  }
-
-  goTo("/surface");
-}
-
 function init() {
   getEl("walletOption")
     ?.addEventListener("click", () => {
@@ -59,29 +25,13 @@ function init() {
 
   getEl("fiatOption")
     ?.addEventListener("click", () => {
-      showFiat();
-    });
-
-  getEl("backAction")
-    ?.addEventListener("click", () => {
-      showChoice();
+      goTo("/surface");
     });
 
   getEl("guideCardAction")
     ?.addEventListener("click", () => {
       openPayAgent();
     });
-
-  getEl("fiatForm")
-    ?.addEventListener("submit", event => {
-      event.preventDefault();
-
-      redirectByPaymentMethod(
-        getPaymentMethod()
-      );
-    });
-
-  showChoice();
 }
 
 init();
