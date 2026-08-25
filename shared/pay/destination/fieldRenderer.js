@@ -448,7 +448,14 @@ async function renderField({
   );
 
 
+  let changeGeneration =
+    0;
+
+
   async function handleChange() {
+    const generation =
+      ++changeGeneration;
+
     values[field.name] =
       input.value;
 
@@ -479,9 +486,15 @@ async function renderField({
       if (
         dependentFields.length
       ) {
+        const stagingContainer =
+          document.createElement(
+            "div"
+          );
+
+
         await renderFields({
           container:
-            dependentContainer,
+            stagingContainer,
 
           fields:
             dependentFields,
@@ -490,7 +503,29 @@ async function renderField({
           values,
           onChange
         });
+
+
+        if (
+          generation !==
+          changeGeneration
+        ) {
+          return;
+        }
+
+
+        dependentContainer
+          .replaceChildren(
+            ...stagingContainer.childNodes
+          );
       }
+    }
+
+
+    if (
+      generation !==
+      changeGeneration
+    ) {
+      return;
     }
 
 
