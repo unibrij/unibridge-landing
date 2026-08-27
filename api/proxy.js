@@ -64,6 +64,14 @@ const ALLOWED =
 
     /*
     --------------------------------------------------
+    Receive
+    --------------------------------------------------
+    */
+
+    "receive",
+
+    /*
+    --------------------------------------------------
     Ramp orchestration
     --------------------------------------------------
     */
@@ -91,7 +99,15 @@ const CLERK_AUTH_ENDPOINTS =
     "fiat/session/register",
     "fiat/kyc/create",
     "fiat/transak-virtual-account/create",
-    "fiat/payout-history"
+    "fiat/payout-history",
+
+    /*
+    --------------------------------------------------
+    Receive create
+    --------------------------------------------------
+    */
+
+    "receive"
   ]);
 
 function normalizeEndpoint(value) {
@@ -136,6 +152,55 @@ function isRepeatPayoutEndpoint(
     );
 }
 
+/*
+--------------------------------------------------
+Receive dynamic endpoints
+--------------------------------------------------
+*/
+
+function isReceivePublicResolveEndpoint(
+  endpoint
+) {
+  return /^receive\/ub_rcv_[A-Za-z0-9_-]{43}$/
+    .test(
+      endpoint
+    );
+}
+
+function isReceiveProfileEndpoint(
+  endpoint
+) {
+  return /^receive\/rcv_[A-Za-z0-9_-]+$/
+    .test(
+      endpoint
+    );
+}
+
+function isReceiveDeactivateEndpoint(
+  endpoint
+) {
+  return /^receive\/rcv_[A-Za-z0-9_-]+\/deactivate$/
+    .test(
+      endpoint
+    );
+}
+
+function isReceiveDynamicEndpoint(
+  endpoint
+) {
+  return (
+    isReceivePublicResolveEndpoint(
+      endpoint
+    ) ||
+    isReceiveProfileEndpoint(
+      endpoint
+    ) ||
+    isReceiveDeactivateEndpoint(
+      endpoint
+    )
+  );
+}
+
 function isAllowedEndpoint(
   endpoint
 ) {
@@ -144,6 +209,9 @@ function isAllowedEndpoint(
       endpoint
     ) ||
     isRepeatPayoutEndpoint(
+      endpoint
+    ) ||
+    isReceiveDynamicEndpoint(
       endpoint
     )
   );
@@ -157,6 +225,12 @@ function requiresClerkAuthorization(
       endpoint
     ) ||
     isRepeatPayoutEndpoint(
+      endpoint
+    ) ||
+    isReceiveProfileEndpoint(
+      endpoint
+    ) ||
+    isReceiveDeactivateEndpoint(
       endpoint
     )
   );
@@ -237,6 +311,42 @@ function parseUpstreamText(text) {
 function getAllowedMethod(
   endpoint
 ) {
+  /*
+  --------------------------------------------------
+  Receive
+  --------------------------------------------------
+  */
+
+  if (
+    isReceivePublicResolveEndpoint(
+      endpoint
+    )
+  ) {
+    return "GET";
+  }
+
+  if (
+    isReceiveProfileEndpoint(
+      endpoint
+    )
+  ) {
+    return "PATCH";
+  }
+
+  if (
+    isReceiveDeactivateEndpoint(
+      endpoint
+    )
+  ) {
+    return "POST";
+  }
+
+  /*
+  --------------------------------------------------
+  Existing GET endpoints
+  --------------------------------------------------
+  */
+
   if (
     endpoint ===
       "settlement/status" ||
