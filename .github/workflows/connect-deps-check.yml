@@ -1,0 +1,47 @@
+name: Connect Dependencies Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: unibridge-landing/connect-app
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Show dependency versions
+        run: |
+          npm ls \
+            viem \
+            wagmi \
+            @reown/appkit \
+            @reown/appkit-adapter-wagmi \
+            @tanstack/react-query \
+            react \
+            react-dom \
+            vite \
+            @vitejs/plugin-react \
+            @didit-protocol/sdk-web \
+            --depth=0
+
+      - name: Build Connect
+        run: npm run build
