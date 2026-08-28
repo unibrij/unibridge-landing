@@ -9,7 +9,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: unibridge-landing/connect-app
+        working-directory: connect-app
 
     steps:
       - name: Checkout
