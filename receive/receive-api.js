@@ -1,12 +1,12 @@
 // unibridge-landing/receive/receive-api.js
 
-function normalizeString(
-  value
-) {
-  return String(
-    value ??
-    ""
-  ).trim();
+import {
+  buildClerkAuthorizationHeader
+} from "/shared/pay/auth/clerkAuth.js";
+
+
+function normalizeString(value) {
+  return String(value ?? "").trim();
 }
 
 
@@ -18,21 +18,15 @@ function parseResponseError(
     payload?.error;
 
   if (
-    typeof error ===
-    "string" &&
-    normalizeString(
-      error
-    )
+    typeof error === "string" &&
+    normalizeString(error)
   ) {
-    return normalizeString(
-      error
-    );
+    return normalizeString(error);
   }
 
   if (
     error &&
-    typeof error ===
-      "object"
+    typeof error === "object"
   ) {
     const nestedError =
       normalizeString(
@@ -72,15 +66,12 @@ async function fetchJson(
   const text =
     await response.text();
 
-  let payload =
-    {};
+  let payload = {};
 
   if (text) {
     try {
       payload =
-        JSON.parse(
-          text
-        );
+        JSON.parse(text);
     }
     catch {
       payload = {
@@ -144,46 +135,6 @@ function buildProxyUrl(
       normalized
     )
   );
-}
-
-
-async function getClerkToken() {
-  const clerk =
-    window.Clerk;
-
-  if (!clerk) {
-    throw new Error(
-      "Please sign in before creating a receive link."
-    );
-  }
-
-  if (
-    clerk.loaded === false &&
-    typeof clerk.load ===
-      "function"
-  ) {
-    await clerk.load();
-  }
-
-  const session =
-    clerk.session;
-
-  if (!session) {
-    throw new Error(
-      "Please sign in before creating a receive link."
-    );
-  }
-
-  const token =
-    await session.getToken();
-
-  if (!token) {
-    throw new Error(
-      "Unable to verify your session. Please sign in again."
-    );
-  }
-
-  return token;
 }
 
 
@@ -253,8 +204,8 @@ export async function createReceiveProfile({
     );
   }
 
-  const token =
-    await getClerkToken();
+  const authorizationHeaders =
+    await buildClerkAuthorizationHeader();
 
   return fetchJson(
     buildProxyUrl(
@@ -271,8 +222,7 @@ export async function createReceiveProfile({
         "Content-Type":
           "application/json",
 
-        Authorization:
-          `Bearer ${token}`
+        ...authorizationHeaders
       },
 
       body:
