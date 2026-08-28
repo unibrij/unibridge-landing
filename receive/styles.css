@@ -1,0 +1,1134 @@
+/* unibridge-landing/receive/styles.css */
+
+:root {
+  --receive-bg: #000e2d;
+  --receive-text: #ffffff;
+  --receive-muted: rgba(255, 255, 255, 0.72);
+  --receive-muted-2: rgba(255, 255, 255, 0.52);
+  --receive-accent: #14b8a6;
+  --receive-accent-soft: #5eead4;
+  --receive-border: rgba(94, 234, 212, 0.26);
+  --receive-border-soft: rgba(255, 255, 255, 0.11);
+}
+
+
+/*
+--------------------------------------------------
+Base
+--------------------------------------------------
+*/
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.receive-view {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 440px);
+}
+
+.receive-view[hidden] {
+  display: none !important;
+}
+
+
+/*
+--------------------------------------------------
+Card
+Mirrors Pay glass-card geometry
+--------------------------------------------------
+*/
+
+.receive-card {
+  position: relative;
+  z-index: 2;
+
+  width: min(100%, 440px);
+  box-sizing: border-box;
+
+  margin-top: 8px;
+  padding: 14px;
+
+  border: 1px solid var(--receive-border);
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.22) 0%,
+      rgba(0, 14, 45, 0.12) 100%
+    );
+
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 0 26px rgba(94, 234, 212, 0.045);
+
+  backdrop-filter:
+    blur(8px)
+    saturate(125%);
+
+  -webkit-backdrop-filter:
+    blur(8px)
+    saturate(125%);
+}
+
+
+/*
+--------------------------------------------------
+Header
+--------------------------------------------------
+*/
+
+.receive-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0 0 16px;
+
+  text-align: center;
+}
+
+.receive-eyebrow {
+  margin: 0;
+
+  color: var(--receive-accent-soft);
+
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.receive-header h2 {
+  margin: 0;
+
+  max-width: 420px;
+
+  color: #ffffff;
+
+  font-size: 28px;
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+
+.receive-header > p:not(.receive-eyebrow) {
+  margin: 0;
+
+  max-width: 390px;
+
+  color: rgba(255, 255, 255, 0.76);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/*
+--------------------------------------------------
+Sections
+--------------------------------------------------
+*/
+
+.receive-section {
+  position: relative;
+
+  width: 100%;
+
+  margin-top: 12px;
+
+  text-align: left;
+}
+
+.receive-section[hidden] {
+  display: none !important;
+}
+
+.receive-section-heading {
+  margin-bottom: 10px;
+}
+
+.receive-section-heading h3 {
+  margin: 0 0 5px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.receive-section-heading p {
+  margin: 0;
+
+  color: var(--receive-muted);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+
+/*
+--------------------------------------------------
+Fields
+Mirrors Pay / Surface fields
+--------------------------------------------------
+*/
+
+.receive-field {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+
+  color: var(--receive-muted);
+
+  font-size: 12px;
+
+  text-align: left;
+}
+
+.receive-field-label {
+  display: block;
+
+  color: var(--receive-muted);
+
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.receive-field input,
+.receive-field select,
+.receive-field textarea,
+.receive-link-input {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+
+  box-sizing: border-box;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.075);
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 14px;
+
+  outline: none;
+}
+
+.receive-field textarea {
+  resize: vertical;
+}
+
+.receive-field input::placeholder,
+.receive-field textarea::placeholder {
+  color:
+    rgba(255, 255, 255, 0.38);
+}
+
+.receive-field input:focus,
+.receive-field select:focus,
+.receive-field textarea:focus,
+.receive-link-input:focus {
+  border-color:
+    rgba(45, 212, 191, 0.55);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(45, 212, 191, 0.12);
+}
+
+.receive-field input:disabled,
+.receive-field select:disabled,
+.receive-field textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.receive-field input.field-invalid,
+.receive-field select.field-invalid,
+.receive-field textarea.field-invalid {
+  border-color:
+    rgba(248, 113, 113, 0.85) !important;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(248, 113, 113, 0.16) !important;
+}
+
+.receive-field option {
+  color: #04111f;
+}
+
+
+/*
+--------------------------------------------------
+Beneficiary fields
+--------------------------------------------------
+*/
+
+.receive-beneficiary-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+}
+
+
+/*
+--------------------------------------------------
+Shared country picker
+Mirrors Pay country-select styles
+--------------------------------------------------
+*/
+
+.country-native-select {
+  display: none !important;
+}
+
+.country-select-shell {
+  position: relative;
+
+  width: 100%;
+
+  z-index: 40;
+}
+
+.country-select-shell.is-open {
+  z-index: 160;
+}
+
+.country-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 10px 12px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.075);
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
+
+  text-align: left;
+
+  outline: none;
+  box-shadow: none;
+
+  cursor: pointer;
+}
+
+.country-select-trigger:hover {
+  background:
+    rgba(255, 255, 255, 0.09);
+}
+
+.country-select-trigger:focus,
+.country-select-shell.is-open
+.country-select-trigger {
+  border-color:
+    rgba(45, 212, 191, 0.55);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(45, 212, 191, 0.12);
+}
+
+.country-select-trigger:active {
+  transform: none;
+}
+
+.country-select-value {
+  display: block;
+
+  min-width: 0;
+  flex: 1 1 auto;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.country-select-chevron {
+  display: block;
+  flex: 0 0 auto;
+
+  color:
+    rgba(94, 234, 212, 0.92);
+
+  font-size: 15px;
+  line-height: 1;
+
+  transform:
+    translateY(-1px);
+}
+
+.country-select-shell.is-open
+.country-select-chevron {
+  transform:
+    translateY(1px)
+    rotate(180deg);
+}
+
+.country-select-menu {
+  display: none;
+
+  position: absolute;
+  z-index: 200;
+
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  min-width: 0;
+
+  padding: 6px;
+
+  border:
+    1px solid
+    rgba(94, 234, 212, 0.24);
+
+  border-radius: 16px;
+
+  background:
+    rgba(2, 18, 48, 0.98);
+
+  box-shadow:
+    0 18px 48px
+      rgba(0, 0, 0, 0.38),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.08);
+
+  backdrop-filter:
+    blur(14px)
+    saturate(130%);
+
+  -webkit-backdrop-filter:
+    blur(14px)
+    saturate(130%);
+}
+
+.country-select-shell.is-open
+.country-select-menu {
+  display: grid;
+  gap: 4px;
+}
+
+.country-select-search {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+
+  box-sizing: border-box;
+
+  margin: 0 0 6px;
+  padding: 9px 11px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  border-radius: 11px;
+
+  background:
+    rgba(255, 255, 255, 0.075);
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 13px;
+
+  outline: none;
+}
+
+.country-select-search::placeholder {
+  color:
+    rgba(255, 255, 255, 0.38);
+}
+
+.country-select-search:focus {
+  border-color:
+    rgba(45, 212, 191, 0.55);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(45, 212, 191, 0.10);
+}
+
+.country-select-options {
+  display: grid;
+  gap: 2px;
+
+  max-height: 250px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.country-select-option {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+
+  box-sizing: border-box;
+
+  margin: 0;
+  padding: 9px 10px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: transparent;
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+
+  text-align: left;
+  overflow-wrap: anywhere;
+
+  box-shadow: none;
+
+  cursor: pointer;
+}
+
+.country-select-option:hover,
+.country-select-option:focus,
+.country-select-option.is-selected {
+  background:
+    rgba(20, 184, 166, 0.14);
+
+  color:
+    var(--receive-accent-soft);
+
+  outline: none;
+}
+
+.country-select-option:focus-visible {
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(94, 234, 212, 0.42);
+}
+
+.country-select-option:active {
+  transform: none;
+}
+
+.country-select-empty {
+  padding: 11px 10px;
+
+  color:
+    rgba(255, 255, 255, 0.52);
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  text-align: left;
+}
+
+
+/*
+--------------------------------------------------
+Actions
+Mirrors Pay buttons
+--------------------------------------------------
+*/
+
+.receive-actions,
+.receive-result-actions {
+  display: grid;
+  gap: 10px;
+
+  width: 100%;
+
+  margin-top: 14px;
+}
+
+.receive-result-actions {
+  grid-template-columns:
+    1fr 1fr;
+}
+
+.receive-primary-button,
+.receive-secondary-button,
+.receive-text-button {
+  width: 100%;
+  min-height: 44px;
+
+  box-sizing: border-box;
+
+  border-radius: 14px;
+
+  padding: 11px 14px;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 100ms ease;
+}
+
+.receive-primary-button {
+  border: 0;
+
+  background:
+    var(--receive-accent);
+
+  color: #04111f;
+
+  box-shadow:
+    0 12px 30px
+    rgba(20, 184, 166, 0.18);
+}
+
+.receive-primary-button:hover {
+  background:
+    #2dd4bf;
+}
+
+.receive-secondary-button {
+  border:
+    1px solid
+    rgba(45, 212, 191, 0.32);
+
+  background:
+    rgba(20, 184, 166, 0.07);
+
+  color:
+    var(--receive-accent-soft);
+}
+
+.receive-secondary-button:hover {
+  border-color:
+    rgba(45, 212, 191, 0.48);
+
+  background:
+    rgba(20, 184, 166, 0.12);
+}
+
+.receive-primary-button:active,
+.receive-secondary-button:active,
+.receive-text-button:active {
+  transform:
+    scale(0.98);
+}
+
+.receive-primary-button:disabled,
+.receive-secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.receive-text-button {
+  min-height: 36px;
+
+  margin-top: 12px;
+
+  border: 0;
+
+  background: transparent;
+
+  color:
+    rgba(94, 234, 212, 0.88);
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+
+/*
+--------------------------------------------------
+Messages
+--------------------------------------------------
+*/
+
+.receive-message {
+  margin-top: 12px;
+
+  padding: 10px 12px;
+
+  border-radius: 14px;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  text-align: left;
+}
+
+.receive-message-error {
+  border:
+    1px solid
+    rgba(248, 113, 113, 0.26);
+
+  background:
+    rgba(248, 113, 113, 0.08);
+
+  color: #ff8f8f;
+
+  font-weight: 750;
+}
+
+
+/*
+--------------------------------------------------
+Created QR
+--------------------------------------------------
+*/
+
+.receive-qr {
+  display: grid;
+  place-items: center;
+
+  width: min(100%, 250px);
+  min-height: 220px;
+
+  box-sizing: border-box;
+
+  margin: 4px auto 16px;
+  padding: 16px;
+
+  border:
+    1px solid
+    rgba(94, 234, 212, 0.26);
+
+  border-radius: 18px;
+
+  background:
+    rgba(255, 255, 255, 0.96);
+
+  box-shadow:
+    0 18px 44px
+    rgba(0, 0, 0, 0.22);
+}
+
+.receive-qr canvas,
+.receive-qr img,
+.receive-qr svg {
+  display: block;
+
+  max-width: 100%;
+  height: auto;
+}
+
+.receive-link-block {
+  width: 100%;
+
+  text-align: left;
+}
+
+.receive-link-input {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/*
+--------------------------------------------------
+Public receive state
+--------------------------------------------------
+*/
+
+.receive-state {
+  padding: 12px;
+
+  color:
+    rgba(255, 255, 255, 0.72);
+
+  font-size: 12px;
+  line-height: 1.5;
+
+  text-align: center;
+}
+
+.receive-state[hidden] {
+  display: none !important;
+}
+
+.receive-state p {
+  margin: 0;
+}
+
+
+/*
+--------------------------------------------------
+Recipient summary
+Mirrors Pay summary-box language
+--------------------------------------------------
+*/
+
+.receive-recipient {
+  padding: 12px;
+
+  border:
+    1px solid
+    rgba(45, 212, 191, 0.22);
+
+  border-radius: 16px;
+
+  background:
+    rgba(20, 184, 166, 0.08);
+
+  text-align: left;
+}
+
+.receive-recipient-label {
+  display: block;
+
+  color:
+    rgba(255, 255, 255, 0.52);
+
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.2;
+
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.receive-recipient-name {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #ffffff;
+
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 800;
+
+  overflow-wrap: anywhere;
+}
+
+.receive-recipient-identifier {
+  display: block;
+
+  margin-top: 4px;
+
+  color:
+    rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
+}
+
+.receive-recipient-identifier[hidden] {
+  display: none !important;
+}
+
+
+/*
+--------------------------------------------------
+Receive metadata
+--------------------------------------------------
+*/
+
+.receive-meta {
+  display: grid;
+  gap: 7px;
+
+  margin-top: 10px;
+  padding: 12px;
+
+  border:
+    1px solid
+    rgba(45, 212, 191, 0.22);
+
+  border-radius: 16px;
+
+  background:
+    rgba(20, 184, 166, 0.08);
+}
+
+.receive-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  min-width: 0;
+
+  padding: 8px 10px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  text-align: left;
+}
+
+.receive-meta-row span {
+  color:
+    rgba(255, 255, 255, 0.52);
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.receive-meta-row strong {
+  min-width: 0;
+
+  color:
+    rgba(255, 255, 255, 0.92);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-align: right;
+
+  overflow-wrap: anywhere;
+}
+
+
+/*
+--------------------------------------------------
+Payment entry points
+Mirrors Pay choice-card
+--------------------------------------------------
+*/
+
+.receive-payment-options {
+  display: grid;
+  gap: 10px;
+
+  width: 100%;
+
+  margin-top: 12px;
+}
+
+.receive-payment-option {
+  width: 100%;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  min-height: 68px;
+
+  padding: 13px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.11);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 40, 78, 0.22) 0%,
+      rgba(4, 18, 48, 0.12) 100%
+    );
+
+  color:
+    var(--receive-text);
+
+  font: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 100ms ease;
+}
+
+.receive-payment-option:hover {
+  border-color:
+    rgba(45, 212, 191, 0.32);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 184, 166, 0.11) 0%,
+      rgba(4, 18, 48, 0.16) 100%
+    );
+}
+
+.receive-payment-option:active {
+  transform:
+    scale(0.98);
+}
+
+.receive-payment-option strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 850;
+}
+
+.receive-payment-option small {
+  display: block;
+
+  color:
+    rgba(255, 255, 255, 0.72);
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+
+/*
+--------------------------------------------------
+Hidden
+--------------------------------------------------
+*/
+
+[hidden] {
+  display: none !important;
+}
+
+
+/*
+--------------------------------------------------
+Responsive
+Mirrors Pay 430px breakpoint
+--------------------------------------------------
+*/
+
+@media (max-width: 430px) {
+  .receive-view {
+    width: min(100%, 392px);
+  }
+
+  .receive-card {
+    width: min(100%, 392px);
+
+    margin-top: 6px;
+    padding: 13px;
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(9, 34, 72, 0.22) 0%,
+        rgba(0, 14, 45, 0.12) 100%
+      );
+
+    backdrop-filter:
+      blur(4px)
+      saturate(124%);
+
+    -webkit-backdrop-filter:
+      blur(4px)
+      saturate(124%);
+  }
+
+  .receive-header {
+    margin-bottom: 14px;
+  }
+
+  .receive-header h2 {
+    font-size: 25px;
+  }
+
+  .receive-header > p:not(.receive-eyebrow) {
+    font-size: 13px;
+  }
+
+  .receive-result-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .receive-qr {
+    width: min(100%, 230px);
+    min-height: 210px;
+  }
+}
+
+
+@media (max-width: 360px) {
+  .receive-header h2 {
+    font-size: 23px;
+  }
+
+  .receive-card {
+    padding: 12px;
+  }
+}
