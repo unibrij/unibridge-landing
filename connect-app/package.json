@@ -16,7 +16,7 @@
     "@vitejs/plugin-react": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "viem": "latest",
+    "viem": "2.55.7",
     "vite": "latest",
     "wagmi": "latest"
   },
