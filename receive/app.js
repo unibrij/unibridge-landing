@@ -42,6 +42,9 @@ const els = {
   beneficiaryFields:
     document.getElementById("receiveBeneficiaryFields"),
 
+  authSection:
+    document.getElementById("receiveAuthSection"),
+
   createError:
     document.getElementById("receiveCreateError"),
 
