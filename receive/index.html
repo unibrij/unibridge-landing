@@ -48,27 +48,19 @@
     content="black-translucent"
   />
 
-  <!--
-  ==================================================
-  Shared Pay shell
-  Brand + footer visual language
-  ==================================================
-  -->
-
   <link
     rel="stylesheet"
     href="/partials/pay/css/pay-common.css?v=11"
   />
 
-  <!--
-  ==================================================
-  Receive-owned UI
-  ==================================================
-  -->
-
   <link
     rel="stylesheet"
     href="/receive/styles.css?v=1"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/fiat/bank-transfer/app/assets/fiat-auth.css"
   />
 
   <style>
@@ -88,22 +80,11 @@
 
 <body>
   <main class="page pay-page-shell">
-    <!--
-    ==================================================
-    Shared UniBridge brand
-    ==================================================
-    -->
 
     <div id="pay-brand"></div>
 
 
-    <!--
-    ==================================================
-    RECEIVE CREATE MODE
-
-    /receive/
-    ==================================================
-    -->
+    <!-- RECEIVE CREATE MODE -->
 
     <section
       id="receiveCreateView"
@@ -115,32 +96,17 @@
       </h1>
 
       <section class="receive-card">
+
         <header class="receive-header">
           <p class="receive-eyebrow">
             Receive with UniBridge
           </p>
-
-          <h2>
-            Keep your bank.
-            Get paid globally.
-          </h2>
 
           <p>
             Choose where you want to receive your money.
           </p>
         </header>
 
-
-        <!--
-        ------------------------------------------------
-        Destination country
-
-        Intentionally destination-only.
-
-        Source country belongs to the sender and is
-        selected later by the payment entry point.
-        ------------------------------------------------
-        -->
 
         <section class="receive-section">
           <label
@@ -159,15 +125,6 @@
           </label>
         </section>
 
-
-        <!--
-        ------------------------------------------------
-        Payout rail
-
-        Populated by receive/app.js after destination
-        country selection.
-        ------------------------------------------------
-        -->
 
         <section
           id="receiveRailSection"
@@ -189,15 +146,6 @@
           </label>
         </section>
 
-
-        <!--
-        ------------------------------------------------
-        Canonical beneficiary fields
-
-        app.js will render the fields for the selected
-        destination country + payout rail.
-        ------------------------------------------------
-        -->
 
         <section
           id="receiveBeneficiarySection"
@@ -222,11 +170,26 @@
         </section>
 
 
-        <!--
-        ------------------------------------------------
-        Create error
-        ------------------------------------------------
-        -->
+        <!-- RECEIVE AUTH -->
+
+        <section
+          id="receiveAuthSection"
+          class="receive-section"
+          hidden
+        >
+          <div class="receive-section-heading">
+            <h3>
+              Sign in to continue
+            </h3>
+
+            <p>
+              Sign in to create and manage your receive link.
+            </p>
+          </div>
+
+          <section id="fiatReactRoot"></section>
+        </section>
+
 
         <div
           id="receiveCreateError"
@@ -235,12 +198,6 @@
           aria-live="assertive"
         ></div>
 
-
-        <!--
-        ------------------------------------------------
-        Create action
-        ------------------------------------------------
-        -->
 
         <div class="receive-actions">
           <button
@@ -251,17 +208,12 @@
             Create receive link
           </button>
         </div>
+
       </section>
     </section>
 
 
-    <!--
-    ==================================================
-    RECEIVE CREATED MODE
-
-    Shown immediately after profile creation.
-    ==================================================
-    -->
+    <!-- RECEIVE CREATED MODE -->
 
     <section
       id="receiveCreatedView"
@@ -270,6 +222,7 @@
       aria-live="polite"
     >
       <section class="receive-card">
+
         <header class="receive-header">
           <p class="receive-eyebrow">
             Receive with UniBridge
@@ -286,26 +239,12 @@
         </header>
 
 
-        <!--
-        ------------------------------------------------
-        QR
-
-        QR contains only the public Receive URL.
-        ------------------------------------------------
-        -->
-
         <div
           id="receiveQrCode"
           class="receive-qr"
           aria-label="Receive QR code"
         ></div>
 
-
-        <!--
-        ------------------------------------------------
-        Share URL
-        ------------------------------------------------
-        -->
 
         <div class="receive-link-block">
           <label
@@ -352,20 +291,12 @@
         >
           Create another receive link
         </button>
+
       </section>
     </section>
 
 
-    <!--
-    ==================================================
-    PUBLIC RECEIVE MODE
-
-    /receive/:token
-
-    This page identifies the destination only.
-    It does not own the sender's funding flow.
-    ==================================================
-    -->
+    <!-- PUBLIC RECEIVE MODE -->
 
     <section
       id="receivePublicView"
@@ -377,211 +308,142 @@
       </h1>
 
       <section class="receive-card">
-        <!-- Loading -->
 
-        <section
-          id="receivePublicLoading"
-          class="receive-state"
-          aria-live="polite"
-        >
-          <p>
-            Loading receive details…
+        <header class="receive-header">
+          <p class="receive-eyebrow">
+            Receive with UniBridge
           </p>
-        </section>
+
+          <h2>
+            Send money
+          </h2>
+
+          <p>
+            Confirm who will receive the payment.
+          </p>
+        </header>
 
 
-        <!-- Error -->
-
-        <section
+        <div
           id="receivePublicError"
-          class="receive-state"
+          class="receive-message receive-message-error"
           hidden
           aria-live="assertive"
-        >
-          <header class="receive-header">
-            <h2>
-              This receive link is unavailable
-            </h2>
-          </header>
+        ></div>
 
-          <p
-            id="receivePublicErrorMessage"
+
+        <section class="receive-recipient">
+          <span class="receive-recipient-label">
+            Recipient
+          </span>
+
+          <strong
+            id="receivePublicRecipient"
+            class="receive-recipient-name"
           >
-            Please check the link and try again.
-          </p>
+            Recipient
+          </strong>
         </section>
 
 
-        <!-- Resolved destination -->
+        <section class="receive-meta">
 
-        <section
-          id="receivePublicContent"
-          hidden
-        >
-          <header class="receive-header">
-            <p class="receive-eyebrow">
-              Receive with UniBridge
-            </p>
-
-            <h2>
-              Send money
-            </h2>
-
-            <p>
-              Confirm who will receive the payment.
-            </p>
-          </header>
-
-
-          <section class="receive-recipient">
-            <span class="receive-recipient-label">
-              Recipient
+          <div class="receive-meta-row">
+            <span>
+              Receives in
             </span>
 
-            <strong
-              id="receiveRecipientName"
-              class="receive-recipient-name"
-            >
-              Recipient
+            <strong id="receivePublicCountry">
+              —
+            </strong>
+          </div>
+
+          <div class="receive-meta-row">
+            <span>
+              Receiving method
+            </span>
+
+            <strong id="receivePublicRail">
+              —
+            </strong>
+          </div>
+
+        </section>
+
+
+        <section class="receive-payment-options">
+
+          <button
+            id="receivePublicFiatButton"
+            class="receive-payment-option"
+            type="button"
+          >
+            <strong>
+              Pay with fiat
             </strong>
 
-            <span
-              id="receiveRecipientIdentifier"
-              class="receive-recipient-identifier"
-              hidden
-            ></span>
-          </section>
+            <small>
+              Bank transfer or card
+            </small>
+          </button>
 
 
-          <section class="receive-meta">
-            <div class="receive-meta-row">
-              <span>
-                Receives in
-              </span>
+          <button
+            id="receivePublicWalletButton"
+            class="receive-payment-option"
+            type="button"
+          >
+            <strong>
+              Pay with wallet
+            </strong>
 
-              <strong
-                id="receivePublicCountry"
-              >
-                —
-              </strong>
-            </div>
-
-            <div class="receive-meta-row">
-              <span>
-                Receiving method
-              </span>
-
-              <strong
-                id="receivePublicRail"
-              >
-                —
-              </strong>
-            </div>
-          </section>
+            <small>
+              Connect your crypto wallet
+            </small>
+          </button>
 
 
-          <!--
-          ----------------------------------------------
-          Generic payment entry points.
+          <button
+            id="receivePublicAgentButton"
+            class="receive-payment-option"
+            type="button"
+          >
+            <strong>
+              Pay with Agent
+            </strong>
 
-          These buttons only pass the Receive context.
-          The respective payment UI owns source country,
-          amount, funding and settlement flow.
-          ----------------------------------------------
-          -->
+            <small>
+              Continue with the UniBridge Pay Agent
+            </small>
+          </button>
 
-          <section class="receive-payment-options">
-            <button
-              id="receivePayFiatButton"
-              class="receive-payment-option"
-              type="button"
-            >
-              <strong>
-                Pay with fiat
-              </strong>
-
-              <small>
-                Bank transfer or card
-              </small>
-            </button>
-
-            <button
-              id="receivePayWalletButton"
-              class="receive-payment-option"
-              type="button"
-            >
-              <strong>
-                Pay with wallet
-              </strong>
-
-              <small>
-                Connect your crypto wallet
-              </small>
-            </button>
-
-            <button
-              id="receivePayAgentButton"
-              class="receive-payment-option"
-              type="button"
-            >
-              <strong>
-                Pay with Agent
-              </strong>
-
-              <small>
-                Continue with the UniBridge Pay Agent
-              </small>
-            </button>
-          </section>
         </section>
+
       </section>
     </section>
 
 
-    <!--
-    ==================================================
-    Shared UniBridge footer
-    ==================================================
-    -->
-
     <div id="pay-footer"></div>
+
   </main>
 
-
-  <!--
-  ==================================================
-  Shared Pay brand + footer partials
-  ==================================================
-  -->
 
   <script
     src="/partials/pay/js/pay-includes.js?v=6"
   ></script>
 
-
-  <!--
-  ==================================================
-  Shared country catalog / destination picker
-
-  Receive renders destination only.
-  No sender/source country exists in this interface.
-  ==================================================
-  -->
-
   <script
     src="/partials/pay/js/pay-countries.js?v=3"
   ></script>
 
-
-  <!--
-  ==================================================
-  Receive application
-  ==================================================
-  -->
+  <script
+    type="module"
+    src="/fiat/bank-transfer/app/assets/fiat-auth.js"
+  ></script>
 
   <script
     type="module"
-    src="/receive/app.js?v=1"
+    src="/receive/app.js?v=2"
   ></script>
 </body>
 </html>
