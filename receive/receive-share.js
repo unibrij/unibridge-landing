@@ -70,6 +70,71 @@ function renderQrCode({
 }
 
 
+function canvasToBlob(canvas) {
+  return new Promise(resolve => {
+    if (
+      !canvas ||
+      typeof canvas.toBlob !==
+        "function"
+    ) {
+      resolve(null);
+      return;
+    }
+
+    canvas.toBlob(
+      blob => {
+        resolve(blob || null);
+      },
+      "image/png"
+    );
+  });
+}
+
+
+async function buildQrShareFile(root) {
+  const canvas =
+    root?.querySelector?.("canvas");
+
+  if (!canvas) {
+    return null;
+  }
+
+  const blob =
+    await canvasToBlob(canvas);
+
+  if (!blob) {
+    return null;
+  }
+
+  return new File(
+    [blob],
+    "unibridge-receive-qr.png",
+    {
+      type: "image/png"
+    }
+  );
+}
+
+
+function canShareFile(file) {
+  if (
+    !file ||
+    typeof navigator.canShare !==
+      "function"
+  ) {
+    return false;
+  }
+
+  try {
+    return navigator.canShare({
+      files: [file]
+    });
+  } catch {
+    return false;
+  }
+}
+
+
 export function createReceiveShareFlow({
   els,
   showOnly
@@ -191,6 +256,30 @@ export function createReceiveShareFlow({
       typeof navigator.share !==
         "function"
     ) {
+      return;
+    }
+
+    const qrFile =
+      await buildQrShareFile(
+        els?.qrCode
+      );
+
+    if (
+      qrFile &&
+      canShareFile(qrFile)
+    ) {
+      await navigator.share({
+        title:
+          "Receive with UniBridge",
+
+        text:
+          `Pay me with UniBridge.\n${url}`,
+
+        files: [
+          qrFile
+        ]
+      });
+
       return;
     }
 
