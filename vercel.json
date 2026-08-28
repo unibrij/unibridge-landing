@@ -73,6 +73,24 @@
       ]
     },
     {
+      "source": "/receive",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/receive/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/partner-portal",
       "headers": [
         {
@@ -189,6 +207,18 @@
     {
       "source": "/fiat/bank-transfer/",
       "destination": "/fiat/bank-transfer/index.html"
+    },
+    {
+      "source": "/receive",
+      "destination": "/receive/index.html"
+    },
+    {
+      "source": "/receive/",
+      "destination": "/receive/index.html"
+    },
+    {
+      "source": "/receive/:token",
+      "destination": "/receive/index.html"
     },
     {
       "source": "/receipts/verify",
