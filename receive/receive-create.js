@@ -16,6 +16,13 @@ import {
 } from "./receive-form.js";
 
 
+const AUTH_BRIDGE_KEY =
+  "__fiatClerkAuth";
+
+const AUTH_EVENT =
+  "fiat-clerk-auth-updated";
+
+
 function normalizeString(value) {
   return String(value ?? "").trim();
 }
@@ -32,6 +39,30 @@ function setHidden(element, hidden) {
   element.hidden = Boolean(hidden);
 }
 
+function readAuthBridge() {
+  const bridge =
+    window[AUTH_BRIDGE_KEY];
+
+  return bridge &&
+    typeof bridge === "object"
+      ? bridge
+      : null;
+}
+
+function isSignedIn() {
+  const bridge =
+    readAuthBridge();
+
+  return Boolean(
+    bridge?.isLoaded &&
+    bridge?.isSignedIn &&
+    normalizeString(
+      bridge?.auth_subject_id ||
+      bridge?.userId
+    )
+  );
+}
+
 
 export function createReceiveCreateFlow({
   els,
@@ -44,6 +75,19 @@ export function createReceiveCreateFlow({
   let selectedRoute = null;
   let fieldRenderVersion = 0;
   let eventsBound = false;
+
+
+  function syncAuthUi() {
+    const signedIn =
+      isSignedIn();
+
+    setHidden(
+      els?.authSection,
+      signedIn
+    );
+
+    return signedIn;
+  }
 
 
   function resetBeneficiary() {
@@ -120,8 +164,7 @@ export function createReceiveCreateFlow({
       });
 
       if (
-        renderVersion !==
-          fieldRenderVersion ||
+        renderVersion !== fieldRenderVersion ||
         selectedRoute !== route
       ) {
         return;
@@ -243,6 +286,10 @@ export function createReceiveCreateFlow({
       return;
     }
 
+    if (!syncAuthUi()) {
+      return;
+    }
+
     if (!els?.createButton) {
       return;
     }
@@ -294,6 +341,7 @@ export function createReceiveCreateFlow({
     }
 
     resetRail();
+    syncAuthUi();
 
     showOnly?.(
       "receiveCreateView"
@@ -341,6 +389,11 @@ export function createReceiveCreateFlow({
         "click",
         handleCreate
       );
+
+    window.addEventListener(
+      AUTH_EVENT,
+      syncAuthUi
+    );
   }
 
 
@@ -350,6 +403,7 @@ export function createReceiveCreateFlow({
     );
 
     bindEvents();
+    syncAuthUi();
 
     const payload =
       await loadReceiveCatalog();
