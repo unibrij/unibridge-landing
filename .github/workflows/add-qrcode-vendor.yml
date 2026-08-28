@@ -1,0 +1,67 @@
+name: Add QRCode Vendor
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  add-qrcode-vendor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download pinned QRCode.js
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET="unibridge-landing/shared/vendor/qrcode.min.js"
+          SOURCE="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+
+          mkdir -p "$(dirname "$TARGET")"
+
+          curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            "$SOURCE" \
+            --output "$TARGET"
+
+          test -s "$TARGET"
+
+          if ! grep -q "QRCode" "$TARGET"; then
+            echo "Downloaded file does not look like QRCode.js"
+            exit 1
+          fi
+
+          echo "QRCode.js installed at:"
+          echo "$TARGET"
+
+          wc -c "$TARGET"
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TARGET="unibridge-landing/shared/vendor/qrcode.min.js"
+
+          if git diff --quiet -- "$TARGET" && \
+             git diff --cached --quiet -- "$TARGET"; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add "$TARGET"
+          git commit -m "Add vendored QRCode.js"
+          git push
