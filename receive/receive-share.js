@@ -12,7 +12,13 @@ const QR_LOGO_URL =
   "/connect/icons/app/ub-app-icon-512.png";
 
 const QR_LOGO_RATIO =
-  0.18;
+  0.27;
+
+const QR_LOGO_CROP_RATIO =
+  0.88;
+
+const QR_LOGO_BACKGROUND_RADIUS_RATIO =
+  0.22;
 
 
 function normalizeString(value) {
@@ -77,6 +83,80 @@ function loadImage(src) {
 }
 
 
+function drawRoundedRect(
+  context,
+  x,
+  y,
+  width,
+  height,
+  radius
+) {
+  const safeRadius =
+    Math.min(
+      radius,
+      width / 2,
+      height / 2
+    );
+
+  context.beginPath();
+
+  context.moveTo(
+    x + safeRadius,
+    y
+  );
+
+  context.lineTo(
+    x + width - safeRadius,
+    y
+  );
+
+  context.quadraticCurveTo(
+    x + width,
+    y,
+    x + width,
+    y + safeRadius
+  );
+
+  context.lineTo(
+    x + width,
+    y + height - safeRadius
+  );
+
+  context.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - safeRadius,
+    y + height
+  );
+
+  context.lineTo(
+    x + safeRadius,
+    y + height
+  );
+
+  context.quadraticCurveTo(
+    x,
+    y + height,
+    x,
+    y + height - safeRadius
+  );
+
+  context.lineTo(
+    x,
+    y + safeRadius
+  );
+
+  context.quadraticCurveTo(
+    x,
+    y,
+    x + safeRadius,
+    y
+  );
+
+  context.closePath();
+}
+
+
 function drawQrLogo(
   canvas,
   image
@@ -97,7 +177,7 @@ function drawQrLogo(
     return;
   }
 
-  const size =
+  const logoSize =
     Math.round(
       Math.min(
         canvas.width,
@@ -108,33 +188,15 @@ function drawQrLogo(
 
   const padding =
     Math.max(
-      4,
+      3,
       Math.round(
-        size * 0.16
+        logoSize * 0.08
       )
     );
 
   const backgroundSize =
-    size +
+    logoSize +
     padding * 2;
-
-  const x =
-    Math.round(
-      (
-        canvas.width -
-        size
-      ) /
-      2
-    );
-
-  const y =
-    Math.round(
-      (
-        canvas.height -
-        size
-      ) /
-      2
-    );
 
   const backgroundX =
     Math.round(
@@ -154,24 +216,91 @@ function drawQrLogo(
       2
     );
 
+  const backgroundRadius =
+    Math.round(
+      backgroundSize *
+      QR_LOGO_BACKGROUND_RADIUS_RATIO
+    );
+
+  const imageWidth =
+    image.naturalWidth ||
+    image.width;
+
+  const imageHeight =
+    image.naturalHeight ||
+    image.height;
+
+  const sourceSize =
+    Math.round(
+      Math.min(
+        imageWidth,
+        imageHeight
+      ) *
+      QR_LOGO_CROP_RATIO
+    );
+
+  const sourceX =
+    Math.round(
+      (
+        imageWidth -
+        sourceSize
+      ) /
+      2
+    );
+
+  const sourceY =
+    Math.round(
+      (
+        imageHeight -
+        sourceSize
+      ) /
+      2
+    );
+
+  const logoX =
+    Math.round(
+      (
+        canvas.width -
+        logoSize
+      ) /
+      2
+    );
+
+  const logoY =
+    Math.round(
+      (
+        canvas.height -
+        logoSize
+      ) /
+      2
+    );
+
   context.save();
 
   context.fillStyle =
     "#ffffff";
 
-  context.fillRect(
+  drawRoundedRect(
+    context,
     backgroundX,
     backgroundY,
     backgroundSize,
-    backgroundSize
+    backgroundSize,
+    backgroundRadius
   );
+
+  context.fill();
 
   context.drawImage(
     image,
-    x,
-    y,
-    size,
-    size
+    sourceX,
+    sourceY,
+    sourceSize,
+    sourceSize,
+    logoX,
+    logoY,
+    logoSize,
+    logoSize
   );
 
   context.restore();
