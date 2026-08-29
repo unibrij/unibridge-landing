@@ -196,19 +196,6 @@ export function createPaymentFlow({
         funding
       );
 
-    /*
-    --------------------------------------------------
-    Transak widget handoff
-
-    Generic funding/session remains unchanged.
-
-    If Transak is the selected funding provider and the
-    funding session does not already contain a generic
-    next_action or widget URL, create/reuse the Transak
-    widget session through its dedicated backend route.
-    --------------------------------------------------
-    */
-
     if (
       fundingProvider ===
         "transak" &&
@@ -317,7 +304,8 @@ export function createPaymentFlow({
 
         setPendingWidgetUrl(value) {
           state.pendingWidgetUrl =
-            value || null;
+            value ||
+            null;
 
           if (
             state.pendingWidgetUrl
@@ -337,14 +325,6 @@ export function createPaymentFlow({
             Boolean(value);
         }
       });
-
-    /*
-    Persist embedded payment state only after the
-    provider mount succeeds.
-
-    Failed SDK loading must not leave a false
-    payment_started state behind.
-    */
 
     if (isEmbeddedPayment) {
       markPaymentStarted();
@@ -480,9 +460,14 @@ export function createPaymentFlow({
           );
         }
 
+        const settlementCreateRoute =
+          receiveBound
+            ? "receive/settlement/create"
+            : "settlement/create";
+
         const create =
           await apiPost(
-            "settlement/create",
+            settlementCreateRoute,
             {
               session_id:
                 state.sessionId,
@@ -713,17 +698,6 @@ export function createPaymentFlow({
       const activeContinueBtn =
         getActiveContinueButton() ||
         continueBtn;
-
-      /*
-      waiting_ramp_payment has two different cases:
-
-      - initial page recovery:
-        rebuilding the local payment UI is allowed;
-
-      - focus / visibility refresh:
-        the provider UI may already be open, so only
-        observe backend state and leave it untouched.
-      */
 
       if (
         status?.status ===
