@@ -131,19 +131,20 @@
           class="receive-section"
           hidden
         >
-          <label
-            class="receive-field"
-            for="receivePayoutRail"
-          >
-            <span class="receive-field-label">
+          <div class="receive-field">
+            <span
+              id="receivePayoutRailLabel"
+              class="receive-field-label"
+            >
               Receive with
             </span>
 
             <select
               id="receivePayoutRail"
+              aria-labelledby="receivePayoutRailLabel"
               required
             ></select>
-          </label>
+          </div>
         </section>
 
 
