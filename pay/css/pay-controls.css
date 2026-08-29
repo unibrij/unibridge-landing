@@ -1,0 +1,145 @@
+/* pay/css/pay-controls.css */
+
+/* --------------------------------------------------
+   Methods
+-------------------------------------------------- */
+
+.method-grid {
+  display:
+    grid;
+
+  gap:
+    10px;
+
+  margin:
+    12px
+    0;
+}
+
+
+.method-card input {
+  width:
+    18px;
+
+  height:
+    18px;
+
+  flex:
+    0
+    0
+    18px;
+
+  margin:
+    2px
+    0
+    0;
+
+  accent-color:
+    #14b8a6;
+}
+
+
+/* --------------------------------------------------
+   Actions
+-------------------------------------------------- */
+
+.actions {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:
+    10px;
+}
+
+
+/* --------------------------------------------------
+   Buttons
+-------------------------------------------------- */
+
+.button {
+  width:
+    100%;
+
+  min-height:
+    44px;
+
+  box-sizing:
+    border-box;
+
+  border:
+    0;
+
+  border-radius:
+    14px;
+
+  padding:
+    11px
+    14px;
+
+  font:
+    inherit;
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+
+  cursor:
+    pointer;
+}
+
+
+.button.primary {
+  background:
+    #14b8a6;
+
+  color:
+    #04111f;
+
+  box-shadow:
+    0
+    12px
+    30px
+    rgba(
+      20,
+      184,
+      166,
+      0.18
+    );
+}
+
+
+.button.secondary {
+  border:
+    1px solid
+    rgba(
+      45,
+      212,
+      191,
+      0.32
+    );
+
+  background:
+    rgba(
+      20,
+      184,
+      166,
+      0.07
+    );
+
+  color:
+    #5eead4;
+}
+
+
+.button:active {
+  transform:
+    scale(
+      0.98
+    );
+}
