@@ -579,7 +579,7 @@ export default function HistoryPage({
     <main className="connect-shell history-shell">
       <header className="connect-brandbar">
         <a
-          href="/connect/"
+          href="/pay"
           className="connect-brandbar-logo-link"
           aria-label="UniBridge"
         >
