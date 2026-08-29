@@ -1,9 +1,7 @@
 // unibridge-landing/surface/surface-context.js
 
 import {
-  getReceiveContext,
-  buildSessionDestinationInput as buildSharedSessionDestinationInput,
-  buildSettlementDestinationInput as buildSharedSettlementDestinationInput
+  getReceiveContext
 } from "/shared/receive/receive-context.js";
 
 import {
@@ -25,7 +23,7 @@ export function createSurfaceContext({
 
   Read once for the lifetime of this Surface instance.
 
-  This keeps UI state and outbound payloads bound to
+  UI state and outbound payloads remain bound to
   the same Receive Profile throughout the flow.
   --------------------------------------------------
   */
@@ -92,9 +90,18 @@ export function createSurfaceContext({
       };
     }
 
-    return buildSharedSessionDestinationInput({
-      receiver_country
-    });
+    const receiverCountry =
+      String(
+        receiver_country ??
+        ""
+      ).trim();
+
+    return receiverCountry
+      ? {
+          receiver_country:
+            receiverCountry
+        }
+      : {};
   }
 
 
@@ -108,9 +115,11 @@ export function createSurfaceContext({
       };
     }
 
-    return buildSharedSettlementDestinationInput({
-      destination
-    });
+    return destination !== undefined
+      ? {
+          destination
+        }
+      : {};
   }
 
 
