@@ -147,6 +147,84 @@ export function getReceiveProfileId() {
 }
 
 
+/*
+--------------------------------------------------
+Session registration destination boundary
+
+Normal flow:
+  receiver_country
+
+Receive-bound flow:
+  receive_profile_id
+
+The consumer does not need to know how Receive
+destination authority is represented internally.
+--------------------------------------------------
+*/
+
+export function buildSessionDestinationInput({
+  receiver_country
+} = {}) {
+  const receiveProfileId =
+    getReceiveProfileId();
+
+  if (receiveProfileId) {
+    return {
+      receive_profile_id:
+        receiveProfileId
+    };
+  }
+
+  const receiverCountry =
+    normalizeString(
+      receiver_country
+    );
+
+  return receiverCountry
+    ? {
+        receiver_country:
+          receiverCountry
+      }
+    : {};
+}
+
+
+/*
+--------------------------------------------------
+Settlement destination boundary
+
+Normal flow:
+  destination
+
+Receive-bound flow:
+  receive_profile_id
+
+Never copy beneficiary data from browser Receive
+context into settlement creation.
+--------------------------------------------------
+*/
+
+export function buildSettlementDestinationInput({
+  destination
+} = {}) {
+  const receiveProfileId =
+    getReceiveProfileId();
+
+  if (receiveProfileId) {
+    return {
+      receive_profile_id:
+        receiveProfileId
+    };
+  }
+
+  return destination !== undefined
+    ? {
+        destination
+      }
+    : {};
+}
+
+
 export {
   RECEIVE_CONTEXT_KEY
 };
