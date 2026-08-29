@@ -78,6 +78,7 @@ export function createReceiveCreateFlow({
 } = {}) {
   let catalog = [];
   let selectedRoute = null;
+  let beneficiaryReady = false;
   let fieldRenderVersion = 0;
   let eventsBound = false;
 
@@ -109,6 +110,7 @@ export function createReceiveCreateFlow({
   function resetBeneficiary() {
     fieldRenderVersion += 1;
     selectedRoute = null;
+    beneficiaryReady = false;
 
     cancelReceiveFieldRender(
       els?.beneficiaryFields
@@ -172,6 +174,8 @@ export function createReceiveCreateFlow({
     const route =
       selectedRoute;
 
+    beneficiaryReady = false;
+
     const renderVersion =
       ++fieldRenderVersion;
 
@@ -192,12 +196,16 @@ export function createReceiveCreateFlow({
         return;
       }
 
+      beneficiaryReady = true;
+
       setHidden(
         els?.beneficiarySection,
         false
       );
     }
     catch (error) {
+      beneficiaryReady = false;
+
       if (
         renderVersion !==
         fieldRenderVersion
@@ -276,6 +284,14 @@ export function createReceiveCreateFlow({
     if (!selectedRoute) {
       showCreateError?.(
         "Choose a receiving method."
+      );
+
+      return;
+    }
+
+    if (!beneficiaryReady) {
+      showCreateError?.(
+        "Receiving details are still loading."
       );
 
       return;
@@ -400,6 +416,22 @@ export function createReceiveCreateFlow({
                 "Unable to load receiving details."
               );
             });
+        }
+      );
+
+    els?.beneficiaryFields
+      ?.addEventListener(
+        "input",
+        () => {
+          clearCreateError?.();
+        }
+      );
+
+    els?.beneficiaryFields
+      ?.addEventListener(
+        "change",
+        () => {
+          clearCreateError?.();
         }
       );
 
