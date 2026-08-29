@@ -3,582 +3,2286 @@
 :root {
   --bg: #000E2D;
   --bg-deep: #00081f;
+
   --text: #ffffff;
-  --muted: rgba(255, 255, 255, 0.72);
-  --muted-2: rgba(255, 255, 255, 0.52);
+
+  --muted:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  --muted-2:
+    rgba(
+      255,
+      255,
+      255,
+      0.52
+    );
+
   --accent: #14b8a6;
   --accent-soft: #5eead4;
-  --border: rgba(94, 234, 212, 0.18);
-  --border-soft: rgba(255, 255, 255, 0.10);
+
+  --border:
+    rgba(
+      94,
+      234,
+      212,
+      0.18
+    );
+
+  --border-soft:
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
 }
+
 
 html,
 body {
   min-height: 100%;
 }
 
+
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+
+  -webkit-tap-highlight-color:
+    transparent;
 }
+
 
 body {
   margin: 0;
+
   min-height: 100vh;
+
   overflow-x: hidden;
-  font-family: Inter, Arial, sans-serif;
-  background: #000E2D;
-  color: #ffffff;
+
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+
+  background:
+    #000E2D;
+
+  color:
+    #ffffff;
 }
+
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
 
 .hidden {
   display: none !important;
 }
 
+
+/* --------------------------------------------------
+   Page shell
+-------------------------------------------------- */
+
 .page {
   position: relative;
-  width: min(100%, 440px);
+
+  width:
+    min(
+      100%,
+      440px
+    );
+
   min-height: 100vh;
-  margin: 0 auto;
-  padding: 18px;
-  padding-top: max(18px, env(safe-area-inset-top));
-  padding-bottom: max(40px, env(safe-area-inset-bottom));
+
+  margin:
+    0 auto;
+
+  padding:
+    18px;
+
+  padding-top:
+    max(
+      18px,
+      env(
+        safe-area-inset-top
+      )
+    );
+
+  padding-bottom:
+    max(
+      32px,
+      env(
+        safe-area-inset-bottom
+      )
+    );
+
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  text-align: center;
-  overflow: visible;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    14px;
+
+  text-align:
+    center;
+
+  overflow:
+    visible;
 }
 
+
 .hero,
+.pay-orbit,
 .card,
 #pay-footer {
   position: relative;
+
   z-index: 2;
 }
 
+
+/* --------------------------------------------------
+   Hero
+-------------------------------------------------- */
+
 .hero {
-  width: min(100%, 420px);
+  width:
+    min(
+      100%,
+      420px
+    );
+
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
 }
+
 
 .eyebrow {
   margin: 0;
+
   max-width: none;
-  color: #5eead4;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+
+  color:
+    #5eead4;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+
+  line-height:
+    1.2;
+
+  letter-spacing:
+    0.14em;
+
+  text-transform:
+    uppercase;
 }
+
 
 h1 {
   margin: 0;
-  max-width: 420px;
-  color: #ffffff;
-  font-size: 34px;
-  line-height: 1.05;
-  font-weight: 650;
-  letter-spacing: -0.045em;
+
+  max-width:
+    420px;
+
+  color:
+    #ffffff;
+
+  font-size:
+    34px;
+
+  line-height:
+    1.05;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    -0.045em;
 }
+
 
 .subtitle {
   margin: 0;
-  max-width: 420px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: 15px;
-  line-height: 1.5;
+
+  max-width:
+    420px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.76
+    );
+
+  font-size:
+    15px;
+
+  line-height:
+    1.5;
 }
 
+
 /* --------------------------------------------------
-   Glass cards
+   Pay orbit
+-------------------------------------------------- */
+
+.pay-orbit {
+  position: relative;
+
+  width:
+    min(
+      100%,
+      390px
+    );
+
+  height:
+    390px;
+
+  margin-top:
+    0;
+
+  isolation:
+    isolate;
+}
+
+
+.pay-orbit-ring {
+  position: absolute;
+
+  z-index: 0;
+
+  left:
+    50%;
+
+  top:
+    50%;
+
+  width:
+    286px;
+
+  height:
+    286px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.14
+    );
+
+  border-radius:
+    50%;
+
+  pointer-events:
+    none;
+
+  box-shadow:
+    inset
+    0
+    0
+    34px
+    rgba(
+      20,
+      184,
+      166,
+      0.025
+    );
+}
+
+
+.pay-orbit-ring::before {
+  content: "";
+
+  position: absolute;
+
+  inset:
+    17px;
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.045
+    );
+
+  border-radius:
+    50%;
+
+  pointer-events:
+    none;
+}
+
+
+/* --------------------------------------------------
+   Center UniBridge node
+-------------------------------------------------- */
+
+.pay-orbit-center {
+  position: absolute;
+
+  z-index: 3;
+
+  left:
+    50%;
+
+  top:
+    50%;
+
+  width:
+    74px;
+
+  height:
+    74px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 35%,
+      rgba(
+        20,
+        184,
+        166,
+        0.13
+      ),
+      rgba(
+        2,
+        17,
+        50,
+        0.94
+      )
+      68%
+    );
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.30
+    );
+
+  box-shadow:
+    0
+    0
+    28px
+    rgba(
+      20,
+      184,
+      166,
+      0.10
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  pointer-events:
+    none;
+}
+
+
+.pay-orbit-center-logo {
+  width:
+    46px;
+
+  height:
+    46px;
+
+  display:
+    block;
+
+  object-fit:
+    contain;
+
+  border-radius:
+    50%;
+}
+
+
+/* --------------------------------------------------
+   Orbit options
+-------------------------------------------------- */
+
+.pay-orbit-option {
+  position: absolute;
+
+  z-index: 4;
+
+  width:
+    126px;
+
+  height:
+    126px;
+
+  margin: 0;
+
+  padding:
+    14px
+    10px;
+
+  display: flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    5px;
+
+  border-radius:
+    50%;
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.27
+    );
+
+  outline:
+    none;
+
+  background:
+    radial-gradient(
+      circle at 38% 30%,
+      rgba(
+        15,
+        48,
+        86,
+        0.92
+      )
+      0%,
+      rgba(
+        4,
+        24,
+        60,
+        0.94
+      )
+      58%,
+      rgba(
+        1,
+        13,
+        42,
+        0.98
+      )
+      100%
+    );
+
+  color:
+    #ffffff;
+
+  text-align:
+    center;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0
+    16px
+    42px
+    rgba(
+      0,
+      0,
+      0,
+      0.24
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  transition:
+    transform
+    160ms
+    ease,
+    border-color
+    160ms
+    ease,
+    background
+    160ms
+    ease,
+    box-shadow
+    160ms
+    ease;
+}
+
+
+.pay-orbit-wallet {
+  left:
+    50%;
+
+  top:
+    12px;
+
+  transform:
+    translateX(
+      -50%
+    );
+}
+
+
+.pay-orbit-fiat {
+  left:
+    25px;
+
+  bottom:
+    26px;
+}
+
+
+.pay-orbit-agent {
+  right:
+    25px;
+
+  bottom:
+    26px;
+
+  border-color:
+    rgba(
+      94,
+      234,
+      212,
+      0.34
+    );
+}
+
+
+.pay-orbit-option:hover {
+  border-color:
+    rgba(
+      94,
+      234,
+      212,
+      0.58
+    );
+
+  background:
+    radial-gradient(
+      circle at 38% 30%,
+      rgba(
+        17,
+        63,
+        97,
+        0.96
+      )
+      0%,
+      rgba(
+        4,
+        31,
+        69,
+        0.96
+      )
+      58%,
+      rgba(
+        1,
+        15,
+        46,
+        0.98
+      )
+      100%
+    );
+
+  box-shadow:
+    0
+    18px
+    46px
+    rgba(
+      0,
+      0,
+      0,
+      0.28
+    ),
+    0
+    0
+    22px
+    rgba(
+      20,
+      184,
+      166,
+      0.10
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+}
+
+
+.pay-orbit-wallet:hover {
+  transform:
+    translateX(
+      -50%
+    )
+    translateY(
+      -2px
+    );
+}
+
+
+.pay-orbit-fiat:hover,
+.pay-orbit-agent:hover {
+  transform:
+    translateY(
+      -2px
+    );
+}
+
+
+.pay-orbit-wallet:active {
+  transform:
+    translateX(
+      -50%
+    )
+    scale(
+      0.97
+    );
+}
+
+
+.pay-orbit-fiat:active,
+.pay-orbit-agent:active {
+  transform:
+    scale(
+      0.97
+    );
+}
+
+
+.pay-orbit-option:focus-visible {
+  border-color:
+    rgba(
+      94,
+      234,
+      212,
+      0.82
+    );
+
+  box-shadow:
+    0
+    0
+    0
+    3px
+    rgba(
+      45,
+      212,
+      191,
+      0.14
+    ),
+    0
+    16px
+    42px
+    rgba(
+      0,
+      0,
+      0,
+      0.24
+    );
+}
+
+
+/* --------------------------------------------------
+   Orbit icons
+-------------------------------------------------- */
+
+.pay-orbit-icon {
+  width:
+    42px;
+
+  height:
+    42px;
+
+  flex:
+    0
+    0
+    42px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  color:
+    #5eead4;
+
+  line-height:
+    1;
+}
+
+
+.pay-orbit-svg {
+  width:
+    38px;
+
+  height:
+    38px;
+
+  display:
+    block;
+
+  filter:
+    drop-shadow(
+      0
+      0
+      7px
+      rgba(
+        45,
+        212,
+        191,
+        0.20
+      )
+    );
+}
+
+
+.pay-orbit-svg path,
+.pay-orbit-svg line,
+.pay-orbit-svg rect,
+.pay-orbit-svg polyline,
+.pay-orbit-svg polygon,
+.pay-orbit-svg circle {
+  stroke-width:
+    1.35;
+
+  vector-effect:
+    non-scaling-stroke;
+}
+
+
+.pay-orbit-agent-icon {
+  width:
+    44px;
+
+  height:
+    44px;
+
+  flex-basis:
+    44px;
+}
+
+
+.pay-orbit-agent-logo {
+  width:
+    42px;
+
+  height:
+    42px;
+
+  display:
+    block;
+
+  object-fit:
+    contain;
+
+  filter:
+    brightness(
+      0
+    )
+    saturate(
+      100%
+    )
+    invert(
+      90%
+    )
+    sepia(
+      17%
+    )
+    saturate(
+      1124%
+    )
+    hue-rotate(
+      115deg
+    )
+    brightness(
+      100%
+    )
+    contrast(
+      87%
+    )
+    drop-shadow(
+      0
+      0
+      7px
+      rgba(
+        45,
+        212,
+        191,
+        0.20
+      )
+    );
+}
+
+
+/* --------------------------------------------------
+   Orbit copy
+-------------------------------------------------- */
+
+.pay-orbit-copy {
+  width:
+    100%;
+
+  min-width: 0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  gap:
+    3px;
+}
+
+
+.pay-orbit-copy strong {
+  display:
+    block;
+
+  max-width:
+    100%;
+
+  overflow:
+    hidden;
+
+  color:
+    #ffffff;
+
+  font-size:
+    14px;
+
+  font-weight:
+    750;
+
+  line-height:
+    1.15;
+
+  white-space:
+    nowrap;
+
+  text-overflow:
+    ellipsis;
+}
+
+
+.pay-orbit-copy small {
+  display:
+    block;
+
+  max-width:
+    108px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.63
+    );
+
+  font-size:
+    10.5px;
+
+  font-weight:
+    500;
+
+  line-height:
+    1.22;
+
+  text-align:
+    center;
+}
+
+
+.pay-orbit-agent
+.pay-orbit-copy
+small {
+  max-width:
+    96px;
+}
+
+
+/* --------------------------------------------------
+   Generic glass cards
 -------------------------------------------------- */
 
 .card {
-  width: min(100%, 440px);
-  box-sizing: border-box;
-  margin-top: 8px;
-  padding: 14px;
-  border: 1px solid rgba(94, 234, 212, 0.26);
-  border-radius: 20px;
+  width:
+    min(
+      100%,
+      440px
+    );
+
+  box-sizing:
+    border-box;
+
+  margin-top:
+    8px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.26
+    );
+
+  border-radius:
+    20px;
+
   background:
     linear-gradient(
       180deg,
-      rgba(9, 34, 72, 0.22) 0%,
-      rgba(0, 14, 45, 0.12) 100%
+      rgba(
+        9,
+        34,
+        72,
+        0.22
+      )
+      0%,
+      rgba(
+        0,
+        14,
+        45,
+        0.12
+      )
+      100%
     );
+
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    inset 0 0 26px rgba(94, 234, 212, 0.045);
-  backdrop-filter: blur(4.5px) saturate(125%);
-  -webkit-backdrop-filter: blur(4.5px) saturate(125%);
-  display: grid;
-  gap: 10px;
-  text-align: left;
+    0
+    24px
+    70px
+    rgba(
+      0,
+      0,
+      0,
+      0.24
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.13
+    ),
+    inset
+    0
+    0
+    26px
+    rgba(
+      94,
+      234,
+      212,
+      0.045
+    );
+
+  backdrop-filter:
+    blur(
+      4.5px
+    )
+    saturate(
+      125%
+    );
+
+  -webkit-backdrop-filter:
+    blur(
+      4.5px
+    )
+    saturate(
+      125%
+    );
+
+  display:
+    grid;
+
+  gap:
+    10px;
+
+  text-align:
+    left;
 }
 
-.choice-card,
+
 .method-card {
-  width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  border-radius: 16px;
-  color: var(--text);
+  width:
+    100%;
+
+  box-sizing:
+    border-box;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    12px;
+
+  padding:
+    13px;
+
+  text-align:
+    left;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.11
+    );
+
+  border-radius:
+    16px;
+
+  color:
+    var(
+      --text
+    );
+
   background:
     linear-gradient(
       180deg,
-      rgba(12, 40, 78, 0.22) 0%,
-      rgba(4, 18, 48, 0.12) 100%
+      rgba(
+        12,
+        40,
+        78,
+        0.22
+      )
+      0%,
+      rgba(
+        4,
+        18,
+        48,
+        0.12
+      )
+      100%
     );
-  cursor: pointer;
+
+  cursor:
+    pointer;
+
   transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
+    transform
+    160ms
+    ease,
+    border-color
+    160ms
+    ease,
+    background
+    160ms
+    ease;
 }
 
-.choice-card {
-  align-items: center;
-  gap: 14px;
-  padding: 13px;
-}
 
-.method-card {
-  align-items: flex-start;
-  gap: 12px;
-  padding: 13px;
-}
+.method-card:has(
+  input:checked
+) {
+  border-color:
+    rgba(
+      45,
+      212,
+      191,
+      0.38
+    );
 
-.choice-card:hover,
-.method-card:has(input:checked) {
-  border-color: rgba(45, 212, 191, 0.38);
   background:
     linear-gradient(
       180deg,
-      rgba(20, 184, 166, 0.075) 0%,
-      rgba(4, 18, 48, 0.13) 100%
+      rgba(
+        20,
+        184,
+        166,
+        0.075
+      )
+      0%,
+      rgba(
+        4,
+        18,
+        48,
+        0.13
+      )
+      100%
     );
 }
 
-.choice-card:active,
+
 .method-card:active {
-  transform: scale(0.98);
+  transform:
+    scale(
+      0.98
+    );
 }
 
-.choice-icon {
-  width: 52px;
-  height: 52px;
-  flex: 0 0 52px;
-  display: grid;
-  place-items: center;
-  color: #5eead4;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  line-height: 1;
-}
 
-.choice-svg {
-  width: 40px;
-  height: 40px;
-  display: block;
-  filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
-}
-
-.wallet-svg {
-  width: 40px;
-  height: 40px;
-}
-
-.bank-svg {
-  width: 41px;
-  height: 41px;
-}
-
-.choice-svg path,
-.choice-svg line,
-.choice-svg rect,
-.choice-svg polyline,
-.choice-svg polygon,
-.choice-svg circle {
-  stroke-width: 1.35;
-  vector-effect: non-scaling-stroke;
-}
-
-.choice-card strong,
 .method-card strong {
-  display: block;
-  color: #ffffff;
-  font-size: 14px;
-  line-height: 1.3;
-  margin-bottom: 4px;
+  display:
+    block;
+
+  margin-bottom:
+    4px;
+
+  color:
+    #ffffff;
+
+  font-size:
+    14px;
+
+  line-height:
+    1.3;
 }
 
-.choice-card small,
+
 .method-card small {
-  display: block;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-  line-height: 1.45;
+  display:
+    block;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size:
+    12px;
+
+  line-height:
+    1.45;
 }
+
 
 /* --------------------------------------------------
-   Pay Agent choice
+   Forms
 -------------------------------------------------- */
 
-.agent-choice-card {
-  border-color: rgba(45, 212, 191, 0.28);
-}
-
-.agent-choice-icon {
-  position: relative;
-  border-radius: 14px;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-}
-
-.agent-choice-logo {
-  width: 44px;
-  height: 44px;
-  display: block;
-  background: #5eead4;
-  -webkit-mask: url("/public/icons/social/ub-agent-icon2.png") center / contain no-repeat;
-  mask: url("/public/icons/social/ub-agent-icon2.png") center / contain no-repeat;
-  filter: drop-shadow(0 0 7px rgba(45, 212, 191, 0.20));
-}
-
-.agent-choice-badge {
-  position: absolute;
-  top: -13px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: #99f6e4;
-  background: rgba(20, 184, 166, 0.16);
-  border: 1px solid rgba(45, 212, 191, 0.28);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr;
+
+  gap:
+    10px;
 }
+
 
 .field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    6px;
+
+  margin-bottom:
+    0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size:
+    12px;
 }
 
+
 .field span {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size:
+    12px;
 }
+
 
 select,
 input {
-  width: 100%;
-  min-height: 42px;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.075);
-  color: #ffffff;
-  font: inherit;
-  font-size: 14px;
-  outline: none;
+  width:
+    100%;
+
+  min-height:
+    42px;
+
+  box-sizing:
+    border-box;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  border-radius:
+    13px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.075
+    );
+
+  color:
+    #ffffff;
+
+  font:
+    inherit;
+
+  font-size:
+    14px;
+
+  outline:
+    none;
 }
 
+
 input::placeholder {
-  color: rgba(255, 255, 255, 0.38);
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.38
+    );
 }
+
 
 select:focus,
 input:focus {
-  border-color: rgba(45, 212, 191, 0.55);
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+  border-color:
+    rgba(
+      45,
+      212,
+      191,
+      0.55
+    );
+
+  box-shadow:
+    0
+    0
+    0
+    3px
+    rgba(
+      45,
+      212,
+      191,
+      0.12
+    );
 }
 
+
 option {
-  color: #04111f;
+  color:
+    #04111f;
 }
+
 
 /* --------------------------------------------------
    Custom country dropdown
 -------------------------------------------------- */
 
 .country-native-select {
-  display: none;
+  display:
+    none;
 }
+
 
 .country-select-shell {
-  position: relative;
-  width: 100%;
+  position:
+    relative;
+
+  width:
+    100%;
 }
+
 
 .country-select-trigger {
-  width: 100%;
-  min-height: 42px;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.075);
-  color: #ffffff;
-  font: inherit;
-  font-size: 14px;
-  outline: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-align: left;
-  cursor: pointer;
+  width:
+    100%;
+
+  min-height:
+    42px;
+
+  box-sizing:
+    border-box;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  border-radius:
+    13px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.075
+    );
+
+  color:
+    #ffffff;
+
+  font:
+    inherit;
+
+  font-size:
+    14px;
+
+  outline:
+    none;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
 }
+
 
 .country-select-trigger:focus {
-  border-color: rgba(45, 212, 191, 0.55);
-  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+  border-color:
+    rgba(
+      45,
+      212,
+      191,
+      0.55
+    );
+
+  box-shadow:
+    0
+    0
+    0
+    3px
+    rgba(
+      45,
+      212,
+      191,
+      0.12
+    );
 }
 
-.country-select-trigger .country-select-value {
-  min-width: 0;
-  color: #ffffff;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+.country-select-trigger
+.country-select-value {
+  min-width:
+    0;
+
+  color:
+    #ffffff;
+
+  font-size:
+    14px;
+
+  white-space:
+    nowrap;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
 }
 
-.country-select-trigger .country-select-chevron {
-  flex: 0 0 auto;
-  color: rgba(94, 234, 212, 0.92);
-  font-size: 15px;
-  line-height: 1;
-  transform: translateY(-1px);
+
+.country-select-trigger
+.country-select-chevron {
+  flex:
+    0
+    0
+    auto;
+
+  color:
+    rgba(
+      94,
+      234,
+      212,
+      0.92
+    );
+
+  font-size:
+    15px;
+
+  line-height:
+    1;
+
+  transform:
+    translateY(
+      -1px
+    );
 }
+
 
 .country-select-menu {
-  display: none;
-  position: absolute;
-  z-index: 80;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  padding: 6px;
-  border-radius: 16px;
-  border: 1px solid rgba(94, 234, 212, 0.24);
-  background: rgba(2, 18, 48, 0.96);
+  display:
+    none;
+
+  position:
+    absolute;
+
+  z-index:
+    80;
+
+  top:
+    calc(
+      100% + 8px
+    );
+
+  left:
+    0;
+
+  right:
+    0;
+
+  padding:
+    6px;
+
+  border-radius:
+    16px;
+
+  border:
+    1px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.24
+    );
+
+  background:
+    rgba(
+      2,
+      18,
+      48,
+      0.96
+    );
+
   box-shadow:
-    0 18px 48px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
+    0
+    18px
+    48px
+    rgba(
+      0,
+      0,
+      0,
+      0.38
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  backdrop-filter:
+    blur(
+      14px
+    )
+    saturate(
+      130%
+    );
+
+  -webkit-backdrop-filter:
+    blur(
+      14px
+    )
+    saturate(
+      130%
+    );
 }
 
-.country-select-shell.is-open .country-select-menu {
-  display: grid;
-  gap: 4px;
+
+.country-select-shell.is-open
+.country-select-menu {
+  display:
+    grid;
+
+  gap:
+    4px;
 }
+
 
 .country-select-option {
-  width: 100%;
-  min-height: 40px;
-  box-sizing: border-box;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 11px;
-  background: transparent;
-  color: #ffffff;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
+  width:
+    100%;
+
+  min-height:
+    40px;
+
+  box-sizing:
+    border-box;
+
+  padding:
+    9px
+    10px;
+
+  border:
+    0;
+
+  border-radius:
+    11px;
+
+  background:
+    transparent;
+
+  color:
+    #ffffff;
+
+  font:
+    inherit;
+
+  font-size:
+    14px;
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
 }
+
 
 .country-select-option:hover,
 .country-select-option.is-selected {
-  background: rgba(20, 184, 166, 0.14);
-  color: #5eead4;
+  background:
+    rgba(
+      20,
+      184,
+      166,
+      0.14
+    );
+
+  color:
+    #5eead4;
 }
 
+
 .country-select-option:active {
-  transform: scale(0.99);
+  transform:
+    scale(
+      0.99
+    );
 }
+
 
 /* --------------------------------------------------
    Amount currency suffix
 -------------------------------------------------- */
 
 .amount-field {
-  gap: 8px;
+  gap:
+    8px;
 }
+
 
 .amount-input-wrap {
-  position: relative;
-  width: 100%;
+  position:
+    relative;
+
+  width:
+    100%;
 }
+
 
 .amount-input-wrap input {
-  width: 100%;
-  padding-right: 68px;
+  width:
+    100%;
+
+  padding-right:
+    68px;
 }
+
 
 .amount-currency {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: rgba(94, 234, 212, 0.95);
-  pointer-events: none;
+  position:
+    absolute;
+
+  right:
+    14px;
+
+  top:
+    50%;
+
+  transform:
+    translateY(
+      -50%
+    );
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.04em;
+
+  color:
+    rgba(
+      94,
+      234,
+      212,
+      0.95
+    );
+
+  pointer-events:
+    none;
 }
+
 
 .field-hint {
-  display: block;
-  margin-top: 8px;
-  font-size: 11px;
-  line-height: 1.35;
-  color: rgba(226, 232, 240, 0.62);
+  display:
+    block;
+
+  margin-top:
+    8px;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.35;
+
+  color:
+    rgba(
+      226,
+      232,
+      240,
+      0.62
+    );
 }
+
+
+/* --------------------------------------------------
+   Methods / actions
+-------------------------------------------------- */
 
 .method-grid {
-  display: grid;
-  gap: 10px;
-  margin: 12px 0;
+  display:
+    grid;
+
+  gap:
+    10px;
+
+  margin:
+    12px
+    0;
 }
+
 
 .method-card input {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  margin: 2px 0 0;
-  accent-color: #14b8a6;
+  width:
+    18px;
+
+  height:
+    18px;
+
+  flex:
+    0
+    0
+    18px;
+
+  margin:
+    2px
+    0
+    0;
+
+  accent-color:
+    #14b8a6;
 }
+
 
 .actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:
+    10px;
 }
+
 
 .button {
-  width: 100%;
-  min-height: 44px;
-  box-sizing: border-box;
-  border: 0;
-  border-radius: 14px;
-  padding: 11px 14px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
+  width:
+    100%;
+
+  min-height:
+    44px;
+
+  box-sizing:
+    border-box;
+
+  border:
+    0;
+
+  border-radius:
+    14px;
+
+  padding:
+    11px
+    14px;
+
+  font:
+    inherit;
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+
+  cursor:
+    pointer;
 }
+
 
 .button.primary {
-  background: #14b8a6;
-  color: #04111f;
-  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+  background:
+    #14b8a6;
+
+  color:
+    #04111f;
+
+  box-shadow:
+    0
+    12px
+    30px
+    rgba(
+      20,
+      184,
+      166,
+      0.18
+    );
 }
+
 
 .button.secondary {
-  border: 1px solid rgba(45, 212, 191, 0.32);
-  background: rgba(20, 184, 166, 0.07);
-  color: #5eead4;
+  border:
+    1px solid
+    rgba(
+      45,
+      212,
+      191,
+      0.32
+    );
+
+  background:
+    rgba(
+      20,
+      184,
+      166,
+      0.07
+    );
+
+  color:
+    #5eead4;
 }
+
 
 .button:active {
-  transform: scale(0.98);
+  transform:
+    scale(
+      0.98
+    );
 }
 
-@media (max-width: 430px) {
+
+/* --------------------------------------------------
+   Mobile
+-------------------------------------------------- */
+
+@media (
+  max-width: 430px
+) {
   .page {
-    width: min(100%, 392px);
-    gap: 12px;
-    padding: 14px;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-    justify-content: center;
+    width:
+      min(
+        100%,
+        392px
+      );
+
+    gap:
+      10px;
+
+    padding:
+      14px;
+
+    padding-top:
+      max(
+        14px,
+        env(
+          safe-area-inset-top
+        )
+      );
+
+    padding-bottom:
+      max(
+        14px,
+        env(
+          safe-area-inset-bottom
+        )
+      );
+
+    justify-content:
+      center;
   }
+
 
   h1 {
-    font-size: 33px;
-    line-height: 1.05;
+    font-size:
+      33px;
+
+    line-height:
+      1.05;
   }
+
 
   .subtitle {
-    font-size: 14px;
+    font-size:
+      14px;
   }
 
+
+  .pay-orbit {
+    width:
+      min(
+        100%,
+        360px
+      );
+
+    height:
+      360px;
+  }
+
+
+  .pay-orbit-ring {
+    width:
+      258px;
+
+    height:
+      258px;
+  }
+
+
+  .pay-orbit-option {
+    width:
+      116px;
+
+    height:
+      116px;
+
+    padding:
+      12px
+      8px;
+  }
+
+
+  .pay-orbit-wallet {
+    top:
+      12px;
+  }
+
+
+  .pay-orbit-fiat {
+    left:
+      18px;
+
+    bottom:
+      24px;
+  }
+
+
+  .pay-orbit-agent {
+    right:
+      18px;
+
+    bottom:
+      24px;
+  }
+
+
+  .pay-orbit-center {
+    width:
+      68px;
+
+    height:
+      68px;
+  }
+
+
+  .pay-orbit-center-logo {
+    width:
+      42px;
+
+    height:
+      42px;
+  }
+
+
+  .pay-orbit-icon {
+    width:
+      39px;
+
+    height:
+      39px;
+
+    flex-basis:
+      39px;
+  }
+
+
+  .pay-orbit-svg {
+    width:
+      35px;
+
+    height:
+      35px;
+  }
+
+
+  .pay-orbit-agent-icon {
+    width:
+      40px;
+
+    height:
+      40px;
+
+    flex-basis:
+      40px;
+  }
+
+
+  .pay-orbit-agent-logo {
+    width:
+      39px;
+
+    height:
+      39px;
+  }
+
+
+  .pay-orbit-copy strong {
+    font-size:
+      13.5px;
+  }
+
+
+  .pay-orbit-copy small {
+    max-width:
+      98px;
+
+    font-size:
+      10px;
+  }
+
+
+  .pay-orbit-agent
+  .pay-orbit-copy
+  small {
+    max-width:
+      88px;
+  }
+
+
   .card {
-    width: min(100%, 392px);
-    margin-top: 6px;
-    padding: 13px;
+    width:
+      min(
+        100%,
+        392px
+      );
+
+    margin-top:
+      6px;
+
+    padding:
+      13px;
+
     background:
       linear-gradient(
         180deg,
-        rgba(9, 34, 72, 0.22) 0%,
-        rgba(0, 14, 45, 0.12) 100%
+        rgba(
+          9,
+          34,
+          72,
+          0.22
+        )
+        0%,
+        rgba(
+          0,
+          14,
+          45,
+          0.12
+        )
+        100%
       );
-    backdrop-filter: blur(4px) saturate(124%);
-    -webkit-backdrop-filter: blur(4px) saturate(124%);
+
+    backdrop-filter:
+      blur(
+        4px
+      )
+      saturate(
+        124%
+      );
+
+    -webkit-backdrop-filter:
+      blur(
+        4px
+      )
+      saturate(
+        124%
+      );
   }
 
-  .choice-icon {
-    width: 50px;
-    height: 50px;
-    flex-basis: 50px;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-
-  .choice-svg {
-    width: 38px;
-    height: 38px;
-  }
-
-  .wallet-svg {
-    width: 38px;
-    height: 38px;
-  }
-
-  .bank-svg {
-    width: 40px;
-    height: 40px;
-  }
-
-  .agent-choice-logo {
-    width: 42px;
-    height: 42px;
-  }
 
   .actions {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+/* --------------------------------------------------
+   Small phones
+-------------------------------------------------- */
+
+@media (
+  max-width: 350px
+) {
+  .pay-orbit {
+    height:
+      330px;
+  }
+
+
+  .pay-orbit-ring {
+    width:
+      230px;
+
+    height:
+      230px;
+  }
+
+
+  .pay-orbit-option {
+    width:
+      104px;
+
+    height:
+      104px;
+  }
+
+
+  .pay-orbit-wallet {
+    top:
+      10px;
+  }
+
+
+  .pay-orbit-fiat {
+    left:
+      10px;
+
+    bottom:
+      20px;
+  }
+
+
+  .pay-orbit-agent {
+    right:
+      10px;
+
+    bottom:
+      20px;
+  }
+
+
+  .pay-orbit-center {
+    width:
+      62px;
+
+    height:
+      62px;
+  }
+
+
+  .pay-orbit-center-logo {
+    width:
+      38px;
+
+    height:
+      38px;
+  }
+
+
+  .pay-orbit-copy strong {
+    font-size:
+      13px;
+  }
+
+
+  .pay-orbit-copy small {
+    font-size:
+      9.5px;
+  }
+}
+
+
+/* --------------------------------------------------
+   Reduced motion
+-------------------------------------------------- */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+  .pay-orbit-option,
+  .method-card,
+  .button {
+    transition:
+      none;
   }
 }
