@@ -3,10 +3,19 @@
 export function createContinueButtons({
   continueBtn,
   coinsPhContinueBtn,
-  isPhilippinesDestination
+  isPhilippinesDestination,
+  isReceiveBound
 } = {}) {
   function getActiveContinueButton() {
-    return isPhilippinesDestination?.()
+    const useCoinsPhButton =
+      Boolean(
+        isPhilippinesDestination?.()
+      ) &&
+      !Boolean(
+        isReceiveBound?.()
+      );
+
+    return useCoinsPhButton
       ? coinsPhContinueBtn
       : continueBtn;
   }
