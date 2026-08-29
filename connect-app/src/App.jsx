@@ -1134,7 +1134,7 @@ export default function App() {
     <main className="connect-shell">
       <header className="connect-brandbar">
         <a
-          href="/connect"
+          href="/pay"
           className="connect-brandbar-logo-link"
           aria-label="Pay with UniBridge"
         >
