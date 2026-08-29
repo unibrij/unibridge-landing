@@ -20,15 +20,42 @@
 
   <meta
     name="description"
-    content="Pay with UniBridge lets users fund a payout route using wallet, fiat, or the UniBridge Pay Agent."
+    content="Pay with UniBridge using wallet, fiat, or the UniBridge Pay Agent."
   />
 
-  <link rel="preload" as="image" href="/public/icons/social/connect-map-bg.png" />
-  <link rel="preload" as="image" href="/public/icons/social/unibridge-orbit-lockup-white.png" />
-  <link rel="preload" as="image" href="/public/icons/social/ub-agent-icon2.png" />
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/connect-map-bg.png"
+  />
 
-  <link rel="stylesheet" href="/partials/pay/css/pay-common.css?v=1" />
-  <link rel="stylesheet" href="/pay/styles.css?v=27" />
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/unibridge-orbit-lockup-white.png"
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/ub-agent-icon2.png"
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/connect/icons/app/ub-app-icon-512.png"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=1"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/pay/styles.css?v=28"
+  />
 
   <style>
     .sr-only {
@@ -49,59 +76,209 @@
   <main class="page pay-page-shell">
     <div id="pay-brand"></div>
 
-    <section class="hero" aria-labelledby="payTitle">
-      <h1 id="payTitle" class="sr-only">Pay with UniBridge</h1>
+    <section
+      class="hero"
+      aria-labelledby="payTitle"
+    >
+      <h1
+        id="payTitle"
+        class="sr-only"
+      >
+        Pay with UniBridge
+      </h1>
 
-      <p class="eyebrow" aria-hidden="true">
+      <p
+        class="eyebrow"
+        aria-hidden="true"
+      >
         Pay with UniBridge
       </p>
     </section>
 
-    <section id="choiceCard" class="card">
-      <button id="walletOption" class="choice-card" type="button">
-        <span class="choice-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="choice-svg wallet-svg">
-            <path d="M5.2 7.75H17.9C19.05 7.75 20 8.7 20 9.85V17.2C20 18.3 19.1 19.2 18 19.2H6.35C4.75 19.2 3.45 17.9 3.45 16.3V8.95C3.45 8.3 3.95 7.75 5.2 7.75Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M5.55 7.75 15.65 4.95C16.75 4.65 17.85 5.45 17.85 6.6V7.75" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M16.1 11.15H20V15.25H16.1C14.95 15.25 14.05 14.35 14.05 13.2C14.05 12.05 14.95 11.15 16.1 11.15Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-            <circle cx="16.35" cy="13.2" r="0.55" fill="none" stroke="currentColor" stroke-width="1.6" />
+    <section
+      id="choiceCard"
+      class="pay-orbit"
+      aria-label="Choose payment method"
+    >
+      <div
+        class="pay-orbit-ring"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="pay-orbit-center"
+        aria-hidden="true"
+      >
+        <img
+          class="pay-orbit-center-logo"
+          src="/connect/icons/app/ub-app-icon-512.png"
+          alt=""
+        />
+      </div>
+
+      <button
+        id="walletOption"
+        class="pay-orbit-option pay-orbit-wallet"
+        type="button"
+        aria-label="Pay with wallet"
+      >
+        <span
+          class="pay-orbit-icon"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="pay-orbit-svg wallet-svg"
+          >
+            <path
+              d="M5.2 7.75H17.9C19.05 7.75 20 8.7 20 9.85V17.2C20 18.3 19.1 19.2 18 19.2H6.35C4.75 19.2 3.45 17.9 3.45 16.3V8.95C3.45 8.3 3.95 7.75 5.2 7.75Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M5.55 7.75 15.65 4.95C16.75 4.65 17.85 5.45 17.85 6.6V7.75"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M16.1 11.15H20V15.25H16.1C14.95 15.25 14.05 14.35 14.05 13.2C14.05 12.05 14.95 11.15 16.1 11.15Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <circle
+              cx="16.35"
+              cy="13.2"
+              r="0.55"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
           </svg>
         </span>
 
-        <span>
-          <strong>Pay with wallet</strong>
-          <small>Connect your wallet to review and approve the payment.</small>
+        <span class="pay-orbit-copy">
+          <strong>Wallet</strong>
+          <small>Connect wallet</small>
         </span>
       </button>
 
-      <button id="fiatOption" class="choice-card" type="button">
-        <span class="choice-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="choice-svg bank-svg">
-            <path d="M4.4 9.35 12 5.15 19.6 9.35" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M5.65 10.45H18.35" fill="none" stroke="currentColor" stroke-linecap="round" />
-            <rect x="6.65" y="12.05" width="2.05" height="5.75" rx="0.35" fill="none" stroke="currentColor" />
-            <rect x="10.98" y="12.05" width="2.05" height="5.75" rx="0.35" fill="none" stroke="currentColor" />
-            <rect x="15.3" y="12.05" width="2.05" height="5.75" rx="0.35" fill="none" stroke="currentColor" />
-            <path d="M6 18.85H18" fill="none" stroke="currentColor" stroke-linecap="round" />
-            <path d="M4.9 20.65H19.1" fill="none" stroke="currentColor" stroke-linecap="round" />
-            <circle cx="12" cy="7.65" r="0.55" fill="currentColor" />
+      <button
+        id="fiatOption"
+        class="pay-orbit-option pay-orbit-fiat"
+        type="button"
+        aria-label="Pay with fiat using bank transfer or card"
+      >
+        <span
+          class="pay-orbit-icon"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="pay-orbit-svg bank-svg"
+          >
+            <path
+              d="M4.4 9.35 12 5.15 19.6 9.35"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M5.65 10.45H18.35"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+
+            <rect
+              x="6.65"
+              y="12.05"
+              width="2.05"
+              height="5.75"
+              rx="0.35"
+              fill="none"
+              stroke="currentColor"
+            />
+
+            <rect
+              x="10.98"
+              y="12.05"
+              width="2.05"
+              height="5.75"
+              rx="0.35"
+              fill="none"
+              stroke="currentColor"
+            />
+
+            <rect
+              x="15.3"
+              y="12.05"
+              width="2.05"
+              height="5.75"
+              rx="0.35"
+              fill="none"
+              stroke="currentColor"
+            />
+
+            <path
+              d="M6 18.85H18"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+
+            <path
+              d="M4.9 20.65H19.1"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+
+            <circle
+              cx="12"
+              cy="7.65"
+              r="0.55"
+              fill="currentColor"
+            />
           </svg>
         </span>
 
-        <span>
-          <strong>Pay with fiat</strong>
-          <small>Continue with bank transfer or card payment.</small>
+        <span class="pay-orbit-copy">
+          <strong>Fiat</strong>
+          <small>Bank or card</small>
         </span>
       </button>
 
-      <button id="guideCardAction" class="choice-card agent-choice-card" type="button">
-        <span class="choice-icon agent-choice-icon" aria-hidden="true">
-          <span class="agent-choice-logo"></span>
+      <button
+        id="guideCardAction"
+        class="pay-orbit-option pay-orbit-agent"
+        type="button"
+        aria-label="Pay with UniBridge Agent"
+      >
+        <span
+          class="pay-orbit-icon pay-orbit-agent-icon"
+          aria-hidden="true"
+        >
+          <img
+            class="pay-orbit-agent-logo"
+            src="/public/icons/social/ub-agent-icon2.png"
+            alt=""
+          />
         </span>
 
-        <span>
-          <strong>Pay with Agent</strong>
-          <small>Describe a payment. UniBridge prepares the route.</small>
+        <span class="pay-orbit-copy">
+          <strong>Agent</strong>
+          <small>Let UniBridge route it</small>
         </span>
       </button>
     </section>
@@ -111,6 +288,9 @@
 
   <script src="/partials/pay/js/pay-includes.js?v=6"></script>
 
-  <script type="module" src="/pay/js/pay.js?v=8"></script>
+  <script
+    type="module"
+    src="/pay/js/pay.js?v=8"
+  ></script>
 </body>
 </html>
