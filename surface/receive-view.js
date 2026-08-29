@@ -1,53 +1,145 @@
 // unibridge-landing/surface/receive-view.js
 
 function normalizeString(value) {
-  return String(
-    value ??
-    ""
-  ).trim();
+  return String(value ?? "").trim();
 }
 
 function formatRail(value) {
-  const rail =
-    normalizeString(
-      value
-    );
+  const rail = normalizeString(value);
 
   if (!rail) {
     return "";
   }
 
   return rail
-    .replace(
-      /[_-]+/g,
-      " "
-    )
-    .replace(
-      /\b\w/g,
-      char =>
-        char.toUpperCase()
-    );
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, char => char.toUpperCase());
 }
 
-function formatDestination({
-  country,
-  rail
-} = {}) {
-  return [
-    normalizeString(
-      country
-    ).toUpperCase(),
+function formatCountry(value) {
+  const country =
+    normalizeString(value)
+      .toUpperCase();
 
-    formatRail(
-      rail
-    )
-  ]
-    .filter(
-      Boolean
-    )
-    .join(
-      " · "
+  if (!country) {
+    return "";
+  }
+
+  try {
+    return new Intl.DisplayNames(
+      ["en"],
+      {
+        type: "region"
+      }
+    ).of(country) || country;
+  }
+  catch {
+    return country;
+  }
+}
+
+function buildRecipientText(
+  recipient = {}
+) {
+  const label =
+    normalizeString(
+      recipient.label
     );
+
+  const maskedIdentifier =
+    normalizeString(
+      recipient.masked_identifier
+    );
+
+  return [
+    label &&
+    label.toLowerCase() !==
+      "recipient"
+      ? label
+      : "",
+
+    maskedIdentifier
+  ]
+    .filter(Boolean)
+    .join(" · ") ||
+    label ||
+    "Recipient";
+}
+
+function setHidden(
+  element,
+  hidden
+) {
+  if (!element) {
+    return;
+  }
+
+  const shouldHide =
+    Boolean(hidden);
+
+  element.hidden =
+    shouldHide;
+
+  element.classList.toggle(
+    "hidden",
+    shouldHide
+  );
+
+  element.style.display =
+    shouldHide
+      ? "none"
+      : "";
+}
+
+function createLockedField({
+  label,
+  value
+} = {}) {
+  const field =
+    document.createElement(
+      "label"
+    );
+
+  field.className =
+    "field";
+
+  const fieldLabel =
+    document.createElement(
+      "span"
+    );
+
+  fieldLabel.textContent =
+    normalizeString(label);
+
+  const input =
+    document.createElement(
+      "input"
+    );
+
+  input.type =
+    "text";
+
+  input.value =
+    normalizeString(value) ||
+    "—";
+
+  input.readOnly =
+    true;
+
+  input.disabled =
+    true;
+
+  input.setAttribute(
+    "aria-label",
+    normalizeString(label)
+  );
+
+  field.append(
+    fieldLabel,
+    input
+  );
+
+  return field;
 }
 
 export function createSurfaceReceiveView({
@@ -55,32 +147,92 @@ export function createSurfaceReceiveView({
   receiveContext = null,
   getValue
 } = {}) {
-  function setHidden(
-    element,
-    hidden
-  ) {
-    if (!element) {
+  function renderSummary() {
+    const summary =
+      getValue?.(
+        "receiveSummary"
+      );
+
+    const recipientContainer =
+      getValue?.(
+        "receiveSummaryRecipient"
+      );
+
+    const destinationContainer =
+      getValue?.(
+        "receiveSummaryDestination"
+      );
+
+    if (
+      !summary ||
+      !recipientContainer ||
+      !destinationContainer
+    ) {
       return;
     }
 
-    element.hidden =
-      Boolean(
-        hidden
-      );
-  }
+    const recipient =
+      receiveContext
+        ?.recipient ||
+      {};
 
-  function setText(
-    element,
-    value
-  ) {
-    if (!element) {
-      return;
-    }
-
-    element.textContent =
-      normalizeString(
-        value
+    const recipientText =
+      buildRecipientText(
+        recipient
       );
+
+    const country =
+      formatCountry(
+        receiveContext
+          ?.destination_country
+      );
+
+    const rail =
+      formatRail(
+        receiveContext
+          ?.payout_rail
+      );
+
+    recipientContainer
+      .replaceChildren(
+        createLockedField({
+          label:
+            "Recipient",
+
+          value:
+            recipientText
+        })
+      );
+
+    destinationContainer
+      .replaceChildren(
+        createLockedField({
+          label:
+            "Receives in",
+
+          value:
+            country
+        }),
+
+        createLockedField({
+          label:
+            "Receiving method",
+
+          value:
+            rail
+        })
+      );
+
+    destinationContainer
+      .classList
+      .add(
+        "form-grid"
+      );
+
+    setHidden(
+      summary,
+      false
+    );
   }
 
   function apply() {
@@ -98,29 +250,19 @@ export function createSurfaceReceiveView({
         "destinationCountrySection"
       );
 
+    const destinationHeader =
+      getValue?.(
+        "destinationDetailsHeader"
+      );
+
     const destinationFields =
       getValue?.(
         "destinationFields"
       );
 
-    const coinsPhSection =
+    const coinsPhBox =
       getValue?.(
-        "coinsPhDestinationSection"
-      );
-
-    const summary =
-      getValue?.(
-        "receiveSummary"
-      );
-
-    const summaryRecipient =
-      getValue?.(
-        "receiveSummaryRecipient"
-      );
-
-    const summaryDestination =
-      getValue?.(
-        "receiveSummaryDestination"
+        "coinsPhBox"
       );
 
     if (countryField) {
@@ -134,63 +276,21 @@ export function createSurfaceReceiveView({
     );
 
     setHidden(
+      destinationHeader,
+      true
+    );
+
+    setHidden(
       destinationFields,
       true
     );
 
     setHidden(
-      coinsPhSection,
+      coinsPhBox,
       true
     );
 
-    const recipient =
-      receiveContext
-        ?.recipient ||
-      {};
-
-    const recipientText =
-      [
-        normalizeString(
-          recipient.label
-        ),
-
-        normalizeString(
-          recipient.masked_identifier
-        )
-      ]
-        .filter(
-          Boolean
-        )
-        .join(
-          " · "
-        ) ||
-      "Recipient";
-
-    const destinationText =
-      formatDestination({
-        country:
-          receiveContext
-            ?.destination_country,
-
-        rail:
-          receiveContext
-            ?.payout_rail
-      });
-
-    setText(
-      summaryRecipient,
-      recipientText
-    );
-
-    setText(
-      summaryDestination,
-      destinationText
-    );
-
-    setHidden(
-      summary,
-      false
-    );
+    renderSummary();
   }
 
   return {
