@@ -40,6 +40,12 @@ import {
   createPaymentFlow
 } from "./payment-flow.js";
 
+import {
+  getReceiveContext,
+  buildSessionDestinationInput,
+  buildSettlementDestinationInput
+} from "/shared/receive/receive-context.js";
+
 
 let initPromise =
   null;
@@ -60,6 +66,20 @@ async function init() {
   if (tg) {
     tg.expand();
   }
+
+
+  /* =========================
+     RECEIVE CONTEXT
+  ========================= */
+
+  const receiveContext =
+    getReceiveContext();
+
+  const receiveBound =
+    Boolean(
+      receiveContext
+        ?.receive_profile_id
+    );
 
 
   /* =========================
@@ -262,7 +282,12 @@ async function init() {
     getSourceCountryCode
   } =
     createCountryHelpers({
-      getValue
+      getValue,
+
+      getDestinationCountry() {
+        return receiveContext
+          ?.destination_country;
+      }
     });
 
 
@@ -311,6 +336,14 @@ async function init() {
       return;
     }
 
+    if (receiveBound) {
+      continueBtn.disabled =
+        !quoteFlow
+          ?.isCurrentRouteAmountAvailable();
+
+      return;
+    }
+
     let destinationValid =
       false;
 
@@ -347,6 +380,14 @@ async function init() {
   async function renderDestinationRoute(
     route
   ) {
+    if (receiveBound) {
+      destinationFields.clear();
+
+      syncGenericDestinationContinueState();
+
+      return false;
+    }
+
     if (
       isPhilippinesDestination()
     ) {
@@ -539,6 +580,10 @@ async function init() {
       clearDestinationRoute,
       syncGenericDestinationContinueState,
 
+      receiveBound,
+      receiveContext,
+      buildSessionDestinationInput,
+
       getCoinsPhPicker() {
         return coinsPhPicker;
       }
@@ -677,6 +722,10 @@ async function init() {
       isPhilippinesDestination,
       buildDestinationPayload,
       buildKycPayload,
+
+      receiveBound,
+      receiveContext,
+      buildSettlementDestinationInput,
 
       getCoinsPhPicker() {
         return coinsPhPicker;
