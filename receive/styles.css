@@ -748,13 +748,13 @@ Created QR
   display: grid;
   place-items: center;
 
-  width: min(100%, 250px);
-  min-height: 220px;
+  width: min(100%, 258px);
+  min-height: 250px;
 
   box-sizing: border-box;
 
   margin: 4px auto 16px;
-  padding: 16px;
+  padding: 12px;
 
   border:
     1px solid
@@ -775,7 +775,9 @@ Created QR
 .receive-qr svg {
   display: block;
 
-  max-width: 100%;
+  width: min(100%, 230px);
+  max-width: 230px;
+
   height: auto;
 }
 
@@ -1117,8 +1119,8 @@ Mirrors Pay 430px breakpoint
   }
 
   .receive-qr {
-    width: min(100%, 230px);
-    min-height: 210px;
+    width: min(100%, 258px);
+    min-height: 250px;
   }
 }
 
@@ -1130,5 +1132,10 @@ Mirrors Pay 430px breakpoint
 
   .receive-card {
     padding: 12px;
+  }
+
+  .receive-qr {
+    width: min(100%, 250px);
+    padding: 9px;
   }
 }
