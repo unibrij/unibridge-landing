@@ -9,6 +9,10 @@ import {
 } from "./funding-context.js";
 
 import {
+  createQuoteDestination
+} from "./quote-destination.js";
+
+import {
   createPricingViewModel,
   formatRouteLimitMessage,
   isRouteAmountAvailable,
@@ -38,7 +42,9 @@ export function createQuoteFlow({
   renderDestinationRoute,
   clearDestinationRoute,
   syncGenericDestinationContinueState,
-  getCoinsPhPicker
+  getCoinsPhPicker,
+  receiveBound = false,
+  buildSessionDestinationInput
 }) {
   const {
     sendBtn,
@@ -164,7 +170,7 @@ export function createQuoteFlow({
 
     clearDestinationRoute?.();
 
-    getCoinsPhPicker()
+    getCoinsPhPicker?.()
       ?.reset();
   }
 
@@ -243,6 +249,7 @@ export function createQuoteFlow({
     limits so invalid funding amounts can be blocked
     before Route selection.
     */
+
     if (
       sendBtn &&
       !state.settlementId
@@ -286,6 +293,20 @@ export function createQuoteFlow({
       );
     }
   }
+
+
+  const quoteDestination =
+    createQuoteDestination({
+      receiveBound,
+      isPhilippinesDestination,
+      renderDestinationRoute,
+      clearDestinationRoute,
+      syncGenericDestinationContinueState,
+      syncRouteLimitContinueUi,
+      getCoinsPhPicker,
+      emit,
+      setStatus
+    });
 
 
   function refreshLimitUi() {
@@ -358,9 +379,6 @@ export function createQuoteFlow({
       A new quote invalidates the previous funding UI,
       settlement state and provider session through the
       single shared reset boundary.
-
-      resetFlowState() also reaches resetQuoteState(),
-      which invalidates any previous flow generation.
       */
 
       resetFlowState();
@@ -407,8 +425,7 @@ export function createQuoteFlow({
         !Number.isFinite(
           amount
         ) ||
-        amount <=
-          0
+        amount <= 0
       ) {
         throw new Error(
           "invalid_amount"
@@ -429,6 +446,25 @@ export function createQuoteFlow({
       }
 
 
+      if (
+        typeof buildSessionDestinationInput !==
+        "function"
+      ) {
+        throw new Error(
+          "session_destination_builder_missing"
+        );
+      }
+
+
+      const destinationInput =
+        buildSessionDestinationInput({
+          receiver_country:
+            getValue(
+              "country"
+            )?.value
+        });
+
+
       const reg =
         await apiPost(
           "fiat/session/register",
@@ -438,10 +474,7 @@ export function createQuoteFlow({
                 "source_country"
               )?.value,
 
-            receiver_country:
-              getValue(
-                "country"
-              )?.value
+            ...destinationInput
           }
         );
 
@@ -577,100 +610,38 @@ export function createQuoteFlow({
 
       /*
       ------------------------------------------------
-      Destination
+      Destination preparation
+
+      Receive / Philippines / generic destination
+      behavior is owned by quote-destination.js.
       ------------------------------------------------
       */
 
-      if (
-        isPhilippinesDestination()
-      ) {
-        clearDestinationRoute?.();
+      const destinationResult =
+        await quoteDestination
+          .prepareDestination({
+            route:
+              selectedRoute,
 
-        const coinsPhPicker =
-          getCoinsPhPicker();
+            generation,
 
-        await coinsPhPicker
-          ?.load();
-
-
-        if (
-          !isFlowCurrent(
-            generation
-          )
-        ) {
-          return;
-        }
-
-
-        destinationReady =
-          true;
-
-        coinsPhPicker
-          ?.updateContinueState();
-
-        syncRouteLimitContinueUi();
-
-        emit(
-          "unibridge:quote"
-        );
-
-        setStatus(
-          "Select recipient institution."
-        );
-
-        return;
-      }
+            isFlowCurrent
+          });
 
 
       if (
-        typeof renderDestinationRoute !==
-        "function"
-      ) {
-        throw new Error(
-          "destination_renderer_missing"
-        );
-      }
-
-
-      const rendered =
-        await renderDestinationRoute(
-          selectedRoute
-        );
-
-
-      if (
-        !isFlowCurrent(
-          generation
-        )
+        destinationResult
+          ?.stale
       ) {
         return;
-      }
-
-
-      if (!rendered) {
-        throw new Error(
-          "destination_schema_missing"
-        );
       }
 
 
       destinationReady =
-        true;
-
-
-      syncGenericDestinationContinueState?.();
-
-      syncRouteLimitContinueUi();
-
-
-      emit(
-        "unibridge:quote"
-      );
-
-
-      setStatus(
-        "Enter destination details."
-      );
+        Boolean(
+          destinationResult
+            ?.ready
+        );
     }
     catch (
       error
@@ -714,27 +685,19 @@ export function createQuoteFlow({
         );
 
 
-      if (activeBtn) {
-        if (
-          canContinue &&
-          isPhilippinesDestination()
-        ) {
-          getCoinsPhPicker()
-            ?.updateContinueState();
+      const synced =
+        quoteDestination
+          .syncAfterError({
+            canContinue
+          });
 
-          syncRouteLimitContinueUi();
-        }
-        else if (
-          canContinue
-        ) {
-          syncGenericDestinationContinueState?.();
 
-          syncRouteLimitContinueUi();
-        }
-        else {
-          activeBtn.disabled =
-            true;
-        }
+      if (
+        activeBtn &&
+        !synced
+      ) {
+        activeBtn.disabled =
+          true;
       }
     }
     finally {
@@ -760,25 +723,18 @@ export function createQuoteFlow({
       refreshLimitUi();
 
 
+      const synced =
+        quoteDestination
+          .syncAfterFlow({
+            destinationReady,
+
+            routeAmountAvailable:
+              isCurrentRouteAmountAvailable()
+          });
+
+
       if (
-        destinationReady &&
-        isPhilippinesDestination() &&
-        isCurrentRouteAmountAvailable()
-      ) {
-        getCoinsPhPicker()
-          ?.updateContinueState();
-
-        syncRouteLimitContinueUi();
-      }
-      else if (
-        destinationReady &&
-        isCurrentRouteAmountAvailable()
-      ) {
-        syncGenericDestinationContinueState?.();
-
-        syncRouteLimitContinueUi();
-      }
-      else if (
+        !synced &&
         !state.settlementId
       ) {
         setContinueButtonsDisabled(
@@ -840,11 +796,18 @@ export function createQuoteFlow({
       );
 
 
-    countryInput
-      ?.addEventListener(
-        "change",
-        resetFlowForRouteInputChange
-      );
+    /*
+    In Receive mode destination country is bound to
+    the Receive snapshot, not to the Surface selector.
+    */
+
+    if (!receiveBound) {
+      countryInput
+        ?.addEventListener(
+          "change",
+          resetFlowForRouteInputChange
+        );
+    }
   }
 
 
