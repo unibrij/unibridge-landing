@@ -5,6 +5,16 @@ import {
 } from "/shared/receive/receive.js";
 
 
+const QR_SIZE =
+  210;
+
+const QR_LOGO_URL =
+  "/connect/icons/app/ub-app-icon-512.png";
+
+const QR_LOGO_RATIO =
+  0.18;
+
+
 function normalizeString(value) {
   return String(value ?? "").trim();
 }
@@ -15,7 +25,8 @@ function setHidden(element, hidden) {
     return;
   }
 
-  element.hidden = Boolean(hidden);
+  element.hidden =
+    Boolean(hidden);
 }
 
 
@@ -39,7 +50,135 @@ function buildAbsoluteReceiveUrl(token) {
 }
 
 
-function renderQrCode({
+function loadImage(src) {
+  return new Promise(
+    (resolve, reject) => {
+      const image =
+        new Image();
+
+      image.onload =
+        () => {
+          resolve(image);
+        };
+
+      image.onerror =
+        () => {
+          reject(
+            new Error(
+              "QR logo unavailable."
+            )
+          );
+        };
+
+      image.src =
+        src;
+    }
+  );
+}
+
+
+function drawQrLogo(
+  canvas,
+  image
+) {
+  if (
+    !canvas ||
+    !image
+  ) {
+    return;
+  }
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+  if (!context) {
+    return;
+  }
+
+  const size =
+    Math.round(
+      Math.min(
+        canvas.width,
+        canvas.height
+      ) *
+      QR_LOGO_RATIO
+    );
+
+  const padding =
+    Math.max(
+      4,
+      Math.round(
+        size * 0.16
+      )
+    );
+
+  const backgroundSize =
+    size +
+    padding * 2;
+
+  const x =
+    Math.round(
+      (
+        canvas.width -
+        size
+      ) /
+      2
+    );
+
+  const y =
+    Math.round(
+      (
+        canvas.height -
+        size
+      ) /
+      2
+    );
+
+  const backgroundX =
+    Math.round(
+      (
+        canvas.width -
+        backgroundSize
+      ) /
+      2
+    );
+
+  const backgroundY =
+    Math.round(
+      (
+        canvas.height -
+        backgroundSize
+      ) /
+      2
+    );
+
+  context.save();
+
+  context.fillStyle =
+    "#ffffff";
+
+  context.fillRect(
+    backgroundX,
+    backgroundY,
+    backgroundSize,
+    backgroundSize
+  );
+
+  context.drawImage(
+    image,
+    x,
+    y,
+    size,
+    size
+  );
+
+  context.restore();
+}
+
+
+async function renderQrCode({
   root,
   value
 }) {
@@ -47,7 +186,8 @@ function renderQrCode({
     return;
   }
 
-  root.innerHTML = "";
+  root.innerHTML =
+    "";
 
   if (
     typeof window.QRCode !==
@@ -59,14 +199,60 @@ function renderQrCode({
     return;
   }
 
+  const options = {
+    text:
+      value,
+
+    width:
+      QR_SIZE,
+
+    height:
+      QR_SIZE
+  };
+
+  if (
+    window.QRCode
+      ?.CorrectLevel
+      ?.H !==
+    undefined
+  ) {
+    options.correctLevel =
+      window.QRCode
+        .CorrectLevel
+        .H;
+  }
+
   new window.QRCode(
     root,
-    {
-      text: value,
-      width: 210,
-      height: 210
-    }
+    options
   );
+
+  const canvas =
+    root.querySelector(
+      "canvas"
+    );
+
+  if (!canvas) {
+    return;
+  }
+
+  try {
+    const logo =
+      await loadImage(
+        QR_LOGO_URL
+      );
+
+    drawQrLogo(
+      canvas,
+      logo
+    );
+  }
+  catch (error) {
+    console.warn(
+      "RECEIVE_QR_LOGO_FAILED",
+      error
+    );
+  }
 }
 
 
@@ -83,7 +269,10 @@ function canvasToBlob(canvas) {
 
     canvas.toBlob(
       blob => {
-        resolve(blob || null);
+        resolve(
+          blob ||
+          null
+        );
       },
       "image/png"
     );
@@ -93,14 +282,18 @@ function canvasToBlob(canvas) {
 
 async function buildQrShareFile(root) {
   const canvas =
-    root?.querySelector?.("canvas");
+    root?.querySelector?.(
+      "canvas"
+    );
 
   if (!canvas) {
     return null;
   }
 
   const blob =
-    await canvasToBlob(canvas);
+    await canvasToBlob(
+      canvas
+    );
 
   if (!blob) {
     return null;
@@ -110,7 +303,8 @@ async function buildQrShareFile(root) {
     [blob],
     "unibridge-receive-qr.png",
     {
-      type: "image/png"
+      type:
+        "image/png"
     }
   );
 }
@@ -127,9 +321,12 @@ function canShareFile(file) {
 
   try {
     return navigator.canShare({
-      files: [file]
+      files: [
+        file
+      ]
     });
-  } catch {
+  }
+  catch {
     return false;
   }
 }
@@ -139,16 +336,19 @@ export function createReceiveShareFlow({
   els,
   showOnly
 } = {}) {
-  let eventsBound = false;
+  let eventsBound =
+    false;
 
 
   function reset() {
     if (els?.shareUrl) {
-      els.shareUrl.value = "";
+      els.shareUrl.value =
+        "";
     }
 
     if (els?.qrCode) {
-      els.qrCode.innerHTML = "";
+      els.qrCode.innerHTML =
+        "";
     }
 
     setHidden(
@@ -158,9 +358,11 @@ export function createReceiveShareFlow({
   }
 
 
-  function showCreated(payload) {
+  async function showCreated(payload) {
     const token =
-      extractCreatedToken(payload);
+      extractCreatedToken(
+        payload
+      );
 
     if (!token) {
       throw new Error(
@@ -174,12 +376,14 @@ export function createReceiveShareFlow({
       );
 
     if (els?.shareUrl) {
-      els.shareUrl.value = url;
+      els.shareUrl.value =
+        url;
     }
 
-    renderQrCode({
+    await renderQrCode({
       root:
         els?.qrCode,
+
       value:
         url
     });
@@ -213,7 +417,8 @@ export function createReceiveShareFlow({
 
     if (
       !navigator.clipboard ||
-      typeof navigator.clipboard.writeText !==
+      typeof navigator.clipboard
+        .writeText !==
         "function"
     ) {
       throw new Error(
@@ -221,16 +426,18 @@ export function createReceiveShareFlow({
       );
     }
 
-    await navigator.clipboard.writeText(
-      url
-    );
+    await navigator.clipboard
+      .writeText(
+        url
+      );
 
     if (!els?.copyButton) {
       return;
     }
 
     const originalText =
-      els.copyButton.textContent;
+      els.copyButton
+        .textContent;
 
     els.copyButton.textContent =
       "Copied";
@@ -266,7 +473,9 @@ export function createReceiveShareFlow({
 
     if (
       qrFile &&
-      canShareFile(qrFile)
+      canShareFile(
+        qrFile
+      )
     ) {
       await navigator.share({
         title:
@@ -302,7 +511,8 @@ export function createReceiveShareFlow({
       return;
     }
 
-    eventsBound = true;
+    eventsBound =
+      true;
 
     els?.copyButton
       ?.addEventListener(
