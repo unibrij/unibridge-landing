@@ -16,6 +16,31 @@ function formatRail(value) {
     .replace(/\b\w/g, char => char.toUpperCase());
 }
 
+function countryCodeToFlag(value) {
+  const country =
+    normalizeString(value)
+      .toUpperCase();
+
+  if (
+    !/^[A-Z]{2}$/.test(
+      country
+    )
+  ) {
+    return "";
+  }
+
+  return country
+    .split("")
+    .map(
+      char =>
+        String.fromCodePoint(
+          127397 +
+          char.charCodeAt(0)
+        )
+    )
+    .join("");
+}
+
 function formatCountry(value) {
   const country =
     normalizeString(value)
@@ -25,17 +50,35 @@ function formatCountry(value) {
     return "";
   }
 
+  let countryName =
+    country;
+
   try {
-    return new Intl.DisplayNames(
-      ["en"],
-      {
-        type: "region"
-      }
-    ).of(country) || country;
+    countryName =
+      new Intl.DisplayNames(
+        ["en"],
+        {
+          type: "region"
+        }
+      ).of(country) ||
+      country;
   }
   catch {
-    return country;
+    countryName =
+      country;
   }
+
+  const flag =
+    countryCodeToFlag(
+      country
+    );
+
+  return [
+    flag,
+    countryName
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function buildRecipientText(
