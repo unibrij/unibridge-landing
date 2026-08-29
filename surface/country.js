@@ -7,9 +7,19 @@ function normalizeUpper(value) {
 }
 
 export function createCountryHelpers({
-  getValue
+  getValue,
+  getDestinationCountry
 } = {}) {
   function getDestinationCountryCode() {
+    const authoritative =
+      normalizeUpper(
+        getDestinationCountry?.()
+      );
+
+    if (authoritative) {
+      return authoritative;
+    }
+
     return normalizeUpper(
       getValue?.("country")?.value
     );
@@ -35,7 +45,10 @@ export function createCountryHelpers({
       return "Philippines";
     }
 
-    if (receiver === "GB" || receiver === "UK") {
+    if (
+      receiver === "GB" ||
+      receiver === "UK"
+    ) {
       return "United Kingdom";
     }
 
