@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
+
+  <title>Send or Receive with UniBridge</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/connect/icons/app/ub-app-icon-512.png" />
+
+  <meta name="theme-color" content="#000E2D" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="UniBridge" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <meta
+    name="description"
+    content="Choose whether to send or receive with UniBridge."
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/connect-map-bg.png"
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/unibridge-orbit-lockup-white.png"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=1"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/pay/css/pay-entry.css?v=1"
+  />
+</head>
+
+<body>
+  <main class="page pay-page-shell">
+    <div id="pay-brand"></div>
+
+    <section class="hero">
+      <h1 class="sr-only">
+        Send or Receive with UniBridge
+      </h1>
+
+      <p class="eyebrow">
+        Send or Receive
+      </p>
+    </section>
+
+    <section
+      class="pay-entry"
+      aria-label="Choose an action"
+    >
+      <button
+        id="sendOption"
+        class="entry-card entry-card-send"
+        type="button"
+      >
+        <span
+          class="entry-icon entry-icon-send"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="entry-svg entry-send-svg"
+          >
+            <path
+              d="M20.15 4.5 3.95 10.35c-.9.33-.95 1.58-.08 1.98l5.35 2.46 2.46 5.35c.4.87 1.65.82 1.98-.08L19.5 3.85c.22-.61-.37-1.2-.98-.98Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="m9.22 14.79 5.22-5.22"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
+        <span class="entry-copy">
+          <strong>Send</strong>
+          <small>
+            Pay someone<br />
+            with UniBridge
+          </small>
+        </span>
+
+        <span
+          class="entry-chevron"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+      </button>
+
+      <button
+        id="receiveOption"
+        class="entry-card entry-card-receive"
+        type="button"
+      >
+        <span
+          class="entry-icon entry-icon-receive"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="entry-svg entry-receive-svg"
+          >
+            <path
+              d="M12 4.5v14"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+
+            <path
+              d="m6.7 13.2 5.3 5.3 5.3-5.3"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+
+        <span class="entry-copy">
+          <strong>Receive</strong>
+          <small>
+            Get paid by creating<br />
+            a receive link
+          </small>
+        </span>
+
+        <span
+          class="entry-chevron"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+      </button>
+    </section>
+
+    <div id="pay-footer"></div>
+  </main>
+
+  <script src="/partials/pay/js/pay-includes.js?v=6"></script>
+
+  <script
+    type="module"
+    src="/pay/js/pay-entry.js?v=1"
+  ></script>
+</body>
+</html>
