@@ -69,6 +69,7 @@ const ALLOWED =
     */
 
     "receive",
+    "receive/settlement/create",
 
     /*
     --------------------------------------------------
