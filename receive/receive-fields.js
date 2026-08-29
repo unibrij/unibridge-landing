@@ -8,6 +8,10 @@ import {
   formatRailLabel
 } from "./receive-catalog.js";
 
+import {
+  createReceiveSelect
+} from "./receive-select.js";
+
 
 const BLOCKED_FIELD_NAMES =
   new Set([
@@ -403,41 +407,33 @@ async function createSelectControl(
     );
 
   const placeholder =
-    document.createElement(
-      "option"
-    );
-
-  placeholder.value =
-    "";
-
-  placeholder.textContent =
     normalizeString(
       field.placeholder
     ) ||
-    "Select";
+    `Select ${
+      normalizeString(
+        field.label
+      ) ||
+      formatRailLabel(
+        field.name
+      )
+    }`;
 
-  select.appendChild(
-    placeholder
-  );
+  const picker =
+    createReceiveSelect({
+      select,
+      placeholder,
+      options,
 
-  for (const option of options) {
-    const element =
-      document.createElement(
-        "option"
-      );
+      searchable:
+        field.searchable === true ||
+        (
+          field.searchable !== false &&
+          options.length > 8
+        )
+    });
 
-    element.value =
-      option.value;
-
-    element.textContent =
-      option.label;
-
-    select.appendChild(
-      element
-    );
-  }
-
-  return select;
+  return picker.element;
 }
 
 
@@ -638,7 +634,21 @@ export function collectReceiveBeneficiary(
   }
 
   if (firstInvalid) {
-    firstInvalid.focus();
+    const picker =
+      firstInvalid.closest(
+        ".country-select-shell"
+      );
+
+    const trigger =
+      picker?.querySelector(
+        ".country-select-trigger"
+      );
+
+    if (trigger) {
+      trigger.focus();
+    } else {
+      firstInvalid.focus();
+    }
 
     throw new Error(
       "Please complete all required receiving details correctly."
