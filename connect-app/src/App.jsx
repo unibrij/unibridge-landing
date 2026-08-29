@@ -356,6 +356,17 @@ export default function App() {
       repeatSourcePayoutIntentId
     );
 
+  /*
+   * Connect navigation belongs to an established
+   * wallet / returned payout context.
+   *
+   * Before that boundary, the only primary action
+   * should be wallet connection.
+   */
+  const canAccessConnectNavigation =
+    isConnected ||
+    isReturnedFlow;
+
   const writeDebug =
     useCallback(
       (
@@ -1103,10 +1114,13 @@ export default function App() {
     );
 
   /*
-   * History is a separate surface and should not
-   * mount the payout composition below.
+   * History remains behind the same usable-session
+   * boundary as the Connect navigation.
    */
-  if (isHistoryPage) {
+  if (
+    isHistoryPage &&
+    canAccessConnectNavigation
+  ) {
     return (
       <HistoryPage
         accessToken={
@@ -1144,24 +1158,26 @@ export default function App() {
         Pay with wallet
       </h1>
 
-      <nav
-        className="connect-tabs"
-        aria-label="Connect navigation"
-      >
-        <span
-          className="connect-tab is-active"
-          aria-current="page"
+      {canAccessConnectNavigation && (
+        <nav
+          className="connect-tabs"
+          aria-label="Connect navigation"
         >
-          New payout
-        </span>
+          <span
+            className="connect-tab is-active"
+            aria-current="page"
+          >
+            New payout
+          </span>
 
-        <a
-          href="/connect/?view=history"
-          className="connect-tab"
-        >
-          History
-        </a>
-      </nav>
+          <a
+            href="/connect/?view=history"
+            className="connect-tab"
+          >
+            History
+          </a>
+        </nav>
+      )}
 
       {!isReturnedFlow && (
         <div
