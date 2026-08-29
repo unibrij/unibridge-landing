@@ -480,9 +480,39 @@ button {
 
 
 .entry-send-svg {
+  width:
+    42px;
+
+  height:
+    42px;
+
   transform:
     rotate(
-      -7deg
+      -5deg
+    );
+
+  filter:
+    drop-shadow(
+      0
+      3px
+      3px
+      rgba(
+        0,
+        0,
+        0,
+        0.18
+      )
+    )
+    drop-shadow(
+      0
+      0
+      6px
+      rgba(
+        255,
+        255,
+        255,
+        0.10
+      )
     );
 }
 
@@ -673,6 +703,15 @@ button {
 
     height:
       31px;
+  }
+
+
+  .entry-send-svg {
+    width:
+      38px;
+
+    height:
+      38px;
   }
 
 
