@@ -51,9 +51,7 @@ body {
 
 * {
   box-sizing: border-box;
-
-  -webkit-tap-highlight-color:
-    transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -153,7 +151,6 @@ select {
 .card,
 #pay-footer {
   position: relative;
-
   z-index: 2;
 }
 
@@ -288,10 +285,10 @@ h1 {
     50%;
 
   width:
-    286px;
+    276px;
 
   height:
-    286px;
+    276px;
 
   transform:
     translate(
@@ -305,7 +302,7 @@ h1 {
       94,
       234,
       212,
-      0.14
+      0.10
     );
 
   border-radius:
@@ -318,12 +315,12 @@ h1 {
     inset
     0
     0
-    34px
+    32px
     rgba(
       20,
       184,
       166,
-      0.025
+      0.018
     );
 }
 
@@ -334,7 +331,7 @@ h1 {
   position: absolute;
 
   inset:
-    17px;
+    18px;
 
   border:
     1px solid
@@ -342,7 +339,7 @@ h1 {
       94,
       234,
       212,
-      0.045
+      0.035
     );
 
   border-radius:
@@ -369,10 +366,10 @@ h1 {
     50%;
 
   width:
-    74px;
+    58px;
 
   height:
-    74px;
+    58px;
 
   transform:
     translate(
@@ -396,15 +393,15 @@ h1 {
         20,
         184,
         166,
-        0.13
+        0.10
       ),
       rgba(
         2,
         17,
         50,
-        0.94
+        0.96
       )
-      68%
+      70%
     );
 
   border:
@@ -413,18 +410,18 @@ h1 {
       94,
       234,
       212,
-      0.30
+      0.24
     );
 
   box-shadow:
     0
     0
-    28px
+    18px
     rgba(
       20,
       184,
       166,
-      0.10
+      0.08
     ),
     inset
     0
@@ -434,7 +431,7 @@ h1 {
       255,
       255,
       255,
-      0.08
+      0.07
     );
 
   pointer-events:
@@ -444,10 +441,10 @@ h1 {
 
 .pay-orbit-center-logo {
   width:
-    46px;
+    38px;
 
   height:
-    46px;
+    38px;
 
   display:
     block;
@@ -470,16 +467,14 @@ h1 {
   z-index: 4;
 
   width:
-    126px;
+    132px;
 
-  height:
+  min-height:
     126px;
 
   margin: 0;
 
-  padding:
-    14px
-    10px;
+  padding: 0;
 
   display: flex;
 
@@ -490,51 +485,19 @@ h1 {
     center;
 
   justify-content:
-    center;
+    flex-start;
 
   gap:
-    5px;
-
-  border-radius:
-    50%;
+    0;
 
   border:
-    1px solid
-    rgba(
-      94,
-      234,
-      212,
-      0.27
-    );
+    0;
 
   outline:
     none;
 
   background:
-    radial-gradient(
-      circle at 38% 30%,
-      rgba(
-        15,
-        48,
-        86,
-        0.92
-      )
-      0%,
-      rgba(
-        4,
-        24,
-        60,
-        0.94
-      )
-      58%,
-      rgba(
-        1,
-        13,
-        42,
-        0.98
-      )
-      100%
-    );
+    transparent;
 
   color:
     #ffffff;
@@ -546,37 +509,10 @@ h1 {
     pointer;
 
   box-shadow:
-    0
-    16px
-    42px
-    rgba(
-      0,
-      0,
-      0,
-      0.24
-    ),
-    inset
-    0
-    1px
-    0
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
+    none;
 
   transition:
     transform
-    160ms
-    ease,
-    border-color
-    160ms
-    ease,
-    background
-    160ms
-    ease,
-    box-shadow
     160ms
     ease;
 }
@@ -587,7 +523,7 @@ h1 {
     50%;
 
   top:
-    12px;
+    4px;
 
   transform:
     translateX(
@@ -598,94 +534,19 @@ h1 {
 
 .pay-orbit-fiat {
   left:
-    25px;
+    18px;
 
   bottom:
-    26px;
+    8px;
 }
 
 
 .pay-orbit-agent {
   right:
-    25px;
+    18px;
 
   bottom:
-    26px;
-
-  border-color:
-    rgba(
-      94,
-      234,
-      212,
-      0.34
-    );
-}
-
-
-.pay-orbit-option:hover {
-  border-color:
-    rgba(
-      94,
-      234,
-      212,
-      0.58
-    );
-
-  background:
-    radial-gradient(
-      circle at 38% 30%,
-      rgba(
-        17,
-        63,
-        97,
-        0.96
-      )
-      0%,
-      rgba(
-        4,
-        31,
-        69,
-        0.96
-      )
-      58%,
-      rgba(
-        1,
-        15,
-        46,
-        0.98
-      )
-      100%
-    );
-
-  box-shadow:
-    0
-    18px
-    46px
-    rgba(
-      0,
-      0,
-      0,
-      0.28
-    ),
-    0
-    0
-    22px
-    rgba(
-      20,
-      184,
-      166,
-      0.10
-    ),
-    inset
-    0
-    1px
-    0
-    rgba(
-      255,
-      255,
-      255,
-      0.10
-    );
+    8px;
 }
 
 
@@ -729,13 +590,185 @@ h1 {
 }
 
 
-.pay-orbit-option:focus-visible {
+/* --------------------------------------------------
+   Glowing icon circles
+-------------------------------------------------- */
+
+.pay-orbit-icon {
+  width:
+    88px;
+
+  height:
+    88px;
+
+  flex:
+    0
+    0
+    88px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    50%;
+
+  color:
+    #5eead4;
+
+  background:
+    radial-gradient(
+      circle at 38% 30%,
+      rgba(
+        15,
+        50,
+        88,
+        0.92
+      )
+      0%,
+      rgba(
+        4,
+        25,
+        60,
+        0.96
+      )
+      58%,
+      rgba(
+        1,
+        13,
+        42,
+        0.99
+      )
+      100%
+    );
+
+  border:
+    1.5px solid
+    rgba(
+      94,
+      234,
+      212,
+      0.86
+    );
+
+  box-shadow:
+    0
+    0
+    9px
+    rgba(
+      94,
+      234,
+      212,
+      0.40
+    ),
+    0
+    0
+    22px
+    rgba(
+      20,
+      184,
+      166,
+      0.18
+    ),
+    inset
+    0
+    0
+    14px
+    rgba(
+      94,
+      234,
+      212,
+      0.045
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+
+  line-height:
+    1;
+
+  transition:
+    border-color
+    160ms
+    ease,
+    box-shadow
+    160ms
+    ease,
+    background
+    160ms
+    ease;
+}
+
+
+.pay-orbit-option:hover
+.pay-orbit-icon {
   border-color:
     rgba(
       94,
       234,
       212,
-      0.82
+      1
+    );
+
+  box-shadow:
+    0
+    0
+    12px
+    rgba(
+      94,
+      234,
+      212,
+      0.58
+    ),
+    0
+    0
+    28px
+    rgba(
+      20,
+      184,
+      166,
+      0.26
+    ),
+    inset
+    0
+    0
+    16px
+    rgba(
+      94,
+      234,
+      212,
+      0.055
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+}
+
+
+.pay-orbit-option:focus-visible
+.pay-orbit-icon {
+  border-color:
+    rgba(
+      153,
+      246,
+      228,
+      1
     );
 
   box-shadow:
@@ -750,13 +783,22 @@ h1 {
       0.14
     ),
     0
-    16px
-    42px
+    0
+    14px
     rgba(
-      0,
-      0,
-      0,
-      0.24
+      94,
+      234,
+      212,
+      0.58
+    ),
+    0
+    0
+    28px
+    rgba(
+      20,
+      184,
+      166,
+      0.26
     );
 }
 
@@ -765,38 +807,12 @@ h1 {
    Orbit icons
 -------------------------------------------------- */
 
-.pay-orbit-icon {
-  width:
-    42px;
-
-  height:
-    42px;
-
-  flex:
-    0
-    0
-    42px;
-
-  display:
-    grid;
-
-  place-items:
-    center;
-
-  color:
-    #5eead4;
-
-  line-height:
-    1;
-}
-
-
 .pay-orbit-svg {
   width:
-    38px;
+    39px;
 
   height:
-    38px;
+    39px;
 
   display:
     block;
@@ -810,7 +826,7 @@ h1 {
         45,
         212,
         191,
-        0.20
+        0.26
       )
     );
 }
@@ -830,15 +846,33 @@ h1 {
 }
 
 
-.pay-orbit-agent-icon {
+.wallet-svg {
   width:
-    44px;
+    40px;
 
   height:
-    44px;
+    40px;
+}
+
+
+.bank-svg {
+  width:
+    40px;
+
+  height:
+    40px;
+}
+
+
+.pay-orbit-agent-icon {
+  width:
+    88px;
+
+  height:
+    88px;
 
   flex-basis:
-    44px;
+    88px;
 }
 
 
@@ -888,7 +922,7 @@ h1 {
         45,
         212,
         191,
-        0.20
+        0.26
       )
     );
 }
@@ -902,7 +936,11 @@ h1 {
   width:
     100%;
 
-  min-width: 0;
+  min-width:
+    0;
+
+  margin-top:
+    10px;
 
   display:
     flex;
@@ -914,7 +952,7 @@ h1 {
     center;
 
   gap:
-    3px;
+    4px;
 }
 
 
@@ -925,14 +963,11 @@ h1 {
   max-width:
     100%;
 
-  overflow:
-    hidden;
-
   color:
     #ffffff;
 
   font-size:
-    14px;
+    15px;
 
   font-weight:
     750;
@@ -942,9 +977,6 @@ h1 {
 
   white-space:
     nowrap;
-
-  text-overflow:
-    ellipsis;
 }
 
 
@@ -953,24 +985,24 @@ h1 {
     block;
 
   max-width:
-    108px;
+    118px;
 
   color:
     rgba(
       255,
       255,
       255,
-      0.63
+      0.62
     );
 
   font-size:
-    10.5px;
+    11px;
 
   font-weight:
     500;
 
   line-height:
-    1.22;
+    1.28;
 
   text-align:
     center;
@@ -981,7 +1013,7 @@ h1 {
 .pay-orbit-copy
 small {
   max-width:
-    96px;
+    112px;
 }
 
 
@@ -1995,128 +2027,143 @@ option {
       );
 
     height:
-      360px;
+      350px;
   }
 
 
   .pay-orbit-ring {
     width:
-      258px;
+      250px;
 
     height:
-      258px;
+      250px;
   }
 
 
   .pay-orbit-option {
     width:
-      116px;
+      124px;
 
-    height:
-      116px;
-
-    padding:
-      12px
-      8px;
+    min-height:
+      120px;
   }
 
 
   .pay-orbit-wallet {
     top:
-      12px;
+      0;
   }
 
 
   .pay-orbit-fiat {
     left:
-      18px;
+      12px;
 
     bottom:
-      24px;
+      4px;
   }
 
 
   .pay-orbit-agent {
     right:
-      18px;
+      12px;
 
     bottom:
-      24px;
-  }
-
-
-  .pay-orbit-center {
-    width:
-      68px;
-
-    height:
-      68px;
-  }
-
-
-  .pay-orbit-center-logo {
-    width:
-      42px;
-
-    height:
-      42px;
+      4px;
   }
 
 
   .pay-orbit-icon {
     width:
-      39px;
+      84px;
 
     height:
-      39px;
+      84px;
 
     flex-basis:
-      39px;
-  }
-
-
-  .pay-orbit-svg {
-    width:
-      35px;
-
-    height:
-      35px;
+      84px;
   }
 
 
   .pay-orbit-agent-icon {
     width:
-      40px;
+      84px;
 
     height:
-      40px;
+      84px;
 
     flex-basis:
-      40px;
+      84px;
+  }
+
+
+  .pay-orbit-center {
+    width:
+      56px;
+
+    height:
+      56px;
+  }
+
+
+  .pay-orbit-center-logo {
+    width:
+      36px;
+
+    height:
+      36px;
+  }
+
+
+  .pay-orbit-svg {
+    width:
+      37px;
+
+    height:
+      37px;
+  }
+
+
+  .wallet-svg,
+  .bank-svg {
+    width:
+      38px;
+
+    height:
+      38px;
   }
 
 
   .pay-orbit-agent-logo {
     width:
-      39px;
+      40px;
 
     height:
-      39px;
+      40px;
+  }
+
+
+  .pay-orbit-copy {
+    margin-top:
+      9px;
   }
 
 
   .pay-orbit-copy strong {
     font-size:
-      13.5px;
+      14px;
   }
 
 
   .pay-orbit-copy small {
     max-width:
-      98px;
+      110px;
 
     font-size:
-      10px;
+      10.5px;
+
+    line-height:
+      1.25;
   }
 
 
@@ -2124,7 +2171,7 @@ option {
   .pay-orbit-copy
   small {
     max-width:
-      88px;
+      104px;
   }
 
 
@@ -2194,67 +2241,97 @@ option {
 ) {
   .pay-orbit {
     height:
-      330px;
+      320px;
   }
 
 
   .pay-orbit-ring {
     width:
-      230px;
+      224px;
 
     height:
-      230px;
+      224px;
   }
 
 
   .pay-orbit-option {
     width:
-      104px;
+      112px;
 
-    height:
-      104px;
+    min-height:
+      110px;
   }
 
 
   .pay-orbit-wallet {
     top:
-      10px;
+      0;
   }
 
 
   .pay-orbit-fiat {
     left:
-      10px;
+      4px;
 
     bottom:
-      20px;
+      2px;
   }
 
 
   .pay-orbit-agent {
     right:
-      10px;
+      4px;
 
     bottom:
-      20px;
+      2px;
+  }
+
+
+  .pay-orbit-icon {
+    width:
+      76px;
+
+    height:
+      76px;
+
+    flex-basis:
+      76px;
+  }
+
+
+  .pay-orbit-agent-icon {
+    width:
+      76px;
+
+    height:
+      76px;
+
+    flex-basis:
+      76px;
   }
 
 
   .pay-orbit-center {
     width:
-      62px;
+      52px;
 
     height:
-      62px;
+      52px;
   }
 
 
   .pay-orbit-center-logo {
     width:
-      38px;
+      33px;
 
     height:
-      38px;
+      33px;
+  }
+
+
+  .pay-orbit-copy {
+    margin-top:
+      8px;
   }
 
 
@@ -2265,6 +2342,9 @@ option {
 
 
   .pay-orbit-copy small {
+    max-width:
+      98px;
+
     font-size:
       9.5px;
   }
@@ -2280,6 +2360,7 @@ option {
   reduce
 ) {
   .pay-orbit-option,
+  .pay-orbit-icon,
   .method-card,
   .button {
     transition:
