@@ -337,10 +337,17 @@ function configureControl(
 }
 
 
-function createFieldWrapper(field = {}) {
+function createFieldWrapper(
+  field = {},
+  {
+    isSelect = false
+  } = {}
+) {
   const wrapper =
     document.createElement(
-      "label"
+      isSelect
+        ? "div"
+        : "label"
     );
 
   wrapper.className =
@@ -523,9 +530,17 @@ export async function renderReceiveFields({
       continue;
     }
 
+    const isSelect =
+      fieldUsesSelect(
+        field
+      );
+
     const wrapper =
       createFieldWrapper(
-        field
+        field,
+        {
+          isSelect
+        }
       );
 
     const control =
