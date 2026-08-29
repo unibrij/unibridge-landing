@@ -15,6 +15,10 @@ import {
   cancelReceiveFieldRender
 } from "./receive-form.js";
 
+import {
+  createReceiveSelect
+} from "./receive-select.js";
+
 
 const AUTH_BRIDGE_KEY =
   "__fiatClerkAuth";
@@ -36,7 +40,8 @@ function setHidden(element, hidden) {
     return;
   }
 
-  element.hidden = Boolean(hidden);
+  element.hidden =
+    Boolean(hidden);
 }
 
 function readAuthBridge() {
@@ -76,6 +81,17 @@ export function createReceiveCreateFlow({
   let fieldRenderVersion = 0;
   let eventsBound = false;
 
+  const railSelect =
+    els?.payoutRail
+      ? createReceiveSelect({
+          select:
+            els.payoutRail,
+
+          placeholder:
+            "Choose receiving method"
+        })
+      : null;
+
 
   function syncAuthUi() {
     const signedIn =
@@ -99,7 +115,8 @@ export function createReceiveCreateFlow({
     );
 
     if (els?.beneficiaryFields) {
-      els.beneficiaryFields.innerHTML = "";
+      els.beneficiaryFields.innerHTML =
+        "";
     }
 
     setHidden(
@@ -110,9 +127,9 @@ export function createReceiveCreateFlow({
 
 
   function resetRail() {
-    if (els?.payoutRail) {
-      els.payoutRail.innerHTML = "";
-    }
+    railSelect?.setOptions(
+      []
+    );
 
     setHidden(
       els?.railSection,
@@ -129,12 +146,14 @@ export function createReceiveCreateFlow({
 
     const country =
       normalizeUpper(
-        els?.destinationCountry?.value
+        els?.destinationCountry
+          ?.value
       );
 
     const rail =
       normalizeString(
-        els?.payoutRail?.value
+        els?.payoutRail
+          ?.value
       );
 
     selectedRoute =
@@ -160,12 +179,15 @@ export function createReceiveCreateFlow({
       await renderReceiveFields({
         root:
           els?.beneficiaryFields,
+
         route
       });
 
       if (
-        renderVersion !== fieldRenderVersion ||
-        selectedRoute !== route
+        renderVersion !==
+          fieldRenderVersion ||
+        selectedRoute !==
+          route
       ) {
         return;
       }
@@ -174,7 +196,8 @@ export function createReceiveCreateFlow({
         els?.beneficiarySection,
         false
       );
-    } catch (error) {
+    }
+    catch (error) {
       if (
         renderVersion !==
         fieldRenderVersion
@@ -196,7 +219,8 @@ export function createReceiveCreateFlow({
 
     const country =
       normalizeUpper(
-        els?.destinationCountry?.value
+        els?.destinationCountry
+          ?.value
       );
 
     if (
@@ -216,35 +240,19 @@ export function createReceiveCreateFlow({
       return;
     }
 
-    const placeholder =
-      document.createElement(
-        "option"
-      );
+    railSelect?.setOptions(
+      rails.map(
+        rail => ({
+          value:
+            rail,
 
-    placeholder.value = "";
-    placeholder.textContent =
-      "Choose receiving method";
-
-    els.payoutRail.appendChild(
-      placeholder
+          label:
+            formatRailLabel(
+              rail
+            )
+        })
+      )
     );
-
-    for (const rail of rails) {
-      const option =
-        document.createElement(
-          "option"
-        );
-
-      option.value = rail;
-      option.textContent =
-        formatRailLabel(
-          rail
-        );
-
-      els.payoutRail.appendChild(
-        option
-      );
-    }
 
     setHidden(
       els.railSection,
@@ -254,6 +262,8 @@ export function createReceiveCreateFlow({
     if (rails.length === 1) {
       els.payoutRail.value =
         rails[0];
+
+      railSelect?.sync();
 
       await handleRailChange();
     }
@@ -278,7 +288,8 @@ export function createReceiveCreateFlow({
         collectReceiveBeneficiary(
           els?.beneficiaryFields
         );
-    } catch (error) {
+    }
+    catch (error) {
       showCreateError?.(
         error?.message
       );
@@ -295,9 +306,12 @@ export function createReceiveCreateFlow({
     }
 
     const originalText =
-      els.createButton.textContent;
+      els.createButton
+        .textContent;
 
-    els.createButton.disabled = true;
+    els.createButton.disabled =
+      true;
+
     els.createButton.textContent =
       "Creating…";
 
@@ -305,7 +319,9 @@ export function createReceiveCreateFlow({
       const result =
         await createReceiveProfile({
           routeId:
-            selectedRoute.route_id,
+            selectedRoute
+              .route_id,
+
           beneficiary
         });
 
@@ -317,12 +333,14 @@ export function createReceiveCreateFlow({
           result
         );
       }
-    } catch (error) {
+    }
+    catch (error) {
       showCreateError?.(
         error?.message ||
         "Unable to create receive link."
       );
-    } finally {
+    }
+    finally {
       els.createButton.disabled =
         false;
 
@@ -354,7 +372,8 @@ export function createReceiveCreateFlow({
       return;
     }
 
-    eventsBound = true;
+    eventsBound =
+      true;
 
     els?.destinationCountry
       ?.addEventListener(
