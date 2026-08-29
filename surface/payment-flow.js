@@ -41,6 +41,9 @@ export function createPaymentFlow({
   buildKycPayload,
   getCoinsPhPicker,
 
+  receiveBound = false,
+  buildSettlementDestinationInput,
+
   handleSettlementStatus,
   normalizeNextAction,
   extractWidgetUrlFromFunding,
@@ -92,21 +95,27 @@ export function createPaymentFlow({
       return;
     }
 
-    state.settlementId = id;
-    state.paymentStarted = false;
+    state.settlementId =
+      id;
+
+    state.paymentStarted =
+      false;
 
     persistState({
       id,
-      payment_started: false
+      payment_started:
+        false
     });
   }
 
 
   function markPaymentStarted() {
-    state.paymentStarted = true;
+    state.paymentStarted =
+      true;
 
     persistState({
-      payment_started: true
+      payment_started:
+        true
     });
   }
 
@@ -336,6 +345,7 @@ export function createPaymentFlow({
     Failed SDK loading must not leave a false
     payment_started state behind.
     */
+
     if (isEmbeddedPayment) {
       markPaymentStarted();
 
@@ -429,8 +439,35 @@ export function createPaymentFlow({
 
         assertCurrentRouteAmountAvailable();
 
-        const destination =
-          buildDestinationPayload();
+        if (
+          typeof buildSettlementDestinationInput !==
+          "function"
+        ) {
+          throw new Error(
+            "settlement_destination_builder_missing"
+          );
+        }
+
+        let destination;
+
+        if (!receiveBound) {
+          if (
+            typeof buildDestinationPayload !==
+            "function"
+          ) {
+            throw new Error(
+              "destination_builder_missing"
+            );
+          }
+
+          destination =
+            buildDestinationPayload();
+        }
+
+        const destinationInput =
+          buildSettlementDestinationInput({
+            destination
+          });
 
         const redirectUrl =
           buildFundingReturnUrl(
@@ -453,7 +490,7 @@ export function createPaymentFlow({
               route_id:
                 state.routeId,
 
-              destination,
+              ...destinationInput,
 
               redirect_url:
                 redirectUrl
@@ -593,7 +630,8 @@ export function createPaymentFlow({
       throw new Error(
         "no_funding_flow"
       );
-    } catch (error) {
+    }
+    catch (error) {
       setStatus(
         error,
         "error"
@@ -618,6 +656,7 @@ export function createPaymentFlow({
       if (activeContinueBtn) {
         if (
           canContinue &&
+          !receiveBound &&
           isPhilippinesDestination() &&
           !state.settlementId
         ) {
@@ -625,12 +664,14 @@ export function createPaymentFlow({
             ?.updateContinueState();
 
           syncRouteLimitContinueUi();
-        } else {
+        }
+        else {
           activeContinueBtn.disabled =
             !canContinue;
         }
       }
-    } finally {
+    }
+    finally {
       state.processing =
         false;
 
@@ -683,6 +724,7 @@ export function createPaymentFlow({
         the provider UI may already be open, so only
         observe backend state and leave it untouched.
       */
+
       if (
         status?.status ===
         "waiting_ramp_payment"
@@ -738,7 +780,8 @@ export function createPaymentFlow({
         clearState:
           resetFlowState
       });
-    } catch (error) {
+    }
+    catch (error) {
       setStatus(
         error,
         "error"
@@ -768,7 +811,9 @@ export function createPaymentFlow({
       resetUiToStart();
       resetStatusMemory();
 
-      setStatus("");
+      setStatus(
+        ""
+      );
 
       refreshLimitUi();
 
@@ -810,7 +855,8 @@ export function createPaymentFlow({
     }
 
     await resumeFlowFromState({
-      allowPaymentResume: true
+      allowPaymentResume:
+        true
     });
   }
 
@@ -844,7 +890,7 @@ export function createPaymentFlow({
       async () => {
         if (
           document.visibilityState !==
-          "visible" ||
+            "visible" ||
           !state.settlementId ||
           !state.paymentStarted
         ) {
