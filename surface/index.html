@@ -239,7 +239,10 @@
               ></select>
             </label>
 
-            <label class="field">
+            <label
+              id="destinationCountrySection"
+              class="field"
+            >
               <span>
                 Destination country
               </span>
@@ -251,6 +254,22 @@
               ></select>
             </label>
           </div>
+
+          <section
+            id="receiveSummary"
+            class="hidden"
+            hidden
+            aria-label="Recipient"
+          >
+            <div
+              id="receiveSummaryRecipient"
+            ></div>
+
+            <div
+              id="receiveSummaryDestination"
+              class="muted"
+            ></div>
+          </section>
 
           <button
             id="sendBtn"
@@ -271,7 +290,10 @@
             id="destinationBox"
             class="hidden"
           >
-            <div class="entry-header compact">
+            <div
+              id="destinationDetailsHeader"
+              class="entry-header compact"
+            >
               <h2>
                 Destination details
               </h2>
@@ -552,6 +574,9 @@
         return;
       }
 
+      element.hidden =
+        false;
+
       element.classList.remove(
         "hidden"
       );
@@ -567,6 +592,9 @@
       if (!element) {
         return;
       }
+
+      element.hidden =
+        true;
 
       element.classList.add(
         "hidden"
@@ -597,6 +625,11 @@
         "coinsPhBox"
       );
 
+    const receiveSummary =
+      document.getElementById(
+        "receiveSummary"
+      );
+
     const coinsPhRecipientFields =
       document.getElementById(
         "coinsPhRecipientFields"
@@ -611,6 +644,14 @@
           )
           ?.value ||
         ""
+      );
+    }
+
+
+    function isReceiveBoundView() {
+      return Boolean(
+        receiveSummary &&
+        !receiveSummary.hidden
       );
     }
 
@@ -687,6 +728,16 @@
 
 
     function showDestinationBox() {
+      if (
+        isReceiveBoundView()
+      ) {
+        hideCoinsPhBox();
+
+        showGenericDestinationBox();
+
+        return;
+      }
+
       if (
         getSelectedDestinationCountry() ===
         "PH"
