@@ -250,7 +250,7 @@ h1 {
 
 
 /* --------------------------------------------------
-   Pay orbit
+   Main orbit field
 -------------------------------------------------- */
 
 .pay-orbit {
@@ -299,10 +299,10 @@ h1 {
   border:
     1px solid
     rgba(
-      94,
-      234,
-      212,
-      0.10
+      67,
+      157,
+      218,
+      0.12
     );
 
   border-radius:
@@ -315,7 +315,7 @@ h1 {
     inset
     0
     0
-    32px
+    34px
     rgba(
       20,
       184,
@@ -366,10 +366,10 @@ h1 {
     50%;
 
   width:
-    58px;
+    76px;
 
   height:
-    58px;
+    76px;
 
   transform:
     translate(
@@ -383,45 +383,73 @@ h1 {
   place-items:
     center;
 
+  padding:
+    2px;
+
+  border:
+    2px solid
+    transparent;
+
   border-radius:
     50%;
 
   background:
     radial-gradient(
-      circle at 40% 35%,
+      circle at 42% 34%,
       rgba(
-        20,
-        184,
-        166,
-        0.10
-      ),
-      rgba(
-        2,
-        17,
-        50,
-        0.96
+        13,
+        49,
+        87,
+        0.98
       )
-      70%
-    );
+      0%,
+      rgba(
+        3,
+        22,
+        57,
+        0.98
+      )
+      58%,
+      rgba(
+        1,
+        12,
+        39,
+        1
+      )
+      100%
+    )
+    padding-box,
 
-  border:
-    1px solid
-    rgba(
-      94,
-      234,
-      212,
-      0.24
-    );
+    conic-gradient(
+      from 225deg,
+      #2877d5 0deg,
+      #2877d5 105deg,
+      #36a8dd 170deg,
+      #5eead4 225deg,
+      #2dd4bf 285deg,
+      #36a8dd 325deg,
+      #2877d5 360deg
+    )
+    border-box;
 
   box-shadow:
     0
     0
-    18px
+    12px
     rgba(
-      20,
-      184,
-      166,
-      0.08
+      45,
+      212,
+      191,
+      0.20
+    ),
+    0
+    0
+    25px
+    rgba(
+      36,
+      113,
+      205,
+      0.13
     ),
     inset
     0
@@ -431,7 +459,7 @@ h1 {
       255,
       255,
       255,
-      0.07
+      0.09
     );
 
   pointer-events:
@@ -441,10 +469,10 @@ h1 {
 
 .pay-orbit-center-logo {
   width:
-    38px;
+    59px;
 
   height:
-    38px;
+    59px;
 
   display:
     block;
@@ -453,7 +481,7 @@ h1 {
     contain;
 
   border-radius:
-    50%;
+    0;
 }
 
 
@@ -591,10 +619,16 @@ h1 {
 
 
 /* --------------------------------------------------
-   Glowing icon circles
+   Glowing option circles
 -------------------------------------------------- */
 
 .pay-orbit-icon {
+  --orbit-dot-radius:
+    44px;
+
+  position:
+    relative;
+
   width:
     88px;
 
@@ -612,6 +646,15 @@ h1 {
   place-items:
     center;
 
+  border:
+    1.5px solid
+    rgba(
+      73,
+      211,
+      201,
+      0.72
+    );
+
   border-radius:
     50%;
 
@@ -625,14 +668,14 @@ h1 {
         15,
         50,
         88,
-        0.92
+        0.94
       )
       0%,
       rgba(
         4,
         25,
         60,
-        0.96
+        0.97
       )
       58%,
       rgba(
@@ -644,13 +687,205 @@ h1 {
       100%
     );
 
-  border:
-    1.5px solid
+  box-shadow:
+    0
+    0
+    5px
     rgba(
       94,
       234,
       212,
-      0.86
+      0.25
+    ),
+    0
+    0
+    14px
+    rgba(
+      20,
+      184,
+      166,
+      0.12
+    ),
+    inset
+    0
+    0
+    14px
+    rgba(
+      94,
+      234,
+      212,
+      0.035
+    ),
+    inset
+    0
+    1px
+    0
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+
+  line-height:
+    1;
+
+  overflow:
+    visible;
+
+  transition:
+    border-color
+    160ms
+    ease,
+    box-shadow
+    160ms
+    ease,
+    background
+    160ms
+    ease;
+}
+
+
+/*
+  Moving teal orbital point.
+*/
+
+.pay-orbit-icon::after {
+  content: "";
+
+  position:
+    absolute;
+
+  z-index:
+    3;
+
+  left:
+    50%;
+
+  top:
+    50%;
+
+  width:
+    6px;
+
+  height:
+    6px;
+
+  margin-left:
+    -3px;
+
+  margin-top:
+    -3px;
+
+  border-radius:
+    50%;
+
+  background:
+    #5eead4;
+
+  box-shadow:
+    0
+    0
+    5px
+    rgba(
+      94,
+      234,
+      212,
+      0.95
+    ),
+    0
+    0
+    11px
+    rgba(
+      45,
+      212,
+      191,
+      0.85
+    ),
+    0
+    0
+    18px
+    rgba(
+      20,
+      184,
+      166,
+      0.48
+    );
+
+  transform:
+    rotate(
+      0deg
+    )
+    translateX(
+      var(
+        --orbit-dot-radius
+      )
+    );
+
+  transform-origin:
+    3px
+    3px;
+
+  animation:
+    payOrbitDot
+    5.4s
+    linear
+    infinite;
+
+  pointer-events:
+    none;
+}
+
+
+.pay-orbit-fiat
+.pay-orbit-icon::after {
+  animation-delay:
+    -1.8s;
+}
+
+
+.pay-orbit-agent
+.pay-orbit-icon::after {
+  animation-delay:
+    -3.6s;
+}
+
+
+@keyframes payOrbitDot {
+  from {
+    transform:
+      rotate(
+        0deg
+      )
+      translateX(
+        var(
+          --orbit-dot-radius
+        )
+      );
+  }
+
+  to {
+    transform:
+      rotate(
+        360deg
+      )
+      translateX(
+        var(
+          --orbit-dot-radius
+        )
+      );
+  }
+}
+
+
+.pay-orbit-option:hover
+.pay-orbit-icon {
+  border-color:
+    rgba(
+      94,
+      234,
+      212,
+      0.95
     );
 
   box-shadow:
@@ -670,73 +905,7 @@ h1 {
       20,
       184,
       166,
-      0.18
-    ),
-    inset
-    0
-    0
-    14px
-    rgba(
-      94,
-      234,
-      212,
-      0.045
-    ),
-    inset
-    0
-    1px
-    0
-    rgba(
-      255,
-      255,
-      255,
-      0.10
-    );
-
-  line-height:
-    1;
-
-  transition:
-    border-color
-    160ms
-    ease,
-    box-shadow
-    160ms
-    ease,
-    background
-    160ms
-    ease;
-}
-
-
-.pay-orbit-option:hover
-.pay-orbit-icon {
-  border-color:
-    rgba(
-      94,
-      234,
-      212,
-      1
-    );
-
-  box-shadow:
-    0
-    0
-    12px
-    rgba(
-      94,
-      234,
-      212,
-      0.58
-    ),
-    0
-    0
-    28px
-    rgba(
-      20,
-      184,
-      166,
-      0.26
+      0.20
     ),
     inset
     0
@@ -746,17 +915,7 @@ h1 {
       94,
       234,
       212,
-      0.055
-    ),
-    inset
-    0
-    1px
-    0
-    rgba(
-      255,
-      255,
-      255,
-      0.12
+      0.045
     );
 }
 
@@ -764,12 +923,7 @@ h1 {
 .pay-orbit-option:focus-visible
 .pay-orbit-icon {
   border-color:
-    rgba(
-      153,
-      246,
-      228,
-      1
-    );
+    #99f6e4;
 
   box-shadow:
     0
@@ -784,21 +938,21 @@ h1 {
     ),
     0
     0
-    14px
+    13px
     rgba(
       94,
       234,
       212,
-      0.58
+      0.46
     ),
     0
     0
-    28px
+    24px
     rgba(
       20,
       184,
       166,
-      0.26
+      0.22
     );
 }
 
@@ -865,6 +1019,9 @@ h1 {
 
 
 .pay-orbit-agent-icon {
+  --orbit-dot-radius:
+    44px;
+
   width:
     88px;
 
@@ -2074,6 +2231,9 @@ option {
 
 
   .pay-orbit-icon {
+    --orbit-dot-radius:
+      42px;
+
     width:
       84px;
 
@@ -2086,6 +2246,9 @@ option {
 
 
   .pay-orbit-agent-icon {
+    --orbit-dot-radius:
+      42px;
+
     width:
       84px;
 
@@ -2099,19 +2262,19 @@ option {
 
   .pay-orbit-center {
     width:
-      56px;
+      72px;
 
     height:
-      56px;
+      72px;
   }
 
 
   .pay-orbit-center-logo {
     width:
-      36px;
+      56px;
 
     height:
-      36px;
+      56px;
   }
 
 
@@ -2288,6 +2451,9 @@ option {
 
 
   .pay-orbit-icon {
+    --orbit-dot-radius:
+      38px;
+
     width:
       76px;
 
@@ -2300,6 +2466,9 @@ option {
 
 
   .pay-orbit-agent-icon {
+    --orbit-dot-radius:
+      38px;
+
     width:
       76px;
 
@@ -2313,19 +2482,19 @@ option {
 
   .pay-orbit-center {
     width:
-      52px;
+      66px;
 
     height:
-      52px;
+      66px;
   }
 
 
   .pay-orbit-center-logo {
     width:
-      33px;
+      50px;
 
     height:
-      33px;
+      50px;
   }
 
 
@@ -2365,5 +2534,20 @@ option {
   .button {
     transition:
       none;
+  }
+
+  .pay-orbit-icon::after {
+    animation:
+      none;
+
+    transform:
+      rotate(
+        -90deg
+      )
+      translateX(
+        var(
+          --orbit-dot-radius
+        )
+      );
   }
 }
