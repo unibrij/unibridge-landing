@@ -328,7 +328,9 @@ export function createReceiveSelect({
 
       button.addEventListener(
         "click",
-        () => {
+        event => {
+          event.stopPropagation();
+
           select.value =
             option.value;
 
@@ -425,7 +427,9 @@ export function createReceiveSelect({
 
   trigger.addEventListener(
     "click",
-    () => {
+    event => {
+      event.stopPropagation();
+
       if (
         shell.classList.contains(
           "is-open"
