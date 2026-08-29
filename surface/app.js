@@ -36,9 +36,12 @@ import {
   createSurfaceDestination
 } from "./surface-destination.js";
 
+import {
+  createSurfaceReceiveView
+} from "./receive-view.js";
 
-let initPromise =
-  null;
+
+let initPromise = null;
 
 
 /* =========================
@@ -50,8 +53,7 @@ async function init() {
      PLATFORM
   ========================= */
 
-  const tg =
-    window.Telegram?.WebApp;
+  const tg = window.Telegram?.WebApp;
 
   if (tg) {
     tg.expand();
@@ -109,16 +111,12 @@ async function init() {
   }
 
   if (signBtn) {
-    signBtn.disabled =
-      true;
-
-    signBtn.style.display =
-      "none";
+    signBtn.disabled = true;
+    signBtn.style.display = "none";
   }
 
   if (coinsPhContinueBtn) {
-    coinsPhContinueBtn.disabled =
-      true;
+    coinsPhContinueBtn.disabled = true;
   }
 
 
@@ -153,11 +151,8 @@ async function init() {
      FLOW REFERENCES
   ========================= */
 
-  let surfaceContext =
-    null;
-
-  let quoteFlow =
-    null;
+  let surfaceContext = null;
+  let quoteFlow = null;
 
 
   /* =========================
@@ -212,16 +207,11 @@ async function init() {
       window.UnibridgeOnrampMoney
     ];
 
-    for (
-      const provider of
-        providers
-    ) {
+    for (const provider of providers) {
       try {
         provider?.reset?.();
       }
-      catch (
-        error
-      ) {
+      catch (error) {
         console.warn(
           "FUNDING_PROVIDER_RESET_FAILED",
           error
@@ -250,12 +240,27 @@ async function init() {
   const {
     state,
     receiveBound,
+    receiveContext,
 
     buildSessionDestinationInput,
     buildSettlementDestinationInput,
 
     setCurrentFundingProvider
   } = surfaceContext;
+
+
+  /* =========================
+     RECEIVE VIEW
+  ========================= */
+
+  const receiveView =
+    createSurfaceReceiveView({
+      receiveBound,
+      receiveContext,
+      getValue
+    });
+
+  receiveView.apply();
 
 
   /* =========================
@@ -293,19 +298,13 @@ async function init() {
   ========================= */
 
   function resetFlowState() {
-    /*
-    Surface context owns canonical state, persisted
-    settlement state and provider UI teardown.
-
-    Quote flow owns quote UI, destination UI and
-    Coins.ph picker reset.
-    */
-
     surfaceContext
       .resetSurfaceContext();
 
     quoteFlow
       ?.resetQuoteState();
+
+    receiveView.apply();
   }
 
 
@@ -481,9 +480,7 @@ export function initSurface() {
       init()
         .catch(
           error => {
-            initPromise =
-              null;
-
+            initPromise = null;
             throw error;
           }
         );
