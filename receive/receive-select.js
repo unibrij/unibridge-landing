@@ -55,10 +55,15 @@ export function createReceiveSelect({
     "country-select-shell";
 
 
-  select.parentNode.insertBefore(
-    shell,
-    select
-  );
+  const parent =
+    select.parentNode;
+
+  if (parent) {
+    parent.insertBefore(
+      shell,
+      select
+    );
+  }
 
   shell.appendChild(
     select
