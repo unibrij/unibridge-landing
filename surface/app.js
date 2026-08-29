@@ -5,14 +5,6 @@ import {
 } from "./kyc-payload.js";
 
 import {
-  clearPersistedSurfaceSettlement
-} from "./storage.js";
-
-import {
-  createCoinsPhPicker
-} from "/shared/coinsph/coinsph-picker.js";
-
-import {
   setupSurfacePwaInstall
 } from "./pwa-install.js";
 
@@ -25,14 +17,6 @@ import {
 } from "./continue-buttons.js";
 
 import {
-  createSurfaceDestinationFields
-} from "./destination-fields.js";
-
-import {
-  createDestinationPayloadBuilders
-} from "./destination-payload.js";
-
-import {
   createQuoteFlow
 } from "./quote-flow.js";
 
@@ -41,10 +25,16 @@ import {
 } from "./payment-flow.js";
 
 import {
-  getReceiveContext,
-  buildSessionDestinationInput,
-  buildSettlementDestinationInput
-} from "/shared/receive/receive-context.js";
+  createSurfaceRuntime
+} from "./surface-runtime.js";
+
+import {
+  createSurfaceContext
+} from "./surface-context.js";
+
+import {
+  createSurfaceDestination
+} from "./surface-destination.js";
 
 
 let initPromise =
@@ -66,41 +56,6 @@ async function init() {
   if (tg) {
     tg.expand();
   }
-
-
-  /* =========================
-     RECEIVE CONTEXT
-  ========================= */
-
-  const receiveContext =
-    getReceiveContext();
-
-  const receiveBound =
-    Boolean(
-      receiveContext
-        ?.receive_profile_id
-    );
-
-
-  /* =========================
-     SHARED STATE
-  ========================= */
-
-  const state = {
-    sessionId: null,
-    routeId: null,
-    settlementId: null,
-
-    pendingWidgetUrl: null,
-    currentNextAction: null,
-    currentFundingProvider: null,
-
-    processing: false,
-    nextActionProcessing: false,
-
-    currentRouteQuote: null,
-    paymentStarted: false
-  };
 
 
   /* =========================
@@ -168,108 +123,41 @@ async function init() {
 
 
   /* =========================
-     GLOBAL SERVICES
+     RUNTIME
   ========================= */
+
+  const runtime =
+    createSurfaceRuntime({
+      statusBox
+    });
 
   const {
     apiGet,
-    apiPost
-  } = window.UnibridgeApi;
+    apiPost,
 
-  const {
     resetStatusMemory,
-    setStatus:
-      setStatusInternal,
-    handleSettlementStatus
-  } = window.UnibridgeStatus;
+    setStatus,
+    handleSettlementStatus,
 
-  const {
     normalizeNextAction,
-    extractWidgetUrlFromFunding
-  } = window.UnibridgeNextAction;
+    extractWidgetUrlFromFunding,
+    isPostFundingSettlementStatus,
 
-  const {
-    isPostFundingSettlementStatus
-  } =
-    window.UnibridgeSettlementViewState;
-
-  if (
-    typeof apiGet !==
-      "function" ||
-    typeof apiPost !==
-      "function" ||
-    typeof setStatusInternal !==
-      "function"
-  ) {
-    throw new Error(
-      "surface_runtime_missing"
-    );
-  }
+    emit,
+    getValue,
+    resetUiToStart
+  } = runtime;
 
 
   /* =========================
-     BASIC HELPERS
+     FLOW REFERENCES
   ========================= */
 
-  function emit(
-    name
-  ) {
-    window.dispatchEvent(
-      new Event(
-        name
-      )
-    );
-  }
+  let surfaceContext =
+    null;
 
-
-  function setStatus(
-    message,
-    type
-  ) {
-    setStatusInternal(
-      statusBox,
-      message,
-      type
-    );
-  }
-
-
-  function getValue(
-    id
-  ) {
-    return document.getElementById(
-      id
-    );
-  }
-
-
-  function resetUiToStart() {
-    window.resetUiToStart?.();
-  }
-
-
-  function getCustomerPaymentCurrency() {
-    return (
-      getValue(
-        "amountCurrency"
-      )
-        ?.textContent
-        ?.trim() ||
-      "USD"
-    );
-  }
-
-
-  function setCurrentFundingProvider(
-    value
-  ) {
-    if (!value) {
-      return;
-    }
-
-    state.currentFundingProvider =
-      value;
-  }
+  let quoteFlow =
+    null;
 
 
   /* =========================
@@ -285,8 +173,8 @@ async function init() {
       getValue,
 
       getDestinationCountry() {
-        return receiveContext
-          ?.destination_country;
+        return surfaceContext
+          ?.getReceiveDestinationCountry();
       }
     });
 
@@ -303,122 +191,19 @@ async function init() {
     createContinueButtons({
       continueBtn,
       coinsPhContinueBtn,
-      isPhilippinesDestination
-    });
+      isPhilippinesDestination,
 
-
-  /* =========================
-     FLOW REFERENCES
-  ========================= */
-
-  let quoteFlow =
-    null;
-
-  let paymentFlow =
-    null;
-
-  let coinsPhPicker =
-    null;
-
-  let destinationFields =
-    null;
-
-
-  /* =========================
-     DESTINATION FIELDS
-  ========================= */
-
-  function syncGenericDestinationContinueState() {
-    if (
-      !continueBtn ||
-      isPhilippinesDestination()
-    ) {
-      return;
-    }
-
-    if (receiveBound) {
-      continueBtn.disabled =
-        !quoteFlow
-          ?.isCurrentRouteAmountAvailable();
-
-      return;
-    }
-
-    let destinationValid =
-      false;
-
-    try {
-      destinationFields
-        ?.collect();
-
-      destinationValid =
-        true;
-    }
-    catch {
-      destinationValid =
-        false;
-    }
-
-    continueBtn.disabled =
-      !destinationValid ||
-      !quoteFlow
-        ?.isCurrentRouteAmountAvailable();
-  }
-
-
-  destinationFields =
-    createSurfaceDestinationFields({
-      container:
-        destinationFieldsContainer,
-
-      onChange() {
-        syncGenericDestinationContinueState();
+      isReceiveBound() {
+        return Boolean(
+          surfaceContext
+            ?.receiveBound
+        );
       }
     });
 
 
-  async function renderDestinationRoute(
-    route
-  ) {
-    if (receiveBound) {
-      destinationFields.clear();
-
-      syncGenericDestinationContinueState();
-
-      return false;
-    }
-
-    if (
-      isPhilippinesDestination()
-    ) {
-      destinationFields.clear();
-
-      return false;
-    }
-
-    const rendered =
-      await destinationFields.renderRoute(
-        route
-      );
-
-    syncGenericDestinationContinueState();
-
-    return rendered;
-  }
-
-
-  function clearDestinationRoute() {
-    destinationFields.clear();
-
-    if (continueBtn) {
-      continueBtn.disabled =
-        true;
-    }
-  }
-
-
   /* =========================
-     RESET BOUNDARY
+     FUNDING UI RESET
   ========================= */
 
   function resetFundingProviderUi() {
@@ -446,87 +231,99 @@ async function init() {
   }
 
 
+  /* =========================
+     SURFACE CONTEXT
+  ========================= */
+
+  surfaceContext =
+    createSurfaceContext({
+      getValue,
+      signBtn,
+      sendBtn,
+
+      setContinueButtonsDisabled,
+      setContinueButtonMode,
+
+      resetFundingProviderUi
+    });
+
+  const {
+    state,
+    receiveBound,
+
+    buildSessionDestinationInput,
+    buildSettlementDestinationInput,
+
+    setCurrentFundingProvider
+  } = surfaceContext;
+
+
+  /* =========================
+     DESTINATION
+  ========================= */
+
+  const destination =
+    createSurfaceDestination({
+      container:
+        destinationFieldsContainer,
+
+      continueBtn,
+      coinsPhContinueBtn,
+
+      apiGet,
+
+      isPhilippinesDestination,
+      receiveBound,
+
+      getQuoteFlow() {
+        return quoteFlow;
+      }
+    });
+
+  const {
+    buildDestinationPayload,
+    renderDestinationRoute,
+    clearDestinationRoute,
+    syncGenericDestinationContinueState
+  } = destination;
+
+
+  /* =========================
+     SHARED RESET BOUNDARY
+  ========================= */
+
   function resetFlowState() {
     /*
-    Provider UI must be torn down before clearing the
-    canonical local flow state.
+    Surface context owns canonical state, persisted
+    settlement state and provider UI teardown.
 
-    This prevents an old Stripe iframe or Onramp overlay
-    from surviving a new quote.
+    Quote flow owns quote UI, destination UI and
+    Coins.ph picker reset.
     */
 
-    resetFundingProviderUi();
-
-    state.sessionId =
-      null;
-
-    state.routeId =
-      null;
-
-    state.settlementId =
-      null;
-
-    state.pendingWidgetUrl =
-      null;
-
-    state.currentNextAction =
-      null;
-
-    state.currentFundingProvider =
-      null;
-
-    state.processing =
-      false;
-
-    state.nextActionProcessing =
-      false;
-
-    state.currentRouteQuote =
-      null;
-
-    state.paymentStarted =
-      false;
-
-    clearPersistedSurfaceSettlement();
-
-    clearDestinationRoute();
+    surfaceContext
+      .resetSurfaceContext();
 
     quoteFlow
       ?.resetQuoteState();
-
-    const amountInput =
-      getValue(
-        "amount"
-      );
-
-    if (amountInput) {
-      amountInput.disabled =
-        false;
-    }
-
-    if (signBtn) {
-      signBtn.disabled =
-        true;
-    }
-
-    setContinueButtonsDisabled(
-      true
-    );
-
-    if (sendBtn) {
-      sendBtn.disabled =
-        false;
-    }
-
-    setContinueButtonMode(
-      "prepare_payment"
-    );
   }
 
 
   /* =========================
-     KYC
+     SURFACE HELPERS
   ========================= */
+
+  function getCustomerPaymentCurrency() {
+    return (
+      getValue(
+        "amountCurrency"
+      )
+        ?.textContent
+        ?.trim() ||
+      "USD"
+    );
+  }
+
 
   function buildKycPayload() {
     return buildGenericKycPayload({
@@ -580,114 +377,13 @@ async function init() {
       clearDestinationRoute,
       syncGenericDestinationContinueState,
 
-      receiveBound,
-      receiveContext,
-      buildSessionDestinationInput,
-
       getCoinsPhPicker() {
-        return coinsPhPicker;
-      }
-    });
-
-
-  /* =========================
-     COINSPH PICKER
-  ========================= */
-
-  coinsPhPicker =
-    createCoinsPhPicker({
-      loadChannelOptions:
-        async () => {
-          const response =
-            await apiGet(
-              "options/coinsph/ph-payout-channels",
-              {}
-            );
-
-          if (
-            !response?.ok
-          ) {
-            throw new Error(
-              response?.error ||
-              "COINSPH_CHANNELS_LOAD_FAILED"
-            );
-          }
-
-          if (
-            Array.isArray(
-              response
-            )
-          ) {
-            return response;
-          }
-
-          if (
-            Array.isArray(
-              response.options
-            )
-          ) {
-            return response.options;
-          }
-
-          if (
-            Array.isArray(
-              response.channels
-            )
-          ) {
-            return response.channels;
-          }
-
-          if (
-            Array.isArray(
-              response.data
-            )
-          ) {
-            return response.data;
-          }
-
-          return [];
-        },
-
-      isPhilippinesDestination,
-
-      setContinueDisabled(
-        value
-      ) {
-        if (
-          !coinsPhContinueBtn
-        ) {
-          return;
-        }
-
-        coinsPhContinueBtn.disabled =
-          Boolean(
-            value
-          ) ||
-          !quoteFlow
-            .isCurrentRouteAmountAvailable();
-      }
-    });
-
-  coinsPhPicker.bindEvents();
-
-
-  /* =========================
-     DESTINATION PAYLOAD
-  ========================= */
-
-  const {
-    buildDestinationPayload
-  } =
-    createDestinationPayloadBuilders({
-      getCoinsPhPicker() {
-        return coinsPhPicker;
+        return destination
+          .getCoinsPhPicker();
       },
 
-      isPhilippinesDestination,
-
-      collectSharedDestination() {
-        return destinationFields.collect();
-      }
+      receiveBound,
+      buildSessionDestinationInput
     });
 
 
@@ -695,7 +391,7 @@ async function init() {
      PAYMENT FLOW
   ========================= */
 
-  paymentFlow =
+  const paymentFlow =
     createPaymentFlow({
       state,
 
@@ -723,13 +419,13 @@ async function init() {
       buildDestinationPayload,
       buildKycPayload,
 
-      receiveBound,
-      receiveContext,
-      buildSettlementDestinationInput,
-
       getCoinsPhPicker() {
-        return coinsPhPicker;
+        return destination
+          .getCoinsPhPicker();
       },
+
+      receiveBound,
+      buildSettlementDestinationInput,
 
       handleSettlementStatus,
       normalizeNextAction,
@@ -768,9 +464,7 @@ async function init() {
       paymentFlow.continueFlow;
   }
 
-  if (
-    coinsPhContinueBtn
-  ) {
+  if (coinsPhContinueBtn) {
     coinsPhContinueBtn.onclick =
       paymentFlow.continueFlow;
   }
