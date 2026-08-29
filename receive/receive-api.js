@@ -6,7 +6,10 @@ import {
 
 
 function normalizeString(value) {
-  return String(value ?? "").trim();
+  return String(
+    value ??
+    ""
+  ).trim();
 }
 
 
@@ -18,15 +21,21 @@ function parseResponseError(
     payload?.error;
 
   if (
-    typeof error === "string" &&
-    normalizeString(error)
+    typeof error ===
+      "string" &&
+    normalizeString(
+      error
+    )
   ) {
-    return normalizeString(error);
+    return normalizeString(
+      error
+    );
   }
 
   if (
     error &&
-    typeof error === "object"
+    typeof error ===
+      "object"
   ) {
     const nestedError =
       normalizeString(
@@ -71,7 +80,9 @@ async function fetchJson(
   if (text) {
     try {
       payload =
-        JSON.parse(text);
+        JSON.parse(
+          text
+        );
     }
     catch {
       payload = {
@@ -129,11 +140,50 @@ function buildProxyUrl(
     );
   }
 
+  const queryIndex =
+    normalized.indexOf(
+      "?"
+    );
+
+  const path =
+    queryIndex >= 0
+      ? normalized.slice(
+          0,
+          queryIndex
+        )
+      : normalized;
+
+  const queryString =
+    queryIndex >= 0
+      ? normalized.slice(
+          queryIndex + 1
+        )
+      : "";
+
+  const normalizedPath =
+    normalizeString(
+      path
+    );
+
+  if (!normalizedPath) {
+    throw new Error(
+      "Receive API endpoint missing."
+    );
+  }
+
+  const params =
+    new URLSearchParams(
+      queryString
+    );
+
+  params.set(
+    "endpoint",
+    normalizedPath
+  );
+
   return (
-    "/api/proxy?endpoint=" +
-    encodeURIComponent(
-      normalized
-    )
+    "/api/proxy?" +
+    params.toString()
   );
 }
 
