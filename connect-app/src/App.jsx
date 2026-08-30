@@ -2,9 +2,7 @@
 
 import {
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState
 } from "react";
 
@@ -25,23 +23,13 @@ import {
 } from "./routes";
 
 import {
-  getRepeatPayoutSource
-} from "./api";
-
-import {
   readStoredFlow,
-  storeFlowSnapshot,
   clearStoredFlow
 } from "./flow/flowStorage";
 
 import {
   PAYOUT_ATTEMPT_STATE
 } from "./flow/payoutAttempt";
-
-import {
-  readPayoutAccessToken,
-  readLastPayoutAccessToken
-} from "./flow/payoutAccessTokenStorage";
 
 import {
   readPayoutIntentFromUrl,
@@ -52,6 +40,10 @@ import {
   readConnectUrlState,
   removeQueryParams
 } from "./flow/urlState";
+
+import {
+  resolveConnectEntry
+} from "./flow/connectEntryPolicy";
 
 import useConnectSession
   from "./hooks/useConnectSession";
@@ -77,6 +69,24 @@ import useConnectAnalytics
 import usePwaInstall
   from "./hooks/usePwaInstall";
 
+import useRepeatPayoutFlow
+  from "./hooks/useRepeatPayoutFlow";
+
+import useConnectReceiveContext
+  from "./hooks/useConnectReceiveContext";
+
+import useReceivePayoutForm
+  from "./hooks/useReceivePayoutForm";
+
+import useConnectFlowState
+  from "./hooks/useConnectFlowState";
+
+import useConnectFlowAccess
+  from "./hooks/useConnectFlowAccess";
+
+import useConnectPayoutActions
+  from "./hooks/useConnectPayoutActions";
+
 import PayoutForm
   from "./components/PayoutForm";
 
@@ -86,21 +96,9 @@ import HistoryPage
 import PayoutReviewManager
   from "./components/PayoutReviewManager";
 
+
 export default function App() {
   useAppKit();
-
-  /*
-   * Mutable identity of the payout attempt currently
-   * owned by this frontend flow.
-   *
-   * Async lifecycle reads use this to reject stale
-   * responses after the active intent changes.
-   */
-  const payoutIntentIdStateRef =
-    useRef(null);
-
-  const repeatInitializedRef =
-    useRef(false);
 
   const {
     address,
@@ -120,8 +118,7 @@ export default function App() {
   } = useSwitchChain();
 
   /*
-   * URL state is read once for this mounted Connect
-   * session.
+   * URL state belongs to this mounted Connect entry.
    */
   const urlState =
     useMemo(
@@ -140,6 +137,9 @@ export default function App() {
       repeatRouteIdFromUrl
   } = urlState;
 
+  /*
+   * Stored flow is captured once at entry.
+   */
   const storedFlow =
     useMemo(
       () =>
@@ -148,220 +148,172 @@ export default function App() {
     );
 
   const returnedPayoutIntentId =
-    readPayoutIntentFromUrl();
-
-  const initialRepeatSourcePayoutIntentId =
-    repeatSourceFromUrl ||
-    storedFlow
-      ?.repeat_source_payout_intent_id ||
-    null;
-
-  const initialSelectedRouteId =
-    repeatRouteIdFromUrl ||
-    storedFlow?.route_id ||
-    ROUTES[0]?.id ||
-    "br_pix";
+    useMemo(
+      () =>
+        readPayoutIntentFromUrl(),
+      []
+    );
 
   /*
-   * Initial form construction must not depend on
-   * remote route discovery.
+   * Browser-safe Receive context.
    *
-   * The bundled route catalog is sufficient for the
-   * first render; useConnectRoutes replaces it with
-   * Core routes when discovery succeeds.
+   * Raw beneficiary data never enters App.
+   */
+  const {
+    receiveBound,
+    receiveProfileId,
+
+    destinationCountry:
+      receiveDestinationCountry,
+
+    payoutRail:
+      receivePayoutRail,
+
+    recipient:
+      receiveRecipient,
+
+    clearReceiveContext
+  } = useConnectReceiveContext();
+
+  /*
+   * Entry policy is resolved exactly once.
+   *
+   * Precedence:
+   *
+   * Returned URL
+   * → Repeat URL
+   * → Receive context
+   * → Stored Repeat
+   * → Stored Standard
+   */
+  const [
+    entry
+  ] = useState(
+    () =>
+      resolveConnectEntry({
+        returnedPayoutIntentId,
+        repeatSourceFromUrl,
+        repeatRouteIdFromUrl,
+
+        storedFlow,
+
+        receiveBound,
+        receiveProfileId,
+
+        defaultRouteId:
+          ROUTES[0]?.id ||
+          "br_pix"
+      })
+  );
+
+  /*
+   * Initial form construction needs only a
+   * synchronous bundled route.
+   *
+   * Receive route discovery remains owned by
+   * useConnectRoutes.
    */
   const initialFormRoute =
-    getRouteById(
-      initialSelectedRouteId,
-      ROUTES
-    ) ||
-    ROUTES[0];
+    useMemo(
+      () =>
+        getRouteById(
+          entry
+            ?.initialSelectedRouteId,
+          ROUTES
+        ) ||
+        ROUTES[0],
+      [
+        entry
+      ]
+    );
 
-  const initialPayoutIntentId =
-    returnedPayoutIntentId ||
-    storedFlow
-      ?.payout_intent_id ||
-    null;
+  /*
+   * Flow state ownership.
+   */
+  const {
+    payoutIntentIdStateRef,
+    repeatInitializedRef,
 
-  const [
     returnedFlowDismissed,
-    setReturnedFlowDismissed
-  ] = useState(false);
+    setReturnedFlowDismissed,
 
-  const [
     repeatSourcePayoutIntentId,
-    setRepeatSourcePayoutIntentId
-  ] = useState(
-    initialRepeatSourcePayoutIntentId
-  );
+    setRepeatSourcePayoutIntentId,
 
-  const [
     payoutIntentId,
-    setPayoutIntentId
-  ] = useState(
-    initialPayoutIntentId
-  );
+    setPayoutIntentId,
 
-  payoutIntentIdStateRef.current =
-    payoutIntentId ||
-    null;
-
-  const [
     settlement,
-    setSettlement
-  ] = useState(null);
+    setSettlement,
 
-  const [
     fundingTxHash,
-    setFundingTxHash
-  ] = useState(null);
+    setFundingTxHash,
 
-  const [
     isBusy,
-    setIsBusy
-  ] = useState(false);
+    setIsBusy,
 
-  const [
     debug,
-    setDebug
-  ] = useState(
-    returnedPayoutIntentId
-      ? "Loading payout route..."
-      : initialRepeatSourcePayoutIntentId
-        ? "Preparing repeat payout..."
-        : "Waiting for wallet connection..."
-  );
+    setDebug,
 
-  const [
     form,
     setForm
-  ] = useState(() => {
-    if (
-      initialRepeatSourcePayoutIntentId
-    ) {
-      return {
-        ...buildEmptyForm(
-          initialFormRoute
-        ),
-
-        amount:
-          ""
-      };
-    }
-
-    return {
-      amount:
-        storedFlow
-          ?.form
-          ?.amount ||
-        "",
-
-      asset:
-        storedFlow
-          ?.form
-          ?.asset ||
-        initialFormRoute
-          ?.assets
-          ?.[0] ||
-        "USDT",
-
-      beneficiary:
-        storedFlow
-          ?.form
-          ?.beneficiary ||
-        buildEmptyForm(
-          initialFormRoute
-        ).beneficiary
-    };
+  } = useConnectFlowState({
+    entry,
+    storedFlow,
+    initialFormRoute
   });
 
   /*
-   * Flow-specific token.
+   * Runtime flow precedence.
    *
-   * Prefer the token belonging to the payout that
-   * established the current flow when one is still
-   * available.
+   * Entry policy owns how the App entered.
+   * Runtime state owns transitions after entry.
    */
-  const [
-    flowAccessToken
-  ] = useState(() => {
-    const accessPayoutIntentId =
-      repeatSourceFromUrl ||
-      storedFlow
-        ?.repeat_source_payout_intent_id ||
-      returnedPayoutIntentId ||
-      storedFlow
-        ?.payout_intent_id ||
-      null;
-
-    if (
-      !accessPayoutIntentId
-    ) {
-      return null;
-    }
-
-    return (
-      readPayoutAccessToken(
-        accessPayoutIntentId
-      )?.token ||
-      null
-    );
-  });
-
-  /*
-   * Customer-auth fallback.
-   *
-   * History and repeat are customer-scoped by Core.
-   * Prefer the most recently stored customer access
-   * token because a source payout token may still be
-   * present locally after it has expired.
-   */
-  const [
-    fallbackAccessToken
-  ] = useState(() => {
-    return (
-      readLastPayoutAccessToken()
-        ?.token ||
-      null
-    );
-  });
-
-  const historyAccessToken =
-    isHistoryPage
-      ? (
-          fallbackAccessToken ||
-          flowAccessToken ||
-          null
-        )
-      : null;
-
-  const repeatAccessToken =
-    repeatSourcePayoutIntentId
-      ? (
-          fallbackAccessToken ||
-          flowAccessToken ||
-          null
-        )
-      : null;
-
   const isReturnedFlow =
     Boolean(
-      returnedFlowDismissed
-        ? null
-        : returnedPayoutIntentId
+      entry?.kind ===
+        "returned" &&
+      !returnedFlowDismissed &&
+      entry
+        ?.returnedPayoutIntentId
     );
 
   const isRepeatFlow =
     Boolean(
+      !isReturnedFlow &&
       repeatSourcePayoutIntentId
     );
+
+  const isReceiveFlow =
+    Boolean(
+      entry?.kind ===
+        "receive" &&
+      !isReturnedFlow &&
+      !isRepeatFlow &&
+      receiveBound &&
+      receiveProfileId
+    );
+
+  const activeReceiveProfileId =
+    isReceiveFlow
+      ? receiveProfileId
+      : null;
+
+  /*
+   * Token ownership and customer-auth fallback.
+   */
+  const {
+    historyAccessToken,
+    repeatAccessToken
+  } = useConnectFlowAccess({
+    entry,
+    isHistoryPage,
+    repeatSourcePayoutIntentId
+  });
 
   /*
    * Connect navigation belongs to an established
    * wallet / returned payout context.
-   *
-   * Before that boundary, the only primary action
-   * should be wallet connection.
    */
   const canAccessConnectNavigation =
     isConnected ||
@@ -381,58 +333,29 @@ export default function App() {
           )}`
         );
       },
-      []
-    );
-
-  /*
-   * Core route discovery owns only the route catalog
-   * and selected route.
-   *
-   * If Core successfully proves that the initially
-   * requested route disappeared, App owns the
-   * cross-subsystem consequences.
-   */
-  const handleInitialRouteFallback =
-    useCallback(
-      fallbackRoute => {
-        setRepeatSourcePayoutIntentId(
-          null
-        );
-
-        if (
-          !storedFlow?.form &&
-          !returnedPayoutIntentId
-        ) {
-          setForm(
-            buildEmptyForm(
-              fallbackRoute
-            )
-          );
-        }
-      },
       [
-        returnedPayoutIntentId,
-        storedFlow
+        setDebug
       ]
     );
 
+  /*
+   * Wallet-backed Connect session.
+   */
   const {
-    routes,
-    selectedRouteId,
-    setSelectedRouteId,
-    selectedRoute
-  } = useConnectRoutes({
-    initialSelectedRouteId,
-
-    onInitialRouteFallback:
-      handleInitialRouteFallback
+    connectSessionId,
+    resetConnectSession
+  } = useConnectSession({
+    isConnected,
+    address,
+    writeDebug
   });
 
   /*
-   * Payout lifecycle ownership.
+   * Authoritative payout-attempt lifecycle.
    *
-   * Core is authoritative for whether a payout is
-   * editable, resumable or requires recovery.
+   * This is initialized before route reconciliation
+   * so an invalid restored route can cleanly detach
+   * from its old payout attempt.
    */
   const {
     payoutAttemptState,
@@ -444,7 +367,10 @@ export default function App() {
     payoutIntentId,
     payoutIntentIdStateRef,
 
-    returnedPayoutIntentId,
+    returnedPayoutIntentId:
+      entry
+        ?.returnedPayoutIntentId ||
+      null,
 
     setPayoutIntentId,
     setSettlement,
@@ -453,11 +379,10 @@ export default function App() {
   });
 
   /*
-   * Local in-flight work locks immediately.
+   * Local work locks immediately.
    *
-   * Once local work settles, the authoritative Core
-   * lifecycle controls whether the transfer remains
-   * immutable.
+   * Core lifecycle remains authoritative after local
+   * work settles.
    */
   const isTransferLocked =
     isBusy ||
@@ -466,95 +391,27 @@ export default function App() {
         .EDITABLE;
 
   /*
-   * Repeat links hydrate their transfer specification
-   * from the authenticated source payout.
+   * Successful Core discovery may prove that an
+   * initial Standard / Repeat route saved by the
+   * browser is no longer selectable.
    *
-   * Core is authoritative for the source route,
-   * amount, asset and beneficiary. No recipient data
-   * is carried in the URL.
+   * That is an entry reconciliation event, not a
+   * normal user route change.
+   *
+   * Returned and Receive remain owned by their own
+   * authoritative hydration / binding flows.
    */
-  useEffect(() => {
-    if (
-      repeatInitializedRef.current ||
-      !repeatSourceFromUrl ||
-      !repeatAccessToken
-    ) {
-      return;
-    }
-
-    let cancelled =
-      false;
-
-    async function initializeRepeat() {
-      try {
-        setIsBusy(
-          true
-        );
-
-        writeDebug(
-          "Preparing repeat payout..."
-        );
-
-        const source =
-          await getRepeatPayoutSource({
-            sourcePayoutIntentId:
-              repeatSourceFromUrl,
-
-            accessToken:
-              repeatAccessToken
-          });
-
-        if (cancelled) {
+  const handleInitialRouteFallback =
+    useCallback(
+      fallbackRoute => {
+        if (
+          entry?.kind ===
+            "returned" ||
+          entry?.kind ===
+            "receive"
+        ) {
           return;
         }
-
-        const sourceRouteId =
-          String(
-            source?.route_id ||
-            repeatRouteIdFromUrl ||
-            ""
-          ).trim();
-
-        const repeatRoute =
-          getRouteById(
-            sourceRouteId,
-            routes
-          );
-
-        /*
-         * Route discovery may still be replacing the
-         * bundled catalog. Leave initialization open
-         * so this effect can run again when routes
-         * become available.
-         */
-        if (!repeatRoute) {
-          writeDebug(
-            "Repeat payout route is unavailable.",
-            {
-              route_id:
-                sourceRouteId ||
-                null
-            }
-          );
-
-          return;
-        }
-
-        const emptyForm =
-          buildEmptyForm(
-            repeatRoute
-          );
-
-        repeatInitializedRef.current =
-          true;
-
-        setRepeatSourcePayoutIntentId(
-          repeatSourceFromUrl
-        );
-
-        setSelectedRouteId(
-          repeatRoute.id
-        );
 
         payoutIntentIdStateRef.current =
           null;
@@ -565,6 +422,13 @@ export default function App() {
 
         resetPayoutAttemptLifecycle();
 
+        setRepeatSourcePayoutIntentId(
+          null
+        );
+
+        repeatInitializedRef.current =
+          false;
+
         setSettlement(
           null
         );
@@ -573,123 +437,131 @@ export default function App() {
           null
         );
 
-        setForm({
-          ...emptyForm,
+        setForm(
+          buildEmptyForm(
+            fallbackRoute
+          )
+        );
 
-          amount:
-            source?.amount !==
-              undefined &&
-            source?.amount !==
-              null
-              ? String(
-                  source.amount
-                )
-              : "",
+        clearStoredFlow();
 
-          asset:
-            String(
-              source?.asset ||
-              emptyForm?.asset ||
-              repeatRoute
-                ?.assets
-                ?.[0] ||
-              "USDT"
-            ).trim(),
+        removeQueryParams([
+          "payout_intent_id",
+          "repeat_source_payout_intent_id",
+          "route_id"
+        ]);
 
-          beneficiary: {
-            ...(
-              emptyForm
-                ?.beneficiary ||
-              {}
-            ),
-
-            ...(
-              source
-                ?.beneficiary &&
-              typeof source
-                .beneficiary ===
-                "object" &&
-              !Array.isArray(
-                source
-                  .beneficiary
-              )
-                ? source
-                    .beneficiary
-                : {}
-            )
-          }
-        });
+        resetConnectSession();
 
         writeDebug(
-          "Repeat payout ready.",
+          "Stored payout route is unavailable. A current route was selected.",
           {
-            source_payout_intent_id:
-              repeatSourceFromUrl,
-
             route_id:
-              repeatRoute.id
+              fallbackRoute?.id ||
+              fallbackRoute
+                ?.route_id ||
+              null
           }
         );
-      }
-      catch (
-        err
-      ) {
-        if (cancelled) {
-          return;
-        }
+      },
+      [
+        entry,
+        payoutIntentIdStateRef,
+        repeatInitializedRef,
+        resetConnectSession,
+        resetPayoutAttemptLifecycle,
+        setFundingTxHash,
+        setForm,
+        setPayoutIntentId,
+        setRepeatSourcePayoutIntentId,
+        setSettlement,
+        writeDebug
+      ]
+    );
 
-        writeDebug(
-          "Unable to prepare repeat payout.",
-          {
-            error:
-              err?.message ||
-              "get_repeat_payout_source_failed"
-          }
-        );
-      }
-      finally {
-        if (!cancelled) {
-          setIsBusy(
-            false
-          );
-        }
-      }
-    }
+  /*
+   * Core route discovery owns the route catalog and
+   * selected route.
+   *
+   * Receive matching remains isolated inside the
+   * Receive route policy.
+   */
+  const {
+    routes,
+    selectedRouteId,
+    setSelectedRouteId,
+    selectedRoute
+  } = useConnectRoutes({
+    initialSelectedRouteId:
+      entry
+        ?.initialSelectedRouteId,
 
-    initializeRepeat();
+    onInitialRouteFallback:
+      handleInitialRouteFallback,
 
-    return () => {
-      cancelled =
-        true;
-    };
-  }, [
-    repeatAccessToken,
+    receiveBound:
+      isReceiveFlow,
+
+    receiveDestinationCountry,
+    receivePayoutRail
+  });
+
+  /*
+   * Receive-specific form ownership.
+   */
+  useReceivePayoutForm({
+    enabled:
+      isReceiveFlow,
+
+    receiveProfileId:
+      activeReceiveProfileId,
+
+    selectedRoute,
+    setForm
+  });
+
+  /*
+   * Repeat hydration from Core.
+   *
+   * Use the effective runtime repeat source so
+   * locally restored repeat flows also hydrate.
+   */
+  useRepeatPayoutFlow({
+    repeatInitializedRef,
+
+    repeatSourceFromUrl:
+      repeatSourcePayoutIntentId,
+
     repeatRouteIdFromUrl,
-    repeatSourceFromUrl,
-    resetPayoutAttemptLifecycle,
+    repeatAccessToken,
+
     routes,
     setSelectedRouteId,
-    writeDebug
-  ]);
 
-  const {
-    connectSessionId,
-    resetConnectSession
-  } = useConnectSession({
-    isConnected,
-    address,
+    setRepeatSourcePayoutIntentId,
+
+    payoutIntentIdStateRef,
+    setPayoutIntentId,
+
+    resetPayoutAttemptLifecycle,
+
+    setSettlement,
+    setFundingTxHash,
+    setForm,
+    setIsBusy,
+
     writeDebug
   });
 
   /*
-   * Returned KYC / authorization flows may hydrate
-   * route, form and payout intent from Core.
+   * Returned KYC / authorization hydration.
    */
   useReturnedPayoutIntent({
     returnedPayoutIntentId:
-      returnedFlowDismissed
-        ? null
-        : returnedPayoutIntentId,
+      isReturnedFlow
+        ? entry
+            ?.returnedPayoutIntentId
+        : null,
 
     routes,
     setSelectedRouteId,
@@ -700,11 +572,7 @@ export default function App() {
   });
 
   /*
-   * Editable standard payouts receive a debounced
-   * route pricing preview.
-   *
-   * Returned, repeat and locked flows rely on their
-   * backend-owned execution context instead.
+   * Editable Standard / Receive pricing preview.
    */
   const {
     pricingPreview,
@@ -729,12 +597,15 @@ export default function App() {
       form.amount,
 
     asset:
-      form.asset
+      form.asset,
+
+    receiveProfileId:
+      activeReceiveProfileId
   });
 
   /*
-   * Route execution owns authorization, settlement
-   * creation, funding and settlement polling.
+   * Route execution owns authorization, settlement,
+   * funding and polling.
    */
   const {
     handleSend,
@@ -766,12 +637,15 @@ export default function App() {
     repeatSourcePayoutIntentId,
     repeatAccessToken,
 
+    receiveProfileId:
+      activeReceiveProfileId,
+
     writeDebug
   });
 
   /*
-   * Analytics is intentionally separated from the
-   * product flows it observes.
+   * Analytics observes product flows without owning
+   * them.
    */
   const {
     trackWalletConnectStarted,
@@ -800,9 +674,7 @@ export default function App() {
   });
 
   /*
-   * PWA lifecycle is independent from payout
-   * execution. Analytics is injected rather than
-   * owned by the PWA hook.
+   * PWA lifecycle.
    */
   const {
     canInstallPwa,
@@ -816,11 +688,53 @@ export default function App() {
   });
 
   /*
-   * User-driven payout execution.
-   *
-   * Every completed attempt triggers an authoritative
-   * lifecycle refresh, regardless of success or
-   * failure.
+   * User commands are isolated from App.
+   */
+  const {
+    handleNewPayout,
+    setEditableForm,
+    updateBeneficiaryField,
+    changeRoute
+  } = useConnectPayoutActions({
+    isReceiveFlow,
+    isRepeatFlow,
+    isTransferLocked,
+
+    payoutAttemptState,
+    payoutIntentId,
+
+    connectSessionId,
+
+    routes,
+    selectedRouteId,
+    setSelectedRouteId,
+
+    form,
+    setForm,
+
+    payoutIntentIdStateRef,
+    repeatInitializedRef,
+
+    setPayoutIntentId,
+    setRepeatSourcePayoutIntentId,
+    setReturnedFlowDismissed,
+
+    setSettlement,
+    setFundingTxHash,
+
+    clearReceiveContext,
+
+    resetRouteFlowRuntime,
+    resetPayoutAttemptLifecycle,
+    resetPricingPreview,
+    resetRouteCreatedTracking,
+    resetConnectSession,
+
+    writeDebug
+  });
+
+  /*
+   * Analytics wrapper around user-driven execution.
    */
   const trackedHandleSend =
     useCallback(
@@ -846,276 +760,8 @@ export default function App() {
     );
 
   /*
-   * Explicit user action.
-   *
-   * Detach the frontend from the current payout
-   * without mutating or cancelling the old backend
-   * attempt.
-   *
-   * New payout also acts as the user's escape hatch
-   * from a pre-funding flow whose local runtime is
-   * still busy or waiting for wallet confirmation.
-   */
-  const handleNewPayout =
-    useCallback(
-      () => {
-        resetRouteFlowRuntime();
-
-        payoutIntentIdStateRef.current =
-          null;
-
-        setPayoutIntentId(
-          null
-        );
-
-        resetPayoutAttemptLifecycle();
-
-        setSettlement(
-          null
-        );
-
-        setFundingTxHash(
-          null
-        );
-
-        setRepeatSourcePayoutIntentId(
-          null
-        );
-
-        repeatInitializedRef.current =
-          false;
-
-        setReturnedFlowDismissed(
-          true
-        );
-
-        resetPricingPreview();
-
-        resetRouteCreatedTracking();
-
-        /*
-         * Preserve route and transfer details as the
-         * editable draft for the next payout.
-         */
-        storeFlowSnapshot({
-          connect_session_id:
-            connectSessionId,
-
-          payout_intent_id:
-            null,
-
-          repeat_source_payout_intent_id:
-            null,
-
-          route_id:
-            selectedRouteId ||
-            null,
-
-          transfer_fingerprint:
-            null,
-
-          form,
-
-          pricing_preview:
-            null
-        });
-
-        removeQueryParams([
-          "payout_intent_id",
-          "repeat_source_payout_intent_id",
-          "route_id"
-        ]);
-
-        writeDebug(
-          "Ready to start a new payout."
-        );
-      },
-      [
-        connectSessionId,
-        form,
-        resetPayoutAttemptLifecycle,
-        resetPricingPreview,
-        resetRouteCreatedTracking,
-        resetRouteFlowRuntime,
-        selectedRouteId,
-        writeDebug
-      ]
-    );
-
-  /*
-   * Guard transfer-spec mutation at the parent
-   * boundary.
-   *
-   * PayoutForm also disables the corresponding
-   * controls visually.
-   */
-  const setEditableForm =
-    useCallback(
-      nextValue => {
-        if (isTransferLocked) {
-          return;
-        }
-
-        setForm(
-          nextValue
-        );
-      },
-      [
-        isTransferLocked
-      ]
-    );
-
-  const updateBeneficiaryField =
-    useCallback(
-      (
-        name,
-        value
-      ) => {
-        if (
-          isRepeatFlow ||
-          isTransferLocked
-        ) {
-          return;
-        }
-
-        setForm(
-          current => ({
-            ...current,
-
-            beneficiary: {
-              ...current
-                .beneficiary,
-
-              [name]:
-                value
-            }
-          })
-        );
-      },
-      [
-        isRepeatFlow,
-        isTransferLocked
-      ]
-    );
-
-  /*
-   * Explicit route change starts a clean payout
-   * draft.
-   *
-   * This action is unavailable once the active
-   * payout specification has crossed its lock
-   * boundary.
-   */
-  const changeRoute =
-    useCallback(
-      routeId => {
-        if (isTransferLocked) {
-          writeDebug(
-            "This payout is locked. Start a new payout to change the route.",
-            {
-              payout_intent_id:
-                payoutIntentId,
-
-              payout_attempt_state:
-                payoutAttemptState
-            }
-          );
-
-          return;
-        }
-
-        const route =
-          getRouteById(
-            routeId,
-            routes
-          );
-
-        if (!route) {
-          writeDebug(
-            "Selected payout route is unavailable.",
-            {
-              route_id:
-                routeId ||
-                null
-            }
-          );
-
-          return;
-        }
-
-        setRepeatSourcePayoutIntentId(
-          null
-        );
-
-        repeatInitializedRef.current =
-          false;
-
-        setReturnedFlowDismissed(
-          true
-        );
-
-        setSelectedRouteId(
-          route.id
-        );
-
-        payoutIntentIdStateRef.current =
-          null;
-
-        setPayoutIntentId(
-          null
-        );
-
-        resetPayoutAttemptLifecycle();
-
-        setSettlement(
-          null
-        );
-
-        setFundingTxHash(
-          null
-        );
-
-        resetPricingPreview();
-
-        resetRouteCreatedTracking();
-
-        resetConnectSession();
-
-        setForm(
-          buildEmptyForm(
-            route
-          )
-        );
-
-        clearStoredFlow();
-
-        removeQueryParams([
-          "payout_intent_id",
-          "repeat_source_payout_intent_id",
-          "route_id"
-        ]);
-
-        writeDebug(
-          "Ready to start a new payout."
-        );
-      },
-      [
-        isTransferLocked,
-        payoutAttemptState,
-        payoutIntentId,
-        resetConnectSession,
-        resetPayoutAttemptLifecycle,
-        resetPricingPreview,
-        resetRouteCreatedTracking,
-        routes,
-        setSelectedRouteId,
-        writeDebug
-      ]
-    );
-
-  /*
    * History remains behind the same usable-session
-   * boundary as the Connect navigation.
+   * boundary as Connect navigation.
    */
   if (
     isHistoryPage &&
@@ -1218,6 +864,28 @@ export default function App() {
             }
             isRepeatFlow={
               isRepeatFlow
+            }
+
+            receiveBound={
+              isReceiveFlow
+            }
+            receiveProfileId={
+              activeReceiveProfileId
+            }
+            receiveDestinationCountry={
+              isReceiveFlow
+                ? receiveDestinationCountry
+                : null
+            }
+            receivePayoutRail={
+              isReceiveFlow
+                ? receivePayoutRail
+                : null
+            }
+            receiveRecipient={
+              isReceiveFlow
+                ? receiveRecipient
+                : null
             }
 
             settlement={
