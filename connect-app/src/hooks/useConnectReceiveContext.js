@@ -1,7 +1,8 @@
 // connect-app/src/hooks/useConnectReceiveContext.js
 
 import {
-  useMemo
+  useCallback,
+  useState
 } from "react";
 
 
@@ -111,11 +112,37 @@ function readReceiveContext() {
 }
 
 
+function removeReceiveContext() {
+  try {
+    window.sessionStorage
+      .removeItem(
+        RECEIVE_CONTEXT_KEY
+      );
+  }
+  catch {
+    // Browser storage may be unavailable.
+  }
+}
+
+
 export default function useConnectReceiveContext() {
-  const receiveContext =
-    useMemo(
-      () =>
-        readReceiveContext(),
+  const [
+    receiveContext,
+    setReceiveContext
+  ] = useState(
+    () =>
+      readReceiveContext()
+  );
+
+  const clearReceiveContext =
+    useCallback(
+      () => {
+        removeReceiveContext();
+
+        setReceiveContext(
+          null
+        );
+      },
       []
     );
 
@@ -150,6 +177,7 @@ export default function useConnectReceiveContext() {
     receiveProfileId,
     destinationCountry,
     payoutRail,
-    recipient
+    recipient,
+    clearReceiveContext
   };
 }
