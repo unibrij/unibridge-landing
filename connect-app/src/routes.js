@@ -62,62 +62,106 @@ export const ROUTES = [
   ...COMING_SOON_ROUTES
 ];
 
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
 
+
 function normalizeUpper(value) {
-  return normalizeString(value).toUpperCase();
+  return normalizeString(
+    value
+  ).toUpperCase();
 }
+
 
 function normalizeLower(value) {
-  return normalizeString(value).toLowerCase();
+  return normalizeString(
+    value
+  ).toLowerCase();
 }
 
-function getRouteCountry(route = {}) {
+
+function getRouteCountry(
+  route = {}
+) {
   return normalizeUpper(
     route.country ||
-      route.destination_country ||
-      route.destinationCountry
+    route.destination_country ||
+    route.destinationCountry
   );
 }
 
-function uniqueValues(values = []) {
+
+function uniqueValues(
+  values = []
+) {
   return Array.from(
     new Set(
       values
-        .map(value => normalizeUpper(value))
+        .map(
+          value =>
+            normalizeUpper(
+              value
+            )
+        )
         .filter(Boolean)
     )
   );
 }
 
-function fallbackPlaceholder(field = {}) {
-  const name =
-    normalizeLower(field.name);
 
-  if (name.includes("pix")) {
+function fallbackPlaceholder(
+  field = {}
+) {
+  const name =
+    normalizeLower(
+      field.name
+    );
+
+  if (
+    name.includes(
+      "pix"
+    )
+  ) {
     return "email, CPF, phone, or random key";
   }
 
-  if (name.includes("recipient_identifier")) {
+  if (
+    name.includes(
+      "recipient_identifier"
+    )
+  ) {
     return "phone, account, or wallet identifier";
   }
 
-  if (name.includes("recipient_institution")) {
+  if (
+    name.includes(
+      "recipient_institution"
+    )
+  ) {
     return "Search bank or wallet";
   }
 
-  if (name.includes("institution")) {
+  if (
+    name.includes(
+      "institution"
+    )
+  ) {
     return "Search bank or wallet";
   }
 
-  if (name.includes("channel")) {
+  if (
+    name.includes(
+      "channel"
+    )
+  ) {
     return "bank or payout channel";
   }
 
   return "";
 }
+
 
 function isBrazilPixRoute({
   id,
@@ -127,54 +171,86 @@ function isBrazilPixRoute({
   payoutRail
 }) {
   const routeId =
-    normalizeLower(id);
+    normalizeLower(
+      id
+    );
 
   const routeLabel =
-    normalizeLower(label);
+    normalizeLower(
+      label
+    );
 
   const normalizedCountry =
-    normalizeUpper(country);
+    normalizeUpper(
+      country
+    );
 
   const normalizedRail =
-    normalizeLower(rail);
+    normalizeLower(
+      rail
+    );
 
   const normalizedPayoutRail =
-    normalizeLower(payoutRail);
+    normalizeLower(
+      payoutRail
+    );
 
   return (
-    normalizedCountry === "BR" ||
-    routeId.includes("br_pix") ||
-    routeId.includes("brazil") ||
-    routeLabel.includes("brazil") ||
-    routeLabel.includes("pix") ||
-    normalizedRail === "pix" ||
-    normalizedPayoutRail === "pix"
+    normalizedCountry ===
+      "BR" ||
+    routeId.includes(
+      "br_pix"
+    ) ||
+    routeId.includes(
+      "brazil"
+    ) ||
+    routeLabel.includes(
+      "brazil"
+    ) ||
+    routeLabel.includes(
+      "pix"
+    ) ||
+    normalizedRail ===
+      "pix" ||
+    normalizedPayoutRail ===
+      "pix"
   );
 }
 
-function isComingSoonRoute(route = {}) {
+
+function isComingSoonRoute(
+  route = {}
+) {
   return Boolean(
     route.comingSoon ||
-      route.coming_soon ||
-      route.disabled ||
-      route.status === "coming_soon"
+    route.coming_soon ||
+    route.disabled ||
+    route.status ===
+      "coming_soon"
   );
 }
 
-function isConnectVisibleRoute(route = {}) {
+
+function isConnectVisibleRoute(
+  route = {}
+) {
   const country =
-    getRouteCountry(route);
+    getRouteCountry(
+      route
+    );
 
   const payoutRail =
     normalizeLower(
       route.payout_rail ||
-        route.payoutRail ||
-        route.rail
+      route.payoutRail ||
+      route.rail
     );
 
   if (
-    country === "PH" &&
-    payoutRail === "pesonet"
+    country ===
+      "PH" &&
+    payoutRail ===
+      "pesonet"
   ) {
     return false;
   }
@@ -182,42 +258,74 @@ function isConnectVisibleRoute(route = {}) {
   return true;
 }
 
-function hasRoute(routeId, routes = []) {
-  const normalizedRouteId =
-    normalizeLower(routeId);
 
-  return routes.some(route =>
-    normalizeLower(route.id) === normalizedRouteId ||
-    normalizeLower(route.route_id) === normalizedRouteId
+function hasRoute(
+  routeId,
+  routes = []
+) {
+  const normalizedRouteId =
+    normalizeLower(
+      routeId
+    );
+
+  return routes.some(
+    route =>
+      normalizeLower(
+        route.id
+      ) ===
+        normalizedRouteId ||
+      normalizeLower(
+        route.route_id
+      ) ===
+        normalizedRouteId
   );
 }
 
-function appendComingSoonRoutes(routes = []) {
+
+function appendComingSoonRoutes(
+  routes = []
+) {
   const result =
     [...routes];
 
-  COMING_SOON_ROUTES.forEach(route => {
-    if (!hasRoute(route.id, result)) {
-      result.push(route);
+  COMING_SOON_ROUTES.forEach(
+    route => {
+      if (
+        !hasRoute(
+          route.id,
+          result
+        )
+      ) {
+        result.push(
+          route
+        );
+      }
     }
-  });
+  );
 
   return result;
 }
+
 
 function normalizePhilippinesBeneficiaryField({
   route = {},
   field = {}
 } = {}) {
   const country =
-    getRouteCountry(route);
+    getRouteCountry(
+      route
+    );
 
   const name =
-    normalizeLower(field.name);
+    normalizeLower(
+      field.name
+    );
 
   if (
-    country !== "PH" ||
-    name !== "recipient_institution"
+    country !==
+      "PH" ||
+    name !==
+      "recipient_institution"
   ) {
     return field;
   }
@@ -250,70 +358,104 @@ function normalizePhilippinesBeneficiaryField({
   };
 }
 
-function normalizeBeneficiaryFields(route = {}) {
-  if (isComingSoonRoute(route)) {
+
+function normalizeBeneficiaryFields(
+  route = {}
+) {
+  if (
+    isComingSoonRoute(
+      route
+    )
+  ) {
     return [];
   }
 
   const backendFields =
-    Array.isArray(route.beneficiary_fields)
+    Array.isArray(
+      route.beneficiary_fields
+    )
       ? route.beneficiary_fields
-      : Array.isArray(route.beneficiaryFields)
+      : Array.isArray(
+          route.beneficiaryFields
+        )
         ? route.beneficiaryFields
         : [];
 
-  return backendFields.map(rawField => {
-    const field =
-      normalizePhilippinesBeneficiaryField({
-        route,
-        field:
-          rawField
-      });
+  return backendFields.map(
+    rawField => {
+      const field =
+        normalizePhilippinesBeneficiaryField({
+          route,
+          field:
+            rawField
+        });
 
-    return {
-      ...field,
+      return {
+        ...field,
 
-      name:
-        field.name,
+        name:
+          field.name,
 
-      label:
-        field.label || field.name,
+        label:
+          field.label ||
+          field.name,
 
-      type:
-        field.type || "text",
+        type:
+          field.type ||
+          "text",
 
-      placeholder:
-        field.placeholder ||
-        fallbackPlaceholder(field),
+        placeholder:
+          field.placeholder ||
+          fallbackPlaceholder(
+            field
+          ),
 
-      required:
-        Boolean(field.required),
+        required:
+          Boolean(
+            field.required
+          ),
 
-      source:
-        field.source || null,
+        source:
+          field.source ||
+          null,
 
-      value_field:
-        field.value_field || null,
+        value_field:
+          field.value_field ||
+          null,
 
-      label_field:
-        field.label_field || null,
+        label_field:
+          field.label_field ||
+          null,
 
-      channel_field:
-        field.channel_field || null
-    };
-  });
+        channel_field:
+          field.channel_field ||
+          null
+      };
+    }
+  );
 }
 
-export function normalizeBackendRoute(route = {}) {
+
+export function normalizeBackendRoute(
+  route = {}
+) {
   const asset =
-    normalizeUpper(route.asset);
+    normalizeUpper(
+      route.asset
+    );
 
   const backendAssets =
-    Array.isArray(route.assets)
+    Array.isArray(
+      route.assets
+    )
       ? route.assets
-      : Array.isArray(route.supported_assets)
+      : Array.isArray(
+          route.supported_assets
+        )
         ? route.supported_assets
-        : Array.isArray(route.supportedAssets)
+        : Array.isArray(
+            route.supportedAssets
+          )
           ? route.supportedAssets
           : [];
 
@@ -331,7 +473,12 @@ export function normalizeBackendRoute(route = {}) {
       route.network,
       asset
     ]
-      .map(part => normalizeLower(part))
+      .map(
+        part =>
+          normalizeLower(
+            part
+          )
+      )
       .filter(Boolean)
       .join("_");
 
@@ -340,10 +487,14 @@ export function normalizeBackendRoute(route = {}) {
     id;
 
   const country =
-    normalizeUpper(sourceCountry);
+    normalizeUpper(
+      sourceCountry
+    );
 
   const rail =
-    normalizeUpper(route.rail);
+    normalizeUpper(
+      route.rail
+    );
 
   const payoutRail =
     normalizeLower(
@@ -353,7 +504,9 @@ export function normalizeBackendRoute(route = {}) {
     );
 
   const network =
-    normalizeLower(route.network);
+    normalizeLower(
+      route.network
+    );
 
   const isBrazilPix =
     isBrazilPixRoute({
@@ -378,14 +531,18 @@ export function normalizeBackendRoute(route = {}) {
         ]);
 
   const normalizedAsset =
-    asset || assets[0] || "";
+    asset ||
+    assets[0] ||
+    "";
 
   const normalizedRoute = {
     ...route,
 
     id,
+
     route_id:
-      route.route_id || id,
+      route.route_id ||
+      id,
 
     label,
 
@@ -414,43 +571,78 @@ export function normalizeBackendRoute(route = {}) {
   };
 }
 
-export function normalizeBackendRoutes(routes = []) {
+
+export function normalizeBackendRoutes(
+  routes = []
+) {
   const normalized =
-    Array.isArray(routes)
-      ? routes.map(normalizeBackendRoute)
+    Array.isArray(
+      routes
+    )
+      ? routes.map(
+          normalizeBackendRoute
+        )
       : [];
 
   const visible =
-    normalized.filter(isConnectVisibleRoute);
+    normalized.filter(
+      isConnectVisibleRoute
+    );
 
-  const baseRoutes =
-    visible.length > 0
-      ? visible
-      : FALLBACK_ROUTES;
-
+  /*
+   * A successful backend response is authoritative.
+   *
+   * Do not inject FALLBACK_ROUTES when Core returns
+   * no live routes. Local fallbacks belong to the
+   * route-discovery failure path only.
+   */
   return appendComingSoonRoutes(
-    baseRoutes
+    visible
   );
 }
 
-export function getRouteById(routeId, routes = ROUTES) {
+
+export function getRouteById(
+  routeId,
+  routes = ROUTES
+) {
   return (
-    routes.find(route =>
-      route.id === routeId ||
-      route.route_id === routeId
+    routes.find(
+      route =>
+        route.id ===
+          routeId ||
+        route.route_id ===
+          routeId
     ) ||
-    routes.find(route => !isComingSoonRoute(route)) ||
+    routes.find(
+      route =>
+        !isComingSoonRoute(
+          route
+        )
+    ) ||
     routes[0] ||
     FALLBACK_ROUTES[0]
   );
 }
 
-export function getInitialBeneficiary(route) {
-  const fields =
-    route?.beneficiaryFields || [];
 
-  return fields.reduce((acc, field) => {
-    acc[field.name] = "";
-    return acc;
-  }, {});
+export function getInitialBeneficiary(
+  route
+) {
+  const fields =
+    route?.beneficiaryFields ||
+    [];
+
+  return fields.reduce(
+    (
+      acc,
+      field
+    ) => {
+      acc[field.name] =
+        "";
+
+      return acc;
+    },
+    {}
+  );
 }
