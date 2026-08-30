@@ -9,13 +9,17 @@ import {
 
 import {
   ROUTES,
-  getRouteById,
   normalizeBackendRoutes
 } from "../routes.js";
 
 import {
   getConnectRoutes
 } from "../api.js";
+
+import {
+  findReceiveRoute
+} from "../receive/connectReceiveRoute.js";
+
 
 function normalizeString(
   value
@@ -26,7 +30,49 @@ function normalizeString(
   ).trim();
 }
 
-function hasRoute(
+
+function getRouteId(
+  route
+) {
+  return normalizeString(
+    route?.id ||
+    route?.route_id
+  );
+}
+
+
+function isSelectableRoute(
+  route
+) {
+  if (!route) {
+    return false;
+  }
+
+  if (
+    route?.disabled === true ||
+    route?.comingSoon === true ||
+    route?.coming_soon === true
+  ) {
+    return false;
+  }
+
+  const status =
+    normalizeString(
+      route?.status
+    ).toLowerCase();
+
+  return !(
+    status ===
+      "coming_soon" ||
+    status ===
+      "disabled" ||
+    status ===
+      "inactive"
+  );
+}
+
+
+function findRouteById(
   routes = [],
   routeId
 ) {
@@ -36,26 +82,77 @@ function hasRoute(
     );
 
   if (!normalizedRouteId) {
-    return false;
+    return null;
   }
 
-  return routes.some(
-    route =>
-      normalizeString(
-        route?.id
-      ) ===
-        normalizedRouteId ||
-      normalizeString(
-        route?.route_id
-      ) ===
+  return (
+    routes.find(
+      route =>
+        getRouteId(
+          route
+        ) ===
         normalizedRouteId
+    ) ||
+    null
   );
 }
 
+
+function findSelectableRouteById(
+  routes = [],
+  routeId
+) {
+  const route =
+    findRouteById(
+      routes,
+      routeId
+    );
+
+  return isSelectableRoute(
+    route
+  )
+    ? route
+    : null;
+}
+
+
+function findFirstSelectableRoute(
+  routes = []
+) {
+  return (
+    routes.find(
+      route =>
+        isSelectableRoute(
+          route
+        )
+    ) ||
+    null
+  );
+}
+
+
 export default function useConnectRoutes({
   initialSelectedRouteId,
-  onInitialRouteFallback
+  onInitialRouteFallback,
+
+  receiveBound = false,
+  receiveDestinationCountry = null,
+  receivePayoutRail = null
 }) {
+  const initialReceiveRoute =
+    receiveBound
+      ? findReceiveRoute(
+          ROUTES,
+          {
+            destinationCountry:
+              receiveDestinationCountry,
+
+            payoutRail:
+              receivePayoutRail
+          }
+        )
+      : null;
+
   const [
     routes,
     setRoutes
@@ -67,19 +164,19 @@ export default function useConnectRoutes({
     selectedRouteId,
     setSelectedRouteId
   ] = useState(
-    initialSelectedRouteId ||
-    ROUTES[0]?.id ||
-    "br_pix"
+    () =>
+      getRouteId(
+        initialReceiveRoute
+      ) ||
+      initialSelectedRouteId ||
+      getRouteId(
+        findFirstSelectableRoute(
+          ROUTES
+        )
+      ) ||
+      null
   );
 
-  /*
-   * Keep callback updates from restarting route
-   * discovery.
-   *
-   * Route discovery is an initialization concern,
-   * not something that should rerun because the
-   * parent component rendered a new callback.
-   */
   const onInitialRouteFallbackRef =
     useRef(
       onInitialRouteFallback
@@ -92,12 +189,19 @@ export default function useConnectRoutes({
     onInitialRouteFallback
   ]);
 
+  /*
+   * Exact, selectable route resolution.
+   *
+   * No implicit fallback happens here. If the current
+   * route is unavailable, selectedRoute is null until
+   * the discovery lifecycle selects another route.
+   */
   const selectedRoute =
     useMemo(
       () =>
-        getRouteById(
-          selectedRouteId,
-          routes
+        findSelectableRouteById(
+          routes,
+          selectedRouteId
         ),
       [
         routes,
@@ -124,57 +228,72 @@ export default function useConnectRoutes({
           );
 
         /*
-         * Preserve the original Connect behavior.
-         *
-         * A successful Core response is authoritative,
-         * even when it contains no usable routes.
+         * Successful Core discovery is authoritative.
          */
         setRoutes(
           normalized
         );
 
         /*
-         * Preserve the originally requested route
-         * whenever Core still exposes it.
+         * Receive-specific matching stays delegated
+         * to connectReceiveRoute.js.
          */
-        if (
-          hasRoute(
-            normalized,
-            initialSelectedRouteId
-          )
-        ) {
-          return;
-        }
+        if (receiveBound) {
+          const receiveRoute =
+            findReceiveRoute(
+              normalized,
+              {
+                destinationCountry:
+                  receiveDestinationCountry,
 
-        /*
-         * Core responded successfully but the
-         * originally requested route is unavailable.
-         *
-         * Selection may fall back to the bundled
-         * catalog, but the authoritative route list
-         * remains the normalized Core response.
-         */
-        const fallbackRoute =
-          normalized[0] ||
-          ROUTES[0] ||
-          null;
+                payoutRail:
+                  receivePayoutRail
+              }
+            );
 
-        if (!fallbackRoute) {
-          return;
-        }
-
-        const fallbackRouteId =
-          normalizeString(
-            fallbackRoute.id ||
-            fallbackRoute.route_id
+          setSelectedRouteId(
+            getRouteId(
+              receiveRoute
+            ) ||
+            null
           );
 
-        if (!fallbackRouteId) {
+          return;
+        }
+
+        const requestedRoute =
+          findSelectableRouteById(
+            normalized,
+            initialSelectedRouteId
+          );
+
+        if (requestedRoute) {
+          setSelectedRouteId(
+            getRouteId(
+              requestedRoute
+            )
+          );
+
+          return;
+        }
+
+        const fallbackRoute =
+          findFirstSelectableRoute(
+            normalized
+          );
+
+        if (!fallbackRoute) {
+          setSelectedRouteId(
+            null
+          );
+
           return;
         }
 
         setSelectedRouteId(
-          fallbackRouteId
+          getRouteId(
+            fallbackRoute
+          )
         );
 
         onInitialRouteFallbackRef
@@ -188,15 +307,62 @@ export default function useConnectRoutes({
         }
 
         /*
-         * A route-discovery failure does not prove
-         * that the requested route disappeared.
-         *
-         * Fall back to the bundled catalog without
-         * changing selected route or triggering any
-         * parent-level fallback side effects.
+         * Only discovery failure may use the bundled
+         * catalog as a temporary fallback.
          */
         setRoutes(
           ROUTES
+        );
+
+        if (receiveBound) {
+          const receiveRoute =
+            findReceiveRoute(
+              ROUTES,
+              {
+                destinationCountry:
+                  receiveDestinationCountry,
+
+                payoutRail:
+                  receivePayoutRail
+              }
+            );
+
+          setSelectedRouteId(
+            getRouteId(
+              receiveRoute
+            ) ||
+            null
+          );
+
+          return;
+        }
+
+        const requestedRoute =
+          findSelectableRouteById(
+            ROUTES,
+            initialSelectedRouteId
+          );
+
+        if (requestedRoute) {
+          setSelectedRouteId(
+            getRouteId(
+              requestedRoute
+            )
+          );
+
+          return;
+        }
+
+        const fallbackRoute =
+          findFirstSelectableRoute(
+            ROUTES
+          );
+
+        setSelectedRouteId(
+          getRouteId(
+            fallbackRoute
+          ) ||
+          null
         );
       }
     }
@@ -208,7 +374,10 @@ export default function useConnectRoutes({
         true;
     };
   }, [
-    initialSelectedRouteId
+    initialSelectedRouteId,
+    receiveBound,
+    receiveDestinationCountry,
+    receivePayoutRail
   ]);
 
   return {
