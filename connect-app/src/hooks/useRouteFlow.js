@@ -30,6 +30,7 @@ export function useRouteFlow({
   selectedRoute,
   form,
   pricingPreview,
+  receiveProfileId,
 
   payoutIntentId,
   setPayoutIntentId,
@@ -150,6 +151,7 @@ export function useRouteFlow({
     selectedRoute,
     form,
     pricingPreview,
+    receiveProfileId,
 
     payoutIntentId,
     payoutIntentIdRef,
