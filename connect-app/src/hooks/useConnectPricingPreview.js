@@ -10,6 +10,7 @@ import {
   previewConnectRoute
 } from "../api.js";
 
+
 function normalizeString(
   value
 ) {
@@ -18,6 +19,7 @@ function normalizeString(
     ""
   ).trim();
 }
+
 
 export default function useConnectPricingPreview({
   enabled,
@@ -29,7 +31,9 @@ export default function useConnectPricingPreview({
   selectedRoute,
 
   amount,
-  asset
+  asset,
+
+  receiveProfileId = null
 }) {
   const [
     pricingPreview,
@@ -78,6 +82,12 @@ export default function useConnectPricingPreview({
         normalizedAmount
       );
 
+    const normalizedReceiveProfileId =
+      normalizeString(
+        receiveProfileId
+      ) ||
+      null;
+
     const canLoadPreview =
       enabled &&
       isConnected &&
@@ -124,8 +134,9 @@ export default function useConnectPricingPreview({
     }
 
     /*
-     * A new transfer specification invalidates the
-     * previous preview immediately.
+     * A new transfer specification or Receive
+     * binding invalidates the previous preview
+     * immediately.
      */
     setPricingPreview(
       null
@@ -156,7 +167,10 @@ export default function useConnectPricingPreview({
                 amount:
                   normalizedAmount,
 
-                asset
+                asset,
+
+                receiveProfileId:
+                  normalizedReceiveProfileId
               });
 
             if (cancelled) {
@@ -216,6 +230,7 @@ export default function useConnectPricingPreview({
     connectSessionId,
     enabled,
     isConnected,
+    receiveProfileId,
     selectedRoute
   ]);
 
