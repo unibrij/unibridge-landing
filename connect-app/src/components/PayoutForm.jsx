@@ -36,6 +36,31 @@ const SHOW_DEBUG =
     window.location.search
   ).get("debug") === "1";
 
+
+function normalizeString(
+  value
+) {
+  return String(
+    value ??
+    ""
+  ).trim();
+}
+
+
+function formatReceiveRail(
+  value
+) {
+  return normalizeString(
+    value
+  )
+    .replace(
+      /_/g,
+      " "
+    )
+    .toUpperCase();
+}
+
+
 export default function PayoutForm({
   selectedRouteId,
   selectedRoute,
@@ -46,6 +71,11 @@ export default function PayoutForm({
   isBusy,
   isReturnedFlow,
   isRepeatFlow,
+
+  receiveBound = false,
+  receiveDestinationCountry = null,
+  receivePayoutRail = null,
+  receiveRecipient = null,
 
   settlement,
   fundingTxHash,
@@ -68,7 +98,18 @@ export default function PayoutForm({
   updateBeneficiaryField,
   routes
 }) {
+  /*
+   * Receive is fail-closed.
+   *
+   * Until the bound route is resolved, it must be
+   * treated as unavailable rather than temporarily
+   * falling through to a generic payout route.
+   */
   const routeUnavailable =
+    (
+      receiveBound &&
+      !selectedRoute
+    ) ||
     isComingSoonRoute(
       selectedRoute
     );
@@ -91,8 +132,10 @@ export default function PayoutForm({
     "polygon";
 
   /*
-   * Transfer-spec controls become immutable at the
-   * lifecycle lock boundary.
+   * Amount / asset remain editable for Receive.
+   *
+   * Receive fixes the destination, not the transfer
+   * amount or funding asset.
    */
   const transferFieldsDisabled =
     isTransferLocked ||
@@ -100,39 +143,73 @@ export default function PayoutForm({
     routeUnavailable;
 
   /*
-   * Repeat payouts preserve the source recipient.
+   * Repeat and Receive never allow browser-side
+   * beneficiary mutation.
    */
   const beneficiaryFieldsDisabled =
     transferFieldsDisabled ||
-    isRepeatFlow;
+    isRepeatFlow ||
+    receiveBound;
 
+  /*
+   * Build the ordinary route catalog first.
+   *
+   * Receive then exposes only its already-resolved
+   * route to TransferFields. This keeps destination
+   * selection fixed without disabling amount/asset.
+   */
   const routeOptions =
     useMemo(
-      () =>
-        normalizeArray(
-          routes
-        )
-          .map(route => ({
-            value:
-              route.id ||
-              route.route_id,
+      () => {
+        const options =
+          normalizeArray(
+            routes
+          )
+            .map(route => ({
+              value:
+                route.id ||
+                route.route_id,
 
-            label:
-              getRouteDisplayLabel(
-                route
-              ),
+              label:
+                getRouteDisplayLabel(
+                  route
+                ),
 
-            disabled:
-              isComingSoonRoute(
-                route
-              )
-          }))
-          .filter(
-            option =>
+              disabled:
+                isComingSoonRoute(
+                  route
+                )
+            }))
+            .filter(
+              option =>
+                option.value
+            );
+
+        if (!receiveBound) {
+          return options;
+        }
+
+        const receiveRouteId =
+          normalizeString(
+            selectedRouteId
+          );
+
+        if (!receiveRouteId) {
+          return [];
+        }
+
+        return options.filter(
+          option =>
+            normalizeString(
               option.value
-          ),
+            ) ===
+            receiveRouteId
+        );
+      },
       [
-        routes
+        receiveBound,
+        routes,
+        selectedRouteId
       ]
     );
 
@@ -209,11 +286,59 @@ export default function PayoutForm({
   });
 
   /*
-   * Pricing is required only while creating a new,
-   * editable standard payout.
+   * Browser-safe Receive presentation.
    *
-   * Existing and repeat flows continue from their
-   * backend-owned context.
+   * Only masked metadata from Receive context is
+   * rendered here. Raw beneficiary data is never
+   * expected in this component.
+   */
+  const receiveRecipientLabel =
+    normalizeString(
+      receiveRecipient?.label
+    );
+
+  const receiveMaskedIdentifier =
+    normalizeString(
+      receiveRecipient
+        ?.masked_identifier
+    );
+
+  const receiveCountryLabel =
+    normalizeString(
+      receiveDestinationCountry
+    ).toUpperCase();
+
+  const receiveRailLabel =
+    formatReceiveRail(
+      receivePayoutRail
+    );
+
+  const receiveRecipientSummary =
+    [
+      receiveRecipientLabel,
+      receiveMaskedIdentifier
+    ]
+      .filter(Boolean)
+      .join(
+        " · "
+      );
+
+  const receiveDestinationSummary =
+    [
+      receiveCountryLabel,
+      receiveRailLabel
+    ]
+      .filter(Boolean)
+      .join(
+        " · "
+      );
+
+  /*
+   * Pricing is required while creating a new,
+   * editable Standard or Receive payout.
+   *
+   * Existing and Repeat flows continue from their
+   * backend-owned execution context.
    */
   const pricingRequired =
     !isReturnedFlow &&
@@ -246,6 +371,23 @@ export default function PayoutForm({
 
   return (
     <section className="payout-form">
+      {receiveBound ? (
+        <div
+          className="wallet-pending-card receive-destination-summary"
+          aria-label="Receive destination"
+        >
+          <strong>
+            {receiveRecipientSummary ||
+              "Recipient"}
+          </strong>
+
+          <span>
+            {receiveDestinationSummary ||
+              "Destination fixed by recipient"}
+          </span>
+        </div>
+      ) : null}
+
       <TransferFields
         selectedRouteId={
           selectedRouteId
@@ -291,26 +433,28 @@ export default function PayoutForm({
         />
       ) : null}
 
-      <BeneficiaryFields
-        form={
-          form
-        }
-        renderedFields={
-          renderedFields
-        }
-        getOptions={
-          getOptions
-        }
-        updateDynamicField={
-          updateDynamicField
-        }
-        updateBeneficiaryField={
-          updateBeneficiaryField
-        }
-        disabled={
-          beneficiaryFieldsDisabled
-        }
-      />
+      {!receiveBound ? (
+        <BeneficiaryFields
+          form={
+            form
+          }
+          renderedFields={
+            renderedFields
+          }
+          getOptions={
+            getOptions
+          }
+          updateDynamicField={
+            updateDynamicField
+          }
+          updateBeneficiaryField={
+            updateBeneficiaryField
+          }
+          disabled={
+            beneficiaryFieldsDisabled
+          }
+        />
+      ) : null}
 
       <PayoutLifecyclePanel
         routeUnavailable={
