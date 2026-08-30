@@ -8,10 +8,6 @@ import {
 } from "../api";
 
 import {
-  validateRouteForm
-} from "../form";
-
-import {
   readStoredFlow,
   storeFlowSnapshot
 } from "../flow/flowStorage";
@@ -36,6 +32,7 @@ import {
 import {
   normalizeAuthorizationStatus,
   requireNormalFlowContext,
+  requireReceiveFlowContext,
   requireRepeatFlowContext,
   buildCurrentTransferFingerprint
 } from "../flow/payoutFlowContext";
@@ -56,6 +53,7 @@ export function usePayoutIntentFlow({
   selectedRoute,
   form,
   pricingPreview,
+  receiveProfileId,
 
   payoutIntentIdRef,
   routeFlowGenerationRef,
@@ -79,6 +77,15 @@ export function usePayoutIntentFlow({
   const isRepeatFlow =
     Boolean(
       repeatSourcePayoutIntentId
+    );
+
+  const isReceiveFlow =
+    Boolean(
+      !isRepeatFlow &&
+      String(
+        receiveProfileId ||
+        ""
+      ).trim()
     );
 
   function getFlowGeneration() {
@@ -110,6 +117,18 @@ export function usePayoutIntentFlow({
       return;
     }
 
+    if (isReceiveFlow) {
+      requireReceiveFlowContext({
+        connectSessionId,
+        selectedRoute,
+        address,
+        form,
+        receiveProfileId
+      });
+
+      return;
+    }
+
     requireNormalFlowContext({
       connectSessionId,
       selectedRoute,
@@ -122,7 +141,11 @@ export function usePayoutIntentFlow({
     return buildCurrentTransferFingerprint({
       selectedRoute,
       form,
-      repeatSourcePayoutIntentId
+      repeatSourcePayoutIntentId,
+      receiveProfileId:
+        isReceiveFlow
+          ? receiveProfileId
+          : null
     });
   }
 
@@ -170,6 +193,11 @@ export function usePayoutIntentFlow({
           chainId ||
           null,
 
+        receive_profile_id:
+          isReceiveFlow
+            ? receiveProfileId
+            : null,
+
         repeat_source_payout_intent_id:
           repeatSourcePayoutIntentId ||
           null
@@ -199,7 +227,12 @@ export function usePayoutIntentFlow({
             route:
               selectedRoute,
 
-            form
+            form,
+
+            receiveProfileId:
+              isReceiveFlow
+                ? receiveProfileId
+                : null
           });
 
     /*
@@ -267,6 +300,11 @@ export function usePayoutIntentFlow({
       {
         payout_intent_id:
           intentId,
+
+        receive_profile_id:
+          isReceiveFlow
+            ? receiveProfileId
+            : null,
 
         repeat_source_payout_intent_id:
           repeatSourcePayoutIntentId ||
@@ -706,10 +744,7 @@ export function usePayoutIntentFlow({
         PAYOUT_ATTEMPT_STATE
           .EDITABLE
     ) {
-      if (isRepeatFlow) {
-        requireCurrentFlowContext();
-      }
-      else {
+      if (!isRepeatFlow) {
         const normalizedPricing =
           normalizePricingPreview(
             pricingPreview
@@ -736,14 +771,9 @@ export function usePayoutIntentFlow({
               undefined
           };
         }
-
-        validateRouteForm({
-          form,
-
-          route:
-            selectedRoute
-        });
       }
+
+      requireCurrentFlowContext();
 
       invalidateLocalPayoutIntent(
         existingIntentId
@@ -870,10 +900,7 @@ export function usePayoutIntentFlow({
     let normalizedPricingPreview =
       null;
 
-    if (isRepeatFlow) {
-      requireCurrentFlowContext();
-    }
-    else {
+    if (!isRepeatFlow) {
       normalizedPricingPreview =
         normalizePricingPreview(
           pricingPreview
@@ -894,14 +921,9 @@ export function usePayoutIntentFlow({
 
         return;
       }
-
-      validateRouteForm({
-        form,
-
-        route:
-          selectedRoute
-      });
     }
+
+    requireCurrentFlowContext();
 
     prepareNewAttempt(
       normalizedPricingPreview
@@ -916,6 +938,11 @@ export function usePayoutIntentFlow({
         route_id:
           selectedRoute?.id ||
           null,
+
+        receive_profile_id:
+          isReceiveFlow
+            ? receiveProfileId
+            : null,
 
         repeat_source_payout_intent_id:
           repeatSourcePayoutIntentId ||
