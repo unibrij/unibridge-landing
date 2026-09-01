@@ -1,0 +1,45 @@
+name: Generate Root Lockfile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - name: Generate root package-lock.json
+        run: npm install --package-lock-only --prefer-dedupe
+
+      - name: Verify root clean install
+        run: npm ci
+
+      - name: Verify full build
+        run: npm run build
+
+      - name: Commit root package-lock.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add package-lock.json
+
+          if git diff --cached --quiet; then
+            echo "No lockfile changes."
+          else
+            git commit -m "chore: lock root dependencies"
+            git push
+          fi
