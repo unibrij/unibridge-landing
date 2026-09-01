@@ -51,9 +51,6 @@ createAppKit({
   projectId,
   metadata,
 
-  enableReconnect:
-    false,
-
   features: {
     analytics:
       false,
