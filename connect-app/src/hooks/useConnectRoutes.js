@@ -260,21 +260,57 @@ export default function useConnectRoutes({
   ]);
 
   /*
-   * Exact selectable route resolution.
+   * Effective route resolution.
    *
-   * No implicit fallback is hidden inside this
-   * derived value.
+   * Standard must always render with a selectable
+   * route whenever one exists.
+   *
+   * Receive remains fail-closed:
+   * exact bound route or null.
+   *
+   * selectedRouteId is reconciled separately, but
+   * rendering must never depend on a later effect
+   * to restore the Standard route invariant.
    */
   const selectedRoute =
     useMemo(
-      () =>
-        findSelectableRouteById(
-          routes,
-          selectedRouteId
-        ),
+      () => {
+        if (receiveBound) {
+          const receiveRoute =
+            findReceiveRoute(
+              routes,
+              {
+                destinationCountry:
+                  receiveDestinationCountry,
+
+                payoutRail:
+                  receivePayoutRail
+              }
+            );
+
+          return isSelectableRoute(
+            receiveRoute
+          )
+            ? receiveRoute
+            : null;
+        }
+
+        return (
+          findSelectableRouteById(
+            routes,
+            selectedRouteId
+          ) ||
+          findFirstSelectableRoute(
+            routes
+          )
+        );
+      },
       [
         routes,
-        selectedRouteId
+        selectedRouteId,
+        receiveBound,
+        receiveDestinationCountry,
+        receivePayoutRail
       ]
     );
 
