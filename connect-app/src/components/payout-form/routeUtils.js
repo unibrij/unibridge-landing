@@ -12,6 +12,18 @@ function normalizeLower(value) {
   return normalizeString(value).toLowerCase();
 }
 
+function normalizeRoute(route) {
+  if (
+    !route ||
+    typeof route !== "object" ||
+    Array.isArray(route)
+  ) {
+    return {};
+  }
+
+  return route;
+}
+
 export function normalizeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -19,7 +31,7 @@ export function normalizeArray(value) {
 export function uniqueValues(values = []) {
   return Array.from(
     new Set(
-      values
+      normalizeArray(values)
         .map(value => normalizeUpper(value))
         .filter(Boolean)
     )
@@ -27,43 +39,62 @@ export function uniqueValues(values = []) {
 }
 
 export function isComingSoonRoute(route = {}) {
+  const safeRoute =
+    normalizeRoute(route);
+
   return Boolean(
-    route.comingSoon ||
-      route.coming_soon ||
-      route.disabled ||
-      normalizeLower(route.status) === "coming_soon"
+    safeRoute.comingSoon ||
+      safeRoute.coming_soon ||
+      safeRoute.disabled ||
+      normalizeLower(
+        safeRoute.status
+      ) === "coming_soon"
   );
 }
 
 function getRouteId(route = {}) {
+  const safeRoute =
+    normalizeRoute(route);
+
   return normalizeLower(
-    route.id ||
-      route.route_id ||
-      route.routeId
+    safeRoute.id ||
+      safeRoute.route_id ||
+      safeRoute.routeId
   );
 }
 
 function getRouteLabel(route = {}) {
+  const safeRoute =
+    normalizeRoute(route);
+
   return normalizeLower(
-    route.label ||
-      route.name
+    safeRoute.label ||
+      safeRoute.name
   );
 }
 
 function getRouteCountry(route = {}) {
+  const safeRoute =
+    normalizeRoute(route);
+
   return normalizeUpper(
-    route.country ||
-      route.destination_country ||
-      route.destinationCountry ||
-      route.country_code ||
-      route.countryCode
+    safeRoute.country ||
+      safeRoute.destination_country ||
+      safeRoute.destinationCountry ||
+      safeRoute.country_code ||
+      safeRoute.countryCode
   );
 }
 
 export function isBrazilRoute(route = {}) {
-  const id = getRouteId(route);
-  const label = getRouteLabel(route);
-  const country = getRouteCountry(route);
+  const id =
+    getRouteId(route);
+
+  const label =
+    getRouteLabel(route);
+
+  const country =
+    getRouteCountry(route);
 
   return (
     country === "BR" ||
@@ -75,9 +106,14 @@ export function isBrazilRoute(route = {}) {
 }
 
 export function isPhilippinesRoute(route = {}) {
-  const id = getRouteId(route);
-  const label = getRouteLabel(route);
-  const country = getRouteCountry(route);
+  const id =
+    getRouteId(route);
+
+  const label =
+    getRouteLabel(route);
+
+  const country =
+    getRouteCountry(route);
 
   return (
     country === "PH" ||
@@ -90,16 +126,22 @@ export function isPhilippinesRoute(route = {}) {
 }
 
 export function getRouteAssets(route = {}) {
-  const backendAssets = normalizeArray(route.assets);
+  const safeRoute =
+    normalizeRoute(route);
+
+  const backendAssets =
+    normalizeArray(
+      safeRoute.assets
+    );
 
   const baseAssets =
     backendAssets.length > 0
       ? backendAssets
-      : route.asset
-        ? [route.asset]
+      : safeRoute.asset
+        ? [safeRoute.asset]
         : ["USDT"];
 
-  if (isBrazilRoute(route)) {
+  if (isBrazilRoute(safeRoute)) {
     return uniqueValues([
       ...baseAssets,
       "USDT",
@@ -111,26 +153,55 @@ export function getRouteAssets(route = {}) {
 }
 
 export function getBeneficiaryFields(route = {}) {
-  if (isComingSoonRoute(route)) {
+  const safeRoute =
+    normalizeRoute(route);
+
+  if (
+    isComingSoonRoute(
+      safeRoute
+    )
+  ) {
     return [];
   }
 
   return normalizeArray(
-    route.beneficiaryFields ||
-      route.beneficiary_fields
+    safeRoute.beneficiaryFields ||
+      safeRoute.beneficiary_fields
   );
 }
 
 export function getRouteFlag(route = {}) {
-  const country = getRouteCountry(route);
-  const id = getRouteId(route);
-  const label = getRouteLabel(route);
+  const safeRoute =
+    normalizeRoute(route);
 
-  if (isBrazilRoute(route)) {
+  const country =
+    getRouteCountry(
+      safeRoute
+    );
+
+  const id =
+    getRouteId(
+      safeRoute
+    );
+
+  const label =
+    getRouteLabel(
+      safeRoute
+    );
+
+  if (
+    isBrazilRoute(
+      safeRoute
+    )
+  ) {
     return "🇧🇷";
   }
 
-  if (isPhilippinesRoute(route)) {
+  if (
+    isPhilippinesRoute(
+      safeRoute
+    )
+  ) {
     return "🇵🇭";
   }
 
@@ -184,18 +255,26 @@ export function getRouteFlag(route = {}) {
 }
 
 export function getRouteDisplayLabel(route = {}) {
+  const safeRoute =
+    normalizeRoute(route);
+
   const routeLabel =
-    route.label ||
-    route.name ||
-    route.id ||
-    route.route_id ||
+    safeRoute.label ||
+    safeRoute.name ||
+    safeRoute.id ||
+    safeRoute.route_id ||
     "Route";
 
-  return `${getRouteFlag(route)} ${routeLabel}`;
+  return `${
+    getRouteFlag(
+      safeRoute
+    )
+  } ${routeLabel}`;
 }
 
 export function getNetworkDisplayName(network = "") {
-  const value = normalizeLower(network);
+  const value =
+    normalizeLower(network);
 
   if (value === "polygon") {
     return "Polygon";
@@ -210,10 +289,21 @@ export function resolveDisplayStatus({
   walletConfirmationPending,
   routeUnavailable
 } = {}) {
-  if (routeUnavailable) return "Coming soon";
-  if (fundingTxHash) return "Wallet submitted";
-  if (walletConfirmationPending) return "Confirm in wallet";
-  if (settlement?.funding) return "Ready to fund";
+  if (routeUnavailable) {
+    return "Coming soon";
+  }
+
+  if (fundingTxHash) {
+    return "Wallet submitted";
+  }
+
+  if (walletConfirmationPending) {
+    return "Confirm in wallet";
+  }
+
+  if (settlement?.funding) {
+    return "Ready to fund";
+  }
 
   return "Route ready";
 }
@@ -224,10 +314,21 @@ export function resolveButtonLabel({
   walletConfirmationPending,
   routeUnavailable
 } = {}) {
-  if (routeUnavailable) return "Coming soon";
-  if (walletConfirmationPending) return "Open wallet again";
-  if (isBusy) return "Preparing...";
-  if (settlement?.funding) return "Send funding";
+  if (routeUnavailable) {
+    return "Coming soon";
+  }
+
+  if (walletConfirmationPending) {
+    return "Open wallet again";
+  }
+
+  if (isBusy) {
+    return "Preparing...";
+  }
+
+  if (settlement?.funding) {
+    return "Send funding";
+  }
 
   return "Continue";
 }
