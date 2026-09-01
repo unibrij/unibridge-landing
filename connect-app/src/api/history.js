@@ -8,27 +8,59 @@ import {
 } from "./client.js";
 
 
+function normalizeHistoryLimit(
+  value
+) {
+  const parsed =
+    Number(
+      value
+    );
+
+  return (
+    Number.isFinite(
+      parsed
+    ) &&
+    parsed > 0
+  )
+    ? Math.min(
+        50,
+        Math.trunc(
+          parsed
+        )
+      )
+    : 20;
+}
+
+
+function projectHistoryResponse(
+  data = {}
+) {
+  return {
+    recent_recipients:
+      Array.isArray(
+        data.recent_recipients
+      )
+        ? data.recent_recipients
+        : [],
+
+    recent_payouts:
+      Array.isArray(
+        data.recent_payouts
+      )
+        ? data.recent_payouts
+        : []
+  };
+}
+
+
 export async function getPayoutHistory({
   accessToken,
   limit = 20
 }) {
-  const parsedLimit =
-    Number(
+  const normalizedLimit =
+    normalizeHistoryLimit(
       limit
     );
-
-  const normalizedLimit =
-    Number.isFinite(
-      parsedLimit
-    ) &&
-    parsedLimit > 0
-      ? Math.min(
-          50,
-          Math.trunc(
-            parsedLimit
-          )
-        )
-      : 20;
 
   const params =
     new URLSearchParams({
@@ -63,21 +95,163 @@ export async function getPayoutHistory({
     "get_payout_history_failed"
   );
 
-  return {
-    recent_recipients:
-      Array.isArray(
-        data.recent_recipients
-      )
-        ? data.recent_recipients
-        : [],
+  return projectHistoryResponse(
+    data
+  );
+}
 
-    recent_payouts:
-      Array.isArray(
-        data.recent_payouts
-      )
-        ? data.recent_payouts
-        : []
-  };
+
+export async function createHistoryChallenge({
+  connectSessionId
+}) {
+  const normalizedConnectSessionId =
+    String(
+      connectSessionId ||
+      ""
+    ).trim();
+
+  if (
+    !normalizedConnectSessionId
+  ) {
+    throw new Error(
+      "connect_session_id_required"
+    );
+  }
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/payout-history/challenge`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            connect_session_id:
+              normalizedConnectSessionId
+          })
+      }
+    );
+
+  const data =
+    await parseJson(
+      response
+    );
+
+  assertOk(
+    response,
+    data,
+    "history_challenge_failed"
+  );
+
+  if (
+    !data.message ||
+    !data.nonce ||
+    !data.wallet_address
+  ) {
+    throw new Error(
+      "history_challenge_incomplete"
+    );
+  }
+
+  return data;
+}
+
+
+export async function getWalletPayoutHistory({
+  connectSessionId,
+  nonce,
+  signature,
+  limit = 20
+}) {
+  const normalizedConnectSessionId =
+    String(
+      connectSessionId ||
+      ""
+    ).trim();
+
+  const normalizedNonce =
+    String(
+      nonce ||
+      ""
+    ).trim();
+
+  const normalizedSignature =
+    String(
+      signature ||
+      ""
+    ).trim();
+
+  if (
+    !normalizedConnectSessionId
+  ) {
+    throw new Error(
+      "connect_session_id_required"
+    );
+  }
+
+  if (!normalizedNonce) {
+    throw new Error(
+      "history_authorization_nonce_required"
+    );
+  }
+
+  if (!normalizedSignature) {
+    throw new Error(
+      "history_authorization_signature_required"
+    );
+  }
+
+  const response =
+    await fetch(
+      `${API_BASE}/connect/payout-history/wallet`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            connect_session_id:
+              normalizedConnectSessionId,
+
+            nonce:
+              normalizedNonce,
+
+            signature:
+              normalizedSignature,
+
+            limit:
+              normalizeHistoryLimit(
+                limit
+              )
+          })
+      }
+    );
+
+  const data =
+    await parseJson(
+      response
+    );
+
+  assertOk(
+    response,
+    data,
+    "get_wallet_payout_history_failed"
+  );
+
+  return projectHistoryResponse(
+    data
+  );
 }
 
 
