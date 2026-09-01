@@ -61,17 +61,159 @@
     <div id="root"></div>
 
     <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register(
-            "/connect/service-worker.js",
-            {
-              scope: "/connect/",
-              updateViaCache: "none"
+      (function () {
+        const CONNECT_CACHE_PREFIX =
+          "unibridge-connect-";
+
+        const CLEANUP_RELOAD_KEY =
+          "unibridge_connect_sw_cleanup_reloaded_v1";
+
+        async function cleanupConnectServiceWorker() {
+          let changed =
+            false;
+
+          try {
+            if (
+              "serviceWorker" in
+              navigator
+            ) {
+              const registrations =
+                await navigator
+                  .serviceWorker
+                  .getRegistrations();
+
+              for (
+                const registration
+                of registrations
+              ) {
+                let scopeUrl;
+
+                try {
+                  scopeUrl =
+                    new URL(
+                      registration.scope
+                    );
+                }
+                catch {
+                  continue;
+                }
+
+                if (
+                  scopeUrl.origin !==
+                    window.location.origin ||
+                  !scopeUrl.pathname.startsWith(
+                    "/connect/"
+                  )
+                ) {
+                  continue;
+                }
+
+                const unregistered =
+                  await registration
+                    .unregister();
+
+                if (
+                  unregistered
+                ) {
+                  changed =
+                    true;
+                }
+              }
             }
-          );
-        });
-      }
+
+            if (
+              "caches" in
+              window
+            ) {
+              const cacheKeys =
+                await caches.keys();
+
+              for (
+                const cacheKey
+                of cacheKeys
+              ) {
+                if (
+                  !cacheKey.startsWith(
+                    CONNECT_CACHE_PREFIX
+                  )
+                ) {
+                  continue;
+                }
+
+                const deleted =
+                  await caches.delete(
+                    cacheKey
+                  );
+
+                if (
+                  deleted
+                ) {
+                  changed =
+                    true;
+                }
+              }
+            }
+
+            if (!changed) {
+              try {
+                sessionStorage
+                  .removeItem(
+                    CLEANUP_RELOAD_KEY
+                  );
+              }
+              catch {
+                // Ignore storage restrictions.
+              }
+
+              return;
+            }
+
+            let alreadyReloaded =
+              false;
+
+            try {
+              alreadyReloaded =
+                sessionStorage
+                  .getItem(
+                    CLEANUP_RELOAD_KEY
+                  ) ===
+                "1";
+            }
+            catch {
+              // Ignore storage restrictions.
+            }
+
+            if (
+              alreadyReloaded
+            ) {
+              return;
+            }
+
+            try {
+              sessionStorage
+                .setItem(
+                  CLEANUP_RELOAD_KEY,
+                  "1"
+                );
+            }
+            catch {
+              // Ignore storage restrictions.
+            }
+
+            window.location.reload();
+          }
+          catch (
+            error
+          ) {
+            console.warn(
+              "CONNECT_SERVICE_WORKER_CLEANUP_FAILED",
+              error
+            );
+          }
+        }
+
+        void cleanupConnectServiceWorker();
+      })();
     </script>
 
     <script type="module" src="/src/main.jsx"></script>
