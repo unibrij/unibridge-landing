@@ -4,9 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "cd connect-app && npm install && npm run build && cd ../fiat-bank-transfer-app && npm install && npm run build"
+    "build": "cd connect-app && npm ci && npm run build && cd ../fiat-bank-transfer-app && npm ci && npm run build"
   },
   "dependencies": {
-    "nodemailer": "^6.9.0"
+    "nodemailer": "6.10.1"
   }
 }
