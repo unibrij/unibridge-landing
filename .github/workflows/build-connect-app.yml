@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: connect-app
-        run: npm install
+        run: npm ci
 
       - name: Build Connect app
         working-directory: connect-app
