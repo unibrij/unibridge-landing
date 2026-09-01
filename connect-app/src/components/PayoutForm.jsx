@@ -99,17 +99,19 @@ export default function PayoutForm({
   routes
 }) {
   /*
-   * Receive is fail-closed.
+   * selectedRoute is intentionally nullable.
    *
-   * Until the bound route is resolved, it must be
-   * treated as unavailable rather than temporarily
-   * falling through to a generic payout route.
+   * Standard normally resolves synchronously to a
+   * selectable fallback route, while Receive remains
+   * fail-closed when its exact bound route is not
+   * available.
+   *
+   * Either way, a missing route must be treated as
+   * unavailable and must never flow into route logic
+   * as though a valid route exists.
    */
   const routeUnavailable =
-    (
-      receiveBound &&
-      !selectedRoute
-    ) ||
+    !selectedRoute ||
     isComingSoonRoute(
       selectedRoute
     );
