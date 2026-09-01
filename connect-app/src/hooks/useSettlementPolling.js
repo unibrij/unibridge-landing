@@ -10,10 +10,6 @@ import {
 } from "../api";
 
 import {
-  saveRouteHistoryItem
-} from "../history/routeHistory";
-
-import {
   getSettlementId,
   isCompletedStatus,
   isTerminalFailureStatus,
@@ -21,15 +17,15 @@ import {
   sleep
 } from "../flow/routeFlowUtils";
 
+
 const STATUS_POLL_INTERVAL_MS =
   4000;
 
 const STATUS_POLL_MAX_ATTEMPTS =
   24;
 
+
 export function useSettlementPolling({
-  selectedRoute,
-  form,
   setSettlement,
   writeDebug
 }) {
@@ -52,9 +48,7 @@ export function useSettlementPolling({
 
   async function pollSettlementAfterFunding({
     intentId,
-    txHash,
-    asset,
-    amount
+    txHash
   }) {
     if (!intentId) {
       writeDebug(
@@ -186,37 +180,6 @@ export function useSettlementPolling({
               refreshed
             );
 
-          saveRouteHistoryItem({
-            id:
-              settlementId,
-
-            route_id:
-              settlementId,
-
-            payout_intent_id:
-              intentId,
-
-            corridor:
-              selectedRoute
-                ?.label ||
-              selectedRoute?.id ||
-              "—",
-
-            amount:
-              form.amount ||
-              amount ||
-              "",
-
-            asset:
-              form.asset ||
-              asset ||
-              "",
-
-            status:
-              refreshed?.status ||
-              "payout_completed"
-          });
-
           writeDebug(
             "Payout completed.",
             {
@@ -342,5 +305,6 @@ export function useSettlementPolling({
     cancelSettlementPolling
   };
 }
+
 
 export default useSettlementPolling;
