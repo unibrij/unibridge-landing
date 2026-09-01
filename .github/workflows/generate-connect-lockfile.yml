@@ -23,7 +23,7 @@ jobs:
 
       - name: Generate package-lock.json
         working-directory: connect-app
-        run: npm install --package-lock-only
+        run: npm install --package-lock-only --prefer-dedupe
 
       - name: Verify clean install
         working-directory: connect-app
