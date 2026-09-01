@@ -18,6 +18,7 @@ import useFundingTransaction
 import usePayoutIntentFlow
   from "./usePayoutIntentFlow";
 
+
 export function useRouteFlow({
   isConnected,
   address,
@@ -111,8 +112,6 @@ export function useRouteFlow({
     pollSettlementAfterFunding,
     cancelSettlementPolling
   } = useSettlementPolling({
-    selectedRoute,
-    form,
     setSettlement,
     writeDebug
   });
@@ -345,5 +344,6 @@ export function useRouteFlow({
     resetRouteFlowRuntime
   };
 }
+
 
 export default useRouteFlow;
