@@ -4,6 +4,42 @@
   "buildCommand": "npm run build",
   "headers": [
     {
+      "source": "/connect",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/connect/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/connect/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/connect/service-worker.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/surface",
       "headers": [
         {
@@ -170,6 +206,14 @@
     {
       "source": "/partner/routes/:path*",
       "destination": "https://unibridge-ops.vercel.app/partner/routes/:path*"
+    },
+    {
+      "source": "/connect",
+      "destination": "/connect/index.html"
+    },
+    {
+      "source": "/connect/",
+      "destination": "/connect/index.html"
     },
     {
       "source": "/surface",
