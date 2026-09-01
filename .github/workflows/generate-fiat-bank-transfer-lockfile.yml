@@ -1,0 +1,48 @@
+name: Generate Fiat Bank Transfer Lockfile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+
+      - name: Generate package-lock.json
+        working-directory: fiat-bank-transfer-app
+        run: npm install --package-lock-only --prefer-dedupe
+
+      - name: Verify clean install
+        working-directory: fiat-bank-transfer-app
+        run: npm ci
+
+      - name: Verify build
+        working-directory: fiat-bank-transfer-app
+        run: npm run build
+
+      - name: Commit package-lock.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add fiat-bank-transfer-app/package-lock.json
+
+          if git diff --cached --quiet; then
+            echo "No lockfile changes."
+          else
+            git commit -m "chore: lock fiat bank transfer app dependencies"
+            git push
+          fi
