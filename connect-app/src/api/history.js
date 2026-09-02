@@ -3,9 +3,44 @@
 import {
   API_BASE,
   assertOk,
-  buildCustomerAuthHeaders,
   parseJson
 } from "./client.js";
+
+
+function normalizeString(
+  value
+) {
+  return String(
+    value ||
+    ""
+  ).trim();
+}
+
+
+function buildConnectReadHeaders(
+  walletAddress
+) {
+  const normalizedWalletAddress =
+    normalizeString(
+      walletAddress
+    );
+
+  if (
+    !normalizedWalletAddress
+  ) {
+    throw new Error(
+      "connect_wallet_address_required"
+    );
+  }
+
+  return {
+    "Content-Type":
+      "application/json",
+
+    "x-unibridge-wallet-address":
+      normalizedWalletAddress
+  };
+}
 
 
 function normalizeHistoryLimit(
@@ -54,7 +89,7 @@ function projectHistoryResponse(
 
 
 export async function getPayoutHistory({
-  accessToken,
+  walletAddress,
   limit = 20
 }) {
   const normalizedLimit =
@@ -78,8 +113,8 @@ export async function getPayoutHistory({
           "GET",
 
         headers:
-          buildCustomerAuthHeaders(
-            accessToken
+          buildConnectReadHeaders(
+            walletAddress
           )
       }
     );
@@ -101,169 +136,14 @@ export async function getPayoutHistory({
 }
 
 
-export async function createHistoryChallenge({
-  connectSessionId
-}) {
-  const normalizedConnectSessionId =
-    String(
-      connectSessionId ||
-      ""
-    ).trim();
-
-  if (
-    !normalizedConnectSessionId
-  ) {
-    throw new Error(
-      "connect_session_id_required"
-    );
-  }
-
-  const response =
-    await fetch(
-      `${API_BASE}/connect/payout-history/challenge`,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-
-        body:
-          JSON.stringify({
-            connect_session_id:
-              normalizedConnectSessionId
-          })
-      }
-    );
-
-  const data =
-    await parseJson(
-      response
-    );
-
-  assertOk(
-    response,
-    data,
-    "history_challenge_failed"
-  );
-
-  if (
-    !data.message ||
-    !data.nonce ||
-    !data.wallet_address
-  ) {
-    throw new Error(
-      "history_challenge_incomplete"
-    );
-  }
-
-  return data;
-}
-
-
-export async function getWalletPayoutHistory({
-  connectSessionId,
-  nonce,
-  signature,
-  limit = 20
-}) {
-  const normalizedConnectSessionId =
-    String(
-      connectSessionId ||
-      ""
-    ).trim();
-
-  const normalizedNonce =
-    String(
-      nonce ||
-      ""
-    ).trim();
-
-  const normalizedSignature =
-    String(
-      signature ||
-      ""
-    ).trim();
-
-  if (
-    !normalizedConnectSessionId
-  ) {
-    throw new Error(
-      "connect_session_id_required"
-    );
-  }
-
-  if (!normalizedNonce) {
-    throw new Error(
-      "history_authorization_nonce_required"
-    );
-  }
-
-  if (!normalizedSignature) {
-    throw new Error(
-      "history_authorization_signature_required"
-    );
-  }
-
-  const response =
-    await fetch(
-      `${API_BASE}/connect/payout-history/wallet`,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json"
-        },
-
-        body:
-          JSON.stringify({
-            connect_session_id:
-              normalizedConnectSessionId,
-
-            nonce:
-              normalizedNonce,
-
-            signature:
-              normalizedSignature,
-
-            limit:
-              normalizeHistoryLimit(
-                limit
-              )
-          })
-      }
-    );
-
-  const data =
-    await parseJson(
-      response
-    );
-
-  assertOk(
-    response,
-    data,
-    "get_wallet_payout_history_failed"
-  );
-
-  return projectHistoryResponse(
-    data
-  );
-}
-
-
 export async function getRepeatPayoutSource({
   sourcePayoutIntentId,
-  accessToken
+  walletAddress
 }) {
   const normalizedSourcePayoutIntentId =
-    String(
-      sourcePayoutIntentId ||
-      ""
-    ).trim();
+    normalizeString(
+      sourcePayoutIntentId
+    );
 
   if (
     !normalizedSourcePayoutIntentId
@@ -283,8 +163,8 @@ export async function getRepeatPayoutSource({
           "GET",
 
         headers:
-          buildCustomerAuthHeaders(
-            accessToken
+          buildConnectReadHeaders(
+            walletAddress
           )
       }
     );
@@ -317,19 +197,17 @@ export async function repeatPayout({
   sourcePayoutIntentId,
   connectSessionId,
   amount,
-  accessToken
+  walletAddress
 }) {
   const normalizedSourcePayoutIntentId =
-    String(
-      sourcePayoutIntentId ||
-      ""
-    ).trim();
+    normalizeString(
+      sourcePayoutIntentId
+    );
 
   const normalizedConnectSessionId =
-    String(
-      connectSessionId ||
-      ""
-    ).trim();
+    normalizeString(
+      connectSessionId
+    );
 
   const normalizedAmount =
     String(
@@ -353,7 +231,9 @@ export async function repeatPayout({
     );
   }
 
-  if (!normalizedAmount) {
+  if (
+    !normalizedAmount
+  ) {
     throw new Error(
       "amount_required"
     );
@@ -367,8 +247,8 @@ export async function repeatPayout({
           "POST",
 
         headers:
-          buildCustomerAuthHeaders(
-            accessToken
+          buildConnectReadHeaders(
+            walletAddress
           ),
 
         body:
