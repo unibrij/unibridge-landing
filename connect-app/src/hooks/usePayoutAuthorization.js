@@ -6,10 +6,6 @@ import {
 } from "react";
 
 import {
-  useSignMessage
-} from "wagmi";
-
-import {
   requestAuthorizationMessage,
   submitAuthorization
 } from "../api";
@@ -35,13 +31,10 @@ function normalizeAddress(value) {
 export function usePayoutAuthorization({
   payoutIntentId,
   address,
+  walletClient,
   setWalletConfirmationPending,
   writeDebug
 }) {
-  const {
-    signMessageAsync
-  } = useSignMessage();
-
   const [
     payoutAccessToken,
     setPayoutAccessToken
@@ -106,8 +99,14 @@ export function usePayoutAuthorization({
       );
     }
 
+    if (!walletClient) {
+      throw new Error(
+        "wallet_not_ready"
+      );
+    }
+
     if (
-      typeof signMessageAsync !==
+      typeof walletClient.signMessage !==
       "function"
     ) {
       throw new Error(
@@ -196,23 +195,13 @@ export function usePayoutAuthorization({
       );
 
       const signature =
-        await signMessageAsync({
-          account:
-            address,
+        await walletClient
+          .signMessage({
+            account:
+              address,
 
-          message
-        });
-
-      writeDebug(
-        "Wallet authorization signature received.",
-        {
-          payout_intent_id:
-            intentId,
-
-          wallet_address:
-            address
-        }
-      );
+            message
+          });
 
       const authorization =
         await submitAuthorization({
