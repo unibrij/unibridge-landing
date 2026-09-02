@@ -43,7 +43,6 @@ export function useRouteFlow({
   isReturnedFlow,
 
   repeatSourcePayoutIntentId,
-  repeatAccessToken,
 
   writeDebug
 }) {
@@ -152,7 +151,6 @@ export function useRouteFlow({
     pricingPreview,
     receiveProfileId,
 
-    payoutIntentId,
     payoutIntentIdRef,
     routeFlowGenerationRef,
     kycCompletionPendingRef,
@@ -164,7 +162,6 @@ export function useRouteFlow({
     setWalletConfirmationPending,
 
     repeatSourcePayoutIntentId,
-    repeatAccessToken,
 
     authorizeIntentWithWallet,
     ensureIntentAuthorized,
