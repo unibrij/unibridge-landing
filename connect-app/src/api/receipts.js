@@ -7,21 +7,29 @@ import {
 } from "./client.js";
 
 
+function normalizeString(
+  value
+) {
+  return String(
+    value ||
+    ""
+  ).trim();
+}
+
+
 export async function downloadReceiptPdf({
   receiptId,
-  accessToken
+  walletAddress
 }) {
   const normalizedReceiptId =
-    String(
-      receiptId ||
-      ""
-    ).trim();
+    normalizeString(
+      receiptId
+    );
 
-  const normalizedAccessToken =
-    String(
-      accessToken ||
-      ""
-    ).trim();
+  const normalizedWalletAddress =
+    normalizeString(
+      walletAddress
+    );
 
   if (!normalizedReceiptId) {
     throw new Error(
@@ -29,15 +37,15 @@ export async function downloadReceiptPdf({
     );
   }
 
-  if (!normalizedAccessToken) {
+  if (!normalizedWalletAddress) {
     throw new Error(
-      "receipt_access_token_required"
+      "connect_wallet_address_required"
     );
   }
 
   const response =
     await fetch(
-      `${API_BASE}/receipts/${encodeURIComponent(
+      `${API_BASE}/connect/receipts/${encodeURIComponent(
         normalizedReceiptId
       )}/pdf`,
       {
@@ -45,8 +53,8 @@ export async function downloadReceiptPdf({
           "GET",
 
         headers: {
-          Authorization:
-            `Bearer ${normalizedAccessToken}`
+          "x-unibridge-wallet-address":
+            normalizedWalletAddress
         }
       }
     );
