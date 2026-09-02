@@ -760,17 +760,29 @@ export default function App() {
     );
 
   /*
-   * History remains behind the same usable-session
-   * boundary as Connect navigation.
+   * History owns its own access fallback.
+   *
+   * A valid PAT may be used when available.
+   * Without a PAT, History verifies the connected
+   * wallet through the wallet-backed Connect session.
    */
-  if (
-    isHistoryPage &&
-    canAccessConnectNavigation
-  ) {
+  if (isHistoryPage) {
     return (
       <HistoryPage
         accessToken={
           historyAccessToken
+        }
+        isConnected={
+          isConnected
+        }
+        address={
+          address
+        }
+        walletClient={
+          walletClient
+        }
+        connectSessionId={
+          connectSessionId
         }
       />
     );
