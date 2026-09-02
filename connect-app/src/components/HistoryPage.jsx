@@ -43,11 +43,8 @@ function RecipientAvatar({
 
 
 export default function HistoryPage({
-  accessToken,
   isConnected = false,
-  address,
-  walletClient,
-  connectSessionId
+  address
 }) {
   const {
     recentPayouts,
@@ -55,11 +52,8 @@ export default function HistoryPage({
     historyError,
     retryHistory
   } = useHistoryData({
-    accessToken,
     isConnected,
-    address,
-    walletClient,
-    connectSessionId
+    address
   });
 
   const [
@@ -81,6 +75,11 @@ export default function HistoryPage({
         item?.receipt_id
       );
 
+    const walletAddress =
+      normalizeString(
+        address
+      );
+
     if (!receiptId) {
       setReceiptError(
         "Receipt is not available for this payout."
@@ -89,16 +88,12 @@ export default function HistoryPage({
       return;
     }
 
-    /*
-     * Receipt authorization remains on the
-     * existing PAT path for now.
-     *
-     * Wallet History access does not expand
-     * Receipt authorization.
-     */
-    if (!accessToken) {
+    if (
+      !isConnected ||
+      !walletAddress
+    ) {
       setReceiptError(
-        "Receipt access is unavailable."
+        "Connect your wallet to download this receipt."
       );
 
       return;
@@ -116,7 +111,7 @@ export default function HistoryPage({
       const result =
         await downloadReceiptPdf({
           receiptId,
-          accessToken
+          walletAddress
         });
 
       triggerBlobDownload({
@@ -159,6 +154,17 @@ export default function HistoryPage({
   const hasHistory =
     recentPayouts.length >
       0;
+
+  const walletAddress =
+    normalizeString(
+      address
+    );
+
+  const hasConnectedWallet =
+    Boolean(
+      isConnected &&
+      walletAddress
+    );
 
 
   return (
@@ -219,56 +225,11 @@ export default function HistoryPage({
         ) : null}
 
         {historyStatus ===
-        "preparing" ? (
-          <div className="history-state-card">
-            <span>
-              Preparing wallet verification...
-            </span>
-          </div>
-        ) : null}
-
-        {historyStatus ===
-        "verifying" ? (
-          <div className="history-state-card">
-            <strong>
-              Verify your wallet
-            </strong>
-
-            <span>
-              Sign the wallet message to view your payout history. This does not authorize a payment or transfer.
-            </span>
-          </div>
-        ) : null}
-
-        {historyStatus ===
         "loading" ? (
           <div className="history-state-card">
             <span>
               Loading history...
             </span>
-          </div>
-        ) : null}
-
-        {historyStatus ===
-        "signature_cancelled" ? (
-          <div className="history-state-card">
-            <strong>
-              Wallet verification cancelled
-            </strong>
-
-            <span>
-              Verify your wallet to view payout history.
-            </span>
-
-            <button
-              type="button"
-              className="history-secondary-button"
-              onClick={
-                handleRetryHistory
-              }
-            >
-              Try again
-            </button>
           </div>
         ) : null}
 
@@ -287,17 +248,15 @@ export default function HistoryPage({
                 "History could not be loaded."}
             </span>
 
-            {!accessToken ? (
-              <button
-                type="button"
-                className="history-secondary-button"
-                onClick={
-                  handleRetryHistory
-                }
-              >
-                Try again
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className="history-secondary-button"
+              onClick={
+                handleRetryHistory
+              }
+            >
+              Try again
+            </button>
           </div>
         ) : null}
 
@@ -366,21 +325,16 @@ export default function HistoryPage({
                       payout
                     );
 
-                  /*
-                   * Receipt and Repeat remain on
-                   * their existing PAT authorization
-                   * paths for now.
-                   */
                   const canDownloadReceipt =
                     Boolean(
                       receiptId &&
-                      accessToken
+                      hasConnectedWallet
                     );
 
                   const canSendAgain =
                     Boolean(
                       repeatUrl &&
-                      accessToken
+                      hasConnectedWallet
                     );
 
                   const isDownloading =
