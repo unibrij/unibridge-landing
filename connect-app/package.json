@@ -22,8 +22,5 @@
     "vite": "8.2.2",
     "wagmi": "2.19.5"
   },
-  "overrides": {
-    "@walletconnect/ethereum-provider": "2.23.7"
-  },
   "devDependencies": {}
 }
