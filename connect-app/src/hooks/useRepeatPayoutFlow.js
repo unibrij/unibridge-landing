@@ -22,7 +22,7 @@ export default function useRepeatPayoutFlow({
 
   repeatSourceFromUrl,
   repeatRouteIdFromUrl,
-  repeatAccessToken,
+  address,
 
   routes,
   setSelectedRouteId,
@@ -42,10 +42,16 @@ export default function useRepeatPayoutFlow({
   writeDebug
 }) {
   useEffect(() => {
+    const walletAddress =
+      String(
+        address ||
+        ""
+      ).trim();
+
     if (
       repeatInitializedRef.current ||
       !repeatSourceFromUrl ||
-      !repeatAccessToken
+      !walletAddress
     ) {
       return;
     }
@@ -68,8 +74,7 @@ export default function useRepeatPayoutFlow({
             sourcePayoutIntentId:
               repeatSourceFromUrl,
 
-            accessToken:
-              repeatAccessToken
+            walletAddress
           });
 
         if (cancelled) {
@@ -232,8 +237,8 @@ export default function useRepeatPayoutFlow({
         true;
     };
   }, [
+    address,
     payoutIntentIdStateRef,
-    repeatAccessToken,
     repeatInitializedRef,
     repeatRouteIdFromUrl,
     repeatSourceFromUrl,
