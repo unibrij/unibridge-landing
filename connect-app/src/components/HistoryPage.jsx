@@ -1,376 +1,30 @@
 // connect-app/src/components/HistoryPage.jsx
 
 import {
-  useEffect,
   useState
 } from "react";
 
 import {
-  downloadReceiptPdf,
-  getPayoutHistory
+  downloadReceiptPdf
 } from "../api";
 
-function normalizeString(
-  value
-) {
-  return String(
-    value ??
-    ""
-  ).trim();
-}
+import {
+  useHistoryData
+} from "./history/useHistoryData.js";
 
-function normalizeStatus(
-  status
-) {
-  return normalizeString(
-    status
-  ).toLowerCase();
-}
+import {
+  buildRecipientSummary,
+  buildRepeatUrl,
+  formatAmount,
+  formatDate,
+  formatStatus,
+  getRecipientInitials,
+  getRecipientLabel,
+  normalizeStatus,
+  normalizeString,
+  triggerBlobDownload
+} from "./history/historyUtils.js";
 
-function formatStatus(
-  status
-) {
-  const normalized =
-    normalizeStatus(
-      status
-    );
-
-  const labels = {
-    completed:
-      "Completed",
-
-    complete:
-      "Completed",
-
-    executed:
-      "Completed",
-
-    success:
-      "Completed",
-
-    succeeded:
-      "Completed",
-
-    payout_completed:
-      "Completed",
-
-    execution_completed:
-      "Completed",
-
-    processing:
-      "Processing",
-
-    pending:
-      "Pending",
-
-    failed:
-      "Failed"
-  };
-
-  if (
-    labels[normalized]
-  ) {
-    return labels[
-      normalized
-    ];
-  }
-
-  if (!normalized) {
-    return "—";
-  }
-
-  return normalized
-    .replace(
-      /_/g,
-      " "
-    )
-    .replace(
-      /\b\w/g,
-      character =>
-        character.toUpperCase()
-    );
-}
-
-function formatAmount(
-  item
-) {
-  const amount =
-    normalizeString(
-      item?.amount
-    );
-
-  const asset =
-    normalizeString(
-      item?.asset
-    );
-
-  if (!amount) {
-    return "—";
-  }
-
-  return asset
-    ? `${amount} ${asset}`
-    : amount;
-}
-
-function resolveDate(
-  value
-) {
-  if (!value) {
-    return null;
-  }
-
-  if (
-    typeof value ===
-      "string" ||
-    typeof value ===
-      "number"
-  ) {
-    const date =
-      new Date(
-        value
-      );
-
-    return Number.isNaN(
-      date.getTime()
-    )
-      ? null
-      : date;
-  }
-
-  const seconds =
-    value?._seconds ??
-    value?.seconds;
-
-  if (
-    Number.isFinite(
-      Number(
-        seconds
-      )
-    )
-  ) {
-    const date =
-      new Date(
-        Number(
-          seconds
-        ) *
-        1000
-      );
-
-    return Number.isNaN(
-      date.getTime()
-    )
-      ? null
-      : date;
-  }
-
-  return null;
-}
-
-function formatDate(
-  value
-) {
-  const date =
-    resolveDate(
-      value
-    );
-
-  if (!date) {
-    return "—";
-  }
-
-  try {
-    return date
-      .toLocaleDateString(
-        undefined,
-        {
-          year:
-            "numeric",
-
-          month:
-            "short",
-
-          day:
-            "numeric"
-        }
-      );
-  }
-  catch {
-    return "—";
-  }
-}
-
-function getRecipientLabel(
-  item
-) {
-  return (
-    normalizeString(
-      item
-        ?.recipient_display
-        ?.label
-    ) ||
-    "Recipient"
-  );
-}
-
-function getRecipientDestination(
-  item
-) {
-  return normalizeString(
-    item
-      ?.recipient_display
-      ?.destination
-  );
-}
-
-function getMaskedIdentifier(
-  item
-) {
-  return normalizeString(
-    item
-      ?.recipient_display
-      ?.masked_identifier
-  );
-}
-
-function buildRecipientSummary(
-  item
-) {
-  return [
-    getRecipientDestination(
-      item
-    ),
-
-    getMaskedIdentifier(
-      item
-    )
-  ]
-    .filter(
-      Boolean
-    )
-    .join(
-      " · "
-    ) ||
-    "Saved payout recipient";
-}
-
-function getRecipientInitials(
-  item
-) {
-  const label =
-    getRecipientLabel(
-      item
-    );
-
-  const words =
-    label
-      .split(
-        /\s+/
-      )
-      .filter(
-        Boolean
-      );
-
-  if (
-    words.length === 0
-  ) {
-    return "UB";
-  }
-
-  if (
-    words.length === 1
-  ) {
-    return words[0]
-      .slice(
-        0,
-        2
-      )
-      .toUpperCase();
-  }
-
-  return (
-    words[0][0] +
-    words[
-      words.length -
-      1
-    ][0]
-  ).toUpperCase();
-}
-
-function buildRepeatUrl(
-  item
-) {
-  const sourcePayoutIntentId =
-    normalizeString(
-      item
-        ?.repeat_source_payout_intent_id ||
-      item?.payout_intent_id
-    );
-
-  const routeId =
-    normalizeString(
-      item?.route_id
-    );
-
-  if (
-    !sourcePayoutIntentId ||
-    !routeId ||
-    item?.repeat_available ===
-      false
-  ) {
-    return null;
-  }
-
-  const params =
-    new URLSearchParams({
-      repeat_source_payout_intent_id:
-        sourcePayoutIntentId,
-
-      route_id:
-        routeId
-    });
-
-  return `/connect/?${params.toString()}`;
-}
-
-function triggerBlobDownload({
-  blob,
-  filename
-}) {
-  const objectUrl =
-    URL.createObjectURL(
-      blob
-    );
-
-  const link =
-    document.createElement(
-      "a"
-    );
-
-  link.href =
-    objectUrl;
-
-  link.download =
-    filename ||
-    "unibridge-receipt.pdf";
-
-  document.body.appendChild(
-    link
-  );
-
-  link.click();
-
-  link.remove();
-
-  globalThis.setTimeout(
-    () => {
-      URL.revokeObjectURL(
-        objectUrl
-      );
-    },
-    0
-  );
-}
 
 function RecipientAvatar({
   item
@@ -387,23 +41,26 @@ function RecipientAvatar({
   );
 }
 
+
 export default function HistoryPage({
-  accessToken
+  accessToken,
+  isConnected = false,
+  address,
+  walletClient,
+  connectSessionId
 }) {
-  const [
+  const {
     recentPayouts,
-    setRecentPayouts
-  ] = useState([]);
-
-  const [
     historyStatus,
-    setHistoryStatus
-  ] = useState("idle");
-
-  const [
     historyError,
-    setHistoryError
-  ] = useState(null);
+    retryHistory
+  } = useHistoryData({
+    accessToken,
+    isConnected,
+    address,
+    walletClient,
+    connectSessionId
+  });
 
   const [
     receiptError,
@@ -415,95 +72,6 @@ export default function HistoryPage({
     setDownloadingReceiptId
   ] = useState(null);
 
-  useEffect(() => {
-    let cancelled =
-      false;
-
-    if (!accessToken) {
-      setRecentPayouts(
-        []
-      );
-
-      setHistoryStatus(
-        "unavailable"
-      );
-
-      setHistoryError(
-        null
-      );
-
-      return () => {
-        cancelled =
-          true;
-      };
-    }
-
-    async function loadHistory() {
-      setHistoryStatus(
-        "loading"
-      );
-
-      setHistoryError(
-        null
-      );
-
-      try {
-        const result =
-          await getPayoutHistory({
-            accessToken,
-            limit:
-              20
-          });
-
-        if (cancelled) {
-          return;
-        }
-
-        setRecentPayouts(
-          Array.isArray(
-            result
-              ?.recent_payouts
-          )
-            ? result
-                .recent_payouts
-            : []
-        );
-
-        setHistoryStatus(
-          "ready"
-        );
-      }
-      catch (
-        error
-      ) {
-        if (cancelled) {
-          return;
-        }
-
-        setRecentPayouts(
-          []
-        );
-
-        setHistoryStatus(
-          "error"
-        );
-
-        setHistoryError(
-          error?.message ||
-          "get_payout_history_failed"
-        );
-      }
-    }
-
-    void loadHistory();
-
-    return () => {
-      cancelled =
-        true;
-    };
-  }, [
-    accessToken
-  ]);
 
   async function handleDownloadReceipt({
     item
@@ -521,6 +89,13 @@ export default function HistoryPage({
       return;
     }
 
+    /*
+     * Receipt authorization remains on the
+     * existing PAT path for now.
+     *
+     * Wallet History access does not expand
+     * Receipt authorization.
+     */
     if (!accessToken) {
       setReceiptError(
         "Receipt access is unavailable."
@@ -571,9 +146,20 @@ export default function HistoryPage({
     }
   }
 
+
+  function handleRetryHistory() {
+    setReceiptError(
+      null
+    );
+
+    retryHistory();
+  }
+
+
   const hasHistory =
     recentPayouts.length >
       0;
+
 
   return (
     <main className="connect-shell history-shell">
@@ -616,14 +202,40 @@ export default function HistoryPage({
 
       <section className="history-content">
         {historyStatus ===
-        "unavailable" ? (
+        "disconnected" ? (
           <div className="history-state-card">
             <strong>
-              History unavailable
+              Connect your wallet
             </strong>
 
             <span>
-              This session does not have access to payout history.
+              Connect the wallet used for your payouts to view history.
+            </span>
+
+            <div className="wallet-connect-row">
+              <appkit-button />
+            </div>
+          </div>
+        ) : null}
+
+        {historyStatus ===
+        "preparing" ? (
+          <div className="history-state-card">
+            <span>
+              Preparing wallet verification...
+            </span>
+          </div>
+        ) : null}
+
+        {historyStatus ===
+        "verifying" ? (
+          <div className="history-state-card">
+            <strong>
+              Verify your wallet
+            </strong>
+
+            <span>
+              Sign the wallet message to view your payout history. This does not authorize a payment or transfer.
             </span>
           </div>
         ) : null}
@@ -634,6 +246,29 @@ export default function HistoryPage({
             <span>
               Loading history...
             </span>
+          </div>
+        ) : null}
+
+        {historyStatus ===
+        "signature_cancelled" ? (
+          <div className="history-state-card">
+            <strong>
+              Wallet verification cancelled
+            </strong>
+
+            <span>
+              Verify your wallet to view payout history.
+            </span>
+
+            <button
+              type="button"
+              className="history-secondary-button"
+              onClick={
+                handleRetryHistory
+              }
+            >
+              Try again
+            </button>
           </div>
         ) : null}
 
@@ -651,6 +286,18 @@ export default function HistoryPage({
               {historyError ||
                 "History could not be loaded."}
             </span>
+
+            {!accessToken ? (
+              <button
+                type="button"
+                className="history-secondary-button"
+                onClick={
+                  handleRetryHistory
+                }
+              >
+                Try again
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -719,9 +366,20 @@ export default function HistoryPage({
                       payout
                     );
 
+                  /*
+                   * Receipt and Repeat remain on
+                   * their existing PAT authorization
+                   * paths for now.
+                   */
                   const canDownloadReceipt =
                     Boolean(
                       receiptId &&
+                      accessToken
+                    );
+
+                  const canSendAgain =
+                    Boolean(
+                      repeatUrl &&
                       accessToken
                     );
 
@@ -797,7 +455,7 @@ export default function HistoryPage({
                       </div>
 
                       <div className="history-payout-actions">
-                        {repeatUrl ? (
+                        {canSendAgain ? (
                           <a
                             href={
                               repeatUrl
