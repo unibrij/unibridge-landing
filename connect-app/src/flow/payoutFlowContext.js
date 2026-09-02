@@ -148,7 +148,7 @@ export function requireReceiveFlowContext({
 export function requireRepeatFlowContext({
   connectSessionId,
   repeatSourcePayoutIntentId,
-  repeatAccessToken,
+  address,
   form
 }) {
   if (!connectSessionId) {
@@ -165,9 +165,9 @@ export function requireRepeatFlowContext({
     );
   }
 
-  if (!repeatAccessToken) {
+  if (!address) {
     throw new Error(
-      "repeat_access_token_required"
+      "wallet_address_required"
     );
   }
 
