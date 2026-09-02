@@ -81,9 +81,6 @@ import useReceivePayoutForm
 import useConnectFlowState
   from "./hooks/useConnectFlowState";
 
-import useConnectFlowAccess
-  from "./hooks/useConnectFlowAccess";
-
 import useConnectPayoutActions
   from "./hooks/useConnectPayoutActions";
 
@@ -300,18 +297,6 @@ export default function App() {
       : null;
 
   /*
-   * Token ownership and customer-auth fallback.
-   */
-  const {
-    historyAccessToken,
-    repeatAccessToken
-  } = useConnectFlowAccess({
-    entry,
-    isHistoryPage,
-    repeatSourcePayoutIntentId
-  });
-
-  /*
    * Connect navigation belongs to an established
    * wallet / returned payout context.
    */
@@ -525,6 +510,9 @@ export default function App() {
    *
    * Use the effective runtime repeat source so
    * locally restored repeat flows also hydrate.
+   *
+   * Read-side ownership is resolved from the
+   * connected wallet.
    */
   useRepeatPayoutFlow({
     repeatInitializedRef,
@@ -533,7 +521,8 @@ export default function App() {
       repeatSourcePayoutIntentId,
 
     repeatRouteIdFromUrl,
-    repeatAccessToken,
+
+    address,
 
     routes,
     setSelectedRouteId,
@@ -635,7 +624,6 @@ export default function App() {
     isReturnedFlow,
 
     repeatSourcePayoutIntentId,
-    repeatAccessToken,
 
     receiveProfileId:
       activeReceiveProfileId,
@@ -760,29 +748,18 @@ export default function App() {
     );
 
   /*
-   * History owns its own access fallback.
-   *
-   * A valid PAT may be used when available.
-   * Without a PAT, History verifies the connected
-   * wallet through the wallet-backed Connect session.
+   * History read access belongs to the currently
+   * connected wallet and does not depend on an old
+   * payout access token.
    */
   if (isHistoryPage) {
     return (
       <HistoryPage
-        accessToken={
-          historyAccessToken
-        }
         isConnected={
           isConnected
         }
         address={
           address
-        }
-        walletClient={
-          walletClient
-        }
-        connectSessionId={
-          connectSessionId
         }
       />
     );
