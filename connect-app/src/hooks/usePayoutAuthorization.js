@@ -6,6 +6,14 @@ import {
 } from "react";
 
 import {
+  useAppKitProvider
+} from "@reown/appkit/react";
+
+import {
+  stringToHex
+} from "viem";
+
+import {
   requestAuthorizationMessage,
   submitAuthorization
 } from "../api";
@@ -31,10 +39,15 @@ function normalizeAddress(value) {
 export function usePayoutAuthorization({
   payoutIntentId,
   address,
-  walletClient,
   setWalletConfirmationPending,
   writeDebug
 }) {
+  const {
+    walletProvider
+  } = useAppKitProvider(
+    "eip155"
+  );
+
   const [
     payoutAccessToken,
     setPayoutAccessToken
@@ -99,18 +112,13 @@ export function usePayoutAuthorization({
       );
     }
 
-    if (!walletClient) {
-      throw new Error(
-        "wallet_not_ready"
-      );
-    }
-
     if (
-      typeof walletClient.signMessage !==
-      "function"
+      !walletProvider ||
+      typeof walletProvider.request !==
+        "function"
     ) {
       throw new Error(
-        "wallet_message_signing_unavailable"
+        "wallet_provider_not_ready"
       );
     }
 
@@ -190,18 +198,50 @@ export function usePayoutAuthorization({
             intentId,
 
           wallet_address:
-            address
+            address,
+
+          signing_transport:
+            "appkit_provider"
         }
       );
 
       const signature =
-        await walletClient
-          .signMessage({
-            account:
-              address,
+        await walletProvider.request({
+          method:
+            "personal_sign",
 
-            message
-          });
+          params: [
+            stringToHex(
+              message
+            ),
+
+            address
+          ]
+        });
+
+      if (
+        typeof signature !==
+          "string" ||
+        !signature
+      ) {
+        throw new Error(
+          "wallet_signature_missing"
+        );
+      }
+
+      writeDebug(
+        "Wallet authorization signature received.",
+        {
+          payout_intent_id:
+            intentId,
+
+          wallet_address:
+            address,
+
+          signing_transport:
+            "appkit_provider"
+        }
+      );
 
       const authorization =
         await submitAuthorization({
