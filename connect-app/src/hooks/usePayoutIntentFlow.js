@@ -66,7 +66,6 @@ export function usePayoutIntentFlow({
   setWalletConfirmationPending,
 
   repeatSourcePayoutIntentId,
-  repeatAccessToken,
 
   authorizeIntentWithWallet,
   ensureIntentAuthorized,
@@ -110,7 +109,7 @@ export function usePayoutIntentFlow({
       requireRepeatFlowContext({
         connectSessionId,
         repeatSourcePayoutIntentId,
-        repeatAccessToken,
+        address,
         form
       });
 
@@ -215,8 +214,8 @@ export function usePayoutIntentFlow({
             amount:
               form.amount,
 
-            accessToken:
-              repeatAccessToken
+            walletAddress:
+              address
           })
         : await createPayoutIntent({
             connectSessionId,
