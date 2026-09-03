@@ -11,6 +11,7 @@ export {
 
 export {
   formatRouteLimitMessage,
+  formatRouteLimitRangeMessage,
   getRouteLimitState,
   isRouteAmountAvailable,
   selectFirstAvailableRoute
