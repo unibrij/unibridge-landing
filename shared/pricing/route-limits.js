@@ -303,6 +303,59 @@ export function formatRouteLimitMessage(
 
 /*
 --------------------------------------------------
+Route limit range message
+--------------------------------------------------
+
+Display the backend-provided payout range even when the
+current amount is valid.
+
+This helper reads only the canonical route_limits
+contract. It does not inspect validation or contain any
+executor-specific knowledge.
+--------------------------------------------------
+*/
+
+export function formatRouteLimitRangeMessage(
+  route
+) {
+  const limits =
+    resolveLimits(
+      route
+    );
+
+  const minAmount =
+    formatAmount(
+      limits?.min_amount
+    );
+
+  const maxAmount =
+    formatAmount(
+      limits?.max_amount
+    );
+
+  const currency =
+    normalizeUpper(
+      limits?.currency
+    ) ||
+    null;
+
+  if (
+    !minAmount ||
+    !maxAmount ||
+    !currency
+  ) {
+    return null;
+  }
+
+  return (
+    `Payout limits: ` +
+    `${minAmount} – ` +
+    `${maxAmount} ${currency}`
+  );
+}
+
+/*
+--------------------------------------------------
 First available Route
 --------------------------------------------------
 
