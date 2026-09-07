@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+  />
+
+  <title>Pay with fiat | UniBridge</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="/favicon.png"
+  />
+
+  <link
+    rel="apple-touch-icon"
+    href="/connect/icons/app/ub-app-icon-512.png"
+  />
+
+  <meta
+    name="theme-color"
+    content="#000E2D"
+  />
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  />
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="UniBridge"
+  />
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  />
+
+  <meta
+    name="description"
+    content="Choose whether to continue with a personal or business fiat payment."
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/connect-map-bg.png"
+  />
+
+  <link
+    rel="preload"
+    as="image"
+    href="/public/icons/social/unibridge-orbit-lockup-white.png"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/partials/pay/css/pay-common.css?v=11"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/pay/fiat/pay-fiat.css?v=1"
+  />
+</head>
+
+<body>
+  <main class="page pay-page-shell">
+    <div id="pay-brand"></div>
+
+    <section
+      class="hero"
+      aria-labelledby="fiatTitle"
+    >
+      <h1
+        id="fiatTitle"
+        class="sr-only"
+      >
+        Pay with fiat
+      </h1>
+
+      <p class="eyebrow">
+        Pay with fiat
+      </p>
+    </section>
+
+    <section
+      class="fiat-entry"
+      aria-label="Choose payment type"
+    >
+      <button
+        id="personalOption"
+        class="entry-card entry-card-personal"
+        type="button"
+      >
+        <span
+          class="entry-icon entry-icon-personal"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="entry-svg"
+          >
+            <circle
+              cx="12"
+              cy="8"
+              r="3.25"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M5.8 19.1c.45-3.55 2.55-5.55 6.2-5.55s5.75 2 6.2 5.55"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+
+        <span class="entry-copy">
+          <strong>Personal</strong>
+
+          <small>
+            Pay as an individual
+          </small>
+        </span>
+
+        <span
+          class="entry-chevron"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+      </button>
+
+      <button
+        id="businessOption"
+        class="entry-card entry-card-business"
+        type="button"
+      >
+        <span
+          class="entry-icon entry-icon-business"
+          aria-hidden="true"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="entry-svg"
+          >
+            <rect
+              x="4.25"
+              y="7.25"
+              width="15.5"
+              height="11.25"
+              rx="1.8"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M9 7.25V5.9c0-.85.7-1.55 1.55-1.55h2.9c.85 0 1.55.7 1.55 1.55v1.35"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M4.25 11.4c2.15 1.15 4.75 1.75 7.75 1.75s5.6-.6 7.75-1.75"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <path
+              d="M10.25 12.9h3.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+
+        <span class="entry-copy">
+          <strong>Business</strong>
+
+          <small>
+            Pay as a business
+          </small>
+        </span>
+
+        <span
+          class="entry-chevron"
+          aria-hidden="true"
+        >
+          ›
+        </span>
+      </button>
+    </section>
+
+    <div id="pay-footer"></div>
+  </main>
+
+  <script
+    src="/partials/pay/js/pay-includes.js?v=6"
+  ></script>
+
+  <script
+    type="module"
+    src="/pay/fiat/pay-fiat.js?v=1"
+  ></script>
+</body>
+</html>
