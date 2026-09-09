@@ -13,6 +13,12 @@ const FIAT_BANK_TRANSFER_SECRET =
     .FIAT_BANK_TRANSFER_HMAC_SECRET ||
   process.env.SURFACE_HMAC_SECRET;
 
+const DEFAULT_UPSTREAM_TIMEOUT_MS =
+  15000;
+
+const SESSION_QUOTE_TIMEOUT_MS =
+  70000;
+
 const ALLOWED =
   new Set([
     "session/register",
@@ -457,6 +463,32 @@ function attachClerkAuthorization({
   return null;
 }
 
+/*
+--------------------------------------------------
+Upstream timeout policy
+--------------------------------------------------
+
+Most proxy endpoints keep the original 15-second
+upstream budget.
+
+session/quote may require sequential funding,
+transformation, and execution pricing calls, so it
+receives a larger safety ceiling.
+
+This is only a transport safety limit. It is not the
+target latency for the customer quote flow.
+--------------------------------------------------
+*/
+
+function resolveUpstreamTimeoutMs(
+  endpoint
+) {
+  return endpoint ===
+    "session/quote"
+    ? SESSION_QUOTE_TIMEOUT_MS
+    : DEFAULT_UPSTREAM_TIMEOUT_MS;
+}
+
 function resolvePartnerConfig(
   req = {}
 ) {
@@ -572,12 +604,17 @@ export default async function handler(
     const controller =
       new AbortController();
 
+    const upstreamTimeoutMs =
+      resolveUpstreamTimeoutMs(
+        endpoint
+      );
+
     const timeout =
       setTimeout(
         () => {
           controller.abort();
         },
-        15000
+        upstreamTimeoutMs
       );
 
     let upstream;
