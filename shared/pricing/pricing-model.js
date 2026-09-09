@@ -39,6 +39,12 @@ const DEFAULT_LABELS =
     fxRate:
       "Exchange rate",
 
+    paymentProcessingFee:
+      "Payment processing fee",
+
+    transferFee:
+      "Transfer fee",
+
     providerFee:
       "Execution fee",
 
@@ -97,29 +103,8 @@ const FEE_TYPES =
       "other"
   });
 
-const FEE_LABEL_KEYS =
-  Object.freeze({
-    [FEE_TYPES.provider]:
-      "providerFee",
-
-    [FEE_TYPES.unibridge]:
-      "unibridgeFee",
-
-    [FEE_TYPES.partner]:
-      "partnerFee",
-
-    [FEE_TYPES.payoutRail]:
-      "payoutRailFee",
-
-    [FEE_TYPES.network]:
-      "networkFee",
-
-    [FEE_TYPES.spread]:
-      "spreadFee",
-
-    [FEE_TYPES.other]:
-      "otherFee"
-  });
+const FUNDING_FEE_UNIT_AMOUNT =
+  "amount";
 
 function resolveLabels(labels) {
   const resolved = {
@@ -157,10 +142,22 @@ function resolveCanonicalQuote(route) {
   );
 }
 
+function resolveFundingQuote(route) {
+  const candidate =
+    route
+      ?.funding_pricing_result
+      ?.quote;
+
+  return isObject(candidate)
+    ? candidate
+    : null;
+}
+
 function resolveCustomerPayment({
   quote,
   route,
   canonicalQuote,
+  fundingQuote,
   customerPaymentAmount,
   customerPaymentCurrency
 }) {
@@ -176,7 +173,12 @@ function resolveCustomerPayment({
 
       currency:
         normalizeUpper(
-          customerPaymentCurrency
+          customerPaymentCurrency ??
+          fundingQuote
+            ?.source
+            ?.currency ??
+          route
+            ?.funding_source_currency
         )
     };
   }
@@ -212,6 +214,11 @@ function resolveCustomerPayment({
     currency:
       normalizeUpper(
         customerPaymentCurrency ??
+        fundingQuote
+          ?.source
+          ?.currency ??
+        route
+          ?.funding_source_currency ??
         canonicalQuote
           ?.requested
           ?.currency
@@ -450,78 +457,133 @@ function addDecimalValues(
     : integer;
 }
 
-function summarizeFees(fees) {
-  const totals =
+function addFeeToGroups(
+  groups,
+  {
+    type,
+    amount,
+    currency
+  }
+) {
+  const normalizedCurrency =
+    normalizeUpper(
+      currency
+    );
+
+  if (
+    !normalizedCurrency ||
+    !hasValue(amount)
+  ) {
+    return;
+  }
+
+  const key =
+    `${type}:${normalizedCurrency}`;
+
+  const currentAmount =
+    groups.get(key)?.amount ??
+    "0";
+
+  const nextAmount =
+    addDecimalValues(
+      currentAmount,
+      amount
+    );
+
+  if (nextAmount === null) {
+    return;
+  }
+
+  groups.set(key, {
+    type,
+    amount:
+      nextAmount,
+    currency:
+      normalizedCurrency
+  });
+}
+
+function resolveFundingFeeRows({
+  fundingQuote,
+  labels
+}) {
+  const rawFees =
+    Array.isArray(
+      fundingQuote?.fees
+    )
+      ? fundingQuote.fees
+      : [];
+
+  const groups =
     new Map();
 
-  for (const fee of fees) {
-    const currency =
-      normalizeUpper(
-        fee.currency
-      );
+  for (const fee of rawFees) {
+    if (!isObject(fee)) {
+      continue;
+    }
 
     if (
-      !currency ||
-      !hasValue(fee.amount)
+      normalizeLower(
+        fee.unit
+      ) !== FUNDING_FEE_UNIT_AMOUNT
     ) {
       continue;
     }
 
-    const currentTotal =
-      totals.get(currency) ??
-      "0";
+    addFeeToGroups(
+      groups,
+      {
+        type:
+          "payment_processing",
 
-    const nextTotal =
-      addDecimalValues(
-        currentTotal,
-        fee.amount
-      );
+        amount:
+          fee.value ??
+          fee.amount_decimal ??
+          fee.amount,
 
-    if (nextTotal === null) {
-      continue;
-    }
-
-    totals.set(
-      currency,
-      nextTotal
+        currency:
+          fee.currency ??
+          fundingQuote
+            ?.source
+            ?.currency
+      }
     );
   }
 
   return Array
     .from(
-      totals.entries()
+      groups.values()
     )
     .map(
-      ([
-        currency,
-        amount
-      ]) =>
-        formatAmount(
-          amount,
-          currency
-        )
-    )
-    .filter(hasValue)
-    .join(" + ");
+      fee => ({
+        key:
+          `fee_payment_processing_${normalizeLower(
+            fee.currency
+          )}`,
+
+        type:
+          fee.type,
+
+        label:
+          labels
+            .paymentProcessingFee,
+
+        amount:
+          fee.amount,
+
+        currency:
+          fee.currency,
+
+        value:
+          formatAmount(
+            fee.amount,
+            fee.currency
+          )
+      })
+    );
 }
 
-function resolveFeeLabel(
-  type,
-  labels
-) {
-  const normalizedType =
-    normalizeLower(type);
-
-  const labelKey =
-    FEE_LABEL_KEYS[
-      normalizedType
-    ] ??
-    FEE_LABEL_KEYS.other;
-
-  return labels[labelKey];
-}
-
-function createFeeRows({
+function resolveExecutionFeeRows({
   route,
   canonicalFees,
   labels,
@@ -604,13 +666,14 @@ function createFeeRows({
     }
   ];
 
-  const fees = [];
+  const groups =
+    new Map();
 
   for (
     const definition of
     definitions
   ) {
-    const groups =
+    const fees =
       resolveFeeGroups({
         route,
 
@@ -629,11 +692,38 @@ function createFeeRows({
           definition.fallbackCurrency
       });
 
-    for (const fee of groups) {
-      fees.push({
+    for (const fee of fees) {
+      const publicType =
+        definition.type ===
+          FEE_TYPES.unibridge
+          ? "unibridge"
+          : "transfer";
+
+      addFeeToGroups(
+        groups,
+        {
+          type:
+            publicType,
+
+          amount:
+            fee.amount,
+
+          currency:
+            fee.currency
+        }
+      );
+    }
+  }
+
+  return Array
+    .from(
+      groups.values()
+    )
+    .map(
+      fee => ({
         key: [
           "fee",
-          definition.type,
+          fee.type,
           normalizeLower(
             fee.currency
           )
@@ -642,32 +732,131 @@ function createFeeRows({
           .join("_"),
 
         type:
-          definition.type,
+          fee.type,
 
         label:
-          resolveFeeLabel(
-            definition.type,
-            labels
-          ),
+          fee.type ===
+            "unibridge"
+            ? labels.unibridgeFee
+            : labels.transferFee,
 
         amount:
           fee.amount,
 
         currency:
-          normalizeUpper(
-            fee.currency
-          ),
+          fee.currency,
 
         value:
           formatAmount(
             fee.amount,
             fee.currency
           )
-      });
+      })
+    );
+}
+
+function summarizeFees(fees) {
+  const totals =
+    new Map();
+
+  for (const fee of fees) {
+    const currency =
+      normalizeUpper(
+        fee.currency
+      );
+
+    if (
+      !currency ||
+      !hasValue(fee.amount)
+    ) {
+      continue;
     }
+
+    const currentTotal =
+      totals.get(currency) ??
+      "0";
+
+    const nextTotal =
+      addDecimalValues(
+        currentTotal,
+        fee.amount
+      );
+
+    if (nextTotal === null) {
+      continue;
+    }
+
+    totals.set(
+      currency,
+      nextTotal
+    );
   }
 
-  return fees;
+  return Array
+    .from(
+      totals.entries()
+    )
+    .map(
+      ([
+        currency,
+        amount
+      ]) =>
+        formatAmount(
+          amount,
+          currency
+        )
+    )
+    .filter(hasValue)
+    .join(" + ");
+}
+
+function resolveEffectiveRate({
+  customerPayment,
+  recipientAmount,
+  recipientCurrency
+}) {
+  const sourceAmount =
+    toFiniteNumber(
+      customerPayment?.amount
+    );
+
+  const destinationAmount =
+    toFiniteNumber(
+      recipientAmount
+    );
+
+  const sourceCurrency =
+    normalizeUpper(
+      customerPayment?.currency
+    );
+
+  const destinationCurrency =
+    normalizeUpper(
+      recipientCurrency
+    );
+
+  if (
+    sourceAmount === null ||
+    sourceAmount <= 0 ||
+    destinationAmount === null ||
+    destinationAmount < 0 ||
+    !sourceCurrency ||
+    !destinationCurrency
+  ) {
+    return "";
+  }
+
+  return formatFxRate({
+    fxRate:
+      destinationAmount /
+      sourceAmount,
+
+    settlementCurrency:
+      sourceCurrency,
+
+    recipientCurrency:
+      destinationCurrency
+  });
 }
 
 export function createPricingViewModel({
@@ -700,11 +889,10 @@ export function createPricingViewModel({
       safeRoute
     );
 
-  const settlementAmount =
-    canonicalQuote
-      ?.settlement
-      ?.amount ??
-    safeRoute.funding_amount;
+  const fundingQuote =
+    resolveFundingQuote(
+      safeRoute
+    );
 
   const settlementCurrency =
     normalizeUpper(
@@ -763,6 +951,7 @@ export function createPricingViewModel({
         safeRoute,
 
       canonicalQuote,
+      fundingQuote,
 
       customerPaymentAmount,
       customerPaymentCurrency
@@ -773,8 +962,15 @@ export function createPricingViewModel({
       safeRoute
     );
 
-  const fees =
-    createFeeRows({
+  const fundingFees =
+    resolveFundingFeeRows({
+      fundingQuote,
+      labels:
+        text
+    });
+
+  const executionFees =
+    resolveExecutionFeeRows({
       route:
         safeRoute,
 
@@ -786,6 +982,11 @@ export function createPricingViewModel({
       recipientCurrency,
       settlementCurrency
     });
+
+  const fees = [
+    ...fundingFees,
+    ...executionFees
+  ];
 
   const summaryRows = [];
 
@@ -833,25 +1034,11 @@ export function createPricingViewModel({
     detailRows,
     "fx_rate",
     text.fxRate,
-    formatFxRate({
-      fxRate:
-        canonicalQuote
-          ?.fx_rate ??
-        safeRoute.fx_rate,
-
-      settlementCurrency,
+    resolveEffectiveRate({
+      customerPayment,
+      recipientAmount,
       recipientCurrency
     })
-  );
-
-  appendRow(
-    detailRows,
-    "settlement_amount",
-    text.settlementAmount,
-    formatAmount(
-      settlementAmount,
-      settlementCurrency
-    )
   );
 
   for (const fee of fees) {
