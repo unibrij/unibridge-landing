@@ -29,7 +29,7 @@
     "US";
 
   const CREATE_LINK_AUTH_INTENT_URL =
-    "/v2/ramp/stripe/link-auth-intent";
+    "/v2/ramp/stripe/browser/link-auth-intent";
 
   let onramp = null;
   let sdkLoadPromise = null;
@@ -316,21 +316,6 @@
     setStatus(
       "Registering Link user..."
     );
-
-    /*
-    --------------------------------------------------
-    Stripe Embedded Components signature:
-
-    registerLinkUser(
-      email,
-      phoneNumber,
-      country
-    )
-
-    fullName remains on this temporary test page only
-    and is not passed to registerLinkUser().
-    --------------------------------------------------
-    */
 
     const result =
       await sdk.registerLinkUser(
