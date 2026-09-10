@@ -317,9 +317,26 @@
       "Registering Link user..."
     );
 
+    /*
+    --------------------------------------------------
+    Stripe Embedded Components signature:
+
+    registerLinkUser(
+      email,
+      phoneNumber,
+      country
+    )
+
+    fullName remains on this temporary test page only
+    and is not passed to registerLinkUser().
+    --------------------------------------------------
+    */
+
     const result =
       await sdk.registerLinkUser(
-        userInfo
+        userInfo.email,
+        userInfo.phone,
+        userInfo.country
       );
 
     console.log(
@@ -331,18 +348,13 @@
       result?.created !==
       true
     ) {
-      setStatus(
-        "Link user was NOT created.",
-        result
-      );
-
       const error =
         new Error(
           "link_user_not_created"
         );
 
       error.payload =
-        result;
+        result ?? null;
 
       throw error;
     }
