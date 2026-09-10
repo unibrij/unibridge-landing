@@ -46,6 +46,11 @@
       font-size: 22px;
     }
 
+    h2 {
+      margin: 28px 0 8px;
+      font-size: 17px;
+    }
+
     p {
       line-height: 1.5;
     }
@@ -110,7 +115,7 @@
     </h1>
 
     <p>
-      Temporary Link registration, authentication, and CryptoCustomer test.
+      Temporary Link, CryptoCustomer, and headless quote test.
     </p>
 
     <label for="email">
@@ -176,6 +181,42 @@
       disabled
     >
       4. Load CryptoCustomer
+    </button>
+
+    <h2>
+      Headless Quote
+    </h2>
+
+    <label for="quote-amount">
+      Source amount
+    </label>
+
+    <input
+      id="quote-amount"
+      type="number"
+      min="0.01"
+      step="0.01"
+      value="100"
+      inputmode="decimal"
+    />
+
+    <label for="quote-currency">
+      Source currency
+    </label>
+
+    <input
+      id="quote-currency"
+      type="text"
+      value="usd"
+      autocomplete="off"
+    />
+
+    <button
+      id="quote-button"
+      type="button"
+      disabled
+    >
+      5. Get Headless Quote
     </button>
 
     <div id="status">
