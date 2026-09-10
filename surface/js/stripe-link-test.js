@@ -29,7 +29,7 @@
     "US";
 
   const CREATE_LINK_AUTH_INTENT_URL =
-    "/api/stripe-onramp/embedded-components/link-auth-intent";
+    "/v2/ramp/stripe/link-auth-intent";
 
   let onramp = null;
   let sdkLoadPromise = null;
