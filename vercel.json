@@ -176,6 +176,10 @@
       "destination": "https://unibridge-v2-1066944028362.us-central1.run.app/v2/receipts/verify"
     },
     {
+      "source": "/v2/ramp/stripe/link-auth-intent",
+      "destination": "https://unibridge-v2-1066944028362.us-central1.run.app/v2/ramp/stripe/link-auth-intent"
+    },
+    {
       "source": "/partner-portal",
       "destination": "/partner-portal/index.html"
     },
