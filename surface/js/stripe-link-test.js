@@ -12,10 +12,12 @@
   4. Create LinkAuthIntent through UniBridge backend
   5. authenticate()
   6. Obtain crypto_customer_id
+  7. Load CryptoCustomer through UniBridge backend
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
+  - No OAuth access token here
   --------------------------------------------------
   */
 
@@ -31,9 +33,13 @@
   const CREATE_LINK_AUTH_INTENT_URL =
     "/v2/ramp/stripe/browser/link-auth-intent";
 
+  const CUSTOMER_CONTEXT_URL =
+    "/v2/ramp/stripe/browser/customer-context";
+
   let onramp = null;
   let sdkLoadPromise = null;
   let authIntentId = null;
+  let cryptoCustomerId = null;
 
 
   /* =========================
@@ -68,6 +74,11 @@
   const authenticateButton =
     document.getElementById(
       "authenticate-button"
+    );
+
+  const customerContextButton =
+    document.getElementById(
+      "customer-context-button"
     );
 
   const statusElement =
@@ -194,6 +205,12 @@
     if (!authenticateButton) {
       missing.push(
         "authenticate-button"
+      );
+    }
+
+    if (!customerContextButton) {
+      missing.push(
+        "customer-context-button"
       );
     }
 
@@ -344,6 +361,28 @@
       throw error;
     }
 
+    /*
+    --------------------------------------------------
+    Reset downstream state whenever a new Link user
+    registration test is started.
+    --------------------------------------------------
+    */
+
+    authIntentId =
+      null;
+
+    cryptoCustomerId =
+      null;
+
+    authenticateButton.disabled =
+      true;
+
+    customerContextButton.disabled =
+      true;
+
+    authContainer
+      .replaceChildren();
+
     setStatus(
       "Link user created successfully.",
       result
@@ -418,8 +457,14 @@
         "missing_auth_intent_id"
       );
 
+    cryptoCustomerId =
+      null;
+
     authenticateButton.disabled =
       false;
+
+    customerContextButton.disabled =
+      true;
 
     console.log(
       "STRIPE_LINK_AUTH_INTENT",
@@ -447,11 +492,11 @@
     const sdk =
       await ensureSdk();
 
-    if (!authIntentId) {
-      throw new Error(
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
         "missing_auth_intent_id"
       );
-    }
 
     if (
       typeof sdk.authenticate !==
@@ -466,12 +511,18 @@
       "Starting Link authentication..."
     );
 
+    cryptoCustomerId =
+      null;
+
+    customerContextButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
     const authenticationElement =
       await sdk.authenticate(
-        authIntentId,
+        normalizedAuthIntentId,
 
         async (result) => {
           console.log(
@@ -483,16 +534,26 @@
             result?.result ===
             "success"
           ) {
+            cryptoCustomerId =
+              requireString(
+                result
+                  ?.crypto_customer_id,
+                "missing_crypto_customer_id"
+              );
+
+            customerContextButton.disabled =
+              false;
+
             setStatus(
               "Link authentication successful.",
               {
                 result:
                   result.result,
 
-                cryptoCustomerId:
-                  result
-                    .crypto_customer_id ??
-                  null
+                authIntentId:
+                  normalizedAuthIntentId,
+
+                cryptoCustomerId
               }
             );
 
@@ -536,6 +597,88 @@
           authenticationElement
         );
     }
+  }
+
+
+  /* =========================
+     LOAD CRYPTO CUSTOMER
+  ========================= */
+
+  async function loadCustomerContext() {
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
+        "missing_auth_intent_id"
+      );
+
+    const normalizedCryptoCustomerId =
+      requireString(
+        cryptoCustomerId,
+        "missing_crypto_customer_id"
+      );
+
+    setStatus(
+      "Loading CryptoCustomer..."
+    );
+
+    const response =
+      await fetch(
+        CUSTOMER_CONTEXT_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              authIntentId:
+                normalizedAuthIntentId,
+
+              cryptoCustomerId:
+                normalizedCryptoCustomerId
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () => null
+        );
+
+    if (!response.ok) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `customer_context_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    console.log(
+      "STRIPE_CUSTOMER_CONTEXT",
+      payload
+    );
+
+    setStatus(
+      "CryptoCustomer loaded.",
+      payload
+    );
+
+    return payload;
   }
 
 
@@ -588,7 +731,13 @@
         authenticateButton.disabled =
           true;
 
+        customerContextButton.disabled =
+          true;
+
         authIntentId =
+          null;
+
+        cryptoCustomerId =
           null;
 
         try {
@@ -630,6 +779,9 @@
         authenticateButton.disabled =
           true;
 
+        customerContextButton.disabled =
+          true;
+
         try {
           await authenticateLinkUser();
         } catch (error) {
@@ -648,6 +800,45 @@
           );
 
           authenticateButton.disabled =
+            false;
+        }
+      }
+    );
+
+
+  customerContextButton
+    .addEventListener(
+      "click",
+      async () => {
+        customerContextButton.disabled =
+          true;
+
+        try {
+          await loadCustomerContext();
+        } catch (error) {
+          console.error(
+            "STRIPE_CUSTOMER_CONTEXT_FAILED",
+            error
+          );
+
+          setStatus(
+            "CryptoCustomer load failed.",
+            {
+              status:
+                error?.status ??
+                null,
+
+              message:
+                error?.message ??
+                String(error),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+
+          customerContextButton.disabled =
             false;
         }
       }
@@ -673,6 +864,12 @@
 
           authIntentButton.disabled =
             false;
+
+          authenticateButton.disabled =
+            true;
+
+          customerContextButton.disabled =
+            true;
 
           setStatus(
             "Stripe Embedded Components SDK initialized."
