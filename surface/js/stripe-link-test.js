@@ -13,6 +13,7 @@
   5. authenticate()
   6. Obtain crypto_customer_id
   7. Load CryptoCustomer through UniBridge backend
+  8. Test independent headless quote
 
   IMPORTANT:
   - No Stripe secret key here
@@ -35,6 +36,9 @@
 
   const CUSTOMER_CONTEXT_URL =
     "/v2/ramp/stripe/browser/customer-context";
+
+  const HEADLESS_QUOTE_URL =
+    "/v2/ramp/stripe/browser/quote";
 
   let onramp = null;
   let sdkLoadPromise = null;
@@ -79,6 +83,21 @@
   const customerContextButton =
     document.getElementById(
       "customer-context-button"
+    );
+
+  const quoteAmountInput =
+    document.getElementById(
+      "quote-amount"
+    );
+
+  const quoteCurrencyInput =
+    document.getElementById(
+      "quote-currency"
+    );
+
+  const quoteButton =
+    document.getElementById(
+      "quote-button"
     );
 
   const statusElement =
@@ -211,6 +230,24 @@
     if (!customerContextButton) {
       missing.push(
         "customer-context-button"
+      );
+    }
+
+    if (!quoteAmountInput) {
+      missing.push(
+        "quote-amount"
+      );
+    }
+
+    if (!quoteCurrencyInput) {
+      missing.push(
+        "quote-currency"
+      );
+    }
+
+    if (!quoteButton) {
+      missing.push(
+        "quote-button"
       );
     }
 
@@ -360,13 +397,6 @@
 
       throw error;
     }
-
-    /*
-    --------------------------------------------------
-    Reset downstream state whenever a new Link user
-    registration test is started.
-    --------------------------------------------------
-    */
 
     authIntentId =
       null;
@@ -683,6 +713,86 @@
 
 
   /* =========================
+     HEADLESS QUOTE
+  ========================= */
+
+  async function loadHeadlessQuote() {
+    const sourceAmount =
+      requireString(
+        quoteAmountInput.value,
+        "missing_quote_amount"
+      );
+
+    const sourceCurrency =
+      requireString(
+        quoteCurrencyInput.value,
+        "missing_quote_currency"
+      )
+        .toLowerCase();
+
+    setStatus(
+      "Loading Stripe headless quote..."
+    );
+
+    const response =
+      await fetch(
+        HEADLESS_QUOTE_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              sourceAmount,
+              sourceCurrency
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () => null
+        );
+
+    if (!response.ok) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `headless_quote_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    console.log(
+      "STRIPE_HEADLESS_QUOTE",
+      payload
+    );
+
+    setStatus(
+      "Stripe headless quote loaded.",
+      payload
+    );
+
+    return payload;
+  }
+
+
+  /* =========================
      EVENTS
   ========================= */
 
@@ -845,6 +955,45 @@
     );
 
 
+  quoteButton
+    .addEventListener(
+      "click",
+      async () => {
+        quoteButton.disabled =
+          true;
+
+        try {
+          await loadHeadlessQuote();
+        } catch (error) {
+          console.error(
+            "STRIPE_HEADLESS_QUOTE_FAILED",
+            error
+          );
+
+          setStatus(
+            "Stripe headless quote failed.",
+            {
+              status:
+                error?.status ??
+                null,
+
+              message:
+                error?.message ??
+                String(error),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+        } finally {
+          quoteButton.disabled =
+            false;
+        }
+      }
+    );
+
+
   /* =========================
      INIT
   ========================= */
@@ -870,6 +1019,16 @@
 
           customerContextButton.disabled =
             true;
+
+          /*
+          --------------------------------------------------
+          Headless quote is independent from Link auth,
+          CryptoCustomer, and OAuth.
+          --------------------------------------------------
+          */
+
+          quoteButton.disabled =
+            false;
 
           setStatus(
             "Stripe Embedded Components SDK initialized."
