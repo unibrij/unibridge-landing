@@ -327,8 +327,28 @@
       result
     );
 
+    if (
+      result?.created !==
+      true
+    ) {
+      setStatus(
+        "Link user was NOT created.",
+        result
+      );
+
+      const error =
+        new Error(
+          "link_user_not_created"
+        );
+
+      error.payload =
+        result;
+
+      throw error;
+    }
+
     setStatus(
-      "Link registration completed.",
+      "Link user created successfully.",
       result
     );
 
@@ -546,7 +566,11 @@
             {
               message:
                 error?.message ??
-                String(error)
+                String(error),
+
+              payload:
+                error?.payload ??
+                null
             }
           );
         } finally {
