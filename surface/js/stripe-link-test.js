@@ -390,17 +390,33 @@
   function isKycVerified(
     payload
   ) {
-    const verification =
+    const verifications =
+      Array.isArray(
+        payload?.verifications
+      )
+        ? payload.verifications
+        : [];
+
+    const kycVerification =
+      verifications.find(
+        (item) =>
+          String(
+            item?.name ?? ""
+          )
+            .trim()
+            .toLowerCase() ===
+          "kyc_verified"
+      );
+
+    const status =
       String(
-        payload
-          ?.verifications
-          ?.kyc_verified ??
+        kycVerification?.status ??
         ""
       )
         .trim()
         .toLowerCase();
 
-    return verification ===
+    return status ===
       "verified";
   }
 
