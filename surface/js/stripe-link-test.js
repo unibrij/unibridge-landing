@@ -3,46 +3,63 @@
 (() => {
   /*
   --------------------------------------------------
-  Stripe Embedded Components — Sandbox test only
+  Stripe Embedded Components — Diagnostic test page
 
-  Flow:
-  1. Load Stripe Embedded Components SDK
-  2. Initialize with Sandbox publishable key
+  Backend mode is the single source of truth:
+
+  STRIPE_ONRAMP_MODE=sandbox
+  → Sandbox credentials
+  → Full diagnostic flow enabled
+
+  STRIPE_ONRAMP_MODE=live
+  → Live credentials
+  → SAFE DIAGNOSTIC ONLY:
+      * Create LinkAuthIntent
+      * Authenticate
+      * Load CryptoCustomer
+      * Load transaction limits
+
+  Sandbox flow:
+  1. Load browser config from UniBridge backend
+  2. Initialize Stripe SDK using backend-selected publishable key
   3. registerLinkUser()
-  4. Create LinkAuthIntent through UniBridge backend
+  4. Create LinkAuthIntent
   5. authenticate()
   6. Obtain crypto_customer_id
-  7. Load CryptoCustomer through UniBridge backend
-  8. Gate ACH using CryptoCustomer KYC verification state
-  9. Submit KYC information through Web SDK if required
-  10. Collect ACH payment method
-  11. Obtain cryptoPaymentToken
-  12. Load Stripe transaction limits
-  13. Create ACH-bound headless onramp session
-  14. Inspect raw Stripe session response
-  15. Test independent generic headless quote
+  7. Load CryptoCustomer
+  8. Submit Stripe KYC if required
+  9. Collect ACH payment method
+  10. Obtain cryptoPaymentToken
+  11. Load Stripe transaction limits
+  12. Create ACH-bound headless session
+  13. Inspect raw session response
+  14. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
   - No OAuth access token here
-  - Web SDK uses submitKycInfo()
+  - Publishable key comes from backend config
+  - Backend STRIPE_ONRAMP_MODE is the source of truth
   - ACH collection is restricted to us_bank_account
   - Apple Pay and Google Pay are explicitly disabled
   - ACH is enabled only when Stripe reports kyc_verified
   - Transaction limits are diagnostic only
-  - Headless session requires BOTH:
-      * kyc_verified
-      * cryptoPaymentToken
   - No performCheckout() in this diagnostic
+  - LIVE mode cannot:
+      * register Link users
+      * submit KYC
+      * collect ACH
+      * create headless sessions
+      * request generic quotes
   --------------------------------------------------
   */
 
   const STRIPE_CRYPTO_MODULE =
     "https://cdn.jsdelivr.net/npm/@stripe/crypto@1.1.0/+esm";
 
-  const STRIPE_PUBLISHABLE_KEY =
-    "pk_test_51UDq2p40H0LwOW5qSK7K2sVIEupDU55gk1msz2MWS8KVmopPhxUdQZt1rjhbTJztE4jeYkpSo4I92SjpYH4BBqpZ00Ou2puiiq";
+  const STRIPE_BROWSER_CONFIG_URL =
+    "/v2/ramp/stripe/browser/config";
 
   const TEST_COUNTRY =
     "US";
@@ -61,6 +78,13 @@
 
   const HEADLESS_QUOTE_URL =
     "/v2/ramp/stripe/browser/quote";
+
+
+  let browserConfig =
+    null;
+
+  let browserConfigLoadPromise =
+    null;
 
   let onramp =
     null;
@@ -283,6 +307,40 @@
   }
 
 
+  function isSandboxMode() {
+    return Boolean(
+      browserConfig?.mode ===
+        "sandbox" &&
+      browserConfig?.isSandbox ===
+        true
+    );
+  }
+
+
+  function isLiveMode() {
+    return Boolean(
+      browserConfig?.mode ===
+        "live" &&
+      browserConfig?.isSandbox ===
+        false
+    );
+  }
+
+
+  function requireSandboxMode(
+    errorCode =
+      "sandbox_only_action"
+  ) {
+    if (
+      !isSandboxMode()
+    ) {
+      throw new Error(
+        errorCode
+      );
+    }
+  }
+
+
   function getUserInfo() {
     return {
       email:
@@ -479,6 +537,7 @@
 
   function canCreateHeadlessSession() {
     return Boolean(
+      isSandboxMode() &&
       stripeKycVerified &&
       cryptoPaymentToken
     );
@@ -689,6 +748,201 @@
 
 
   /* =========================
+     BROWSER CONFIG
+  ========================= */
+
+  async function loadBrowserConfig() {
+    if (
+      browserConfig
+    ) {
+      return browserConfig;
+    }
+
+    if (
+      browserConfigLoadPromise
+    ) {
+      return browserConfigLoadPromise;
+    }
+
+    browserConfigLoadPromise =
+      fetch(
+        STRIPE_BROWSER_CONFIG_URL,
+        {
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json"
+          },
+
+          cache:
+            "no-store"
+        }
+      )
+        .then(
+          async (response) => {
+            const payload =
+              await response
+                .json()
+                .catch(
+                  () =>
+                    null
+                );
+
+            if (
+              !response.ok
+            ) {
+              const error =
+                new Error(
+                  payload?.error?.message ||
+                  payload?.message ||
+                  `stripe_browser_config_http_${response.status}`
+                );
+
+              error.status =
+                response.status;
+
+              error.payload =
+                payload;
+
+              throw error;
+            }
+
+            const mode =
+              requireString(
+                payload?.mode,
+                "missing_stripe_mode"
+              )
+                .toLowerCase();
+
+            if (
+              mode !==
+                "sandbox" &&
+              mode !==
+                "live"
+            ) {
+              throw new Error(
+                "invalid_stripe_mode"
+              );
+            }
+
+            if (
+              typeof payload?.isSandbox !==
+              "boolean"
+            ) {
+              throw new Error(
+                "invalid_stripe_is_sandbox"
+              );
+            }
+
+            const isSandbox =
+              payload.isSandbox;
+
+            if (
+              (
+                mode ===
+                  "sandbox" &&
+                isSandbox !==
+                  true
+              ) ||
+              (
+                mode ===
+                  "live" &&
+                isSandbox !==
+                  false
+              )
+            ) {
+              throw new Error(
+                "stripe_mode_sandbox_flag_mismatch"
+              );
+            }
+
+            const publishableKey =
+              requireString(
+                payload?.publishableKey,
+                "missing_stripe_publishable_key"
+              );
+
+            if (
+              !publishableKey.startsWith(
+                "pk_"
+              )
+            ) {
+              throw new Error(
+                "invalid_stripe_publishable_key"
+              );
+            }
+
+            if (
+              mode ===
+                "sandbox" &&
+              !publishableKey.startsWith(
+                "pk_test_"
+              )
+            ) {
+              throw new Error(
+                "stripe_sandbox_publishable_key_mismatch"
+              );
+            }
+
+            if (
+              mode ===
+                "live" &&
+              !publishableKey.startsWith(
+                "pk_live_"
+              )
+            ) {
+              throw new Error(
+                "stripe_live_publishable_key_mismatch"
+              );
+            }
+
+            browserConfig = {
+              mode,
+              isSandbox,
+              publishableKey
+            };
+
+            console.log(
+              "STRIPE_BROWSER_CONFIG",
+              {
+                mode:
+                  browserConfig.mode,
+
+                isSandbox:
+                  browserConfig.isSandbox,
+
+                publishableKeyType:
+                  browserConfig.publishableKey
+                    .startsWith(
+                      "pk_live_"
+                    )
+                    ? "live"
+                    : "test"
+              }
+            );
+
+            return browserConfig;
+          }
+        )
+        .catch(
+          (error) => {
+            browserConfigLoadPromise =
+              null;
+
+            browserConfig =
+              null;
+
+            throw error;
+          }
+        );
+
+    return browserConfigLoadPromise;
+  }
+
+
+  /* =========================
      STRIPE SDK
   ========================= */
 
@@ -704,52 +958,57 @@
     }
 
     sdkLoadPromise =
-      import(
-        STRIPE_CRYPTO_MODULE
-      )
-        .then(
-          async (module) => {
-            console.log(
-              "STRIPE_CRYPTO_MODULE_EXPORTS",
-              Object.keys(
-                module ?? {}
-              )
+      (
+        async () => {
+          const config =
+            await loadBrowserConfig();
+
+          const module =
+            await import(
+              STRIPE_CRYPTO_MODULE
             );
 
-            const initialize =
-              module
-                ?.loadCryptoOnrampAndInitialize;
+          console.log(
+            "STRIPE_CRYPTO_MODULE_EXPORTS",
+            Object.keys(
+              module ?? {}
+            )
+          );
 
-            if (
-              typeof initialize !==
-              "function"
-            ) {
-              throw new Error(
-                "loadCryptoOnrampAndInitialize_not_exported"
-              );
-            }
+          const initialize =
+            module
+              ?.loadCryptoOnrampAndInitialize;
 
-            const instance =
-              await initialize(
-                STRIPE_PUBLISHABLE_KEY,
-                {
-                  theme:
-                    "stripe"
-                }
-              );
-
-            if (!instance) {
-              throw new Error(
-                "stripe_embedded_components_initialization_failed"
-              );
-            }
-
-            onramp =
-              instance;
-
-            return onramp;
+          if (
+            typeof initialize !==
+            "function"
+          ) {
+            throw new Error(
+              "loadCryptoOnrampAndInitialize_not_exported"
+            );
           }
-        )
+
+          const instance =
+            await initialize(
+              config.publishableKey,
+              {
+                theme:
+                  "stripe"
+              }
+            );
+
+          if (!instance) {
+            throw new Error(
+              "stripe_embedded_components_initialization_failed"
+            );
+          }
+
+          onramp =
+            instance;
+
+          return onramp;
+        }
+      )()
         .catch(
           (error) => {
             sdkLoadPromise =
@@ -768,9 +1027,14 @@
 
   /* =========================
      REGISTER LINK USER
+     SANDBOX ONLY
   ========================= */
 
   async function registerLinkUser() {
+    requireSandboxMode(
+      "register_link_user_disabled_in_live_mode"
+    );
+
     const sdk =
       await ensureSdk();
 
@@ -838,6 +1102,9 @@
     transactionLimitsButton.disabled =
       true;
 
+    headlessSessionButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
@@ -852,6 +1119,7 @@
 
   /* =========================
      CREATE LINK AUTH INTENT
+     SANDBOX + LIVE
   ========================= */
 
   async function createLinkAuthIntent() {
@@ -862,7 +1130,7 @@
       );
 
     setStatus(
-      "Creating LinkAuthIntent..."
+      `Creating LinkAuthIntent (${browserConfig?.mode ?? "unknown"})...`
     );
 
     const response =
@@ -935,9 +1203,16 @@
     transactionLimitsButton.disabled =
       true;
 
+    headlessSessionButton.disabled =
+      true;
+
     console.log(
       "STRIPE_LINK_AUTH_INTENT",
       {
+        mode:
+          browserConfig?.mode ??
+          null,
+
         authIntentId
       }
     );
@@ -945,6 +1220,10 @@
     setStatus(
       "LinkAuthIntent created.",
       {
+        mode:
+          browserConfig?.mode ??
+          null,
+
         authIntentId
       }
     );
@@ -955,6 +1234,7 @@
 
   /* =========================
      AUTHENTICATE
+     SANDBOX + LIVE
   ========================= */
 
   async function authenticateLinkUser() {
@@ -977,7 +1257,7 @@
     }
 
     setStatus(
-      "Starting Link authentication..."
+      `Starting Link authentication (${browserConfig?.mode ?? "unknown"})...`
     );
 
     resetStripeCustomerState();
@@ -992,6 +1272,9 @@
       true;
 
     transactionLimitsButton.disabled =
+      true;
+
+    headlessSessionButton.disabled =
       true;
 
     authContainer
@@ -1028,7 +1311,7 @@
               false;
 
             kycButton.disabled =
-              false;
+              !isSandboxMode();
 
             achButton.disabled =
               true;
@@ -1036,6 +1319,10 @@
             setStatus(
               "Link authentication successful.",
               {
+                mode:
+                  browserConfig?.mode ??
+                  null,
+
                 result:
                   result.result,
 
@@ -1047,8 +1334,13 @@
                 transactionLimitsEnabled:
                   canLoadTransactionLimits(),
 
+                liveSafetyGuard:
+                  isLiveMode(),
+
                 nextStep:
-                  "Load CryptoCustomer to verify KYC before ACH collection."
+                  isLiveMode()
+                    ? "Load CryptoCustomer or transaction limits. Live write/payment actions remain disabled."
+                    : "Load CryptoCustomer to verify KYC before ACH collection."
               }
             );
 
@@ -1097,6 +1389,7 @@
 
   /* =========================
      LOAD CRYPTO CUSTOMER
+     SANDBOX + LIVE
   ========================= */
 
   async function loadCustomerContext() {
@@ -1113,7 +1406,7 @@
       );
 
     setStatus(
-      "Loading CryptoCustomer..."
+      `Loading CryptoCustomer (${browserConfig?.mode ?? "unknown"})...`
     );
 
     achButton.disabled =
@@ -1178,7 +1471,13 @@
       );
 
     achButton.disabled =
-      !stripeKycVerified;
+      !(
+        isSandboxMode() &&
+        stripeKycVerified
+      );
+
+    kycButton.disabled =
+      !isSandboxMode();
 
     syncTransactionLimitsButton();
     syncHeadlessSessionButton();
@@ -1196,16 +1495,26 @@
     setStatus(
       "CryptoCustomer loaded.",
       {
+        mode:
+          browserConfig?.mode ??
+          null,
+
         ...payload,
 
         achCollectionEnabled:
-          stripeKycVerified,
+          Boolean(
+            isSandboxMode() &&
+            stripeKycVerified
+          ),
 
         transactionLimitsEnabled:
           canLoadTransactionLimits(),
 
         headlessSessionEnabled:
-          canCreateHeadlessSession()
+          canCreateHeadlessSession(),
+
+        liveSafetyGuard:
+          isLiveMode()
       }
     );
 
@@ -1215,9 +1524,14 @@
 
   /* =========================
      SUBMIT KYC — WEB SDK
+     SANDBOX ONLY
   ========================= */
 
   async function submitStripeKyc() {
+    requireSandboxMode(
+      "stripe_kyc_disabled_in_live_mode"
+    );
+
     const sdk =
       await ensureSdk();
 
@@ -1281,9 +1595,14 @@
 
   /* =========================
      COLLECT ACH PAYMENT METHOD
+     SANDBOX ONLY
   ========================= */
 
   async function collectAchPaymentMethod() {
+    requireSandboxMode(
+      "ach_collection_disabled_in_live_mode"
+    );
+
     const sdk =
       await ensureSdk();
 
@@ -1432,6 +1751,7 @@
 
   /* =========================
      TRANSACTION LIMITS
+     SANDBOX + LIVE
   ========================= */
 
   async function loadTransactionLimits() {
@@ -1453,7 +1773,7 @@
       );
 
     setStatus(
-      "Loading Stripe transaction limits..."
+      `Loading Stripe transaction limits (${browserConfig?.mode ?? "unknown"})...`
     );
 
     const response =
@@ -1515,7 +1835,13 @@
 
     setStatus(
       "Stripe transaction limits loaded.",
-      payload
+      {
+        mode:
+          browserConfig?.mode ??
+          null,
+
+        ...payload
+      }
     );
 
     return payload;
@@ -1524,9 +1850,14 @@
 
   /* =========================
      CREATE ACH HEADLESS SESSION
+     SANDBOX ONLY
   ========================= */
 
   async function createAchHeadlessSession() {
+    requireSandboxMode(
+      "headless_session_disabled_in_live_mode"
+    );
+
     const normalizedAuthIntentId =
       requireString(
         authIntentId,
@@ -1657,9 +1988,14 @@
 
   /* =========================
      GENERIC HEADLESS QUOTE
+     SANDBOX ONLY
   ========================= */
 
   async function loadHeadlessQuote() {
+    requireSandboxMode(
+      "generic_quote_disabled_in_live_mode"
+    );
+
     const sourceAmount =
       requireString(
         quoteAmountInput.value,
@@ -1773,7 +2109,7 @@
           );
         } finally {
           registerButton.disabled =
-            false;
+            !isSandboxMode();
         }
       }
     );
@@ -1947,6 +2283,22 @@
         } finally {
           customerContextButton.disabled =
             false;
+
+          if (
+            isLiveMode()
+          ) {
+            kycButton.disabled =
+              true;
+
+            achButton.disabled =
+              true;
+
+            headlessSessionButton.disabled =
+              true;
+
+            quoteButton.disabled =
+              true;
+          }
         }
       }
     );
@@ -2014,7 +2366,7 @@
           );
         } finally {
           kycButton.disabled =
-            false;
+            !isSandboxMode();
 
           customerContextButton.disabled =
             false;
@@ -2063,7 +2415,10 @@
           );
 
           achButton.disabled =
-            !stripeKycVerified;
+            !(
+              isSandboxMode() &&
+              stripeKycVerified
+            );
 
           syncTransactionLimitsButton();
           syncHeadlessSessionButton();
@@ -2187,7 +2542,7 @@
           );
         } finally {
           quoteButton.disabled =
-            false;
+            !isSandboxMode();
         }
       }
     );
@@ -2228,14 +2583,14 @@
       true;
 
     setStatus(
-      "Loading Stripe Embedded Components SDK..."
+      "Loading Stripe backend configuration..."
     );
 
     ensureSdk()
       .then(
         () => {
           registerButton.disabled =
-            false;
+            !isSandboxMode();
 
           authIntentButton.disabled =
             false;
@@ -2259,10 +2614,42 @@
             true;
 
           quoteButton.disabled =
-            false;
+            !isSandboxMode();
 
           setStatus(
-            "Stripe Embedded Components SDK initialized."
+            "Stripe Embedded Components SDK initialized.",
+            {
+              mode:
+                browserConfig?.mode ??
+                null,
+
+              isSandbox:
+                browserConfig?.isSandbox ??
+                null,
+
+              liveSafetyGuard:
+                isLiveMode(),
+
+              enabledFlow:
+                isLiveMode()
+                  ? [
+                      "Create LinkAuthIntent",
+                      "Authenticate",
+                      "Load CryptoCustomer",
+                      "Get transaction limits"
+                    ]
+                  : [
+                      "Register Link user",
+                      "Create LinkAuthIntent",
+                      "Authenticate",
+                      "Load CryptoCustomer",
+                      "Submit KYC",
+                      "Collect ACH",
+                      "Get transaction limits",
+                      "Create ACH headless session",
+                      "Generic quote diagnostic"
+                    ]
+            }
           );
         }
       )
@@ -2276,11 +2663,19 @@
           setStatus(
             "Stripe SDK initialization failed.",
             {
+              status:
+                error?.status ??
+                null,
+
               message:
                 error?.message ??
                 String(
                   error
-                )
+                ),
+
+              payload:
+                error?.payload ??
+                null
             }
           );
         }
