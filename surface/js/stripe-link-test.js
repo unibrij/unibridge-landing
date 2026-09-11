@@ -13,15 +13,20 @@
   5. authenticate()
   6. Obtain crypto_customer_id
   7. Load CryptoCustomer through UniBridge backend
-  8. Submit KYC information through Web SDK
-  9. Inspect raw KYC result
-  10. Test independent generic headless quote
+  8. Gate ACH using CryptoCustomer KYC verification state
+  9. Submit KYC information through Web SDK if required
+  10. Collect ACH payment method
+  11. Obtain cryptoPaymentToken
+  12. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
   - No OAuth access token here
-  - Web SDK uses submitKycInfo(), not attachKycInfo()
+  - Web SDK uses submitKycInfo()
+  - ACH collection is restricted to us_bank_account
+  - Apple Pay and Google Pay are explicitly disabled
+  - ACH is enabled only when Stripe reports kyc_verified
   --------------------------------------------------
   */
 
@@ -43,10 +48,20 @@
   const HEADLESS_QUOTE_URL =
     "/v2/ramp/stripe/browser/quote";
 
-  let onramp = null;
-  let sdkLoadPromise = null;
-  let authIntentId = null;
-  let cryptoCustomerId = null;
+  let onramp =
+    null;
+
+  let sdkLoadPromise =
+    null;
+
+  let authIntentId =
+    null;
+
+  let cryptoCustomerId =
+    null;
+
+  let cryptoPaymentToken =
+    null;
 
 
   /* =========================
@@ -133,6 +148,11 @@
       "kyc-button"
     );
 
+  const achButton =
+    document.getElementById(
+      "ach-button"
+    );
+
   const quoteAmountInput =
     document.getElementById(
       "quote-amount"
@@ -168,10 +188,15 @@
     payload = null
   ) {
     const parts = [
-      String(message || "")
+      String(
+        message || ""
+      )
     ];
 
-    if (payload !== null) {
+    if (
+      payload !==
+      null
+    ) {
       try {
         parts.push(
           JSON.stringify(
@@ -182,13 +207,17 @@
         );
       } catch {
         parts.push(
-          String(payload)
+          String(
+            payload
+          )
         );
       }
     }
 
     statusElement.textContent =
-      parts.join("\n\n");
+      parts.join(
+        "\n\n"
+      );
   }
 
 
@@ -197,7 +226,9 @@
     errorCode
   ) {
     const normalized =
-      String(value ?? "")
+      String(
+        value ?? ""
+      )
         .trim();
 
     if (!normalized) {
@@ -252,13 +283,21 @@
         .split("-")
         .map(
           (value) =>
-            Number(value)
+            Number(
+              value
+            )
         );
 
     if (
-      !Number.isInteger(year) ||
-      !Number.isInteger(month) ||
-      !Number.isInteger(day) ||
+      !Number.isInteger(
+        year
+      ) ||
+      !Number.isInteger(
+        month
+      ) ||
+      !Number.isInteger(
+        day
+      ) ||
       year <= 0 ||
       month < 1 ||
       month > 12 ||
@@ -348,8 +387,27 @@
   }
 
 
+  function isKycVerified(
+    payload
+  ) {
+    const verification =
+      String(
+        payload
+          ?.verifications
+          ?.kyc_verified ??
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+    return verification ===
+      "verified";
+  }
+
+
   function assertDom() {
-    const missing = [];
+    const missing =
+      [];
 
     if (!emailInput) {
       missing.push(
@@ -447,6 +505,12 @@
       );
     }
 
+    if (!achButton) {
+      missing.push(
+        "ach-button"
+      );
+    }
+
     if (!quoteAmountInput) {
       missing.push(
         "quote-amount"
@@ -477,7 +541,9 @@
       );
     }
 
-    if (missing.length) {
+    if (
+      missing.length
+    ) {
       throw new Error(
         `missing_dom_elements:${missing.join(",")}`
       );
@@ -494,7 +560,9 @@
       return onramp;
     }
 
-    if (sdkLoadPromise) {
+    if (
+      sdkLoadPromise
+    ) {
       return sdkLoadPromise;
     }
 
@@ -607,7 +675,8 @@
         );
 
       error.payload =
-        result ?? null;
+        result ??
+        null;
 
       throw error;
     }
@@ -618,6 +687,9 @@
     cryptoCustomerId =
       null;
 
+    cryptoPaymentToken =
+      null;
+
     authenticateButton.disabled =
       true;
 
@@ -625,6 +697,9 @@
       true;
 
     kycButton.disabled =
+      true;
+
+    achButton.disabled =
       true;
 
     authContainer
@@ -677,10 +752,13 @@
       await response
         .json()
         .catch(
-          () => null
+          () =>
+            null
         );
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
       const error =
         new Error(
           payload?.error?.message ||
@@ -707,6 +785,9 @@
     cryptoCustomerId =
       null;
 
+    cryptoPaymentToken =
+      null;
+
     authenticateButton.disabled =
       false;
 
@@ -714,6 +795,9 @@
       true;
 
     kycButton.disabled =
+      true;
+
+    achButton.disabled =
       true;
 
     console.log(
@@ -764,10 +848,16 @@
     cryptoCustomerId =
       null;
 
+    cryptoPaymentToken =
+      null;
+
     customerContextButton.disabled =
       true;
 
     kycButton.disabled =
+      true;
+
+    achButton.disabled =
       true;
 
     authContainer
@@ -800,6 +890,9 @@
             kycButton.disabled =
               false;
 
+            achButton.disabled =
+              true;
+
             setStatus(
               "Link authentication successful.",
               {
@@ -809,7 +902,10 @@
                 authIntentId:
                   normalizedAuthIntentId,
 
-                cryptoCustomerId
+                cryptoCustomerId,
+
+                nextStep:
+                  "Load CryptoCustomer to verify KYC before ACH collection."
               }
             );
 
@@ -877,6 +973,9 @@
       "Loading CryptoCustomer..."
     );
 
+    achButton.disabled =
+      true;
+
     const response =
       await fetch(
         CUSTOMER_CONTEXT_URL,
@@ -904,10 +1003,13 @@
       await response
         .json()
         .catch(
-          () => null
+          () =>
+            null
         );
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
       const error =
         new Error(
           payload?.error?.message ||
@@ -924,14 +1026,32 @@
       throw error;
     }
 
+    const kycVerified =
+      isKycVerified(
+        payload
+      );
+
+    achButton.disabled =
+      !kycVerified;
+
     console.log(
       "STRIPE_CUSTOMER_CONTEXT",
       payload
     );
 
+    console.log(
+      "STRIPE_KYC_VERIFIED",
+      kycVerified
+    );
+
     setStatus(
       "CryptoCustomer loaded.",
-      payload
+      {
+        ...payload,
+
+        achCollectionEnabled:
+          kycVerified
+      }
     );
 
     return payload;
@@ -967,16 +1087,13 @@
       "Submitting Stripe KYC..."
     );
 
+    achButton.disabled =
+      true;
+
     console.log(
       "STRIPE_KYC_INFO",
       {
         ...kycInfo,
-
-        /*
-        --------------------------------------------------
-        Do not print the SSN value to the console.
-        --------------------------------------------------
-        */
 
         id_number: {
           type:
@@ -999,6 +1116,126 @@
     );
 
     return result;
+  }
+
+
+  /* =========================
+     COLLECT ACH PAYMENT METHOD
+  ========================= */
+
+  async function collectAchPaymentMethod() {
+    const sdk =
+      await ensureSdk();
+
+    requireString(
+      cryptoCustomerId,
+      "missing_crypto_customer_id"
+    );
+
+    if (
+      typeof sdk.collectPaymentMethod !==
+      "function"
+    ) {
+      throw new Error(
+        "collectPaymentMethod_not_available"
+      );
+    }
+
+    cryptoPaymentToken =
+      null;
+
+    setStatus(
+      "Collecting ACH payment method..."
+    );
+
+    authContainer
+      .replaceChildren();
+
+    const paymentElement =
+      await sdk.collectPaymentMethod(
+        {
+          payment_method_types: [
+            "us_bank_account"
+          ],
+
+          wallets: {
+            applePay:
+              "never",
+
+            googlePay:
+              "never"
+          }
+        },
+
+        (result) => {
+          console.log(
+            "STRIPE_PAYMENT_METHOD_RESULT",
+            result
+          );
+
+          const token =
+            result?.cryptoPaymentToken ??
+            result?.crypto_payment_token ??
+            null;
+
+          if (token) {
+            cryptoPaymentToken =
+              token;
+
+            setStatus(
+              "ACH payment method collected.",
+              {
+                cryptoPaymentToken
+              }
+            );
+
+            return;
+          }
+
+          if (
+            result?.result ===
+            "abandoned"
+          ) {
+            setStatus(
+              "ACH payment-method collection abandoned.",
+              result
+            );
+
+            achButton.disabled =
+              false;
+
+            return;
+          }
+
+          if (
+            result?.error
+          ) {
+            setStatus(
+              "ACH payment-method collection failed.",
+              result
+            );
+
+            achButton.disabled =
+              false;
+
+            return;
+          }
+
+          setStatus(
+            "ACH payment-method callback received.",
+            result
+          );
+        }
+      );
+
+    if (
+      paymentElement
+    ) {
+      authContainer
+        .replaceChildren(
+          paymentElement
+        );
+    }
   }
 
 
@@ -1048,10 +1285,13 @@
       await response
         .json()
         .catch(
-          () => null
+          () =>
+            null
         );
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
       const error =
         new Error(
           payload?.error?.message ||
@@ -1106,7 +1346,9 @@
             {
               message:
                 error?.message ??
-                String(error),
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
@@ -1137,10 +1379,16 @@
         kycButton.disabled =
           true;
 
+        achButton.disabled =
+          true;
+
         authIntentId =
           null;
 
         cryptoCustomerId =
+          null;
+
+        cryptoPaymentToken =
           null;
 
         authContainer
@@ -1163,7 +1411,9 @@
 
               message:
                 error?.message ??
-                String(error),
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
@@ -1191,6 +1441,9 @@
         kycButton.disabled =
           true;
 
+        achButton.disabled =
+          true;
+
         try {
           await authenticateLinkUser();
         } catch (error) {
@@ -1204,7 +1457,9 @@
             {
               message:
                 error?.message ??
-                String(error)
+                String(
+                  error
+                )
             }
           );
 
@@ -1220,6 +1475,9 @@
       "click",
       async () => {
         customerContextButton.disabled =
+          true;
+
+        achButton.disabled =
           true;
 
         try {
@@ -1239,13 +1497,18 @@
 
               message:
                 error?.message ??
-                String(error),
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
                 null
             }
           );
+
+          achButton.disabled =
+            true;
         } finally {
           customerContextButton.disabled =
             false;
@@ -1264,6 +1527,9 @@
         customerContextButton.disabled =
           true;
 
+        achButton.disabled =
+          true;
+
         try {
           const kycResult =
             await submitStripeKyc();
@@ -1277,10 +1543,11 @@
             "Stripe KYC submitted.",
             {
               kycResult:
-                kycResult ?? null,
+                kycResult ??
+                null,
 
               nextStep:
-                "Inspect Stripe verification state before continuing to ACH payment-method collection."
+                "Load CryptoCustomer again before enabling ACH."
             }
           );
         } catch (error) {
@@ -1298,7 +1565,52 @@
 
               message:
                 error?.message ??
-                String(error),
+                String(
+                  error
+                ),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+        } finally {
+          kycButton.disabled =
+            false;
+
+          customerContextButton.disabled =
+            false;
+
+          achButton.disabled =
+            true;
+        }
+      }
+    );
+
+
+  achButton
+    .addEventListener(
+      "click",
+      async () => {
+        achButton.disabled =
+          true;
+
+        try {
+          await collectAchPaymentMethod();
+        } catch (error) {
+          console.error(
+            "STRIPE_COLLECT_ACH_FAILED",
+            error
+          );
+
+          setStatus(
+            "ACH payment-method collection failed.",
+            {
+              message:
+                error?.message ??
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
@@ -1306,10 +1618,7 @@
             }
           );
 
-          customerContextButton.disabled =
-            false;
-        } finally {
-          kycButton.disabled =
+          achButton.disabled =
             false;
         }
       }
@@ -1340,7 +1649,9 @@
 
               message:
                 error?.message ??
-                String(error),
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
@@ -1377,6 +1688,9 @@
     kycButton.disabled =
       true;
 
+    achButton.disabled =
+      true;
+
     quoteButton.disabled =
       true;
 
@@ -1402,13 +1716,8 @@
           kycButton.disabled =
             true;
 
-          /*
-          --------------------------------------------------
-          Generic quote stays available for diagnostics only.
-
-          It is not an ACH-specific UniBridge funding quote.
-          --------------------------------------------------
-          */
+          achButton.disabled =
+            true;
 
           quoteButton.disabled =
             false;
@@ -1430,7 +1739,9 @@
             {
               message:
                 error?.message ??
-                String(error)
+                String(
+                  error
+                )
             }
           );
         }
@@ -1441,13 +1752,17 @@
       error
     );
 
-    if (statusElement) {
+    if (
+      statusElement
+    ) {
       setStatus(
         "Stripe Link test failed to boot.",
         {
           message:
             error?.message ??
-            String(error)
+            String(
+              error
+            )
         }
       );
     }
