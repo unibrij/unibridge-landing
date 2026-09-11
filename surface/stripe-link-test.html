@@ -115,7 +115,7 @@
     </h1>
 
     <p>
-      Temporary Link, CryptoCustomer, KYC, ACH, and headless session test.
+      Temporary Link, CryptoCustomer, KYC, ACH, transaction limits, and headless session test.
     </p>
 
     <label for="email">
@@ -335,11 +335,19 @@
     />
 
     <button
+      id="transaction-limits-button"
+      type="button"
+      disabled
+    >
+      7. Get ACH Transaction Limits
+    </button>
+
+    <button
       id="headless-session-button"
       type="button"
       disabled
     >
-      7. Create ACH Headless Session
+      8. Create ACH Headless Session
     </button>
 
     <h2>
@@ -375,7 +383,7 @@
       type="button"
       disabled
     >
-      8. Get Generic Headless Quote
+      9. Get Generic Headless Quote
     </button>
 
     <div id="status">
@@ -387,7 +395,7 @@
 
   <script
     type="module"
-    src="/surface/js/stripe-link-test.js?v=20260911-headless-session"
+    src="/surface/js/stripe-link-test.js?v=20260911-transaction-limits"
   ></script>
 </body>
 
