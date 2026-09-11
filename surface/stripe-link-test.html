@@ -115,7 +115,7 @@
     </h1>
 
     <p>
-      Temporary Link, CryptoCustomer, KYC, ACH, and headless quote test.
+      Temporary Link, CryptoCustomer, KYC, ACH, and headless session test.
     </p>
 
     <label for="email">
@@ -296,6 +296,53 @@
     </button>
 
     <h2>
+      ACH Headless Session
+    </h2>
+
+    <label for="session-amount">
+      Source amount
+    </label>
+
+    <input
+      id="session-amount"
+      type="number"
+      min="0.01"
+      step="0.01"
+      value="100"
+      inputmode="decimal"
+    />
+
+    <label for="session-currency">
+      Source currency
+    </label>
+
+    <input
+      id="session-currency"
+      type="text"
+      value="usd"
+      autocomplete="off"
+    />
+
+    <label for="wallet-address">
+      Polygon wallet address
+    </label>
+
+    <input
+      id="wallet-address"
+      type="text"
+      placeholder="0x..."
+      autocomplete="off"
+    />
+
+    <button
+      id="headless-session-button"
+      type="button"
+      disabled
+    >
+      7. Create ACH Headless Session
+    </button>
+
+    <h2>
       Generic Headless Quote
     </h2>
 
@@ -328,7 +375,7 @@
       type="button"
       disabled
     >
-      7. Get Generic Headless Quote
+      8. Get Generic Headless Quote
     </button>
 
     <div id="status">
@@ -340,7 +387,7 @@
 
   <script
     type="module"
-    src="/surface/js/stripe-link-test.js"
+    src="/surface/js/stripe-link-test.js?v=20260911-headless-session"
   ></script>
 </body>
 
