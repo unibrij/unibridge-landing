@@ -13,20 +13,15 @@
   5. authenticate()
   6. Obtain crypto_customer_id
   7. Load CryptoCustomer through UniBridge backend
-  8. Attach KYC information
+  8. Submit KYC information through Web SDK
   9. Inspect raw KYC result
-  10. If verification state must be re-read:
-      create a fresh LinkAuthIntent,
-      authenticate again,
-      then load CryptoCustomer
-  11. Test independent generic headless quote
+  10. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
   - No OAuth access token here
-  - Do not automatically exchange the same LinkAuthIntent
-    again after KYC submission
+  - Web SDK uses submitKycInfo(), not attachKycInfo()
   --------------------------------------------------
   */
 
@@ -248,20 +243,17 @@
         "missing_kyc_dob"
       );
 
-    const parts =
+    const [
+      year,
+      month,
+      day
+    ] =
       dob
         .split("-")
         .map(
           (value) =>
             Number(value)
         );
-
-    const [
-      year,
-      month,
-      day
-    ] =
-      parts;
 
     if (
       !Number.isInteger(year) ||
@@ -278,30 +270,37 @@
       );
     }
 
+    const ssn =
+      requireString(
+        kycIdNumberInput.value,
+        "missing_kyc_id_number"
+      )
+        .replace(
+          /\D/g,
+          ""
+        );
+
+    if (
+      ssn.length !==
+      9
+    ) {
+      throw new Error(
+        "invalid_kyc_us_ssn"
+      );
+    }
+
     return {
-      firstName:
+      given_name:
         requireString(
           kycFirstNameInput.value,
           "missing_kyc_first_name"
         ),
 
-      lastName:
+      surname:
         requireString(
           kycLastNameInput.value,
           "missing_kyc_last_name"
         ),
-
-      idNumber:
-        requireString(
-          kycIdNumberInput.value,
-          "missing_kyc_id_number"
-        ),
-
-      dateOfBirth: {
-        day,
-        month,
-        year
-      },
 
       address: {
         line1:
@@ -322,7 +321,7 @@
             "missing_kyc_state"
           ),
 
-        postalCode:
+        postal_code:
           requireString(
             kycPostalCodeInput.value,
             "missing_kyc_postal_code"
@@ -330,6 +329,20 @@
 
         country:
           TEST_COUNTRY
+      },
+
+      date_of_birth: {
+        year,
+        month,
+        day
+      },
+
+      id_number: {
+        type:
+          "us_ssn",
+
+        value:
+          ssn
       }
     };
   }
@@ -926,10 +939,10 @@
 
 
   /* =========================
-     ATTACH KYC
+     SUBMIT KYC — WEB SDK
   ========================= */
 
-  async function attachStripeKyc() {
+  async function submitStripeKyc() {
     const sdk =
       await ensureSdk();
 
@@ -939,11 +952,11 @@
     );
 
     if (
-      typeof sdk.attachKycInfo !==
+      typeof sdk.submitKycInfo !==
       "function"
     ) {
       throw new Error(
-        "attachKycInfo_not_available"
+        "submitKycInfo_not_available"
       );
     }
 
@@ -951,31 +964,39 @@
       buildKycInfo();
 
     setStatus(
-      "Attaching Stripe KYC..."
+      "Submitting Stripe KYC..."
+    );
+
+    console.log(
+      "STRIPE_KYC_INFO",
+      {
+        ...kycInfo,
+
+        /*
+        --------------------------------------------------
+        Do not print the SSN value to the console.
+        --------------------------------------------------
+        */
+
+        id_number: {
+          type:
+            kycInfo.id_number.type,
+
+          value:
+            "[REDACTED]"
+        }
+      }
     );
 
     const result =
-      await sdk.attachKycInfo(
+      await sdk.submitKycInfo(
         kycInfo
       );
 
     console.log(
-      "STRIPE_ATTACH_KYC_RESULT",
+      "STRIPE_SUBMIT_KYC_RESULT",
       result
     );
-
-    if (result?.error) {
-      const error =
-        new Error(
-          result?.error?.message ||
-          "stripe_attach_kyc_failed"
-        );
-
-      error.payload =
-        result;
-
-      throw error;
-    }
 
     return result;
   }
@@ -1245,52 +1266,26 @@
 
         try {
           const kycResult =
-            await attachStripeKyc();
-
-          /*
-          --------------------------------------------------
-          Do NOT automatically call customer-context here.
-
-          customer-context currently performs the server-side
-          LinkAuthIntent token retrieval. Reusing the same
-          LinkAuthIntent after it has already been exchanged
-          is not assumed to be safe/idempotent.
-
-          To inspect verification state after KYC:
-          - create a fresh LinkAuthIntent
-          - authenticate again
-          - load CryptoCustomer with the fresh auth context
-          --------------------------------------------------
-          */
+            await submitStripeKyc();
 
           console.log(
-            "STRIPE_ATTACH_KYC_COMPLETE",
+            "STRIPE_SUBMIT_KYC_COMPLETE",
             kycResult
           );
 
           setStatus(
-            "Stripe KYC attached.",
+            "Stripe KYC submitted.",
             {
               kycResult:
                 kycResult ?? null,
 
               nextStep:
-                "Create a fresh LinkAuthIntent, authenticate again, then load CryptoCustomer to inspect Stripe verification state."
+                "Inspect Stripe verification state before continuing to ACH payment-method collection."
             }
           );
-
-          /*
-          --------------------------------------------------
-          Prevent accidental re-use of this auth context for
-          another customer-context token retrieval.
-          --------------------------------------------------
-          */
-
-          customerContextButton.disabled =
-            true;
         } catch (error) {
           console.error(
-            "STRIPE_ATTACH_KYC_FAILED",
+            "STRIPE_SUBMIT_KYC_FAILED",
             error
           );
 
@@ -1310,14 +1305,6 @@
                 null
             }
           );
-
-          /*
-          --------------------------------------------------
-          KYC failed before we intentionally invalidate the
-          current inspection path, so the existing customer
-          context button may still be used for diagnostics.
-          --------------------------------------------------
-          */
 
           customerContextButton.disabled =
             false;
