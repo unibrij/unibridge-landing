@@ -115,7 +115,7 @@
     </h1>
 
     <p>
-      Temporary Link, CryptoCustomer, and headless quote test.
+      Temporary Link, CryptoCustomer, KYC, and headless quote test.
     </p>
 
     <label for="email">
@@ -184,7 +184,107 @@
     </button>
 
     <h2>
-      Headless Quote
+      Stripe KYC
+    </h2>
+
+    <label for="kyc-first-name">
+      First name
+    </label>
+
+    <input
+      id="kyc-first-name"
+      type="text"
+      value="John"
+      autocomplete="given-name"
+    />
+
+    <label for="kyc-last-name">
+      Last name
+    </label>
+
+    <input
+      id="kyc-last-name"
+      type="text"
+      value="Smith"
+      autocomplete="family-name"
+    />
+
+    <label for="kyc-id-number">
+      ID number
+    </label>
+
+    <input
+      id="kyc-id-number"
+      type="text"
+      value="000000000"
+      autocomplete="off"
+    />
+
+    <label for="kyc-dob">
+      Date of birth
+    </label>
+
+    <input
+      id="kyc-dob"
+      type="date"
+      value="1990-01-01"
+      autocomplete="bday"
+    />
+
+    <label for="kyc-address-line1">
+      Address
+    </label>
+
+    <input
+      id="kyc-address-line1"
+      type="text"
+      value="123 Main St"
+      autocomplete="address-line1"
+    />
+
+    <label for="kyc-city">
+      City
+    </label>
+
+    <input
+      id="kyc-city"
+      type="text"
+      value="San Francisco"
+      autocomplete="address-level2"
+    />
+
+    <label for="kyc-state">
+      State
+    </label>
+
+    <input
+      id="kyc-state"
+      type="text"
+      value="CA"
+      autocomplete="address-level1"
+    />
+
+    <label for="kyc-postal-code">
+      Postal code
+    </label>
+
+    <input
+      id="kyc-postal-code"
+      type="text"
+      value="94111"
+      autocomplete="postal-code"
+    />
+
+    <button
+      id="kyc-button"
+      type="button"
+      disabled
+    >
+      5. Attach KYC
+    </button>
+
+    <h2>
+      Generic Headless Quote
     </h2>
 
     <label for="quote-amount">
@@ -216,7 +316,7 @@
       type="button"
       disabled
     >
-      5. Get Headless Quote
+      6. Get Generic Headless Quote
     </button>
 
     <div id="status">
