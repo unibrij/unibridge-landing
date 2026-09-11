@@ -17,7 +17,9 @@
   9. Submit KYC information through Web SDK if required
   10. Collect ACH payment method
   11. Obtain cryptoPaymentToken
-  12. Test independent generic headless quote
+  12. Create ACH-bound headless onramp session
+  13. Inspect raw Stripe session response
+  14. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
@@ -27,6 +29,10 @@
   - ACH collection is restricted to us_bank_account
   - Apple Pay and Google Pay are explicitly disabled
   - ACH is enabled only when Stripe reports kyc_verified
+  - Headless session requires BOTH:
+      * kyc_verified
+      * cryptoPaymentToken
+  - No performCheckout() in this diagnostic
   --------------------------------------------------
   */
 
@@ -45,6 +51,9 @@
   const CUSTOMER_CONTEXT_URL =
     "/v2/ramp/stripe/browser/customer-context";
 
+  const HEADLESS_SESSION_URL =
+    "/v2/ramp/stripe/browser/headless-session";
+
   const HEADLESS_QUOTE_URL =
     "/v2/ramp/stripe/browser/quote";
 
@@ -62,6 +71,9 @@
 
   let cryptoPaymentToken =
     null;
+
+  let stripeKycVerified =
+    false;
 
 
   /* =========================
@@ -151,6 +163,26 @@
   const achButton =
     document.getElementById(
       "ach-button"
+    );
+
+  const sessionAmountInput =
+    document.getElementById(
+      "session-amount"
+    );
+
+  const sessionCurrencyInput =
+    document.getElementById(
+      "session-currency"
+    );
+
+  const walletAddressInput =
+    document.getElementById(
+      "wallet-address"
+    );
+
+  const headlessSessionButton =
+    document.getElementById(
+      "headless-session-button"
     );
 
   const quoteAmountInput =
@@ -421,6 +453,39 @@
   }
 
 
+  function canCreateHeadlessSession() {
+    return Boolean(
+      stripeKycVerified &&
+      cryptoPaymentToken
+    );
+  }
+
+
+  function syncHeadlessSessionButton() {
+    headlessSessionButton.disabled =
+      !canCreateHeadlessSession();
+  }
+
+
+  function resetHeadlessSessionState() {
+    cryptoPaymentToken =
+      null;
+
+    syncHeadlessSessionButton();
+  }
+
+
+  function resetStripeCustomerState() {
+    cryptoCustomerId =
+      null;
+
+    stripeKycVerified =
+      false;
+
+    resetHeadlessSessionState();
+  }
+
+
   function assertDom() {
     const missing =
       [];
@@ -524,6 +589,30 @@
     if (!achButton) {
       missing.push(
         "ach-button"
+      );
+    }
+
+    if (!sessionAmountInput) {
+      missing.push(
+        "session-amount"
+      );
+    }
+
+    if (!sessionCurrencyInput) {
+      missing.push(
+        "session-currency"
+      );
+    }
+
+    if (!walletAddressInput) {
+      missing.push(
+        "wallet-address"
+      );
+    }
+
+    if (!headlessSessionButton) {
+      missing.push(
+        "headless-session-button"
       );
     }
 
@@ -700,11 +789,7 @@
     authIntentId =
       null;
 
-    cryptoCustomerId =
-      null;
-
-    cryptoPaymentToken =
-      null;
+    resetStripeCustomerState();
 
     authenticateButton.disabled =
       true;
@@ -798,11 +883,7 @@
         "missing_auth_intent_id"
       );
 
-    cryptoCustomerId =
-      null;
-
-    cryptoPaymentToken =
-      null;
+    resetStripeCustomerState();
 
     authenticateButton.disabled =
       false;
@@ -861,11 +942,7 @@
       "Starting Link authentication..."
     );
 
-    cryptoCustomerId =
-      null;
-
-    cryptoPaymentToken =
-      null;
+    resetStripeCustomerState();
 
     customerContextButton.disabled =
       true;
@@ -899,6 +976,11 @@
                   ?.crypto_customer_id,
                 "missing_crypto_customer_id"
               );
+
+            stripeKycVerified =
+              false;
+
+            syncHeadlessSessionButton();
 
             customerContextButton.disabled =
               false;
@@ -992,6 +1074,9 @@
     achButton.disabled =
       true;
 
+    headlessSessionButton.disabled =
+      true;
+
     const response =
       await fetch(
         CUSTOMER_CONTEXT_URL,
@@ -1042,13 +1127,15 @@
       throw error;
     }
 
-    const kycVerified =
+    stripeKycVerified =
       isKycVerified(
         payload
       );
 
     achButton.disabled =
-      !kycVerified;
+      !stripeKycVerified;
+
+    syncHeadlessSessionButton();
 
     console.log(
       "STRIPE_CUSTOMER_CONTEXT",
@@ -1057,7 +1144,7 @@
 
     console.log(
       "STRIPE_KYC_VERIFIED",
-      kycVerified
+      stripeKycVerified
     );
 
     setStatus(
@@ -1066,7 +1153,10 @@
         ...payload,
 
         achCollectionEnabled:
-          kycVerified
+          stripeKycVerified,
+
+        headlessSessionEnabled:
+          canCreateHeadlessSession()
       }
     );
 
@@ -1102,6 +1192,11 @@
     setStatus(
       "Submitting Stripe KYC..."
     );
+
+    stripeKycVerified =
+      false;
+
+    resetHeadlessSessionState();
 
     achButton.disabled =
       true;
@@ -1149,6 +1244,14 @@
     );
 
     if (
+      !stripeKycVerified
+    ) {
+      throw new Error(
+        "stripe_kyc_not_verified"
+      );
+    }
+
+    if (
       typeof sdk.collectPaymentMethod !==
       "function"
     ) {
@@ -1157,8 +1260,7 @@
       );
     }
 
-    cryptoPaymentToken =
-      null;
+    resetHeadlessSessionState();
 
     setStatus(
       "Collecting ACH payment method..."
@@ -1196,12 +1298,26 @@
 
           if (token) {
             cryptoPaymentToken =
-              token;
+              requireString(
+                token,
+                "missing_crypto_payment_token"
+              );
+
+            syncHeadlessSessionButton();
 
             setStatus(
               "ACH payment method collected.",
               {
-                cryptoPaymentToken
+                cryptoPaymentToken,
+
+                kycVerified:
+                  stripeKycVerified,
+
+                headlessSessionEnabled:
+                  canCreateHeadlessSession(),
+
+                nextStep:
+                  "Create ACH Headless Session."
               }
             );
 
@@ -1220,6 +1336,8 @@
             achButton.disabled =
               false;
 
+            syncHeadlessSessionButton();
+
             return;
           }
 
@@ -1233,6 +1351,8 @@
 
             achButton.disabled =
               false;
+
+            syncHeadlessSessionButton();
 
             return;
           }
@@ -1256,7 +1376,140 @@
 
 
   /* =========================
-     HEADLESS QUOTE
+     CREATE ACH HEADLESS SESSION
+  ========================= */
+
+  async function createAchHeadlessSession() {
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
+        "missing_auth_intent_id"
+      );
+
+    const normalizedCryptoCustomerId =
+      requireString(
+        cryptoCustomerId,
+        "missing_crypto_customer_id"
+      );
+
+    if (
+      !stripeKycVerified
+    ) {
+      throw new Error(
+        "stripe_kyc_not_verified"
+      );
+    }
+
+    const normalizedCryptoPaymentToken =
+      requireString(
+        cryptoPaymentToken,
+        "missing_crypto_payment_token"
+      );
+
+    const sourceAmount =
+      requireString(
+        sessionAmountInput.value,
+        "missing_source_amount"
+      );
+
+    const sourceCurrency =
+      requireString(
+        sessionCurrencyInput.value,
+        "missing_source_currency"
+      )
+        .toLowerCase();
+
+    const walletAddress =
+      requireString(
+        walletAddressInput.value,
+        "missing_wallet_address"
+      );
+
+    setStatus(
+      "Creating ACH-bound headless session..."
+    );
+
+    const response =
+      await fetch(
+        HEADLESS_SESSION_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              authIntentId:
+                normalizedAuthIntentId,
+
+              cryptoCustomerId:
+                normalizedCryptoCustomerId,
+
+              cryptoPaymentToken:
+                normalizedCryptoPaymentToken,
+
+              sourceAmount,
+
+              sourceCurrency,
+
+              destinationCurrency:
+                "usdc",
+
+              destinationNetwork:
+                "polygon",
+
+              walletAddress
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () =>
+            null
+        );
+
+    if (
+      !response.ok
+    ) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `headless_session_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    console.log(
+      "STRIPE_ACH_HEADLESS_SESSION",
+      payload
+    );
+
+    setStatus(
+      "ACH-bound headless session created.",
+      payload
+    );
+
+    return payload;
+  }
+
+
+  /* =========================
+     GENERIC HEADLESS QUOTE
   ========================= */
 
   async function loadHeadlessQuote() {
@@ -1398,14 +1651,13 @@
         achButton.disabled =
           true;
 
+        headlessSessionButton.disabled =
+          true;
+
         authIntentId =
           null;
 
-        cryptoCustomerId =
-          null;
-
-        cryptoPaymentToken =
-          null;
+        resetStripeCustomerState();
 
         authContainer
           .replaceChildren();
@@ -1460,6 +1712,9 @@
         achButton.disabled =
           true;
 
+        headlessSessionButton.disabled =
+          true;
+
         try {
           await authenticateLinkUser();
         } catch (error) {
@@ -1496,6 +1751,9 @@
         achButton.disabled =
           true;
 
+        headlessSessionButton.disabled =
+          true;
+
         try {
           await loadCustomerContext();
         } catch (error) {
@@ -1503,6 +1761,11 @@
             "STRIPE_CUSTOMER_CONTEXT_FAILED",
             error
           );
+
+          stripeKycVerified =
+            false;
+
+          syncHeadlessSessionButton();
 
           setStatus(
             "CryptoCustomer load failed.",
@@ -1544,6 +1807,9 @@
           true;
 
         achButton.disabled =
+          true;
+
+        headlessSessionButton.disabled =
           true;
 
         try {
@@ -1599,6 +1865,8 @@
 
           achButton.disabled =
             true;
+
+          syncHeadlessSessionButton();
         }
       }
     );
@@ -1609,6 +1877,9 @@
       "click",
       async () => {
         achButton.disabled =
+          true;
+
+        headlessSessionButton.disabled =
           true;
 
         try {
@@ -1635,7 +1906,49 @@
           );
 
           achButton.disabled =
-            false;
+            !stripeKycVerified;
+
+          syncHeadlessSessionButton();
+        }
+      }
+    );
+
+
+  headlessSessionButton
+    .addEventListener(
+      "click",
+      async () => {
+        headlessSessionButton.disabled =
+          true;
+
+        try {
+          await createAchHeadlessSession();
+        } catch (error) {
+          console.error(
+            "STRIPE_ACH_HEADLESS_SESSION_FAILED",
+            error
+          );
+
+          setStatus(
+            "ACH-bound headless session failed.",
+            {
+              status:
+                error?.status ??
+                null,
+
+              message:
+                error?.message ??
+                String(
+                  error
+                ),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+        } finally {
+          syncHeadlessSessionButton();
         }
       }
     );
@@ -1707,6 +2020,9 @@
     achButton.disabled =
       true;
 
+    headlessSessionButton.disabled =
+      true;
+
     quoteButton.disabled =
       true;
 
@@ -1733,6 +2049,9 @@
             true;
 
           achButton.disabled =
+            true;
+
+          headlessSessionButton.disabled =
             true;
 
           quoteButton.disabled =
@@ -1776,9 +2095,9 @@
         {
           message:
             error?.message ??
-            String(
-              error
-            )
+              String(
+                error
+              )
         }
       );
     }
