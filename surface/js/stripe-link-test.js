@@ -13,12 +13,20 @@
   5. authenticate()
   6. Obtain crypto_customer_id
   7. Load CryptoCustomer through UniBridge backend
-  8. Test independent headless quote
+  8. Attach KYC information
+  9. Inspect raw KYC result
+  10. If verification state must be re-read:
+      create a fresh LinkAuthIntent,
+      authenticate again,
+      then load CryptoCustomer
+  11. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
   - No OAuth access token here
+  - Do not automatically exchange the same LinkAuthIntent
+    again after KYC submission
   --------------------------------------------------
   */
 
@@ -83,6 +91,51 @@
   const customerContextButton =
     document.getElementById(
       "customer-context-button"
+    );
+
+  const kycFirstNameInput =
+    document.getElementById(
+      "kyc-first-name"
+    );
+
+  const kycLastNameInput =
+    document.getElementById(
+      "kyc-last-name"
+    );
+
+  const kycIdNumberInput =
+    document.getElementById(
+      "kyc-id-number"
+    );
+
+  const kycDobInput =
+    document.getElementById(
+      "kyc-dob"
+    );
+
+  const kycAddressLine1Input =
+    document.getElementById(
+      "kyc-address-line1"
+    );
+
+  const kycCityInput =
+    document.getElementById(
+      "kyc-city"
+    );
+
+  const kycStateInput =
+    document.getElementById(
+      "kyc-state"
+    );
+
+  const kycPostalCodeInput =
+    document.getElementById(
+      "kyc-postal-code"
+    );
+
+  const kycButton =
+    document.getElementById(
+      "kyc-button"
     );
 
   const quoteAmountInput =
@@ -188,6 +241,100 @@
   }
 
 
+  function buildKycInfo() {
+    const dob =
+      requireString(
+        kycDobInput.value,
+        "missing_kyc_dob"
+      );
+
+    const parts =
+      dob
+        .split("-")
+        .map(
+          (value) =>
+            Number(value)
+        );
+
+    const [
+      year,
+      month,
+      day
+    ] =
+      parts;
+
+    if (
+      !Number.isInteger(year) ||
+      !Number.isInteger(month) ||
+      !Number.isInteger(day) ||
+      year <= 0 ||
+      month < 1 ||
+      month > 12 ||
+      day < 1 ||
+      day > 31
+    ) {
+      throw new Error(
+        "invalid_kyc_dob"
+      );
+    }
+
+    return {
+      firstName:
+        requireString(
+          kycFirstNameInput.value,
+          "missing_kyc_first_name"
+        ),
+
+      lastName:
+        requireString(
+          kycLastNameInput.value,
+          "missing_kyc_last_name"
+        ),
+
+      idNumber:
+        requireString(
+          kycIdNumberInput.value,
+          "missing_kyc_id_number"
+        ),
+
+      dateOfBirth: {
+        day,
+        month,
+        year
+      },
+
+      address: {
+        line1:
+          requireString(
+            kycAddressLine1Input.value,
+            "missing_kyc_address_line1"
+          ),
+
+        city:
+          requireString(
+            kycCityInput.value,
+            "missing_kyc_city"
+          ),
+
+        state:
+          requireString(
+            kycStateInput.value,
+            "missing_kyc_state"
+          ),
+
+        postalCode:
+          requireString(
+            kycPostalCodeInput.value,
+            "missing_kyc_postal_code"
+          ),
+
+        country:
+          TEST_COUNTRY
+      }
+    };
+  }
+
+
   function assertDom() {
     const missing = [];
 
@@ -230,6 +377,60 @@
     if (!customerContextButton) {
       missing.push(
         "customer-context-button"
+      );
+    }
+
+    if (!kycFirstNameInput) {
+      missing.push(
+        "kyc-first-name"
+      );
+    }
+
+    if (!kycLastNameInput) {
+      missing.push(
+        "kyc-last-name"
+      );
+    }
+
+    if (!kycIdNumberInput) {
+      missing.push(
+        "kyc-id-number"
+      );
+    }
+
+    if (!kycDobInput) {
+      missing.push(
+        "kyc-dob"
+      );
+    }
+
+    if (!kycAddressLine1Input) {
+      missing.push(
+        "kyc-address-line1"
+      );
+    }
+
+    if (!kycCityInput) {
+      missing.push(
+        "kyc-city"
+      );
+    }
+
+    if (!kycStateInput) {
+      missing.push(
+        "kyc-state"
+      );
+    }
+
+    if (!kycPostalCodeInput) {
+      missing.push(
+        "kyc-postal-code"
+      );
+    }
+
+    if (!kycButton) {
+      missing.push(
+        "kyc-button"
       );
     }
 
@@ -410,6 +611,9 @@
     customerContextButton.disabled =
       true;
 
+    kycButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
@@ -496,6 +700,9 @@
     customerContextButton.disabled =
       true;
 
+    kycButton.disabled =
+      true;
+
     console.log(
       "STRIPE_LINK_AUTH_INTENT",
       {
@@ -547,6 +754,9 @@
     customerContextButton.disabled =
       true;
 
+    kycButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
@@ -572,6 +782,9 @@
               );
 
             customerContextButton.disabled =
+              false;
+
+            kycButton.disabled =
               false;
 
             setStatus(
@@ -713,6 +926,62 @@
 
 
   /* =========================
+     ATTACH KYC
+  ========================= */
+
+  async function attachStripeKyc() {
+    const sdk =
+      await ensureSdk();
+
+    requireString(
+      cryptoCustomerId,
+      "missing_crypto_customer_id"
+    );
+
+    if (
+      typeof sdk.attachKycInfo !==
+      "function"
+    ) {
+      throw new Error(
+        "attachKycInfo_not_available"
+      );
+    }
+
+    const kycInfo =
+      buildKycInfo();
+
+    setStatus(
+      "Attaching Stripe KYC..."
+    );
+
+    const result =
+      await sdk.attachKycInfo(
+        kycInfo
+      );
+
+    console.log(
+      "STRIPE_ATTACH_KYC_RESULT",
+      result
+    );
+
+    if (result?.error) {
+      const error =
+        new Error(
+          result?.error?.message ||
+          "stripe_attach_kyc_failed"
+        );
+
+      error.payload =
+        result;
+
+      throw error;
+    }
+
+    return result;
+  }
+
+
+  /* =========================
      HEADLESS QUOTE
   ========================= */
 
@@ -731,7 +1000,7 @@
         .toLowerCase();
 
     setStatus(
-      "Loading Stripe headless quote..."
+      "Loading Stripe generic headless quote..."
     );
 
     const response =
@@ -784,7 +1053,7 @@
     );
 
     setStatus(
-      "Stripe headless quote loaded.",
+      "Stripe generic headless quote loaded.",
       payload
     );
 
@@ -844,11 +1113,17 @@
         customerContextButton.disabled =
           true;
 
+        kycButton.disabled =
+          true;
+
         authIntentId =
           null;
 
         cryptoCustomerId =
           null;
+
+        authContainer
+          .replaceChildren();
 
         try {
           await createLinkAuthIntent();
@@ -890,6 +1165,9 @@
           true;
 
         customerContextButton.disabled =
+          true;
+
+        kycButton.disabled =
           true;
 
         try {
@@ -947,8 +1225,104 @@
                 null
             }
           );
+        } finally {
+          customerContextButton.disabled =
+            false;
+        }
+      }
+    );
+
+
+  kycButton
+    .addEventListener(
+      "click",
+      async () => {
+        kycButton.disabled =
+          true;
+
+        customerContextButton.disabled =
+          true;
+
+        try {
+          const kycResult =
+            await attachStripeKyc();
+
+          /*
+          --------------------------------------------------
+          Do NOT automatically call customer-context here.
+
+          customer-context currently performs the server-side
+          LinkAuthIntent token retrieval. Reusing the same
+          LinkAuthIntent after it has already been exchanged
+          is not assumed to be safe/idempotent.
+
+          To inspect verification state after KYC:
+          - create a fresh LinkAuthIntent
+          - authenticate again
+          - load CryptoCustomer with the fresh auth context
+          --------------------------------------------------
+          */
+
+          console.log(
+            "STRIPE_ATTACH_KYC_COMPLETE",
+            kycResult
+          );
+
+          setStatus(
+            "Stripe KYC attached.",
+            {
+              kycResult:
+                kycResult ?? null,
+
+              nextStep:
+                "Create a fresh LinkAuthIntent, authenticate again, then load CryptoCustomer to inspect Stripe verification state."
+            }
+          );
+
+          /*
+          --------------------------------------------------
+          Prevent accidental re-use of this auth context for
+          another customer-context token retrieval.
+          --------------------------------------------------
+          */
 
           customerContextButton.disabled =
+            true;
+        } catch (error) {
+          console.error(
+            "STRIPE_ATTACH_KYC_FAILED",
+            error
+          );
+
+          setStatus(
+            "Stripe KYC failed.",
+            {
+              status:
+                error?.status ??
+                null,
+
+              message:
+                error?.message ??
+                String(error),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+
+          /*
+          --------------------------------------------------
+          KYC failed before we intentionally invalidate the
+          current inspection path, so the existing customer
+          context button may still be used for diagnostics.
+          --------------------------------------------------
+          */
+
+          customerContextButton.disabled =
+            false;
+        } finally {
+          kycButton.disabled =
             false;
         }
       }
@@ -971,7 +1345,7 @@
           );
 
           setStatus(
-            "Stripe headless quote failed.",
+            "Stripe generic headless quote failed.",
             {
               status:
                 error?.status ??
@@ -1001,6 +1375,24 @@
   try {
     assertDom();
 
+    registerButton.disabled =
+      true;
+
+    authIntentButton.disabled =
+      true;
+
+    authenticateButton.disabled =
+      true;
+
+    customerContextButton.disabled =
+      true;
+
+    kycButton.disabled =
+      true;
+
+    quoteButton.disabled =
+      true;
+
     setStatus(
       "Loading Stripe Embedded Components SDK..."
     );
@@ -1020,10 +1412,14 @@
           customerContextButton.disabled =
             true;
 
+          kycButton.disabled =
+            true;
+
           /*
           --------------------------------------------------
-          Headless quote is independent from Link auth,
-          CryptoCustomer, and OAuth.
+          Generic quote stays available for diagnostics only.
+
+          It is not an ACH-specific UniBridge funding quote.
           --------------------------------------------------
           */
 
