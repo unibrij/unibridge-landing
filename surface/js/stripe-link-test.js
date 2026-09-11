@@ -17,9 +17,10 @@
   9. Submit KYC information through Web SDK if required
   10. Collect ACH payment method
   11. Obtain cryptoPaymentToken
-  12. Create ACH-bound headless onramp session
-  13. Inspect raw Stripe session response
-  14. Test independent generic headless quote
+  12. Load Stripe transaction limits
+  13. Create ACH-bound headless onramp session
+  14. Inspect raw Stripe session response
+  15. Test independent generic headless quote
 
   IMPORTANT:
   - No Stripe secret key here
@@ -29,6 +30,7 @@
   - ACH collection is restricted to us_bank_account
   - Apple Pay and Google Pay are explicitly disabled
   - ACH is enabled only when Stripe reports kyc_verified
+  - Transaction limits are diagnostic only
   - Headless session requires BOTH:
       * kyc_verified
       * cryptoPaymentToken
@@ -50,6 +52,9 @@
 
   const CUSTOMER_CONTEXT_URL =
     "/v2/ramp/stripe/browser/customer-context";
+
+  const TRANSACTION_LIMITS_URL =
+    "/v2/ramp/stripe/browser/transaction-limits";
 
   const HEADLESS_SESSION_URL =
     "/v2/ramp/stripe/browser/headless-session";
@@ -178,6 +183,11 @@
   const walletAddressInput =
     document.getElementById(
       "wallet-address"
+    );
+
+  const transactionLimitsButton =
+    document.getElementById(
+      "transaction-limits-button"
     );
 
   const headlessSessionButton =
@@ -453,6 +463,20 @@
   }
 
 
+  function canLoadTransactionLimits() {
+    return Boolean(
+      authIntentId &&
+      cryptoCustomerId
+    );
+  }
+
+
+  function syncTransactionLimitsButton() {
+    transactionLimitsButton.disabled =
+      !canLoadTransactionLimits();
+  }
+
+
   function canCreateHeadlessSession() {
     return Boolean(
       stripeKycVerified &&
@@ -483,6 +507,8 @@
       false;
 
     resetHeadlessSessionState();
+
+    syncTransactionLimitsButton();
   }
 
 
@@ -607,6 +633,12 @@
     if (!walletAddressInput) {
       missing.push(
         "wallet-address"
+      );
+    }
+
+    if (!transactionLimitsButton) {
+      missing.push(
+        "transaction-limits-button"
       );
     }
 
@@ -803,6 +835,9 @@
     achButton.disabled =
       true;
 
+    transactionLimitsButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
@@ -897,6 +932,9 @@
     achButton.disabled =
       true;
 
+    transactionLimitsButton.disabled =
+      true;
+
     console.log(
       "STRIPE_LINK_AUTH_INTENT",
       {
@@ -953,6 +991,9 @@
     achButton.disabled =
       true;
 
+    transactionLimitsButton.disabled =
+      true;
+
     authContainer
       .replaceChildren();
 
@@ -980,6 +1021,7 @@
             stripeKycVerified =
               false;
 
+            syncTransactionLimitsButton();
             syncHeadlessSessionButton();
 
             customerContextButton.disabled =
@@ -1001,6 +1043,9 @@
                   normalizedAuthIntentId,
 
                 cryptoCustomerId,
+
+                transactionLimitsEnabled:
+                  canLoadTransactionLimits(),
 
                 nextStep:
                   "Load CryptoCustomer to verify KYC before ACH collection."
@@ -1135,6 +1180,7 @@
     achButton.disabled =
       !stripeKycVerified;
 
+    syncTransactionLimitsButton();
     syncHeadlessSessionButton();
 
     console.log(
@@ -1154,6 +1200,9 @@
 
         achCollectionEnabled:
           stripeKycVerified,
+
+        transactionLimitsEnabled:
+          canLoadTransactionLimits(),
 
         headlessSessionEnabled:
           canCreateHeadlessSession()
@@ -1303,6 +1352,7 @@
                 "missing_crypto_payment_token"
               );
 
+            syncTransactionLimitsButton();
             syncHeadlessSessionButton();
 
             setStatus(
@@ -1313,11 +1363,14 @@
                 kycVerified:
                   stripeKycVerified,
 
+                transactionLimitsEnabled:
+                  canLoadTransactionLimits(),
+
                 headlessSessionEnabled:
                   canCreateHeadlessSession(),
 
                 nextStep:
-                  "Create ACH Headless Session."
+                  "Check transaction limits, then create ACH Headless Session."
               }
             );
 
@@ -1336,6 +1389,7 @@
             achButton.disabled =
               false;
 
+            syncTransactionLimitsButton();
             syncHeadlessSessionButton();
 
             return;
@@ -1352,6 +1406,7 @@
             achButton.disabled =
               false;
 
+            syncTransactionLimitsButton();
             syncHeadlessSessionButton();
 
             return;
@@ -1372,6 +1427,98 @@
           paymentElement
         );
     }
+  }
+
+
+  /* =========================
+     TRANSACTION LIMITS
+  ========================= */
+
+  async function loadTransactionLimits() {
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
+        "missing_auth_intent_id"
+      );
+
+    requireString(
+      cryptoCustomerId,
+      "missing_crypto_customer_id"
+    );
+
+    const walletAddress =
+      requireString(
+        walletAddressInput.value,
+        "missing_wallet_address"
+      );
+
+    setStatus(
+      "Loading Stripe transaction limits..."
+    );
+
+    const response =
+      await fetch(
+        TRANSACTION_LIMITS_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              authIntentId:
+                normalizedAuthIntentId,
+
+              walletAddress,
+
+              destinationNetwork:
+                "polygon"
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () =>
+            null
+        );
+
+    if (
+      !response.ok
+    ) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `transaction_limits_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    console.log(
+      "STRIPE_TRANSACTION_LIMITS",
+      payload
+    );
+
+    setStatus(
+      "Stripe transaction limits loaded.",
+      payload
+    );
+
+    return payload;
   }
 
 
@@ -1651,6 +1798,9 @@
         achButton.disabled =
           true;
 
+        transactionLimitsButton.disabled =
+          true;
+
         headlessSessionButton.disabled =
           true;
 
@@ -1712,6 +1862,9 @@
         achButton.disabled =
           true;
 
+        transactionLimitsButton.disabled =
+          true;
+
         headlessSessionButton.disabled =
           true;
 
@@ -1736,6 +1889,8 @@
 
           authenticateButton.disabled =
             false;
+
+          syncTransactionLimitsButton();
         }
       }
     );
@@ -1765,6 +1920,7 @@
           stripeKycVerified =
             false;
 
+          syncTransactionLimitsButton();
           syncHeadlessSessionButton();
 
           setStatus(
@@ -1866,6 +2022,7 @@
           achButton.disabled =
             true;
 
+          syncTransactionLimitsButton();
           syncHeadlessSessionButton();
         }
       }
@@ -1908,7 +2065,48 @@
           achButton.disabled =
             !stripeKycVerified;
 
+          syncTransactionLimitsButton();
           syncHeadlessSessionButton();
+        }
+      }
+    );
+
+
+  transactionLimitsButton
+    .addEventListener(
+      "click",
+      async () => {
+        transactionLimitsButton.disabled =
+          true;
+
+        try {
+          await loadTransactionLimits();
+        } catch (error) {
+          console.error(
+            "STRIPE_TRANSACTION_LIMITS_FAILED",
+            error
+          );
+
+          setStatus(
+            "Stripe transaction limits failed.",
+            {
+              status:
+                error?.status ??
+                null,
+
+              message:
+                error?.message ??
+                String(
+                  error
+                ),
+
+              payload:
+                error?.payload ??
+                null
+            }
+          );
+        } finally {
+          syncTransactionLimitsButton();
         }
       }
     );
@@ -2020,6 +2218,9 @@
     achButton.disabled =
       true;
 
+    transactionLimitsButton.disabled =
+      true;
+
     headlessSessionButton.disabled =
       true;
 
@@ -2049,6 +2250,9 @@
             true;
 
           achButton.disabled =
+            true;
+
+          transactionLimitsButton.disabled =
             true;
 
           headlessSessionButton.disabled =
