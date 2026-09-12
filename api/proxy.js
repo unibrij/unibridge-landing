@@ -40,11 +40,19 @@ const ALLOWED =
 
     /*
     --------------------------------------------------
-    Fiat bank-transfer / Bridge
+    Fiat KYC
     --------------------------------------------------
     */
 
     "fiat/kyc/create",
+    "fiat/kyc/shared/create",
+
+    /*
+    --------------------------------------------------
+    Fiat bank-transfer / Bridge
+    --------------------------------------------------
+    */
+
     "fiat/bridge-tos/create",
     "fiat/bridge-customer/create",
     "fiat/bridge-bank-transfer/create",
@@ -105,6 +113,7 @@ const CLERK_AUTH_ENDPOINTS =
   new Set([
     "fiat/session/register",
     "fiat/kyc/create",
+    "fiat/kyc/shared/create",
     "fiat/transak-virtual-account/create",
     "fiat/payout-history",
 
@@ -154,6 +163,15 @@ function isRepeatPayoutEndpoint(
   endpoint
 ) {
   return /^fiat\/repeat-payout\/[^/]+$/
+    .test(
+      endpoint
+    );
+}
+
+function isSharedKycReconcileEndpoint(
+  endpoint
+) {
+  return /^fiat\/kyc\/shared\/kyc_[A-Za-z0-9_-]+\/reconcile$/
     .test(
       endpoint
     );
@@ -218,6 +236,9 @@ function isAllowedEndpoint(
     isRepeatPayoutEndpoint(
       endpoint
     ) ||
+    isSharedKycReconcileEndpoint(
+      endpoint
+    ) ||
     isReceiveDynamicEndpoint(
       endpoint
     )
@@ -232,6 +253,9 @@ function requiresClerkAuthorization(
       endpoint
     ) ||
     isRepeatPayoutEndpoint(
+      endpoint
+    ) ||
+    isSharedKycReconcileEndpoint(
       endpoint
     ) ||
     isReceiveProfileEndpoint(
