@@ -103,11 +103,12 @@ The backend remains authoritative for:
 A Route is amount-unavailable only when the backend
 explicitly reports:
 
-checked === true
 ok === false
 
-Missing or unchecked validation does not make the Route
-unavailable.
+Missing validation does not make the Route unavailable.
+
+The checked field remains informational metadata only and
+does not participate in the availability decision.
 --------------------------------------------------
 */
 
@@ -119,11 +120,8 @@ export function isRouteAmountAvailable(
       route
     );
 
-  return !(
-    validation?.checked ===
-      true &&
-    validation?.ok ===
-      false
+  return (
+    validation?.ok !== false
   );
 }
 
@@ -227,6 +225,11 @@ backend-provided Route limit contract.
 
 The message deliberately contains no executor-specific
 knowledge.
+
+When the backend identifies the constrained amount as the
+recipient payout amount, the message makes that distinction
+explicit so the user understands why the displayed limit
+currency may differ from the source amount currency.
 --------------------------------------------------
 */
 
@@ -255,6 +258,10 @@ export function formatRouteLimitMessage(
   const currency =
     state.currency;
 
+  const isPayoutAmount =
+    state.amountSemantics ===
+      "payout_amount";
+
   if (
     state.code ===
       ROUTE_LIMIT_FAILURE_CODES
@@ -262,6 +269,14 @@ export function formatRouteLimitMessage(
     minAmount &&
     currency
   ) {
+    if (isPayoutAmount) {
+      return (
+        `Minimum payout is ` +
+        `${minAmount} ${currency}. ` +
+        `Increase the amount you send.`
+      );
+    }
+
     return (
       `Minimum amount is ` +
       `${minAmount} ${currency}`
@@ -275,6 +290,14 @@ export function formatRouteLimitMessage(
     maxAmount &&
     currency
   ) {
+    if (isPayoutAmount) {
+      return (
+        `Maximum payout is ` +
+        `${maxAmount} ${currency}. ` +
+        `Reduce the amount you send.`
+      );
+    }
+
     return (
       `Maximum amount is ` +
       `${maxAmount} ${currency}`
@@ -286,6 +309,14 @@ export function formatRouteLimitMessage(
     maxAmount &&
     currency
   ) {
+    if (isPayoutAmount) {
+      return (
+        `Payout must be between ` +
+        `${minAmount} and ` +
+        `${maxAmount} ${currency}.`
+      );
+    }
+
     return (
       `Available from ` +
       `${minAmount} to ` +
@@ -306,8 +337,8 @@ export function formatRouteLimitMessage(
 Route limit range message
 --------------------------------------------------
 
-Display the backend-provided payout range even when the
-current amount is valid.
+Display the backend-provided Route limit range even when
+the current amount is valid.
 
 This helper reads only the canonical route_limits
 contract. It does not inspect validation or contain any
@@ -339,6 +370,11 @@ export function formatRouteLimitRangeMessage(
     ) ||
     null;
 
+  const amountSemantics =
+    normalizeString(
+      limits?.amount_semantics
+    );
+
   if (
     !minAmount ||
     !maxAmount ||
@@ -347,8 +383,19 @@ export function formatRouteLimitRangeMessage(
     return null;
   }
 
+  if (
+    amountSemantics ===
+      "payout_amount"
+  ) {
+    return (
+      `Payout limits: ` +
+      `${minAmount} – ` +
+      `${maxAmount} ${currency}`
+    );
+  }
+
   return (
-    `Payout limits: ` +
+    `Amount limits: ` +
     `${minAmount} – ` +
     `${maxAmount} ${currency}`
   );
