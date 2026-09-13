@@ -56,13 +56,19 @@ import {
   restoreExistingInstructions
 } from "./flowResume.js";
 
-function requireSettlementId(state = {}) {
+
+function requireSettlementId(
+  state = {}
+) {
   if (!state.settlement_id) {
-    throw new Error("missing_settlement_id");
+    throw new Error(
+      "missing_settlement_id"
+    );
   }
 
   return state.settlement_id;
 }
+
 
 function applyAuthResetUi({
   runtime,
@@ -85,11 +91,13 @@ function applyAuthResetUi({
 
   resetEntryButtonsAfterAuthReset({
     hasFiatContext:
-      typeof hasFiatContext === "function"
+      typeof hasFiatContext ===
+      "function"
         ? hasFiatContext()
         : false
   });
 }
+
 
 function resetPrimaryActionForRetry() {
   setPrimaryAction({
@@ -100,6 +108,7 @@ function resetPrimaryActionForRetry() {
       false
   });
 }
+
 
 export function createBankTransferHandlers({
   state,
@@ -183,7 +192,10 @@ export function createBankTransferHandlers({
 
         return;
       }
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       clearDiditAutoContinue();
 
       console.error(
@@ -192,7 +204,9 @@ export function createBankTransferHandlers({
       );
 
       const active =
-        document.querySelector(".step.active");
+        document.querySelector(
+          ".step.active"
+        );
 
       if (active?.dataset?.step) {
         markStepFailed(
@@ -221,13 +235,16 @@ export function createBankTransferHandlers({
           "failed",
 
         message:
-          resolveErrorMessage(err) ||
+          resolveErrorMessage(
+            err
+          ) ||
           "Bank transfer setup failed"
       });
 
       resetPrimaryActionForRetry();
     }
   }
+
 
   async function handleQuote() {
     if (!hasFiatContext()) {
@@ -284,10 +301,14 @@ export function createBankTransferHandlers({
           preparedQuote,
 
         source_country:
-          preparedQuote.form?.source_country,
+          preparedQuote
+            .form
+            ?.source_country,
 
         source_rail:
-          preparedQuote.form?.source_rail
+          preparedQuote
+            .form
+            ?.source_rail
       });
 
       renderQuote(
@@ -300,7 +321,8 @@ export function createBankTransferHandlers({
             preparedQuote.quote,
 
           selectedRoute:
-            preparedQuote.selected_route
+            preparedQuote
+              .selected_route
         }
       );
 
@@ -312,7 +334,10 @@ export function createBankTransferHandlers({
         hasPreparedQuote:
           hasEntryPreparedQuote()
       });
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       invalidatePreparedQuote();
 
       if (runtime) {
@@ -327,8 +352,19 @@ export function createBankTransferHandlers({
         err
       );
 
+      if (err?.handled === true) {
+        setEntryButtonsForQuoteIdle({
+          hasFiatContext:
+            hasFiatContext()
+        });
+
+        return;
+      }
+
       alert(
-        resolveErrorMessage(err) ||
+        resolveErrorMessage(
+          err
+        ) ||
         "Could not prepare quote"
       );
 
@@ -338,6 +374,7 @@ export function createBankTransferHandlers({
       });
     }
   }
+
 
   async function handleCreateSettlement() {
     try {
@@ -413,7 +450,10 @@ export function createBankTransferHandlers({
       });
 
       await runBankTransferFlow();
-    } catch (err) {
+    }
+    catch (
+      err
+    ) {
       clearDiditAutoContinue();
 
       console.error(
@@ -450,7 +490,9 @@ export function createBankTransferHandlers({
       }
 
       alert(
-        resolveErrorMessage(err) ||
+        resolveErrorMessage(
+          err
+        ) ||
         "Could not create payout route"
       );
 
@@ -460,6 +502,7 @@ export function createBankTransferHandlers({
       });
     }
   }
+
 
   async function syncInitialAuthBeforeResume() {
     if (
@@ -477,6 +520,7 @@ export function createBankTransferHandlers({
         true
     });
   }
+
 
   return {
     runBankTransferFlow,
