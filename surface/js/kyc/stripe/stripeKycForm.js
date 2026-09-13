@@ -9,6 +9,7 @@ import {
 const OVERLAY_ID =
   "stripeKycOverlay";
 
+
 function createElement(
   tag,
   props = {}
@@ -36,6 +37,16 @@ function createElement(
       continue;
     }
 
+    if (
+      key ===
+      "className"
+    ) {
+      element.className =
+        value;
+
+      continue;
+    }
+
     element.setAttribute(
       key,
       value
@@ -45,6 +56,7 @@ function createElement(
   return element;
 }
 
+
 export function resetStripeKycForm() {
   document
     .getElementById(
@@ -52,6 +64,7 @@ export function resetStripeKycForm() {
     )
     ?.remove();
 }
+
 
 function getFieldDefinition(
   field
@@ -176,7 +189,10 @@ function getFieldDefinition(
         "off",
 
       inputmode:
-        "numeric"
+        "numeric",
+
+      placeholder:
+        "123456789"
     }
   };
 
@@ -185,6 +201,7 @@ function getFieldDefinition(
     null
   );
 }
+
 
 function readExistingValue(
   stripeKycInfo,
@@ -209,7 +226,7 @@ function readExistingValue(
   ) {
     const key =
       field.slice(
-        8
+        "address.".length
       );
 
     return (
@@ -222,6 +239,206 @@ function readExistingValue(
 
   return "";
 }
+
+
+function createSurfaceField({
+  definition,
+  field,
+  stripeKycInfo
+}) {
+  const inputId =
+    `stripe-kyc-${definition.name}`;
+
+  /*
+  Existing Surface structure:
+
+  <label class="field">
+    <span>Label</span>
+    <input>
+  </label>
+
+  This directly reuses controls.css.
+  */
+
+  const wrapper =
+    createElement(
+      "label",
+      {
+        className:
+          "field",
+
+        for:
+          inputId
+      }
+    );
+
+  const labelText =
+    createElement(
+      "span",
+      {
+        textContent:
+          definition.label
+      }
+    );
+
+  const input =
+    createElement(
+      "input",
+      {
+        id:
+          inputId,
+
+        type:
+          definition.type ??
+          "text",
+
+        name:
+          definition.name
+      }
+    );
+
+  input.value =
+    readExistingValue(
+      stripeKycInfo,
+      field
+    );
+
+  if (
+    definition.autocomplete
+  ) {
+    input.autocomplete =
+      definition.autocomplete;
+  }
+
+  if (
+    definition.inputmode
+  ) {
+    input.inputMode =
+      definition.inputmode;
+  }
+
+  if (
+    definition.placeholder
+  ) {
+    input.placeholder =
+      definition.placeholder;
+  }
+
+  wrapper.append(
+    labelText,
+    input
+  );
+
+  return {
+    wrapper,
+    input
+  };
+}
+
+
+function applyOverlayLayout(
+  overlay
+) {
+  /*
+  Surface currently has no shared modal / overlay
+  class.
+
+  Keep only the mechanical fullscreen positioning
+  here. The visible card, fields, errors and buttons
+  all reuse the existing Surface design system.
+  */
+
+  Object.assign(
+    overlay.style,
+    {
+      position:
+        "fixed",
+
+      inset:
+        "0",
+
+      zIndex:
+        "2147483000",
+
+      display:
+        "flex",
+
+      alignItems:
+        "center",
+
+      justifyContent:
+        "center",
+
+      boxSizing:
+        "border-box",
+
+      padding:
+        "16px",
+
+      overflowY:
+        "auto",
+
+      background:
+        "rgba(0, 8, 28, 0.78)"
+    }
+  );
+}
+
+
+function applyPanelLayout(
+  panel
+) {
+  /*
+  .card provides the visual styling.
+
+  These are layout-only adjustments so the existing
+  Surface card behaves correctly inside a fixed
+  overlay.
+  */
+
+  Object.assign(
+    panel.style,
+    {
+      width:
+        "min(100%, 440px)",
+
+      maxHeight:
+        "calc(100vh - 32px)",
+
+      marginTop:
+        "0",
+
+      overflowY:
+        "auto"
+    }
+  );
+}
+
+
+function applyActionsLayout(
+  actions
+) {
+  /*
+  Buttons themselves use the existing Surface
+  .button styles. This container only controls
+  their layout.
+  */
+
+  Object.assign(
+    actions.style,
+    {
+      display:
+        "grid",
+
+      gridTemplateColumns:
+        "1fr 1fr",
+
+      gap:
+        "10px"
+    }
+  );
+}
+
 
 export function requestStripeKycFields({
   missingFields = [],
@@ -267,16 +484,39 @@ export function requestStripeKycFields({
           }
         );
 
-      overlay.className =
-        "stripe-kyc-overlay";
+      applyOverlayLayout(
+        overlay
+      );
+
+      /*
+      Existing Surface visual container.
+      */
 
       const panel =
         createElement(
-          "div"
+          "div",
+          {
+            className:
+              "card"
+          }
         );
 
-      panel.className =
-        "stripe-kyc-panel";
+      applyPanelLayout(
+        panel
+      );
+
+      /*
+      Existing Surface heading component.
+      */
+
+      const header =
+        createElement(
+          "div",
+          {
+            className:
+              "entry-header"
+          }
+        );
 
       const title =
         createElement(
@@ -296,9 +536,22 @@ export function requestStripeKycFields({
           }
         );
 
+      header.append(
+        title,
+        description
+      );
+
+      /*
+      Existing Surface form layout.
+      */
+
       const form =
         createElement(
-          "form"
+          "form",
+          {
+            className:
+              "form-grid"
+          }
         );
 
       const inputs =
@@ -317,102 +570,54 @@ export function requestStripeKycFields({
           continue;
         }
 
-        const wrapper =
-          createElement(
-            "div"
-          );
-
-        wrapper.className =
-          "stripe-kyc-field";
-
-        const inputId =
-          `stripe-kyc-${definition.name}`;
-
-        const label =
-          createElement(
-            "label",
-            {
-              for:
-                inputId,
-
-              textContent:
-                definition.label
-            }
-          );
-
-        const input =
-          createElement(
-            "input",
-            {
-              id:
-                inputId,
-
-              type:
-                definition.type ??
-                "text",
-
-              name:
-                definition.name
-            }
-          );
-
-        input.value =
-          readExistingValue(
-            stripeKycInfo,
-            field
-          );
-
-        if (
-          definition.autocomplete
-        ) {
-          input.autocomplete =
-            definition.autocomplete;
-        }
-
-        if (
-          definition.inputmode
-        ) {
-          input.inputMode =
-            definition.inputmode;
-        }
-
-        if (
-          definition.placeholder
-        ) {
-          input.placeholder =
-            definition.placeholder;
-        }
+        const {
+          wrapper,
+          input
+        } =
+          createSurfaceField({
+            definition,
+            field,
+            stripeKycInfo
+          });
 
         inputs[
           definition.name
         ] =
           input;
 
-        wrapper.append(
-          label,
-          input
-        );
-
         form.appendChild(
           wrapper
         );
       }
 
+      /*
+      Existing Surface error style.
+      */
+
       const errorBox =
         createElement(
-          "div"
+          "div",
+          {
+            className:
+              "field-error-message",
+
+            role:
+              "alert"
+          }
         );
 
-      errorBox.className =
-        "stripe-kyc-error";
+      /*
+      Existing Surface button styles.
+      */
 
       const actions =
         createElement(
           "div"
         );
 
-      actions.className =
-        "stripe-kyc-actions";
+      applyActionsLayout(
+        actions
+      );
 
       const cancelButton =
         createElement(
@@ -420,6 +625,9 @@ export function requestStripeKycFields({
           {
             type:
               "button",
+
+            className:
+              "button secondary",
 
             textContent:
               "Cancel"
@@ -433,23 +641,32 @@ export function requestStripeKycFields({
             type:
               "submit",
 
+            className:
+              "button primary",
+
             textContent:
               "Continue"
           }
         );
 
+
+      function clearLocalSensitiveInput() {
+        if (
+          inputs.id_number
+        ) {
+          inputs
+            .id_number
+            .value =
+            "";
+        }
+      }
+
+
       cancelButton
         .addEventListener(
           "click",
           () => {
-            if (
-              inputs.id_number
-            ) {
-              inputs
-                .id_number
-                .value =
-                "";
-            }
+            clearLocalSensitiveInput();
 
             resetStripeKycForm();
 
@@ -460,6 +677,7 @@ export function requestStripeKycFields({
             );
           }
         );
+
 
       form.addEventListener(
         "submit",
@@ -504,14 +722,7 @@ export function requestStripeKycFields({
                   )
                 : null;
 
-            if (
-              inputs.id_number
-            ) {
-              inputs
-                .id_number
-                .value =
-                "";
-            }
+            clearLocalSensitiveInput();
 
             resetStripeKycForm();
 
@@ -529,6 +740,7 @@ export function requestStripeKycFields({
         }
       );
 
+
       actions.append(
         cancelButton,
         submitButton
@@ -540,8 +752,7 @@ export function requestStripeKycFields({
       );
 
       panel.append(
-        title,
-        description,
+        header,
         form
       );
 
