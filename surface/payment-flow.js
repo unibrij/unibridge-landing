@@ -1,6 +1,14 @@
 // unibridge-landing/surface/payment-flow.js
 
 import {
+  KYC_FLOW_OUTCOME
+} from "/shared/pay/kyc/kycFlow.js";
+
+import {
+  runSurfaceKycFlow
+} from "./js/kyc/surfaceKycFlow.js";
+
+import {
   getFundingSelectedProvider
 } from "./funding-context.js";
 
@@ -160,6 +168,88 @@ export function createPaymentFlow({
     });
 
     return status;
+  }
+
+
+  /* =========================
+     SHARED KYC
+  ========================= */
+
+  async function awaitKycCompletion(
+    result
+  ) {
+    if (!result?.completion) {
+      return result;
+    }
+
+    if (
+      result?.outcome ===
+      KYC_FLOW_OUTCOME.CONFIRMATION_PENDING
+    ) {
+      setStatus(
+        "Confirming your identity verification..."
+      );
+    }
+
+    return result.completion;
+  }
+
+
+  async function requireSharedKyc() {
+    let result =
+      await runSurfaceKycFlow();
+
+    result =
+      await awaitKycCompletion(
+        result
+      );
+
+    if (
+      result?.outcome ===
+      KYC_FLOW_OUTCOME.VERIFICATION_REQUIRED
+    ) {
+      result =
+        await runSurfaceKycFlow();
+
+      result =
+        await awaitKycCompletion(
+          result
+        );
+    }
+
+    if (
+      result?.outcome ===
+      KYC_FLOW_OUTCOME.PASSED
+    ) {
+      return true;
+    }
+
+    if (
+      result?.outcome ===
+      KYC_FLOW_OUTCOME.CONFIRMATION_PENDING
+    ) {
+      setStatus(
+        "Identity verification is still being processed. Tap Continue to check again."
+      );
+
+      return false;
+    }
+
+    if (
+      result?.outcome ===
+      KYC_FLOW_OUTCOME.VERIFICATION_CANCELLED
+    ) {
+      setStatus(
+        "Identity verification was cancelled."
+      );
+
+      return false;
+    }
+
+    throw new Error(
+      result?.outcome ||
+      "kyc_not_completed"
+    );
   }
 
 
@@ -350,22 +440,34 @@ export function createPaymentFlow({
       continueBtn;
 
     try {
-      const limitCheck =
-        refreshAmountLimitUi();
+      /*
+      --------------------------------------------------
+      Amount / route validation only matters before a
+      settlement exists.
 
-      if (
-        limitCheck &&
-        !limitCheck.ok
-      ) {
-        throw new Error(
-          limitCheck.message
-        );
-      }
+      Once the settlement has been created, its amount
+      and route are already canonical server-side.
+      This also allows a pre-funding settlement to
+      resume safely after a page reload.
+      --------------------------------------------------
+      */
 
       if (
         !state.settlementId &&
         !state.pendingWidgetUrl
       ) {
+        const limitCheck =
+          refreshAmountLimitUi();
+
+        if (
+          limitCheck &&
+          !limitCheck.ok
+        ) {
+          throw new Error(
+            limitCheck.message
+          );
+        }
+
         assertCurrentRouteAmountAvailable();
       }
 
@@ -512,6 +614,25 @@ export function createPaymentFlow({
 
 
       /* -------------------------
+         Shared KYC
+      ------------------------- */
+
+      if (!receiveBound) {
+        const kycPassed =
+          await requireSharedKyc();
+
+        if (!kycPassed) {
+          if (activeContinueBtn) {
+            activeContinueBtn.disabled =
+              false;
+          }
+
+          return;
+        }
+      }
+
+
+      /* -------------------------
          Funding session
       ------------------------- */
 
@@ -627,14 +748,12 @@ export function createPaymentFlow({
 
       const canContinue =
         Boolean(
-          limitCheck?.ok &&
+          state.settlementId ||
           (
-            state.settlementId ||
-            (
-              state.sessionId &&
-              state.routeId &&
-              isCurrentRouteAmountAvailable()
-            )
+            limitCheck?.ok &&
+            state.sessionId &&
+            state.routeId &&
+            isCurrentRouteAmountAvailable()
           )
         );
 
@@ -819,11 +938,51 @@ export function createPaymentFlow({
         saved.payment_started
       );
 
-    if (!state.paymentStarted) {
-      resetFlowState();
-      resetUiToStart();
 
-      refreshLimitUi();
+    /*
+    --------------------------------------------------
+    Pre-funding settlement recovery
+
+    The settlement may already exist while KYC is still
+    incomplete. Do not discard it just because funding
+    has not started yet.
+
+    Continue will re-check the settlement, resume Shared
+    KYC if needed, then proceed to funding.
+    --------------------------------------------------
+    */
+
+    if (!state.paymentStarted) {
+      state.currentNextAction =
+        null;
+
+      state.pendingWidgetUrl =
+        null;
+
+      setAmountInputDisabled(
+        true
+      );
+
+      emit(
+        "unibridge:quote"
+      );
+
+      setContinueButtonMode(
+        "prepare_payment"
+      );
+
+      const activeContinueBtn =
+        getActiveContinueButton() ||
+        continueBtn;
+
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled =
+          false;
+      }
+
+      setStatus(
+        "Payment setup is not finished. Tap Continue to resume."
+      );
 
       return;
     }
