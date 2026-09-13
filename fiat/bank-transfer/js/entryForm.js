@@ -26,6 +26,12 @@ import {
 } from "./providerDestinationRegistry.js";
 
 import {
+  clearFieldError,
+  createHandledFieldError,
+  markFieldInvalid
+} from "./fieldErrors.js";
+
+import {
   getRouteDestinationFields
 } from "../../../shared/pay/destination/schema.js";
 
@@ -210,6 +216,10 @@ export async function loadBankTransferRoutes() {
   availableRoutes = [];
   latestQuote = null;
 
+  clearFieldError(
+    "amount"
+  );
+
   hideQuoteStageFields();
 
 
@@ -271,12 +281,27 @@ function getSelectedRoute() {
       route
     )
   ) {
-    throw new Error(
+    const limitMessage =
       formatRouteLimitMessage(
         route
       ) ||
-      "selected_route_amount_not_available"
+      "Selected route is not available for this amount.";
+
+    markFieldInvalid(
+      "amount",
+      limitMessage
     );
+
+    throw createHandledFieldError({
+      code:
+        "selected_route_amount_not_available",
+
+      field:
+        "amount",
+
+      message:
+        limitMessage
+    });
   }
 
 
@@ -616,6 +641,11 @@ Prepare
 */
 
 export async function prepareBankTransferSettlement() {
+  clearFieldError(
+    "amount"
+  );
+
+
   const form =
     readFiatContext();
 
@@ -692,8 +722,31 @@ export async function prepareBankTransferSettlement() {
   if (!selectedRoute) {
     showRouteFieldOnly();
 
+
+    const limitMessage =
+      resolveNoAvailableRouteMessage();
+
+
+    if (limitMessage) {
+      markFieldInvalid(
+        "amount",
+        limitMessage
+      );
+
+      throw createHandledFieldError({
+        code:
+          "route_amount_unavailable",
+
+        field:
+          "amount",
+
+        message:
+          limitMessage
+      });
+    }
+
+
     throw new Error(
-      resolveNoAvailableRouteMessage() ||
       "no_routes_available_for_amount"
     );
   }
@@ -860,3 +913,49 @@ getEl(
       }
     }
   );
+
+
+/*
+--------------------------------------------------
+Amount-limit error reset
+--------------------------------------------------
+
+A route-limit message belongs to the quote that produced it.
+
+Once the user changes the amount or corridor, clear the old
+message immediately. The next quote will apply the current
+backend route-limit validation.
+--------------------------------------------------
+*/
+
+getEl(
+  "amount"
+)
+  ?.addEventListener(
+    "input",
+    () => {
+      clearFieldError(
+        "amount"
+      );
+    }
+  );
+
+
+[
+  "sourceCountry",
+  "receiverCountry"
+].forEach(
+  id => {
+    getEl(
+      id
+    )
+      ?.addEventListener(
+        "change",
+        () => {
+          clearFieldError(
+            "amount"
+          );
+        }
+      );
+  }
+);
