@@ -55,6 +55,22 @@ export function createQuoteFlow({
   let flowGeneration =
     0;
 
+  /*
+  --------------------------------------------------
+  Route-limit presentation state
+
+  Backend pricing remains authoritative.
+
+  Surface funding / ramp limits retain first priority.
+  When those limits are valid but every quoted Route
+  is rejected by execution limits, the Route message
+  is rendered through the same Amount hint.
+  --------------------------------------------------
+  */
+
+  let routeLimitMessage =
+    null;
+
 
   function isFlowCurrent(
     generation
@@ -163,6 +179,9 @@ export function createQuoteFlow({
     flowGeneration +=
       1;
 
+    routeLimitMessage =
+      null;
+
     state.currentRouteQuote =
       null;
 
@@ -220,17 +239,30 @@ export function createQuoteFlow({
       getActiveContinueButton() ||
       continueBtn;
 
+    const amountInput =
+      getValue(
+        "amount"
+      );
+
+    const messageEl =
+      document.getElementById(
+        "amountLimitHint"
+      );
+
+    /*
+    --------------------------------------------------
+    Surface funding / ramp limit
+
+    This remains Surface-specific and keeps first
+    priority over execution Route-limit messaging.
+    --------------------------------------------------
+    */
+
     const result =
       applyAmountLimitUi({
-        amountInput:
-          getValue(
-            "amount"
-          ),
+        amountInput,
 
-        messageEl:
-          document.getElementById(
-            "amountLimitHint"
-          ),
+        messageEl,
 
         continueBtn:
           activeContinueBtn,
@@ -241,6 +273,65 @@ export function createQuoteFlow({
         country:
           getSourceCountryCode()
       });
+
+    /*
+    --------------------------------------------------
+    Execution Route limit
+
+    Only override the Amount hint when the Surface
+    funding limit itself is valid.
+    --------------------------------------------------
+    */
+
+    if (
+      result.ok &&
+      routeLimitMessage
+    ) {
+      if (amountInput) {
+        amountInput.style.borderColor =
+          "#dc2626";
+
+        amountInput.style.outlineColor =
+          "#dc2626";
+      }
+
+      if (messageEl) {
+        messageEl.innerText =
+          routeLimitMessage;
+
+        messageEl.style.display =
+          "block";
+
+        messageEl.style.color =
+          "#dc2626";
+      }
+
+      if (activeContinueBtn) {
+        activeContinueBtn.disabled =
+          true;
+      }
+
+      if (
+        sendBtn &&
+        !state.settlementId
+      ) {
+        sendBtn.disabled =
+          true;
+      }
+
+      return {
+        ...result,
+
+        ok:
+          false,
+
+        reason:
+          "route_amount_unavailable",
+
+        message:
+          routeLimitMessage
+      };
+    }
 
     /*
     Before quote, provider may be null.
@@ -337,6 +428,9 @@ export function createQuoteFlow({
 
 
   function resetFlowForRouteInputChange() {
+    routeLimitMessage =
+      null;
+
     resetFlowState();
 
     resetUiToStart();
@@ -386,6 +480,9 @@ export function createQuoteFlow({
       resetUiToStart();
 
       resetStatusMemory();
+
+      routeLimitMessage =
+        null;
 
 
       /*
@@ -547,13 +644,20 @@ export function createQuoteFlow({
 
 
       if (!selectedRoute) {
-        throw new Error(
+        routeLimitMessage =
           resolveNoAvailableRouteMessage(
             quote.routes
-          ) ||
+          );
+
+        throw new Error(
+          routeLimitMessage ||
           "no_routes_available_for_amount"
         );
       }
+
+
+      routeLimitMessage =
+        null;
 
 
       state.routeId =
@@ -662,10 +766,24 @@ export function createQuoteFlow({
       }
 
 
-      setStatus(
-        error,
-        "error"
-      );
+      /*
+      Route-limit failures are rendered directly under
+      Amount.
+
+      Other failures continue through the general
+      Surface status channel.
+      */
+
+      if (routeLimitMessage) {
+        setStatus(
+          ""
+        );
+      } else {
+        setStatus(
+          error,
+          "error"
+        );
+      }
 
 
       const limitCheck =
@@ -766,6 +884,17 @@ export function createQuoteFlow({
       ?.addEventListener(
         "input",
         () => {
+          /*
+          The execution-limit result belongs to the
+          previous quoted amount.
+
+          Editing Amount invalidates that presentation
+          state immediately.
+          */
+
+          routeLimitMessage =
+            null;
+
           if (
             state.sessionId ||
             state.routeId ||
