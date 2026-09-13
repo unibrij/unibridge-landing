@@ -1,87 +1,258 @@
 // unibrij/unibridge-landing/surface/amount-limits.js
 
-const SOURCE_COUNTRY_LIMITS = Object.freeze({
-  AE: { min: 50, max: 1000, currency: "AED" },
-  EU: { min: 10, max: 1000, currency: "EUR" },
-  GB: { min: 9, max: 1000, currency: "GBP" },
-  UK: { min: 9, max: 1000, currency: "GBP" }
-});
+const SOURCE_COUNTRY_LIMITS =
+  Object.freeze({
+    AE: Object.freeze({
+      min: 50,
+      max: 370000,
+      currency: "AED"
+    }),
 
-const RAMP_LIMITS = Object.freeze({
-  onramp: {
-    AE: { min: 50, max: 1000, currency: "AED" },
-    EU: { min: 10, max: 1000, currency: "EUR" },
-    GB: { min: 9, max: 1000, currency: "GBP" },
-    UK: { min: 9, max: 1000, currency: "GBP" }
-  },
+    EU: Object.freeze({
+      min: 10,
+      currency: "EUR"
+    }),
 
-  guardarian: {
-    EU: { min: 17, max: 1000, currency: "EUR" },
-    DEFAULT: { min: 17, max: 1000, currency: "EUR" }
-  },
+    GB: Object.freeze({
+      min: 9,
+      currency: "GBP"
+    }),
 
-  transak: {
-    DEFAULT: { min: 5, max: 1000, currency: "USD" }
-  }
-});
+    UK: Object.freeze({
+      min: 9,
+      currency: "GBP"
+    })
+  });
 
-function normalizeProvider(value) {
-  return String(value || "")
+const RAMP_LIMITS =
+  Object.freeze({
+    onramp: Object.freeze({
+      AE: Object.freeze({
+        min: 50,
+        max: 370000,
+        currency: "AED"
+      }),
+
+      EU: Object.freeze({
+        min: 10,
+        currency: "EUR"
+      }),
+
+      GB: Object.freeze({
+        min: 9,
+        currency: "GBP"
+      }),
+
+      UK: Object.freeze({
+        min: 9,
+        currency: "GBP"
+      })
+    })
+  });
+
+
+function normalizeProvider(
+  value
+) {
+  return String(
+    value ||
+    ""
+  )
     .toLowerCase()
     .trim();
 }
 
-function normalizeCountry(value) {
-  return String(value || "")
+
+function normalizeCountry(
+  value
+) {
+  return String(
+    value ||
+    ""
+  )
     .toUpperCase()
     .trim();
 }
 
-function getLimits({ provider, country }) {
-  const normalizedProvider = normalizeProvider(provider);
-  const normalizedCountry = normalizeCountry(country);
 
-  const providerConfig = RAMP_LIMITS[normalizedProvider];
+function getLimits({
+  provider,
+  country
+}) {
+  const normalizedProvider =
+    normalizeProvider(
+      provider
+    );
 
-  if (providerConfig) {
+  const normalizedCountry =
+    normalizeCountry(
+      country
+    );
+
+  /*
+  --------------------------------------------------
+  Pre-quote fallback
+
+  Before quote, the backend has not selected a funding
+  provider yet.
+
+  Apply only the known Surface source-country limits.
+  --------------------------------------------------
+  */
+
+  if (!normalizedProvider) {
     return (
-      providerConfig[normalizedCountry] ||
-      providerConfig.DEFAULT ||
-      SOURCE_COUNTRY_LIMITS[normalizedCountry] ||
+      SOURCE_COUNTRY_LIMITS[
+        normalizedCountry
+      ] ||
       null
     );
   }
 
   /*
   --------------------------------------------------
-  Pre-quote fallback
-  --------------------------------------------------
-  Before quote, selected provider may still be null.
-  Enforce source-country limits before allowing route quote.
+  Backend-selected provider
+
+  The Surface does not choose or infer the provider.
+
+  Once quote resolution selects the funding provider,
+  apply only that provider's known limits.
+
+  Unknown providers intentionally receive no local
+  funding-limit assumption.
   --------------------------------------------------
   */
 
+  const providerConfig =
+    RAMP_LIMITS[
+      normalizedProvider
+    ];
+
+  if (!providerConfig) {
+    return null;
+  }
+
   return (
-    SOURCE_COUNTRY_LIMITS[normalizedCountry] ||
+    providerConfig[
+      normalizedCountry
+    ] ||
+    providerConfig.DEFAULT ||
     null
   );
 }
 
-function formatLimitValue(value) {
-  const n = Number(value);
 
-  if (!Number.isFinite(n)) return "—";
-  if (Number.isInteger(n)) return String(n);
+function toFiniteNumber(
+  value
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return null;
+  }
 
-  return n.toFixed(2).replace(/\.00$/, "");
+  const number =
+    Number(
+      value
+    );
+
+  return Number.isFinite(
+    number
+  )
+    ? number
+    : null;
 }
+
+
+function formatLimitValue(
+  value
+) {
+  const number =
+    toFiniteNumber(
+      value
+    );
+
+  if (number === null) {
+    return null;
+  }
+
+  return new Intl.NumberFormat(
+    undefined,
+    {
+      maximumFractionDigits: 20
+    }
+  ).format(
+    number
+  );
+}
+
+
+function buildAllowedRangeMessage(
+  limits = {}
+) {
+  const min =
+    formatLimitValue(
+      limits.min
+    );
+
+  const max =
+    formatLimitValue(
+      limits.max
+    );
+
+  const currency =
+    String(
+      limits.currency ||
+      ""
+    ).trim();
+
+  if (
+    min &&
+    max &&
+    currency
+  ) {
+    return (
+      `Enter an amount between ` +
+      `${min} and ${max} ${currency}.`
+    );
+  }
+
+  if (
+    min &&
+    currency
+  ) {
+    return (
+      `Enter an amount of at least ` +
+      `${min} ${currency}.`
+    );
+  }
+
+  if (
+    max &&
+    currency
+  ) {
+    return (
+      `Enter an amount up to ` +
+      `${max} ${currency}.`
+    );
+  }
+
+  return "Enter a valid amount.";
+}
+
 
 export function validateAmountLimits({
   provider,
   country,
   amount
 }) {
-  const limits = getLimits({ provider, country });
+  const limits =
+    getLimits({
+      provider,
+      country
+    });
 
   if (!limits) {
     return {
@@ -92,31 +263,118 @@ export function validateAmountLimits({
     };
   }
 
-  const numericAmount = Number(amount);
+  const numericAmount =
+    Number(
+      amount
+    );
 
-  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+  const min =
+    toFiniteNumber(
+      limits.min
+    );
+
+  const max =
+    toFiniteNumber(
+      limits.max
+    );
+
+  const currency =
+    String(
+      limits.currency ||
+      ""
+    ).trim();
+
+  if (
+    !Number.isFinite(
+      numericAmount
+    ) ||
+    numericAmount <= 0
+  ) {
     return {
       ok: false,
-      reason: "invalid_amount",
-      message: `Enter an amount between ${formatLimitValue(limits.min)} and ${formatLimitValue(limits.max)} ${limits.currency}.`,
+
+      reason:
+        "invalid_amount",
+
+      message:
+        buildAllowedRangeMessage(
+          limits
+        ),
+
       limits
     };
   }
 
-  if (numericAmount < limits.min) {
+  if (
+    min !== null &&
+    numericAmount < min
+  ) {
+    const formattedMin =
+      formatLimitValue(
+        min
+      );
+
+    const formattedMax =
+      formatLimitValue(
+        max
+      );
+
     return {
       ok: false,
-      reason: "below_min",
-      message: `Minimum amount is ${formatLimitValue(limits.min)} ${limits.currency}. Maximum is ${formatLimitValue(limits.max)} ${limits.currency}.`,
+
+      reason:
+        "below_min",
+
+      message:
+        formattedMax
+          ? (
+              `Minimum amount is ` +
+              `${formattedMin} ${currency}. ` +
+              `Maximum is ` +
+              `${formattedMax} ${currency}.`
+            )
+          : (
+              `Minimum amount is ` +
+              `${formattedMin} ${currency}.`
+            ),
+
       limits
     };
   }
 
-  if (numericAmount > limits.max) {
+  if (
+    max !== null &&
+    numericAmount > max
+  ) {
+    const formattedMin =
+      formatLimitValue(
+        min
+      );
+
+    const formattedMax =
+      formatLimitValue(
+        max
+      );
+
     return {
       ok: false,
-      reason: "above_max",
-      message: `Maximum amount is ${formatLimitValue(limits.max)} ${limits.currency}. Minimum is ${formatLimitValue(limits.min)} ${limits.currency}.`,
+
+      reason:
+        "above_max",
+
+      message:
+        formattedMin
+          ? (
+              `Maximum amount is ` +
+              `${formattedMax} ${currency}. ` +
+              `Minimum is ` +
+              `${formattedMin} ${currency}.`
+            )
+          : (
+              `Maximum amount is ` +
+              `${formattedMax} ${currency}.`
+            ),
+
       limits
     };
   }
@@ -129,6 +387,7 @@ export function validateAmountLimits({
   };
 }
 
+
 export function applyAmountLimitUi({
   amountInput,
   messageEl,
@@ -139,45 +398,70 @@ export function applyAmountLimitUi({
   if (!amountInput) {
     return {
       ok: true,
-      reason: "missing_amount_input",
-      message: "",
-      limits: null
+
+      reason:
+        "missing_amount_input",
+
+      message:
+        "",
+
+      limits:
+        null
     };
   }
 
-  const result = validateAmountLimits({
-    provider,
-    country,
-    amount: amountInput.value
-  });
+  const result =
+    validateAmountLimits({
+      provider,
+      country,
+
+      amount:
+        amountInput.value
+    });
 
   if (!result.ok) {
-    amountInput.style.borderColor = "#dc2626";
-    amountInput.style.outlineColor = "#dc2626";
+    amountInput.style.borderColor =
+      "#dc2626";
+
+    amountInput.style.outlineColor =
+      "#dc2626";
 
     if (messageEl) {
-      messageEl.innerText = result.message;
-      messageEl.style.display = "block";
-      messageEl.style.color = "#dc2626";
+      messageEl.innerText =
+        result.message;
+
+      messageEl.style.display =
+        "block";
+
+      messageEl.style.color =
+        "#dc2626";
     }
 
     if (continueBtn) {
-      continueBtn.disabled = true;
+      continueBtn.disabled =
+        true;
     }
 
     return result;
   }
 
-  amountInput.style.borderColor = "";
-  amountInput.style.outlineColor = "";
+  amountInput.style.borderColor =
+    "";
+
+  amountInput.style.outlineColor =
+    "";
 
   if (messageEl) {
-    messageEl.innerText = "";
-    messageEl.style.display = "none";
+    messageEl.innerText =
+      "";
+
+    messageEl.style.display =
+      "none";
   }
 
   if (continueBtn) {
-    continueBtn.disabled = false;
+    continueBtn.disabled =
+      false;
   }
 
   return result;
