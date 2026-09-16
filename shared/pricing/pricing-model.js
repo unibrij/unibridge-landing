@@ -583,6 +583,86 @@ function resolveFundingFeeRows({
     );
 }
 
+/*
+--------------------------------------------------
+UniBridge display fee
+--------------------------------------------------
+
+The canonical UniBridge fee inside:
+
+  pricing_result.quote.fees
+
+represents the actual execution / collection fee and may be
+denominated in USDC or USDT.
+
+The Session route fields:
+
+  route.unibridge_fee
+  route.unibridge_fee_currency
+
+represent the customer-facing display projection.
+
+For wallet funding these fields preserve the canonical
+stablecoin amount and currency.
+
+For fiat funding priceFiatSessionRoutes projects them into
+the user's source fiat currency using the funding quote.
+
+Therefore, when a complete Session display projection is
+available, presentation must prefer it over the canonical
+fee. The canonical fee remains untouched and authoritative
+for execution.
+--------------------------------------------------
+*/
+
+function resolveUniBridgeDisplayFees({
+  route,
+  canonicalFees,
+  settlementCurrency
+}) {
+  const displayAmount =
+    route?.unibridge_fee;
+
+  const displayCurrency =
+    normalizeUpper(
+      route?.unibridge_fee_currency
+    );
+
+  if (
+    hasValue(displayAmount) &&
+    displayCurrency
+  ) {
+    return [{
+      type:
+        FEE_TYPES.unibridge,
+
+      amount:
+        displayAmount,
+
+      currency:
+        displayCurrency
+    }];
+  }
+
+  return resolveFeeGroups({
+    route,
+
+    canonicalFees,
+
+    type:
+      FEE_TYPES.unibridge,
+
+    amountField:
+      "unibridge_fee",
+
+    currencyField:
+      "unibridge_fee_currency",
+
+    fallbackCurrency:
+      settlementCurrency
+  });
+}
+
 function resolveExecutionFeeRows({
   route,
   canonicalFees,
@@ -674,23 +754,30 @@ function resolveExecutionFeeRows({
     definitions
   ) {
     const fees =
-      resolveFeeGroups({
-        route,
+      definition.type ===
+        FEE_TYPES.unibridge
+        ? resolveUniBridgeDisplayFees({
+            route,
+            canonicalFees,
+            settlementCurrency
+          })
+        : resolveFeeGroups({
+            route,
 
-        canonicalFees,
+            canonicalFees,
 
-        type:
-          definition.type,
+            type:
+              definition.type,
 
-        amountField:
-          definition.amountField,
+            amountField:
+              definition.amountField,
 
-        currencyField:
-          definition.currencyField,
+            currencyField:
+              definition.currencyField,
 
-        fallbackCurrency:
-          definition.fallbackCurrency
-      });
+            fallbackCurrency:
+              definition.fallbackCurrency
+          });
 
     for (const fee of fees) {
       const publicType =
