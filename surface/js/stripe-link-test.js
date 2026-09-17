@@ -17,41 +17,59 @@
       * Create LinkAuthIntent
       * Authenticate
       * Load CryptoCustomer
-      * Load transaction limits
+      * Load settlement-bound transaction limits
 
-  Sandbox flow:
-  1. Load browser config from UniBridge backend
-  2. Initialize Stripe SDK using backend-selected publishable key
-  3. registerLinkUser()
+  Current Sandbox flow:
+
+  1. Load browser config
+  2. Initialize Stripe SDK
+  3. Register Link user if needed
   4. Create LinkAuthIntent
-  5. authenticate()
-  6. Obtain crypto_customer_id
-  7. Load CryptoCustomer
-  8. Submit Stripe KYC if required
-  9. Collect ACH payment method
-  10. Obtain cryptoPaymentToken
-  11. Load Stripe transaction limits
-  12. Create ACH-bound headless session
-  13. Inspect raw session response
-  14. Test independent generic headless quote
+  5. Authenticate
+  6. Load CryptoCustomer
+  7. Submit Stripe KYC only if not already verified
+  8. Reload CryptoCustomer
+  9. Load settlement-bound ACH transaction limits
+  10. Collect ACH payment method
+  11. Obtain cryptoPaymentToken
+  12. Create settlement-bound Headless Session
+  13. Inspect session transaction_details / quote
+  14. performCheckout() using the same session
 
   IMPORTANT:
   - No Stripe secret key here
   - No OAuth client secret here
   - No OAuth access token here
   - Publishable key comes from backend config
-  - Backend STRIPE_ONRAMP_MODE is the source of truth
+  - Backend STRIPE_ONRAMP_MODE is source of truth
   - ACH collection is restricted to us_bank_account
-  - Apple Pay and Google Pay are explicitly disabled
-  - ACH is enabled only when Stripe reports kyc_verified
-  - Transaction limits are diagnostic only
-  - No performCheckout() in this diagnostic
-  - LIVE mode cannot:
+  - Apple Pay and Google Pay are disabled
+  - Limits must pass before ACH collection
+  - Canonical amount comes from settlement backend state
+  - Canonical wallet comes from settlement backend state
+  - Canonical network comes from settlement backend state
+  - Canonical currencies come from settlement backend state
+  - Headless Session transaction_details are the quote
+  - There is no separate generic production quote request
+  - cryptoPaymentToken is never displayed or logged
+  - client_secret is never displayed or logged
+
+  LIVE mode cannot:
       * register Link users
       * submit KYC
       * collect ACH
       * create headless sessions
-      * request generic quotes
+      * perform checkout
+
+  Diagnostic settlement:
+
+  Supply a real settlement in the URL:
+
+  /surface/stripe?settlementId=<SETTLEMENT_ID>
+
+  or:
+
+  /surface/stripe?settlement_id=<SETTLEMENT_ID>
   --------------------------------------------------
   */
 
@@ -76,9 +94,6 @@
   const HEADLESS_SESSION_URL =
     "/v2/ramp/stripe/browser/headless-session";
 
-  const HEADLESS_QUOTE_URL =
-    "/v2/ramp/stripe/browser/quote";
-
 
   let browserConfig =
     null;
@@ -102,6 +117,18 @@
     null;
 
   let stripeKycVerified =
+    false;
+
+  let achLimitsAvailable =
+    false;
+
+  let transactionLimits =
+    null;
+
+  let headlessSession =
+    null;
+
+  let checkoutCompleted =
     false;
 
 
@@ -194,6 +221,28 @@
       "ach-button"
     );
 
+  const transactionLimitsButton =
+    document.getElementById(
+      "transaction-limits-button"
+    );
+
+  const headlessSessionButton =
+    document.getElementById(
+      "headless-session-button"
+    );
+
+  /*
+  --------------------------------------------------
+  Legacy diagnostic inputs.
+
+  They remain optional because the existing HTML may
+  still contain them.
+
+  They are no longer authoritative or submitted to
+  the production-style backend endpoints.
+  --------------------------------------------------
+  */
+
   const sessionAmountInput =
     document.getElementById(
       "session-amount"
@@ -207,16 +256,6 @@
   const walletAddressInput =
     document.getElementById(
       "wallet-address"
-    );
-
-  const transactionLimitsButton =
-    document.getElementById(
-      "transaction-limits-button"
-    );
-
-  const headlessSessionButton =
-    document.getElementById(
-      "headless-session-button"
     );
 
   const quoteAmountInput =
@@ -248,6 +287,46 @@
   /* =========================
      HELPERS
   ========================= */
+
+  function normalizeString(
+    value
+  ) {
+    return String(
+      value ?? ""
+    ).trim();
+  }
+
+
+  function requireString(
+    value,
+    errorCode
+  ) {
+    const normalized =
+      normalizeString(
+        value
+      );
+
+    if (!normalized) {
+      throw new Error(
+        errorCode
+      );
+    }
+
+    return normalized;
+  }
+
+
+  function normalizeOptionalString(
+    value
+  ) {
+    return (
+      normalizeString(
+        value
+      ) ||
+      null
+    );
+  }
+
 
   function setStatus(
     message,
@@ -287,26 +366,6 @@
   }
 
 
-  function requireString(
-    value,
-    errorCode
-  ) {
-    const normalized =
-      String(
-        value ?? ""
-      )
-        .trim();
-
-    if (!normalized) {
-      throw new Error(
-        errorCode
-      );
-    }
-
-    return normalized;
-  }
-
-
   function isSandboxMode() {
     return Boolean(
       browserConfig?.mode ===
@@ -338,6 +397,36 @@
         errorCode
       );
     }
+  }
+
+
+  function resolveDiagnosticSettlementId() {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    return (
+      normalizeString(
+        params.get(
+          "settlementId"
+        )
+      ) ||
+      normalizeString(
+        params.get(
+          "settlement_id"
+        )
+      ) ||
+      null
+    );
+  }
+
+
+  function requireDiagnosticSettlementId() {
+    return requireString(
+      resolveDiagnosticSettlementId(),
+      "missing_diagnostic_settlement_id"
+    );
   }
 
 
@@ -421,7 +510,7 @@
 
     if (
       ssn.length !==
-      9
+        9
     ) {
       throw new Error(
         "invalid_kyc_us_ssn"
@@ -499,32 +588,62 @@
 
     const kycVerification =
       verifications.find(
-        (item) =>
-          String(
-            item?.name ?? ""
+        (
+          item
+        ) =>
+          normalizeString(
+            item?.name
           )
-            .trim()
             .toLowerCase() ===
           "kyc_verified"
       );
 
-    const status =
-      String(
-        kycVerification?.status ??
-        ""
+    return (
+      normalizeString(
+        kycVerification?.status
       )
-        .trim()
-        .toLowerCase();
-
-    return status ===
-      "verified";
+        .toLowerCase() ===
+      "verified"
+    );
   }
 
 
   function canLoadTransactionLimits() {
     return Boolean(
       authIntentId &&
-      cryptoCustomerId
+      cryptoCustomerId &&
+      stripeKycVerified &&
+      resolveDiagnosticSettlementId()
+    );
+  }
+
+
+  function canCollectAch() {
+    return Boolean(
+      isSandboxMode() &&
+      stripeKycVerified &&
+      achLimitsAvailable
+    );
+  }
+
+
+  function canCreateHeadlessSession() {
+    return Boolean(
+      isSandboxMode() &&
+      stripeKycVerified &&
+      achLimitsAvailable &&
+      cryptoPaymentToken
+    );
+  }
+
+
+  function canPerformCheckout() {
+    return Boolean(
+      isSandboxMode() &&
+      headlessSession?.sessionId &&
+      headlessSession?.clientSecret &&
+      checkoutCompleted !==
+        true
     );
   }
 
@@ -535,12 +654,9 @@
   }
 
 
-  function canCreateHeadlessSession() {
-    return Boolean(
-      isSandboxMode() &&
-      stripeKycVerified &&
-      cryptoPaymentToken
-    );
+  function syncAchButton() {
+    achButton.disabled =
+      !canCollectAch();
   }
 
 
@@ -550,11 +666,52 @@
   }
 
 
-  function resetHeadlessSessionState() {
+  function syncCheckoutButton() {
+    quoteButton.disabled =
+      !canPerformCheckout();
+  }
+
+
+  function syncFlowButtons() {
+    syncTransactionLimitsButton();
+    syncAchButton();
+    syncHeadlessSessionButton();
+    syncCheckoutButton();
+  }
+
+
+  function resetCheckoutState() {
+    headlessSession =
+      null;
+
+    checkoutCompleted =
+      false;
+
+    syncCheckoutButton();
+  }
+
+
+  function resetPaymentMethodState() {
     cryptoPaymentToken =
       null;
 
+    resetCheckoutState();
+
     syncHeadlessSessionButton();
+  }
+
+
+  function resetLimitsState() {
+    achLimitsAvailable =
+      false;
+
+    transactionLimits =
+      null;
+
+    resetPaymentMethodState();
+
+    syncAchButton();
+    syncTransactionLimitsButton();
   }
 
 
@@ -565,9 +722,56 @@
     stripeKycVerified =
       false;
 
-    resetHeadlessSessionState();
+    resetLimitsState();
 
-    syncTransactionLimitsButton();
+    syncFlowButtons();
+  }
+
+
+  function configureCurrentDiagnosticUi() {
+    if (
+      transactionLimitsButton
+    ) {
+      transactionLimitsButton.textContent =
+        "7. Get ACH Transaction Limits";
+    }
+
+    if (
+      headlessSessionButton
+    ) {
+      headlessSessionButton.textContent =
+        "8. Create ACH Headless Session + Quote";
+    }
+
+    if (
+      quoteButton
+    ) {
+      quoteButton.textContent =
+        "9. Perform Checkout";
+    }
+
+    const legacyInputs = [
+      sessionAmountInput,
+      sessionCurrencyInput,
+      walletAddressInput,
+      quoteAmountInput,
+      quoteCurrencyInput
+    ];
+
+    for (
+      const input
+      of legacyInputs
+    ) {
+      if (!input) {
+        continue;
+      }
+
+      input.disabled =
+        true;
+
+      input.title =
+        "Legacy diagnostic field. Current flow resolves this value from the settlement backend state.";
+    }
   }
 
 
@@ -575,166 +779,43 @@
     const missing =
       [];
 
-    if (!emailInput) {
-      missing.push(
-        "email"
-      );
-    }
+    const requiredElements = [
+      [emailInput, "email"],
+      [phoneInput, "phone"],
+      [fullNameInput, "full-name"],
+      [registerButton, "register-button"],
+      [authIntentButton, "auth-intent-button"],
+      [authenticateButton, "authenticate-button"],
+      [customerContextButton, "customer-context-button"],
+      [kycFirstNameInput, "kyc-first-name"],
+      [kycLastNameInput, "kyc-last-name"],
+      [kycIdNumberInput, "kyc-id-number"],
+      [kycDobInput, "kyc-dob"],
+      [kycAddressLine1Input, "kyc-address-line1"],
+      [kycCityInput, "kyc-city"],
+      [kycStateInput, "kyc-state"],
+      [kycPostalCodeInput, "kyc-postal-code"],
+      [kycButton, "kyc-button"],
+      [achButton, "ach-button"],
+      [transactionLimitsButton, "transaction-limits-button"],
+      [headlessSessionButton, "headless-session-button"],
+      [quoteButton, "quote-button"],
+      [statusElement, "status"],
+      [authContainer, "auth-container"]
+    ];
 
-    if (!phoneInput) {
-      missing.push(
-        "phone"
-      );
-    }
-
-    if (!fullNameInput) {
-      missing.push(
-        "full-name"
-      );
-    }
-
-    if (!registerButton) {
-      missing.push(
-        "register-button"
-      );
-    }
-
-    if (!authIntentButton) {
-      missing.push(
-        "auth-intent-button"
-      );
-    }
-
-    if (!authenticateButton) {
-      missing.push(
-        "authenticate-button"
-      );
-    }
-
-    if (!customerContextButton) {
-      missing.push(
-        "customer-context-button"
-      );
-    }
-
-    if (!kycFirstNameInput) {
-      missing.push(
-        "kyc-first-name"
-      );
-    }
-
-    if (!kycLastNameInput) {
-      missing.push(
-        "kyc-last-name"
-      );
-    }
-
-    if (!kycIdNumberInput) {
-      missing.push(
-        "kyc-id-number"
-      );
-    }
-
-    if (!kycDobInput) {
-      missing.push(
-        "kyc-dob"
-      );
-    }
-
-    if (!kycAddressLine1Input) {
-      missing.push(
-        "kyc-address-line1"
-      );
-    }
-
-    if (!kycCityInput) {
-      missing.push(
-        "kyc-city"
-      );
-    }
-
-    if (!kycStateInput) {
-      missing.push(
-        "kyc-state"
-      );
-    }
-
-    if (!kycPostalCodeInput) {
-      missing.push(
-        "kyc-postal-code"
-      );
-    }
-
-    if (!kycButton) {
-      missing.push(
-        "kyc-button"
-      );
-    }
-
-    if (!achButton) {
-      missing.push(
-        "ach-button"
-      );
-    }
-
-    if (!sessionAmountInput) {
-      missing.push(
-        "session-amount"
-      );
-    }
-
-    if (!sessionCurrencyInput) {
-      missing.push(
-        "session-currency"
-      );
-    }
-
-    if (!walletAddressInput) {
-      missing.push(
-        "wallet-address"
-      );
-    }
-
-    if (!transactionLimitsButton) {
-      missing.push(
-        "transaction-limits-button"
-      );
-    }
-
-    if (!headlessSessionButton) {
-      missing.push(
-        "headless-session-button"
-      );
-    }
-
-    if (!quoteAmountInput) {
-      missing.push(
-        "quote-amount"
-      );
-    }
-
-    if (!quoteCurrencyInput) {
-      missing.push(
-        "quote-currency"
-      );
-    }
-
-    if (!quoteButton) {
-      missing.push(
-        "quote-button"
-      );
-    }
-
-    if (!statusElement) {
-      missing.push(
-        "status"
-      );
-    }
-
-    if (!authContainer) {
-      missing.push(
-        "auth-container"
-      );
+    for (
+      const [
+        element,
+        name
+      ]
+      of requiredElements
+    ) {
+      if (!element) {
+        missing.push(
+          name
+        );
+      }
     }
 
     if (
@@ -744,6 +825,115 @@
         `missing_dom_elements:${missing.join(",")}`
       );
     }
+  }
+
+
+  function normalizeHeadlessSessionPayload(
+    payload,
+    settlementId
+  ) {
+    if (
+      !payload ||
+      typeof payload !==
+        "object"
+    ) {
+      throw new Error(
+        "stripe_headless_session_invalid_response"
+      );
+    }
+
+    const responseSettlementId =
+      requireString(
+        payload?.settlement_id,
+        "stripe_headless_session_missing_settlement_id"
+      );
+
+    if (
+      responseSettlementId !==
+        settlementId
+    ) {
+      throw new Error(
+        "stripe_headless_session_settlement_mismatch"
+      );
+    }
+
+    const session =
+      payload?.session;
+
+    if (
+      !session ||
+      typeof session !==
+        "object"
+    ) {
+      throw new Error(
+        "stripe_headless_session_missing_session"
+      );
+    }
+
+    const sessionId =
+      requireString(
+        session?.session_id,
+        "stripe_headless_session_missing_session_id"
+      );
+
+    const clientSecret =
+      requireString(
+        session?.client_secret,
+        "stripe_headless_session_missing_client_secret"
+      );
+
+    return {
+      settlementId:
+        responseSettlementId,
+
+      sessionId,
+
+      clientSecret,
+
+      status:
+        normalizeOptionalString(
+          session?.status
+        ),
+
+      livemode:
+        typeof session?.livemode ===
+          "boolean"
+          ? session.livemode
+          : null,
+
+      sourceAmount:
+        session?.source_amount ??
+        null,
+
+      sourceCurrency:
+        normalizeOptionalString(
+          session?.source_currency
+        )
+          ?.toLowerCase() ??
+        null,
+
+      destinationAmount:
+        session?.destination_amount ??
+        null,
+
+      destinationCurrency:
+        normalizeOptionalString(
+          session?.destination_currency
+        )
+          ?.toLowerCase() ??
+        null,
+
+      destinationNetwork:
+        normalizeOptionalString(
+          session?.destination_network
+        )
+          ?.toLowerCase() ??
+        null,
+
+      quoteExpiration:
+        session?.quote_expiration ??
+        null
+    };
   }
 
 
@@ -781,7 +971,9 @@
         }
       )
         .then(
-          async (response) => {
+          async (
+            response
+          ) => {
             const payload =
               await response
                 .json()
@@ -829,7 +1021,7 @@
 
             if (
               typeof payload?.isSandbox !==
-              "boolean"
+                "boolean"
             ) {
               throw new Error(
                 "invalid_stripe_is_sandbox"
@@ -927,7 +1119,9 @@
           }
         )
         .catch(
-          (error) => {
+          (
+            error
+          ) => {
             browserConfigLoadPromise =
               null;
 
@@ -981,7 +1175,7 @@
 
           if (
             typeof initialize !==
-            "function"
+              "function"
           ) {
             throw new Error(
               "loadCryptoOnrampAndInitialize_not_exported"
@@ -1010,7 +1204,9 @@
         }
       )()
         .catch(
-          (error) => {
+          (
+            error
+          ) => {
             sdkLoadPromise =
               null;
 
@@ -1040,7 +1236,7 @@
 
     if (
       typeof sdk.registerLinkUser !==
-      "function"
+        "function"
     ) {
       throw new Error(
         "registerLinkUser_not_available"
@@ -1068,7 +1264,7 @@
 
     if (
       result?.created !==
-      true
+        true
     ) {
       const error =
         new Error(
@@ -1094,15 +1290,6 @@
       true;
 
     kycButton.disabled =
-      true;
-
-    achButton.disabled =
-      true;
-
-    transactionLimitsButton.disabled =
-      true;
-
-    headlessSessionButton.disabled =
       true;
 
     authContainer
@@ -1197,15 +1384,6 @@
     kycButton.disabled =
       true;
 
-    achButton.disabled =
-      true;
-
-    transactionLimitsButton.disabled =
-      true;
-
-    headlessSessionButton.disabled =
-      true;
-
     console.log(
       "STRIPE_LINK_AUTH_INTENT",
       {
@@ -1224,7 +1402,10 @@
           browserConfig?.mode ??
           null,
 
-        authIntentId
+        authIntentId,
+
+        settlementId:
+          resolveDiagnosticSettlementId()
       }
     );
 
@@ -1249,7 +1430,7 @@
 
     if (
       typeof sdk.authenticate !==
-      "function"
+        "function"
     ) {
       throw new Error(
         "authenticate_not_available"
@@ -1268,23 +1449,18 @@
     kycButton.disabled =
       true;
 
-    achButton.disabled =
-      true;
-
-    transactionLimitsButton.disabled =
-      true;
-
-    headlessSessionButton.disabled =
-      true;
-
     authContainer
       .replaceChildren();
+
+    syncFlowButtons();
 
     const authenticationElement =
       await sdk.authenticate(
         normalizedAuthIntentId,
 
-        async (result) => {
+        async (
+          result
+        ) => {
           console.log(
             "STRIPE_LINK_AUTH_RESULT",
             result
@@ -1292,7 +1468,7 @@
 
           if (
             result?.result ===
-            "success"
+              "success"
           ) {
             cryptoCustomerId =
               requireString(
@@ -1304,17 +1480,27 @@
             stripeKycVerified =
               false;
 
-            syncTransactionLimitsButton();
-            syncHeadlessSessionButton();
+            resetLimitsState();
 
             customerContextButton.disabled =
               false;
 
-            kycButton.disabled =
-              !isSandboxMode();
+            /*
+            --------------------------------------------------
+            Do not enable KYC immediately after authentication.
 
-            achButton.disabled =
+            First reload CryptoCustomer and inspect Stripe's
+            current kyc_verified state.
+
+            loadCustomerContext() alone decides whether
+            Submit KYC should become available.
+            --------------------------------------------------
+            */
+
+            kycButton.disabled =
               true;
+
+            syncFlowButtons();
 
             setStatus(
               "Link authentication successful.",
@@ -1331,16 +1517,14 @@
 
                 cryptoCustomerId,
 
-                transactionLimitsEnabled:
-                  canLoadTransactionLimits(),
+                settlementId:
+                  resolveDiagnosticSettlementId(),
 
                 liveSafetyGuard:
                   isLiveMode(),
 
                 nextStep:
-                  isLiveMode()
-                    ? "Load CryptoCustomer or transaction limits. Live write/payment actions remain disabled."
-                    : "Load CryptoCustomer to verify KYC before ACH collection."
+                  "Load CryptoCustomer. If KYC is verified, test ACH transaction limits next."
               }
             );
 
@@ -1349,7 +1533,7 @@
 
           if (
             result?.result ===
-            "abandoned"
+              "abandoned"
           ) {
             setStatus(
               "Link authentication abandoned."
@@ -1360,7 +1544,7 @@
 
           if (
             result?.result ===
-            "declined"
+              "declined"
           ) {
             setStatus(
               "Link OAuth consent declined."
@@ -1409,11 +1593,7 @@
       `Loading CryptoCustomer (${browserConfig?.mode ?? "unknown"})...`
     );
 
-    achButton.disabled =
-      true;
-
-    headlessSessionButton.disabled =
-      true;
+    resetLimitsState();
 
     const response =
       await fetch(
@@ -1470,17 +1650,13 @@
         payload
       );
 
-    achButton.disabled =
+    kycButton.disabled =
       !(
         isSandboxMode() &&
-        stripeKycVerified
+        !stripeKycVerified
       );
 
-    kycButton.disabled =
-      !isSandboxMode();
-
-    syncTransactionLimitsButton();
-    syncHeadlessSessionButton();
+    syncFlowButtons();
 
     console.log(
       "STRIPE_CUSTOMER_CONTEXT",
@@ -1501,20 +1677,35 @@
 
         ...payload,
 
-        achCollectionEnabled:
-          Boolean(
-            isSandboxMode() &&
-            stripeKycVerified
-          ),
+        settlementId:
+          resolveDiagnosticSettlementId(),
+
+        kycAlreadyVerified:
+          stripeKycVerified,
 
         transactionLimitsEnabled:
           canLoadTransactionLimits(),
 
+        achCollectionEnabled:
+          canCollectAch(),
+
         headlessSessionEnabled:
           canCreateHeadlessSession(),
 
+        checkoutEnabled:
+          canPerformCheckout(),
+
         liveSafetyGuard:
-          isLiveMode()
+          isLiveMode(),
+
+        nextStep:
+          stripeKycVerified
+            ? (
+                resolveDiagnosticSettlementId()
+                  ? "Get ACH Transaction Limits."
+                  : "Add ?settlementId=<SETTLEMENT_ID> to the diagnostic URL, then get ACH Transaction Limits."
+              )
+            : "Submit Stripe KYC, then reload CryptoCustomer."
       }
     );
 
@@ -1523,7 +1714,7 @@
 
 
   /* =========================
-     SUBMIT KYC — WEB SDK
+     SUBMIT KYC
      SANDBOX ONLY
   ========================= */
 
@@ -1531,6 +1722,14 @@
     requireSandboxMode(
       "stripe_kyc_disabled_in_live_mode"
     );
+
+    if (
+      stripeKycVerified
+    ) {
+      throw new Error(
+        "stripe_kyc_already_verified"
+      );
+    }
 
     const sdk =
       await ensureSdk();
@@ -1542,7 +1741,7 @@
 
     if (
       typeof sdk.submitKycInfo !==
-      "function"
+        "function"
     ) {
       throw new Error(
         "submitKycInfo_not_available"
@@ -1556,13 +1755,7 @@
       "Submitting Stripe KYC..."
     );
 
-    stripeKycVerified =
-      false;
-
-    resetHeadlessSessionState();
-
-    achButton.disabled =
-      true;
+    resetLimitsState();
 
     console.log(
       "STRIPE_KYC_INFO",
@@ -1594,22 +1787,25 @@
 
 
   /* =========================
-     COLLECT ACH PAYMENT METHOD
-     SANDBOX ONLY
+     TRANSACTION LIMITS
+     SANDBOX + LIVE
   ========================= */
 
-  async function collectAchPaymentMethod() {
-    requireSandboxMode(
-      "ach_collection_disabled_in_live_mode"
-    );
+  async function loadTransactionLimits() {
+    const settlementId =
+      requireDiagnosticSettlementId();
 
-    const sdk =
-      await ensureSdk();
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
+        "missing_auth_intent_id"
+      );
 
-    requireString(
-      cryptoCustomerId,
-      "missing_crypto_customer_id"
-    );
+    const normalizedCryptoCustomerId =
+      requireString(
+        cryptoCustomerId,
+        "missing_crypto_customer_id"
+      );
 
     if (
       !stripeKycVerified
@@ -1619,162 +1815,19 @@
       );
     }
 
-    if (
-      typeof sdk.collectPaymentMethod !==
-      "function"
-    ) {
-      throw new Error(
-        "collectPaymentMethod_not_available"
-      );
-    }
-
-    resetHeadlessSessionState();
-
     setStatus(
-      "Collecting ACH payment method..."
+      `Loading settlement-bound Stripe ACH transaction limits (${browserConfig?.mode ?? "unknown"})...`
     );
 
-    authContainer
-      .replaceChildren();
+    achLimitsAvailable =
+      false;
 
-    const paymentElement =
-      await sdk.collectPaymentMethod(
-        {
-          payment_method_types: [
-            "us_bank_account"
-          ],
+    transactionLimits =
+      null;
 
-          wallets: {
-            applePay:
-              "never",
+    resetPaymentMethodState();
 
-            googlePay:
-              "never"
-          }
-        },
-
-        (result) => {
-          console.log(
-            "STRIPE_PAYMENT_METHOD_RESULT",
-            result
-          );
-
-          const token =
-            result?.cryptoPaymentToken ??
-            result?.crypto_payment_token ??
-            null;
-
-          if (token) {
-            cryptoPaymentToken =
-              requireString(
-                token,
-                "missing_crypto_payment_token"
-              );
-
-            syncTransactionLimitsButton();
-            syncHeadlessSessionButton();
-
-            setStatus(
-              "ACH payment method collected.",
-              {
-                cryptoPaymentToken,
-
-                kycVerified:
-                  stripeKycVerified,
-
-                transactionLimitsEnabled:
-                  canLoadTransactionLimits(),
-
-                headlessSessionEnabled:
-                  canCreateHeadlessSession(),
-
-                nextStep:
-                  "Check transaction limits, then create ACH Headless Session."
-              }
-            );
-
-            return;
-          }
-
-          if (
-            result?.result ===
-            "abandoned"
-          ) {
-            setStatus(
-              "ACH payment-method collection abandoned.",
-              result
-            );
-
-            achButton.disabled =
-              false;
-
-            syncTransactionLimitsButton();
-            syncHeadlessSessionButton();
-
-            return;
-          }
-
-          if (
-            result?.error
-          ) {
-            setStatus(
-              "ACH payment-method collection failed.",
-              result
-            );
-
-            achButton.disabled =
-              false;
-
-            syncTransactionLimitsButton();
-            syncHeadlessSessionButton();
-
-            return;
-          }
-
-          setStatus(
-            "ACH payment-method callback received.",
-            result
-          );
-        }
-      );
-
-    if (
-      paymentElement
-    ) {
-      authContainer
-        .replaceChildren(
-          paymentElement
-        );
-    }
-  }
-
-
-  /* =========================
-     TRANSACTION LIMITS
-     SANDBOX + LIVE
-  ========================= */
-
-  async function loadTransactionLimits() {
-    const normalizedAuthIntentId =
-      requireString(
-        authIntentId,
-        "missing_auth_intent_id"
-      );
-
-    requireString(
-      cryptoCustomerId,
-      "missing_crypto_customer_id"
-    );
-
-    const walletAddress =
-      requireString(
-        walletAddressInput.value,
-        "missing_wallet_address"
-      );
-
-    setStatus(
-      `Loading Stripe transaction limits (${browserConfig?.mode ?? "unknown"})...`
-    );
+    syncFlowButtons();
 
     const response =
       await fetch(
@@ -1785,18 +1838,21 @@
 
           headers: {
             "Content-Type":
+              "application/json",
+
+            Accept:
               "application/json"
           },
 
           body:
             JSON.stringify({
+              settlementId,
+
               authIntentId:
                 normalizedAuthIntentId,
 
-              walletAddress,
-
-              destinationNetwork:
-                "polygon"
+              cryptoCustomerId:
+                normalizedCryptoCustomerId
             })
         }
       );
@@ -1828,28 +1884,309 @@
       throw error;
     }
 
+    const responseSettlementId =
+      requireString(
+        payload?.settlement_id,
+        "transaction_limits_missing_settlement_id"
+      );
+
+    if (
+      responseSettlementId !==
+        settlementId
+    ) {
+      throw new Error(
+        "transaction_limits_settlement_mismatch"
+      );
+    }
+
+    const currency =
+      normalizeString(
+        payload?.currency
+      )
+        .toLowerCase();
+
+    const paymentMethod =
+      normalizeString(
+        payload?.payment_method
+      )
+        .toLowerCase();
+
+    if (
+      currency !==
+        "usd"
+    ) {
+      throw new Error(
+        "transaction_limits_invalid_currency"
+      );
+    }
+
+    if (
+      paymentMethod !==
+        "us_bank_account"
+    ) {
+      throw new Error(
+        "transaction_limits_invalid_payment_method"
+      );
+    }
+
+    achLimitsAvailable =
+      payload?.available ===
+      true;
+
+    transactionLimits = {
+      settlementId:
+        responseSettlementId,
+
+      currency,
+
+      paymentMethod,
+
+      available:
+        achLimitsAvailable,
+
+      limits:
+        Array.isArray(
+          payload?.limits
+        )
+          ? payload.limits
+          : []
+    };
+
+    syncFlowButtons();
+
     console.log(
       "STRIPE_TRANSACTION_LIMITS",
-      payload
+      {
+        settlement_id:
+          transactionLimits
+            .settlementId,
+
+        currency:
+          transactionLimits
+            .currency,
+
+        payment_method:
+          transactionLimits
+            .paymentMethod,
+
+        available:
+          transactionLimits
+            .available,
+
+        limits:
+          transactionLimits
+            .limits
+      }
     );
 
     setStatus(
-      "Stripe transaction limits loaded.",
+      "Stripe ACH transaction limits loaded.",
       {
         mode:
           browserConfig?.mode ??
           null,
 
-        ...payload
+        settlementId:
+          transactionLimits
+            .settlementId,
+
+        currency:
+          transactionLimits
+            .currency,
+
+        paymentMethod:
+          transactionLimits
+            .paymentMethod,
+
+        available:
+          transactionLimits
+            .available,
+
+        limits:
+          transactionLimits
+            .limits,
+
+        achCollectionEnabled:
+          canCollectAch(),
+
+        nextStep:
+          transactionLimits
+            .available
+            ? "ACH is available. Collect ACH payment method."
+            : "ACH is not available for this customer/settlement."
       }
     );
 
-    return payload;
+    return transactionLimits;
   }
 
 
   /* =========================
-     CREATE ACH HEADLESS SESSION
+     COLLECT ACH PAYMENT METHOD
+     SANDBOX ONLY
+  ========================= */
+
+  async function collectAchPaymentMethod() {
+    requireSandboxMode(
+      "ach_collection_disabled_in_live_mode"
+    );
+
+    const sdk =
+      await ensureSdk();
+
+    requireString(
+      cryptoCustomerId,
+      "missing_crypto_customer_id"
+    );
+
+    if (
+      !stripeKycVerified
+    ) {
+      throw new Error(
+        "stripe_kyc_not_verified"
+      );
+    }
+
+    if (
+      !achLimitsAvailable
+    ) {
+      throw new Error(
+        "stripe_ach_limits_not_available"
+      );
+    }
+
+    if (
+      typeof sdk.collectPaymentMethod !==
+        "function"
+    ) {
+      throw new Error(
+        "collectPaymentMethod_not_available"
+      );
+    }
+
+    resetPaymentMethodState();
+
+    setStatus(
+      "Collecting ACH payment method..."
+    );
+
+    authContainer
+      .replaceChildren();
+
+    const paymentElement =
+      await sdk.collectPaymentMethod(
+        {
+          payment_method_types: [
+            "us_bank_account"
+          ],
+
+          wallets: {
+            applePay:
+              "never",
+
+            googlePay:
+              "never"
+          }
+        },
+
+        (
+          result
+        ) => {
+          const token =
+            result?.cryptoPaymentToken ??
+            result?.crypto_payment_token ??
+            null;
+
+          if (token) {
+            cryptoPaymentToken =
+              requireString(
+                token,
+                "missing_crypto_payment_token"
+              );
+
+            syncFlowButtons();
+
+            console.log(
+              "STRIPE_PAYMENT_METHOD_READY",
+              {
+                payment_token_ready:
+                  true
+              }
+            );
+
+            setStatus(
+              "ACH payment method collected.",
+              {
+                kycVerified:
+                  stripeKycVerified,
+
+                achLimitsAvailable,
+
+                cryptoPaymentTokenReady:
+                  true,
+
+                headlessSessionEnabled:
+                  canCreateHeadlessSession(),
+
+                nextStep:
+                  "Create ACH Headless Session + Quote."
+              }
+            );
+
+            return;
+          }
+
+          if (
+            result?.result ===
+              "abandoned"
+          ) {
+            setStatus(
+              "ACH payment-method collection abandoned."
+            );
+
+            syncFlowButtons();
+
+            return;
+          }
+
+          if (
+            result?.error
+          ) {
+            setStatus(
+              "ACH payment-method collection failed.",
+              {
+                message:
+                  result?.error?.message ??
+                  "stripe_ach_collection_failed"
+              }
+            );
+
+            syncFlowButtons();
+
+            return;
+          }
+
+          setStatus(
+            "ACH payment-method callback received without a payment token."
+          );
+
+          syncFlowButtons();
+        }
+      );
+
+    if (
+      paymentElement
+    ) {
+      authContainer
+        .replaceChildren(
+          paymentElement
+        );
+    }
+  }
+
+
+  /* =========================
+     CREATE ACH HEADLESS SESSION + QUOTE
      SANDBOX ONLY
   ========================= */
 
@@ -1857,6 +2194,9 @@
     requireSandboxMode(
       "headless_session_disabled_in_live_mode"
     );
+
+    const settlementId =
+      requireDiagnosticSettlementId();
 
     const normalizedAuthIntentId =
       requireString(
@@ -1870,6 +2210,12 @@
         "missing_crypto_customer_id"
       );
 
+    const normalizedCryptoPaymentToken =
+      requireString(
+        cryptoPaymentToken,
+        "missing_crypto_payment_token"
+      );
+
     if (
       !stripeKycVerified
     ) {
@@ -1878,33 +2224,18 @@
       );
     }
 
-    const normalizedCryptoPaymentToken =
-      requireString(
-        cryptoPaymentToken,
-        "missing_crypto_payment_token"
+    if (
+      !achLimitsAvailable
+    ) {
+      throw new Error(
+        "stripe_ach_limits_not_available"
       );
+    }
 
-    const sourceAmount =
-      requireString(
-        sessionAmountInput.value,
-        "missing_source_amount"
-      );
-
-    const sourceCurrency =
-      requireString(
-        sessionCurrencyInput.value,
-        "missing_source_currency"
-      )
-        .toLowerCase();
-
-    const walletAddress =
-      requireString(
-        walletAddressInput.value,
-        "missing_wallet_address"
-      );
+    resetCheckoutState();
 
     setStatus(
-      "Creating ACH-bound headless session..."
+      "Creating settlement-bound ACH Headless Session..."
     );
 
     const response =
@@ -1916,31 +2247,24 @@
 
           headers: {
             "Content-Type":
+              "application/json",
+
+            Accept:
               "application/json"
           },
 
           body:
             JSON.stringify({
+              settlementId,
+
               authIntentId:
                 normalizedAuthIntentId,
 
               cryptoCustomerId:
                 normalizedCryptoCustomerId,
 
-              cryptoPaymentToken:
-                normalizedCryptoPaymentToken,
-
-              sourceAmount,
-
-              sourceCurrency,
-
-              destinationCurrency:
-                "usdc",
-
-              destinationNetwork:
-                "polygon",
-
-              walletAddress
+              paymentToken:
+                normalizedCryptoPaymentToken
             })
         }
       );
@@ -1972,105 +2296,260 @@
       throw error;
     }
 
+    headlessSession =
+      normalizeHeadlessSessionPayload(
+        payload,
+        settlementId
+      );
+
+    checkoutCompleted =
+      false;
+
+    syncFlowButtons();
+
     console.log(
-      "STRIPE_ACH_HEADLESS_SESSION",
-      payload
+      "STRIPE_ACH_HEADLESS_SESSION_READY",
+      {
+        settlement_id:
+          headlessSession
+            .settlementId,
+
+        session_id:
+          headlessSession
+            .sessionId,
+
+        status:
+          headlessSession
+            .status,
+
+        livemode:
+          headlessSession
+            .livemode,
+
+        source_amount:
+          headlessSession
+            .sourceAmount,
+
+        source_currency:
+          headlessSession
+            .sourceCurrency,
+
+        destination_amount:
+          headlessSession
+            .destinationAmount,
+
+        destination_currency:
+          headlessSession
+            .destinationCurrency,
+
+        destination_network:
+          headlessSession
+            .destinationNetwork,
+
+        quote_expiration:
+          headlessSession
+            .quoteExpiration,
+
+        client_secret_ready:
+          true
+      }
     );
 
     setStatus(
-      "ACH-bound headless session created.",
-      payload
+      "ACH Headless Session and settlement-bound quote created.",
+      {
+        settlementId:
+          headlessSession
+            .settlementId,
+
+        sessionId:
+          headlessSession
+            .sessionId,
+
+        status:
+          headlessSession
+            .status,
+
+        livemode:
+          headlessSession
+            .livemode,
+
+        quote: {
+          sourceAmount:
+            headlessSession
+              .sourceAmount,
+
+          sourceCurrency:
+            headlessSession
+              .sourceCurrency,
+
+          destinationAmount:
+            headlessSession
+              .destinationAmount,
+
+          destinationCurrency:
+            headlessSession
+              .destinationCurrency,
+
+          destinationNetwork:
+            headlessSession
+              .destinationNetwork,
+
+          quoteExpiration:
+            headlessSession
+              .quoteExpiration
+        },
+
+        clientSecretReady:
+          true,
+
+        checkoutEnabled:
+          canPerformCheckout(),
+
+        nextStep:
+          "Perform Checkout."
+      }
     );
 
-    return payload;
+    return headlessSession;
   }
 
 
   /* =========================
-     GENERIC HEADLESS QUOTE
+     PERFORM CHECKOUT
      SANDBOX ONLY
   ========================= */
 
-  async function loadHeadlessQuote() {
+  async function performHeadlessCheckout() {
     requireSandboxMode(
-      "generic_quote_disabled_in_live_mode"
+      "checkout_disabled_in_live_mode"
     );
 
-    const sourceAmount =
+    const sdk =
+      await ensureSdk();
+
+    if (
+      typeof sdk.performCheckout !==
+        "function"
+    ) {
+      throw new Error(
+        "performCheckout_not_available"
+      );
+    }
+
+    if (
+      !headlessSession
+    ) {
+      throw new Error(
+        "missing_headless_session"
+      );
+    }
+
+    const sessionId =
       requireString(
-        quoteAmountInput.value,
-        "missing_quote_amount"
+        headlessSession
+          .sessionId,
+        "stripe_checkout_missing_session_id"
       );
 
-    const sourceCurrency =
+    const clientSecret =
       requireString(
-        quoteCurrencyInput.value,
-        "missing_quote_currency"
-      )
-        .toLowerCase();
+        headlessSession
+          .clientSecret,
+        "stripe_checkout_missing_client_secret"
+      );
 
     setStatus(
-      "Loading Stripe generic headless quote..."
+      "Performing Stripe ACH checkout..."
     );
 
-    const response =
-      await fetch(
-        HEADLESS_QUOTE_URL,
-        {
-          method:
-            "POST",
+    const result =
+      await sdk.performCheckout(
+        sessionId,
 
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+        async (
+          requestedSessionId
+        ) => {
+          const normalizedRequestedSessionId =
+            requireString(
+              requestedSessionId,
+              "stripe_checkout_missing_requested_session_id"
+            );
 
-          body:
-            JSON.stringify({
-              sourceAmount,
-              sourceCurrency
-            })
+          if (
+            normalizedRequestedSessionId !==
+              sessionId
+          ) {
+            throw new Error(
+              "stripe_checkout_session_mismatch"
+            );
+          }
+
+          return clientSecret;
         }
       );
 
-    const payload =
-      await response
-        .json()
-        .catch(
-          () =>
-            null
-        );
-
     if (
-      !response.ok
+      !result ||
+      result.successful !==
+        true
     ) {
       const error =
         new Error(
-          payload?.error?.message ||
-          payload?.message ||
-          `headless_quote_http_${response.status}`
+          "stripe_checkout_not_successful"
         );
 
-      error.status =
-        response.status;
-
-      error.payload =
-        payload;
+      error.checkoutResult =
+        result ??
+        null;
 
       throw error;
     }
 
+    checkoutCompleted =
+      true;
+
+    syncFlowButtons();
+
     console.log(
-      "STRIPE_HEADLESS_QUOTE",
-      payload
+      "STRIPE_HEADLESS_CHECKOUT_COMPLETED",
+      {
+        settlement_id:
+          headlessSession
+            .settlementId,
+
+        session_id:
+          headlessSession
+            .sessionId,
+
+        successful:
+          true
+      }
     );
 
     setStatus(
-      "Stripe generic headless quote loaded.",
-      payload
+      "Stripe ACH checkout completed.",
+      {
+        settlementId:
+          headlessSession
+            .settlementId,
+
+        sessionId:
+          headlessSession
+            .sessionId,
+
+        successful:
+          true,
+
+        nextStep:
+          "Verify funding confirmation / settlement lifecycle."
+      }
     );
 
-    return payload;
+    return {
+      successful:
+        true
+    };
   }
 
 
@@ -2087,7 +2566,9 @@
 
         try {
           await registerLinkUser();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_REGISTER_LINK_USER_FAILED",
             error
@@ -2110,6 +2591,8 @@
         } finally {
           registerButton.disabled =
             !isSandboxMode();
+
+          syncFlowButtons();
         }
       }
     );
@@ -2131,15 +2614,6 @@
         kycButton.disabled =
           true;
 
-        achButton.disabled =
-          true;
-
-        transactionLimitsButton.disabled =
-          true;
-
-        headlessSessionButton.disabled =
-          true;
-
         authIntentId =
           null;
 
@@ -2150,7 +2624,9 @@
 
         try {
           await createLinkAuthIntent();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_CREATE_LINK_AUTH_INTENT_FAILED",
             error
@@ -2177,6 +2653,8 @@
         } finally {
           authIntentButton.disabled =
             false;
+
+          syncFlowButtons();
         }
       }
     );
@@ -2195,18 +2673,13 @@
         kycButton.disabled =
           true;
 
-        achButton.disabled =
-          true;
-
-        transactionLimitsButton.disabled =
-          true;
-
-        headlessSessionButton.disabled =
-          true;
+        resetStripeCustomerState();
 
         try {
           await authenticateLinkUser();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_AUTHENTICATE_FAILED",
             error
@@ -2225,8 +2698,8 @@
 
           authenticateButton.disabled =
             false;
-
-          syncTransactionLimitsButton();
+        } finally {
+          syncFlowButtons();
         }
       }
     );
@@ -2239,15 +2712,17 @@
         customerContextButton.disabled =
           true;
 
-        achButton.disabled =
-          true;
-
-        headlessSessionButton.disabled =
-          true;
+        let customerContextLoaded =
+          false;
 
         try {
           await loadCustomerContext();
-        } catch (error) {
+
+          customerContextLoaded =
+            true;
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_CUSTOMER_CONTEXT_FAILED",
             error
@@ -2256,8 +2731,7 @@
           stripeKycVerified =
             false;
 
-          syncTransactionLimitsButton();
-          syncHeadlessSessionButton();
+          resetLimitsState();
 
           setStatus(
             "CryptoCustomer load failed.",
@@ -2277,28 +2751,30 @@
                 null
             }
           );
-
-          achButton.disabled =
-            true;
         } finally {
           customerContextButton.disabled =
             false;
 
-          if (
-            isLiveMode()
-          ) {
-            kycButton.disabled =
-              true;
+          /*
+          --------------------------------------------------
+          KYC becomes available only when CryptoCustomer was
+          successfully loaded and Stripe explicitly reports
+          that kyc_verified is not yet verified.
 
-            achButton.disabled =
-              true;
+          If customer-context loading fails, KYC remains
+          disabled because the customer's actual state is
+          unknown.
+          --------------------------------------------------
+          */
 
-            headlessSessionButton.disabled =
-              true;
+          kycButton.disabled =
+            !(
+              customerContextLoaded &&
+              isSandboxMode() &&
+              !stripeKycVerified
+            );
 
-            quoteButton.disabled =
-              true;
-          }
+          syncFlowButtons();
         }
       }
     );
@@ -2314,15 +2790,15 @@
         customerContextButton.disabled =
           true;
 
-        achButton.disabled =
-          true;
-
-        headlessSessionButton.disabled =
-          true;
+        let submittedSuccessfully =
+          false;
 
         try {
           const kycResult =
             await submitStripeKyc();
+
+          submittedSuccessfully =
+            true;
 
           console.log(
             "STRIPE_SUBMIT_KYC_COMPLETE",
@@ -2332,15 +2808,16 @@
           setStatus(
             "Stripe KYC submitted.",
             {
-              kycResult:
-                kycResult ??
-                null,
+              submitted:
+                true,
 
               nextStep:
-                "Load CryptoCustomer again before enabling ACH."
+                "Load CryptoCustomer again before testing transaction limits."
             }
           );
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_SUBMIT_KYC_FAILED",
             error
@@ -2365,63 +2842,33 @@
             }
           );
         } finally {
-          kycButton.disabled =
-            !isSandboxMode();
-
           customerContextButton.disabled =
             false;
 
-          achButton.disabled =
-            true;
+          /*
+          --------------------------------------------------
+          After successful KYC submission, keep Submit KYC
+          disabled until CryptoCustomer is reloaded.
 
-          syncTransactionLimitsButton();
-          syncHeadlessSessionButton();
-        }
-      }
-    );
+          loadCustomerContext() becomes authoritative for
+          the resulting Stripe kyc_verified state.
+          --------------------------------------------------
+          */
 
+          if (
+            submittedSuccessfully
+          ) {
+            kycButton.disabled =
+              true;
+          } else {
+            kycButton.disabled =
+              !(
+                isSandboxMode() &&
+                !stripeKycVerified
+              );
+          }
 
-  achButton
-    .addEventListener(
-      "click",
-      async () => {
-        achButton.disabled =
-          true;
-
-        headlessSessionButton.disabled =
-          true;
-
-        try {
-          await collectAchPaymentMethod();
-        } catch (error) {
-          console.error(
-            "STRIPE_COLLECT_ACH_FAILED",
-            error
-          );
-
-          setStatus(
-            "ACH payment-method collection failed.",
-            {
-              message:
-                error?.message ??
-                String(
-                  error
-                ),
-
-              payload:
-                error?.payload ??
-                null
-            }
-          );
-
-          achButton.disabled =
-            !(
-              isSandboxMode() &&
-              stripeKycVerified
-            );
-
-          syncTransactionLimitsButton();
-          syncHeadlessSessionButton();
+          syncFlowButtons();
         }
       }
     );
@@ -2436,11 +2883,21 @@
 
         try {
           await loadTransactionLimits();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_TRANSACTION_LIMITS_FAILED",
             error
           );
+
+          achLimitsAvailable =
+            false;
+
+          transactionLimits =
+            null;
+
+          resetPaymentMethodState();
 
           setStatus(
             "Stripe transaction limits failed.",
@@ -2461,7 +2918,41 @@
             }
           );
         } finally {
-          syncTransactionLimitsButton();
+          syncFlowButtons();
+        }
+      }
+    );
+
+
+  achButton
+    .addEventListener(
+      "click",
+      async () => {
+        achButton.disabled =
+          true;
+
+        try {
+          await collectAchPaymentMethod();
+        } catch (
+          error
+        ) {
+          console.error(
+            "STRIPE_COLLECT_ACH_FAILED",
+            error
+          );
+
+          setStatus(
+            "ACH payment-method collection failed.",
+            {
+              message:
+                error?.message ??
+                String(
+                  error
+                )
+            }
+          );
+        } finally {
+          syncFlowButtons();
         }
       }
     );
@@ -2476,14 +2967,18 @@
 
         try {
           await createAchHeadlessSession();
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "STRIPE_ACH_HEADLESS_SESSION_FAILED",
             error
           );
 
+          resetCheckoutState();
+
           setStatus(
-            "ACH-bound headless session failed.",
+            "ACH Headless Session failed.",
             {
               status:
                 error?.status ??
@@ -2501,7 +2996,7 @@
             }
           );
         } finally {
-          syncHeadlessSessionButton();
+          syncFlowButtons();
         }
       }
     );
@@ -2515,34 +3010,27 @@
           true;
 
         try {
-          await loadHeadlessQuote();
-        } catch (error) {
+          await performHeadlessCheckout();
+        } catch (
+          error
+        ) {
           console.error(
-            "STRIPE_HEADLESS_QUOTE_FAILED",
+            "STRIPE_HEADLESS_CHECKOUT_FAILED",
             error
           );
 
           setStatus(
-            "Stripe generic headless quote failed.",
+            "Stripe ACH checkout failed.",
             {
-              status:
-                error?.status ??
-                null,
-
               message:
                 error?.message ??
                 String(
                   error
-                ),
-
-              payload:
-                error?.payload ??
-                null
+                )
             }
           );
         } finally {
-          quoteButton.disabled =
-            !isSandboxMode();
+          syncFlowButtons();
         }
       }
     );
@@ -2554,6 +3042,8 @@
 
   try {
     assertDom();
+
+    configureCurrentDiagnosticUi();
 
     registerButton.disabled =
       true;
@@ -2604,17 +3094,10 @@
           kycButton.disabled =
             true;
 
-          achButton.disabled =
-            true;
+          syncFlowButtons();
 
-          transactionLimitsButton.disabled =
-            true;
-
-          headlessSessionButton.disabled =
-            true;
-
-          quoteButton.disabled =
-            !isSandboxMode();
+          const settlementId =
+            resolveDiagnosticSettlementId();
 
           setStatus(
             "Stripe Embedded Components SDK initialized.",
@@ -2627,6 +3110,13 @@
                 browserConfig?.isSandbox ??
                 null,
 
+              settlementId,
+
+              settlementReady:
+                Boolean(
+                  settlementId
+                ),
+
               liveSafetyGuard:
                 isLiveMode(),
 
@@ -2636,25 +3126,32 @@
                       "Create LinkAuthIntent",
                       "Authenticate",
                       "Load CryptoCustomer",
-                      "Get transaction limits"
+                      "Get settlement-bound ACH transaction limits"
                     ]
                   : [
                       "Register Link user",
                       "Create LinkAuthIntent",
                       "Authenticate",
                       "Load CryptoCustomer",
-                      "Submit KYC",
+                      "Submit KYC only if required",
+                      "Get ACH transaction limits",
                       "Collect ACH",
-                      "Get transaction limits",
-                      "Create ACH headless session",
-                      "Generic quote diagnostic"
-                    ]
+                      "Create ACH Headless Session + Quote",
+                      "Perform Checkout"
+                    ],
+
+              diagnosticNote:
+                settlementId
+                  ? "Settlement-bound diagnostics are ready."
+                  : "Add ?settlementId=<SETTLEMENT_ID> to this URL before testing limits/session/checkout."
             }
           );
         }
       )
       .catch(
-        (error) => {
+        (
+          error
+        ) => {
           console.error(
             "STRIPE_CRYPTO_INIT_FAILED",
             error
@@ -2680,7 +3177,9 @@
           );
         }
       );
-  } catch (error) {
+  } catch (
+    error
+  ) {
     console.error(
       "STRIPE_LINK_TEST_BOOT_FAILED",
       error
