@@ -6,7 +6,9 @@ Stripe diagnostic — Clerk authentication
 
 Owns ONLY:
 
-- binding this page lifetime to one Clerk session
+- resolving an existing Clerk session
+- opening Clerk Sign-In when no session exists
+- binding this page lifetime to one exact Clerk session
 - recovering that exact session if Clerk.session becomes null
 - minting a fresh Clerk bearer token
 - building authenticated JSON headers
@@ -15,22 +17,36 @@ Does NOT own:
 
 - Stripe
 - settlement state
-- UI
+- UniBridge page UI
 - API requests
 - flow state
 
 Identity invariant:
 
-Once this module boots, every authenticated UniBridge
-request made by this diagnostic page must use the SAME
-Clerk session ID.
+Before binding:
+- if no active Clerk session exists, interactive sign-in
+  may establish one.
+
+After binding:
+- every authenticated UniBridge request made by this
+  diagnostic page must use the SAME Clerk session ID.
 
 Never fall back to:
 - signedInSessions[0]
-- another active session
-- another user
+- another arbitrary session
+- another active user after binding
 --------------------------------------------------
 */
+
+
+/*
+--------------------------------------------------
+Constants
+--------------------------------------------------
+*/
+
+const CLERK_SIGN_IN_TIMEOUT_MS =
+  180000;
 
 
 /*
@@ -142,12 +158,11 @@ function requireClerk() {
 
 /*
 --------------------------------------------------
-Refresh Client resource
+Refresh Clerk Client
 
-This is intentionally best-effort during recovery.
+Best-effort only.
 
-The caller still performs strict identity validation
-afterward.
+All identity decisions are still validated afterward.
 --------------------------------------------------
 */
 
@@ -201,17 +216,289 @@ async function reloadClerkClient(
 
 /*
 --------------------------------------------------
+Interactive Clerk Sign-In
+
+Used ONLY before this diagnostic page has bound itself
+to a Clerk session.
+
+Flow:
+
+1. Register Clerk state listener.
+2. Re-check Clerk.session to close setup race.
+3. Open Clerk Sign-In overlay.
+4. Wait until Clerk reports an active session.
+5. Return that exact SessionResource.
+6. createClerkAuth() binds its ID permanently.
+
+The request that triggered authentication remains pending
+and continues automatically after sign-in succeeds.
+
+Timeout prevents an abandoned sign-in overlay from locking
+the diagnostic forever.
+--------------------------------------------------
+*/
+
+async function waitForInteractiveSignIn(
+  clerk
+) {
+  if (
+    typeof clerk.addListener !==
+      "function"
+  ) {
+    throw new Error(
+      "clerk_listener_not_available"
+    );
+  }
+
+  if (
+    typeof clerk.openSignIn !==
+      "function"
+  ) {
+    throw new Error(
+      "clerk_open_sign_in_not_available"
+    );
+  }
+
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      let settled =
+        false;
+
+      let unsubscribe =
+        null;
+
+      let timeoutId =
+        null;
+
+
+      function cleanup() {
+        if (
+          timeoutId !==
+            null
+        ) {
+          clearTimeout(
+            timeoutId
+          );
+
+          timeoutId =
+            null;
+        }
+
+        if (
+          typeof unsubscribe ===
+            "function"
+        ) {
+          try {
+            unsubscribe();
+          } catch {
+            // Best-effort listener cleanup.
+          }
+
+          unsubscribe =
+            null;
+        }
+      }
+
+
+      function finishSuccess(
+        session
+      ) {
+        if (
+          settled
+        ) {
+          return;
+        }
+
+        if (
+          !isActiveSession(
+            session
+          )
+        ) {
+          return;
+        }
+
+        settled =
+          true;
+
+        cleanup();
+
+        /*
+        --------------------------------------------------
+        Sign-In normally closes itself after successful
+        completion.
+
+        closeSignIn() is best-effort only.
+        --------------------------------------------------
+        */
+
+        if (
+          typeof clerk.closeSignIn ===
+            "function"
+        ) {
+          try {
+            clerk.closeSignIn();
+          } catch {
+            // No-op.
+          }
+        }
+
+        resolve(
+          session
+        );
+      }
+
+
+      function finishError(
+        error
+      ) {
+        if (
+          settled
+        ) {
+          return;
+        }
+
+        settled =
+          true;
+
+        cleanup();
+
+        reject(
+          error
+        );
+      }
+
+
+      try {
+        /*
+        --------------------------------------------------
+        skipInitialEmit avoids a synchronous initial
+        callback racing with assignment of unsubscribe.
+
+        We perform our own direct-session check below.
+        --------------------------------------------------
+        */
+
+        unsubscribe =
+          clerk.addListener(
+            (
+              emission
+            ) => {
+              const emittedSession =
+                emission?.session;
+
+              if (
+                isActiveSession(
+                  emittedSession
+                )
+              ) {
+                finishSuccess(
+                  emittedSession
+                );
+
+                return;
+              }
+
+              /*
+              --------------------------------------------------
+              Some Clerk updates may expose the active shortcut
+              before/after the emission object is populated.
+              Re-check the authoritative Clerk shortcut too.
+              --------------------------------------------------
+              */
+
+              const currentSession =
+                clerk.session;
+
+              if (
+                isActiveSession(
+                  currentSession
+                )
+              ) {
+                finishSuccess(
+                  currentSession
+                );
+              }
+            },
+            {
+              skipInitialEmit:
+                true
+            }
+          );
+
+
+        /*
+        --------------------------------------------------
+        Close the race between initial resolution and
+        listener registration.
+        --------------------------------------------------
+        */
+
+        const currentSession =
+          clerk.session;
+
+        if (
+          isActiveSession(
+            currentSession
+          )
+        ) {
+          finishSuccess(
+            currentSession
+          );
+
+          return;
+        }
+
+
+        timeoutId =
+          setTimeout(
+            () => {
+              finishError(
+                new Error(
+                  "clerk_sign_in_timeout"
+                )
+              );
+            },
+            CLERK_SIGN_IN_TIMEOUT_MS
+          );
+
+
+        console.log(
+          "CLERK_INTERACTIVE_SIGN_IN_REQUIRED"
+        );
+
+        clerk.openSignIn();
+      } catch (
+        error
+      ) {
+        finishError(
+          error
+        );
+      }
+    }
+  );
+}
+
+
+/*
+--------------------------------------------------
 Resolve initial Clerk session
 
-Preferred source:
+Preferred:
+
 1. Clerk.session
+2. Reload Client and re-check Clerk.session
+3. Client.lastActiveSessionId, exact match only
+4. Interactive Clerk Sign-In
 
-Recovery source:
-2. Client.lastActiveSessionId
+Before the page is bound, a newly authenticated session
+is valid because that is the explicit identity chosen by
+the user.
 
-Important:
-- lastActiveSessionId identifies a specific session.
-- We never select an arbitrary signed-in session.
+After this function returns, createClerkAuth() binds that
+exact session ID permanently.
 --------------------------------------------------
 */
 
@@ -229,10 +516,12 @@ async function resolveInitialSession(
     return directSession;
   }
 
+
   const client =
     await reloadClerkClient(
       clerk
     );
+
 
   /*
   --------------------------------------------------
@@ -251,13 +540,12 @@ async function resolveInitialSession(
     return reloadedDirectSession;
   }
 
+
   /*
   --------------------------------------------------
-  No active shortcut.
+  Try ONLY Clerk's explicitly selected last-active ID.
 
-  Use only Clerk's explicit last-active session ID.
-
-  Do NOT use signedInSessions[0].
+  Never use signedInSessions[0].
   --------------------------------------------------
   */
 
@@ -267,71 +555,87 @@ async function resolveInitialSession(
     );
 
   if (
-    !lastActiveSessionId
+    lastActiveSessionId
   ) {
-    throw new Error(
-      "clerk_session_not_available"
-    );
-  }
-
-  const candidate =
-    findSessionById(
-      client,
-      lastActiveSessionId
-    );
-
-  if (
-    !isActiveSession(
-      candidate
-    )
-  ) {
-    throw new Error(
-      "clerk_session_not_available"
-    );
-  }
-
-  /*
-  --------------------------------------------------
-  Restore the exact Clerk-selected last-active session.
-
-  setActive accepts a session ID, so use the immutable
-  identity instead of relying on an arbitrary array item.
-  --------------------------------------------------
-  */
-
-  if (
-    typeof clerk.setActive ===
-      "function"
-  ) {
-    await clerk.setActive({
-      session:
+    const candidate =
+      findSessionById(
+        client,
         lastActiveSessionId
-    });
+      );
+
+    if (
+      isActiveSession(
+        candidate
+      )
+    ) {
+      if (
+        typeof clerk.setActive ===
+          "function"
+      ) {
+        try {
+          await clerk.setActive({
+            session:
+              lastActiveSessionId
+          });
+        } catch (
+          error
+        ) {
+          console.warn(
+            "CLERK_INITIAL_SET_ACTIVE_FAILED",
+            {
+              message:
+                error?.message ??
+                String(
+                  error
+                )
+            }
+          );
+        }
+      }
+
+
+      const restoredSession =
+        clerk.session;
+
+      if (
+        isActiveSession(
+          restoredSession
+        ) &&
+        normalizeString(
+          restoredSession.id
+        ) ===
+          lastActiveSessionId
+      ) {
+        return restoredSession;
+      }
+
+
+      /*
+      --------------------------------------------------
+      The exact matching SessionResource is still safe if
+      Clerk.session has not propagated yet.
+      --------------------------------------------------
+      */
+
+      return candidate;
+    }
   }
 
-  const restoredSession =
-    clerk.session;
-
-  if (
-    isActiveSession(
-      restoredSession
-    ) &&
-    normalizeString(
-      restoredSession.id
-    ) ===
-      lastActiveSessionId
-  ) {
-    return restoredSession;
-  }
 
   /*
   --------------------------------------------------
-  The exact matching SessionResource itself is still
-  safe to use if Clerk's shortcut has not updated yet.
+  No usable existing session.
+
+  Ask the user to authenticate through Clerk.
+
+  The session returned here becomes the immutable bound
+  identity immediately afterward.
   --------------------------------------------------
   */
 
-  return candidate;
+  return waitForInteractiveSignIn(
+    clerk
+  );
 }
 
 
@@ -339,7 +643,7 @@ async function resolveInitialSession(
 --------------------------------------------------
 Factory
 
-Binding happens ONCE.
+Binding happens exactly ONCE.
 
 The resulting session ID becomes immutable for the
 lifetime of this diagnostic page.
@@ -355,16 +659,34 @@ export async function createClerkAuth() {
       clerk
     );
 
+  if (
+    !isActiveSession(
+      initialSession
+    )
+  ) {
+    throw new Error(
+      "clerk_session_not_available"
+    );
+  }
+
   const boundSessionId =
     requireString(
       initialSession?.id,
       "clerk_session_id_missing"
     );
 
+  console.log(
+    "CLERK_SESSION_BOUND",
+    {
+      sessionId:
+        boundSessionId
+    }
+  );
+
 
   /*
   --------------------------------------------------
-  Resolve the exact bound session later
+  Resolve exact bound session later
 
   Recovery sequence:
 
@@ -374,7 +696,8 @@ export async function createClerkAuth() {
   4. Find exact bound ID in signedInSessions.
   5. Restore exact bound ID through setActive().
   6. Re-check.
-  7. If shortcut still lags, use exact matching resource.
+  7. If Clerk.session still lags, use exact matching
+     SessionResource.
 
   Never substitute another session.
   --------------------------------------------------
@@ -399,10 +722,12 @@ export async function createClerkAuth() {
       return directSession;
     }
 
+
     const client =
       await reloadClerkClient(
         currentClerk
       );
+
 
     /*
     --------------------------------------------------
@@ -433,9 +758,10 @@ export async function createClerkAuth() {
       return reloadedSession;
     }
 
+
     /*
     --------------------------------------------------
-    Find ONLY the session captured at boot.
+    Find ONLY the session captured at binding time.
     --------------------------------------------------
     */
 
@@ -463,12 +789,13 @@ export async function createClerkAuth() {
       );
     }
 
+
     /*
     --------------------------------------------------
     Restore this exact session as active.
 
-    A currently active DIFFERENT Clerk session is never
-    accepted for authentication by this page.
+    A different currently active Clerk session is never
+    accepted by this page after binding.
     --------------------------------------------------
     */
 
@@ -497,6 +824,7 @@ export async function createClerkAuth() {
       }
     }
 
+
     const restoredSession =
       currentClerk.session;
 
@@ -520,14 +848,15 @@ export async function createClerkAuth() {
       return restoredSession;
     }
 
+
     /*
     --------------------------------------------------
-    setActive may not have propagated to Clerk.session
+    setActive() may not have propagated to Clerk.session
     synchronously.
 
-    We may still safely mint from boundSession because:
-    - its exact ID matches the boot-bound ID
-    - its status is active
+    The exact SessionResource remains safe because:
+    - its ID exactly matches boundSessionId
+    - it is active
     - it came from Clerk's signed-in session collection
     --------------------------------------------------
     */
@@ -550,8 +879,8 @@ export async function createClerkAuth() {
 
   Never:
   - log token
-  - return token metadata
   - persist token
+  - expose token metadata
   --------------------------------------------------
   */
 
@@ -565,9 +894,10 @@ export async function createClerkAuth() {
         "clerk_session_id_missing"
       );
 
+
     /*
     --------------------------------------------------
-    Final identity guard immediately before token mint.
+    Final identity guard immediately before minting.
     --------------------------------------------------
     */
 
@@ -589,6 +919,7 @@ export async function createClerkAuth() {
       );
     }
 
+
     const token =
       await session.getToken({
         skipCache:
@@ -605,9 +936,6 @@ export async function createClerkAuth() {
   /*
   --------------------------------------------------
   Authenticated JSON headers
-
-  This is the only public helper needed by the
-  diagnostic settlement / Stripe funding modules.
   --------------------------------------------------
   */
 
