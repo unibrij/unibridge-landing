@@ -18,8 +18,9 @@
       * Authenticate
       * Load CryptoCustomer
       * Load settlement-bound transaction limits
+        only for an already-L2-verified customer
 
-  Current Sandbox flow:
+  Sandbox flow:
 
   1. Load browser config
   2. Initialize Stripe SDK
@@ -27,14 +28,17 @@
   4. Create LinkAuthIntent
   5. Authenticate
   6. Load CryptoCustomer
-  7. Submit Stripe KYC only if not already verified
+  7. Submit basic Stripe KYC if required
   8. Reload CryptoCustomer
-  9. Load settlement-bound ACH transaction limits
-  10. Collect ACH payment method
-  11. Obtain cryptoPaymentToken
-  12. Create settlement-bound Headless Session
-  13. Inspect session transaction_details / quote
-  14. performCheckout() using the same session
+  9. Complete L2 document verification if required
+     (photo ID + selfie)
+  10. Reload CryptoCustomer
+  11. Load settlement-bound ACH transaction limits
+  12. Collect ACH payment method
+  13. Obtain cryptoPaymentToken
+  14. Create settlement-bound Headless Session
+  15. Inspect session transaction details / quote
+  16. performCheckout() using the same session
 
   IMPORTANT:
   - No Stripe secret key here
@@ -44,12 +48,15 @@
   - Backend STRIPE_ONRAMP_MODE is source of truth
   - ACH collection is restricted to us_bank_account
   - Apple Pay and Google Pay are disabled
+  - ACH requires Stripe L2:
+      kyc_verified = verified
+      id_document_verified = verified
   - Limits must pass before ACH collection
   - Canonical amount comes from settlement backend state
   - Canonical wallet comes from settlement backend state
   - Canonical network comes from settlement backend state
   - Canonical currencies come from settlement backend state
-  - Headless Session transaction_details are the quote
+  - Headless Session transaction details are the quote
   - There is no separate generic production quote request
   - cryptoPaymentToken is never displayed or logged
   - client_secret is never displayed or logged
@@ -58,13 +65,12 @@
   LIVE mode cannot:
       * register Link users
       * submit KYC
+      * perform document verification
       * collect ACH
       * create headless sessions
       * perform checkout
 
   Diagnostic settlement:
-
-  Supply a real settlement in the URL:
 
   /surface/stripe-link-test.html?settlementId=<SETTLEMENT_ID>
 
@@ -118,6 +124,12 @@
     null;
 
   let stripeKycVerified =
+    false;
+
+  let stripeDocumentVerificationStatus =
+    null;
+
+  let stripeDocumentVerified =
     false;
 
   let achLimitsAvailable =
@@ -239,8 +251,7 @@
   They remain optional because the existing HTML may
   still contain them.
 
-  They are no longer authoritative or submitted to
-  the production-style backend endpoints.
+  They are no longer authoritative.
   --------------------------------------------------
   */
 
@@ -486,6 +497,435 @@
   }
 
 
+  function getVerificationStatus(
+    payload,
+    verificationName
+  ) {
+    const normalizedName =
+      normalizeString(
+        verificationName
+      )
+        .toLowerCase();
+
+    const verifications =
+      Array.isArray(
+        payload?.verifications
+      )
+        ? payload.verifications
+        : [];
+
+    const verification =
+      verifications.find(
+        (
+          item
+        ) =>
+          normalizeString(
+            item?.name
+          )
+            .toLowerCase() ===
+          normalizedName
+      );
+
+    return (
+      normalizeOptionalString(
+        verification?.status
+      )
+        ?.toLowerCase() ??
+      null
+    );
+  }
+
+
+  function isKycVerified(
+    payload
+  ) {
+    return (
+      getVerificationStatus(
+        payload,
+        "kyc_verified"
+      ) ===
+      "verified"
+    );
+  }
+
+
+  function getDocumentVerificationStatus(
+    payload
+  ) {
+    return getVerificationStatus(
+      payload,
+      "id_document_verified"
+    );
+  }
+
+
+  function isDocumentVerified(
+    payload
+  ) {
+    return (
+      getDocumentVerificationStatus(
+        payload
+      ) ===
+      "verified"
+    );
+  }
+
+
+  function canStartDocumentVerification() {
+    return Boolean(
+      isSandboxMode() &&
+      cryptoCustomerId &&
+      stripeKycVerified &&
+      !stripeDocumentVerified &&
+      stripeDocumentVerificationStatus ===
+        "not_started"
+    );
+  }
+
+
+  function canLoadTransactionLimits() {
+    return Boolean(
+      authIntentId &&
+      cryptoCustomerId &&
+      stripeKycVerified &&
+      stripeDocumentVerified &&
+      resolveDiagnosticSettlementId()
+    );
+  }
+
+
+  function canCollectAch() {
+    return Boolean(
+      isSandboxMode() &&
+      stripeKycVerified &&
+      stripeDocumentVerified &&
+      achLimitsAvailable
+    );
+  }
+
+
+  function canCreateHeadlessSession() {
+    return Boolean(
+      isSandboxMode() &&
+      stripeKycVerified &&
+      stripeDocumentVerified &&
+      achLimitsAvailable &&
+      cryptoPaymentToken
+    );
+  }
+
+
+  function canPerformCheckout() {
+    return Boolean(
+      isSandboxMode() &&
+      headlessSession?.sessionId &&
+      headlessSession?.clientSecret &&
+      checkoutCompleted !==
+        true
+    );
+  }
+
+
+  function syncKycActionButton() {
+    if (
+      !cryptoCustomerId
+    ) {
+      kycButton.disabled =
+        true;
+
+      kycButton.textContent =
+        "Submit Stripe KYC";
+
+      return;
+    }
+
+    if (
+      !stripeKycVerified
+    ) {
+      kycButton.textContent =
+        "Submit Stripe KYC";
+
+      kycButton.disabled =
+        !isSandboxMode();
+
+      return;
+    }
+
+    if (
+      stripeDocumentVerified
+    ) {
+      kycButton.textContent =
+        "L2 Verification Complete";
+
+      kycButton.disabled =
+        true;
+
+      return;
+    }
+
+    if (
+      canStartDocumentVerification()
+    ) {
+      kycButton.textContent =
+        "Complete L2 Document Verification";
+
+      kycButton.disabled =
+        false;
+
+      return;
+    }
+
+    if (
+      stripeDocumentVerificationStatus
+    ) {
+      kycButton.textContent =
+        `L2 Document Verification: ${stripeDocumentVerificationStatus}`;
+    } else {
+      kycButton.textContent =
+        "L2 Document Verification";
+    }
+
+    kycButton.disabled =
+      true;
+  }
+
+
+  function syncTransactionLimitsButton() {
+    transactionLimitsButton.disabled =
+      !canLoadTransactionLimits();
+  }
+
+
+  function syncAchButton() {
+    achButton.disabled =
+      !canCollectAch();
+  }
+
+
+  function syncHeadlessSessionButton() {
+    headlessSessionButton.disabled =
+      !canCreateHeadlessSession();
+  }
+
+
+  function syncCheckoutButton() {
+    quoteButton.disabled =
+      !canPerformCheckout();
+  }
+
+
+  function syncFlowButtons() {
+    syncTransactionLimitsButton();
+    syncAchButton();
+    syncHeadlessSessionButton();
+    syncCheckoutButton();
+  }
+
+
+  function resetCheckoutState() {
+    headlessSession =
+      null;
+
+    checkoutCompleted =
+      false;
+
+    syncCheckoutButton();
+  }
+
+
+  function resetPaymentMethodState() {
+    cryptoPaymentToken =
+      null;
+
+    resetCheckoutState();
+
+    syncHeadlessSessionButton();
+  }
+
+
+  function resetLimitsState() {
+    achLimitsAvailable =
+      false;
+
+    transactionLimits =
+      null;
+
+    resetPaymentMethodState();
+
+    syncAchButton();
+    syncTransactionLimitsButton();
+  }
+
+
+  function resetStripeCustomerState() {
+    cryptoCustomerId =
+      null;
+
+    stripeKycVerified =
+      false;
+
+    stripeDocumentVerificationStatus =
+      null;
+
+    stripeDocumentVerified =
+      false;
+
+    resetLimitsState();
+
+    syncKycActionButton();
+    syncFlowButtons();
+  }
+
+
+  function getCustomerNextStep() {
+    if (
+      !stripeKycVerified
+    ) {
+      return (
+        "Submit Stripe KYC, then reload CryptoCustomer."
+      );
+    }
+
+    if (
+      !stripeDocumentVerified
+    ) {
+      if (
+        stripeDocumentVerificationStatus ===
+          "not_started"
+      ) {
+        return (
+          isSandboxMode()
+            ? "Complete L2 Document Verification (photo ID + selfie), then reload CryptoCustomer."
+            : "L2 document verification is required before ACH transaction limits."
+        );
+      }
+
+      if (
+        stripeDocumentVerificationStatus ===
+          "pending"
+      ) {
+        return (
+          "L2 document verification is pending. Reload CryptoCustomer after Stripe completes verification."
+        );
+      }
+
+      return (
+        `L2 document verification is not verified${
+          stripeDocumentVerificationStatus
+            ? ` (${stripeDocumentVerificationStatus})`
+            : ""
+        }.`
+      );
+    }
+
+    if (
+      !resolveDiagnosticSettlementId()
+    ) {
+      return (
+        "Add ?settlementId=<SETTLEMENT_ID> to the diagnostic URL, then get ACH Transaction Limits."
+      );
+    }
+
+    return (
+      "Get ACH Transaction Limits."
+    );
+  }
+
+
+  function configureCurrentDiagnosticUi() {
+    transactionLimitsButton.textContent =
+      "8. Get ACH Transaction Limits";
+
+    headlessSessionButton.textContent =
+      "10. Create ACH Headless Session + Quote";
+
+    quoteButton.textContent =
+      "11. Perform Checkout";
+
+    const legacyInputs = [
+      sessionAmountInput,
+      sessionCurrencyInput,
+      walletAddressInput,
+      quoteAmountInput,
+      quoteCurrencyInput
+    ];
+
+    for (
+      const input
+      of legacyInputs
+    ) {
+      if (!input) {
+        continue;
+      }
+
+      input.disabled =
+        true;
+
+      input.title =
+        "Legacy diagnostic field. Current flow resolves this value from the settlement backend state.";
+    }
+  }
+
+
+  function assertDom() {
+    const missing =
+      [];
+
+    const requiredElements = [
+      [emailInput, "email"],
+      [phoneInput, "phone"],
+      [fullNameInput, "full-name"],
+      [registerButton, "register-button"],
+      [authIntentButton, "auth-intent-button"],
+      [authenticateButton, "authenticate-button"],
+      [customerContextButton, "customer-context-button"],
+      [kycFirstNameInput, "kyc-first-name"],
+      [kycLastNameInput, "kyc-last-name"],
+      [kycIdNumberInput, "kyc-id-number"],
+      [kycDobInput, "kyc-dob"],
+      [kycAddressLine1Input, "kyc-address-line1"],
+      [kycCityInput, "kyc-city"],
+      [kycStateInput, "kyc-state"],
+      [kycPostalCodeInput, "kyc-postal-code"],
+      [kycButton, "kyc-button"],
+      [achButton, "ach-button"],
+      [
+        transactionLimitsButton,
+        "transaction-limits-button"
+      ],
+      [
+        headlessSessionButton,
+        "headless-session-button"
+      ],
+      [quoteButton, "quote-button"],
+      [statusElement, "status"],
+      [authContainer, "auth-container"]
+    ];
+
+    for (
+      const [
+        element,
+        name
+      ]
+      of requiredElements
+    ) {
+      if (!element) {
+        missing.push(
+          name
+        );
+      }
+    }
+
+    if (
+      missing.length
+    ) {
+      throw new Error(
+        `missing_dom_elements:${missing.join(",")}`
+      );
+    }
+  }
+
+
   function getUserInfo() {
     return {
       email:
@@ -527,7 +967,9 @@
       dob
         .split("-")
         .map(
-          (value) =>
+          (
+            value
+          ) =>
             Number(
               value
             )
@@ -629,258 +1071,6 @@
           ssn
       }
     };
-  }
-
-
-  function isKycVerified(
-    payload
-  ) {
-    const verifications =
-      Array.isArray(
-        payload?.verifications
-      )
-        ? payload.verifications
-        : [];
-
-    const kycVerification =
-      verifications.find(
-        (
-          item
-        ) =>
-          normalizeString(
-            item?.name
-          )
-            .toLowerCase() ===
-          "kyc_verified"
-      );
-
-    return (
-      normalizeString(
-        kycVerification?.status
-      )
-        .toLowerCase() ===
-      "verified"
-    );
-  }
-
-
-  function canLoadTransactionLimits() {
-    return Boolean(
-      authIntentId &&
-      cryptoCustomerId &&
-      stripeKycVerified &&
-      resolveDiagnosticSettlementId()
-    );
-  }
-
-
-  function canCollectAch() {
-    return Boolean(
-      isSandboxMode() &&
-      stripeKycVerified &&
-      achLimitsAvailable
-    );
-  }
-
-
-  function canCreateHeadlessSession() {
-    return Boolean(
-      isSandboxMode() &&
-      stripeKycVerified &&
-      achLimitsAvailable &&
-      cryptoPaymentToken
-    );
-  }
-
-
-  function canPerformCheckout() {
-    return Boolean(
-      isSandboxMode() &&
-      headlessSession?.sessionId &&
-      headlessSession?.clientSecret &&
-      checkoutCompleted !==
-        true
-    );
-  }
-
-
-  function syncTransactionLimitsButton() {
-    transactionLimitsButton.disabled =
-      !canLoadTransactionLimits();
-  }
-
-
-  function syncAchButton() {
-    achButton.disabled =
-      !canCollectAch();
-  }
-
-
-  function syncHeadlessSessionButton() {
-    headlessSessionButton.disabled =
-      !canCreateHeadlessSession();
-  }
-
-
-  function syncCheckoutButton() {
-    quoteButton.disabled =
-      !canPerformCheckout();
-  }
-
-
-  function syncFlowButtons() {
-    syncTransactionLimitsButton();
-    syncAchButton();
-    syncHeadlessSessionButton();
-    syncCheckoutButton();
-  }
-
-
-  function resetCheckoutState() {
-    headlessSession =
-      null;
-
-    checkoutCompleted =
-      false;
-
-    syncCheckoutButton();
-  }
-
-
-  function resetPaymentMethodState() {
-    cryptoPaymentToken =
-      null;
-
-    resetCheckoutState();
-
-    syncHeadlessSessionButton();
-  }
-
-
-  function resetLimitsState() {
-    achLimitsAvailable =
-      false;
-
-    transactionLimits =
-      null;
-
-    resetPaymentMethodState();
-
-    syncAchButton();
-    syncTransactionLimitsButton();
-  }
-
-
-  function resetStripeCustomerState() {
-    cryptoCustomerId =
-      null;
-
-    stripeKycVerified =
-      false;
-
-    resetLimitsState();
-
-    syncFlowButtons();
-  }
-
-
-  function configureCurrentDiagnosticUi() {
-    if (
-      transactionLimitsButton
-    ) {
-      transactionLimitsButton.textContent =
-        "7. Get ACH Transaction Limits";
-    }
-
-    if (
-      headlessSessionButton
-    ) {
-      headlessSessionButton.textContent =
-        "8. Create ACH Headless Session + Quote";
-    }
-
-    if (
-      quoteButton
-    ) {
-      quoteButton.textContent =
-        "9. Perform Checkout";
-    }
-
-    const legacyInputs = [
-      sessionAmountInput,
-      sessionCurrencyInput,
-      walletAddressInput,
-      quoteAmountInput,
-      quoteCurrencyInput
-    ];
-
-    for (
-      const input
-      of legacyInputs
-    ) {
-      if (!input) {
-        continue;
-      }
-
-      input.disabled =
-        true;
-
-      input.title =
-        "Legacy diagnostic field. Current flow resolves this value from the settlement backend state.";
-    }
-  }
-
-
-  function assertDom() {
-    const missing =
-      [];
-
-    const requiredElements = [
-      [emailInput, "email"],
-      [phoneInput, "phone"],
-      [fullNameInput, "full-name"],
-      [registerButton, "register-button"],
-      [authIntentButton, "auth-intent-button"],
-      [authenticateButton, "authenticate-button"],
-      [customerContextButton, "customer-context-button"],
-      [kycFirstNameInput, "kyc-first-name"],
-      [kycLastNameInput, "kyc-last-name"],
-      [kycIdNumberInput, "kyc-id-number"],
-      [kycDobInput, "kyc-dob"],
-      [kycAddressLine1Input, "kyc-address-line1"],
-      [kycCityInput, "kyc-city"],
-      [kycStateInput, "kyc-state"],
-      [kycPostalCodeInput, "kyc-postal-code"],
-      [kycButton, "kyc-button"],
-      [achButton, "ach-button"],
-      [transactionLimitsButton, "transaction-limits-button"],
-      [headlessSessionButton, "headless-session-button"],
-      [quoteButton, "quote-button"],
-      [statusElement, "status"],
-      [authContainer, "auth-container"]
-    ];
-
-    for (
-      const [
-        element,
-        name
-      ]
-      of requiredElements
-    ) {
-      if (!element) {
-        missing.push(
-          name
-        );
-      }
-    }
-
-    if (
-      missing.length
-    ) {
-      throw new Error(
-        `missing_dom_elements:${missing.join(",")}`
-      );
-    }
   }
 
 
@@ -1279,7 +1469,6 @@
 
   /* =========================
      REGISTER LINK USER
-     SANDBOX ONLY
   ========================= */
 
   async function registerLinkUser() {
@@ -1362,7 +1551,6 @@
 
   /* =========================
      CREATE LINK AUTH INTENT
-     SANDBOX + LIVE
   ========================= */
 
   async function createLinkAuthIntent() {
@@ -1471,7 +1659,6 @@
 
   /* =========================
      AUTHENTICATE
-     SANDBOX + LIVE
   ========================= */
 
   async function authenticateLinkUser() {
@@ -1536,6 +1723,12 @@
             stripeKycVerified =
               false;
 
+            stripeDocumentVerificationStatus =
+              null;
+
+            stripeDocumentVerified =
+              false;
+
             resetLimitsState();
 
             customerContextButton.disabled =
@@ -1568,7 +1761,7 @@
                   isLiveMode(),
 
                 nextStep:
-                  "Load CryptoCustomer. If KYC is verified, test ACH transaction limits next."
+                  "Load CryptoCustomer to inspect basic KYC and L2 document-verification state."
               }
             );
 
@@ -1617,7 +1810,6 @@
 
   /* =========================
      LOAD CRYPTO CUSTOMER
-     SANDBOX + LIVE
   ========================= */
 
   async function loadCustomerContext() {
@@ -1694,12 +1886,17 @@
         payload
       );
 
-    kycButton.disabled =
-      !(
-        isSandboxMode() &&
-        !stripeKycVerified
+    stripeDocumentVerificationStatus =
+      getDocumentVerificationStatus(
+        payload
       );
 
+    stripeDocumentVerified =
+      isDocumentVerified(
+        payload
+      );
+
+    syncKycActionButton();
     syncFlowButtons();
 
     console.log(
@@ -1708,8 +1905,20 @@
     );
 
     console.log(
-      "STRIPE_KYC_VERIFIED",
-      stripeKycVerified
+      "STRIPE_VERIFICATION_STATE",
+      {
+        kyc_verified:
+          stripeKycVerified,
+
+        id_document_verified:
+          stripeDocumentVerificationStatus,
+
+        l2_verified:
+          Boolean(
+            stripeKycVerified &&
+            stripeDocumentVerified
+          )
+      }
     );
 
     setStatus(
@@ -1727,6 +1936,18 @@
         kycAlreadyVerified:
           stripeKycVerified,
 
+        documentVerificationStatus:
+          stripeDocumentVerificationStatus,
+
+        l2Verified:
+          Boolean(
+            stripeKycVerified &&
+            stripeDocumentVerified
+          ),
+
+        documentVerificationEnabled:
+          canStartDocumentVerification(),
+
         transactionLimitsEnabled:
           canLoadTransactionLimits(),
 
@@ -1743,13 +1964,7 @@
           isLiveMode(),
 
         nextStep:
-          stripeKycVerified
-            ? (
-                resolveDiagnosticSettlementId()
-                  ? "Get ACH Transaction Limits."
-                  : "Add ?settlementId=<SETTLEMENT_ID> to the diagnostic URL, then get ACH Transaction Limits."
-              )
-            : "Submit Stripe KYC, then reload CryptoCustomer."
+          getCustomerNextStep()
       }
     );
 
@@ -1758,7 +1973,7 @@
 
 
   /* =========================
-     SUBMIT KYC
+     SUBMIT BASIC KYC
      SANDBOX ONLY
   ========================= */
 
@@ -1831,8 +2046,100 @@
 
 
   /* =========================
+     L2 DOCUMENT VERIFICATION
+     SANDBOX ONLY
+
+     Stripe ACH requires L2:
+     photo ID + selfie.
+
+     Production orchestration uses:
+     await sdk.verifyDocuments()
+
+     Then CryptoCustomer must be reloaded.
+  ========================= */
+
+  async function verifyStripeDocuments() {
+    requireSandboxMode(
+      "stripe_document_verification_disabled_in_live_mode"
+    );
+
+    requireString(
+      cryptoCustomerId,
+      "missing_crypto_customer_id"
+    );
+
+    if (
+      !stripeKycVerified
+    ) {
+      throw new Error(
+        "stripe_kyc_not_verified"
+      );
+    }
+
+    if (
+      stripeDocumentVerified
+    ) {
+      throw new Error(
+        "stripe_document_already_verified"
+      );
+    }
+
+    if (
+      stripeDocumentVerificationStatus !==
+        "not_started"
+    ) {
+      throw new Error(
+        `stripe_document_verification_not_startable:${
+          stripeDocumentVerificationStatus ??
+          "unknown"
+        }`
+      );
+    }
+
+    const sdk =
+      await ensureSdk();
+
+    if (
+      typeof sdk.verifyDocuments !==
+        "function"
+    ) {
+      throw new Error(
+        "verifyDocuments_not_available"
+      );
+    }
+
+    resetLimitsState();
+
+    setStatus(
+      "Starting Stripe L2 document verification (photo ID + selfie)..."
+    );
+
+    const result =
+      await sdk.verifyDocuments();
+
+    /*
+    --------------------------------------------------
+    Do not infer verified from verifyDocuments() return.
+
+    CryptoCustomer remains authoritative.
+    Reload it after the document flow.
+    --------------------------------------------------
+    */
+
+    console.log(
+      "STRIPE_DOCUMENT_VERIFICATION_FLOW_COMPLETE",
+      {
+        completed:
+          true
+      }
+    );
+
+    return result;
+  }
+
+
+  /* =========================
      TRANSACTION LIMITS
-     SANDBOX + LIVE
   ========================= */
 
   async function loadTransactionLimits() {
@@ -1856,6 +2163,14 @@
     ) {
       throw new Error(
         "stripe_kyc_not_verified"
+      );
+    }
+
+    if (
+      !stripeDocumentVerified
+    ) {
+      throw new Error(
+        "stripe_l2_document_verification_required"
       );
     }
 
@@ -2047,6 +2362,9 @@
           transactionLimits
             .limits,
 
+        l2Verified:
+          true,
+
         achCollectionEnabled:
           canCollectAch(),
 
@@ -2054,7 +2372,7 @@
           transactionLimits
             .available
             ? "ACH is available. Collect ACH payment method."
-            : "ACH is not available for this customer/settlement."
+            : "ACH limit is still unavailable after L2 verification."
       }
     );
 
@@ -2064,7 +2382,6 @@
 
   /* =========================
      COLLECT ACH PAYMENT METHOD
-     SANDBOX ONLY
   ========================= */
 
   async function collectAchPaymentMethod() {
@@ -2081,10 +2398,11 @@
     );
 
     if (
-      !stripeKycVerified
+      !stripeKycVerified ||
+      !stripeDocumentVerified
     ) {
       throw new Error(
-        "stripe_kyc_not_verified"
+        "stripe_l2_verification_required"
       );
     }
 
@@ -2158,8 +2476,8 @@
             setStatus(
               "ACH payment method collected.",
               {
-                kycVerified:
-                  stripeKycVerified,
+                l2Verified:
+                  true,
 
                 achLimitsAvailable,
 
@@ -2227,8 +2545,7 @@
 
 
   /* =========================
-     CREATE ACH HEADLESS SESSION + QUOTE
-     SANDBOX ONLY
+     CREATE HEADLESS SESSION + QUOTE
   ========================= */
 
   async function createAchHeadlessSession() {
@@ -2258,10 +2575,11 @@
       );
 
     if (
-      !stripeKycVerified
+      !stripeKycVerified ||
+      !stripeDocumentVerified
     ) {
       throw new Error(
-        "stripe_kyc_not_verified"
+        "stripe_l2_verification_required"
       );
     }
 
@@ -2455,7 +2773,6 @@
 
   /* =========================
      PERFORM CHECKOUT
-     SANDBOX ONLY
   ========================= */
 
   async function performHeadlessCheckout() {
@@ -2630,6 +2947,7 @@
           registerButton.disabled =
             !isSandboxMode();
 
+          syncKycActionButton();
           syncFlowButtons();
         }
       }
@@ -2692,6 +3010,7 @@
           authIntentButton.disabled =
             false;
 
+          syncKycActionButton();
           syncFlowButtons();
         }
       }
@@ -2769,6 +3088,12 @@
           stripeKycVerified =
             false;
 
+          stripeDocumentVerificationStatus =
+            null;
+
+          stripeDocumentVerified =
+            false;
+
           resetLimitsState();
 
           setStatus(
@@ -2793,18 +3118,35 @@
           customerContextButton.disabled =
             false;
 
-          kycButton.disabled =
-            !(
-              customerContextLoaded &&
-              isSandboxMode() &&
-              !stripeKycVerified
-            );
+          if (
+            customerContextLoaded
+          ) {
+            syncKycActionButton();
+          } else {
+            kycButton.disabled =
+              true;
+          }
 
           syncFlowButtons();
         }
       }
     );
 
+
+  /*
+  --------------------------------------------------
+  Single KYC/L2 action button.
+
+  Before basic KYC:
+  → submitKycInfo()
+
+  After basic KYC but before L2:
+  → verifyDocuments()
+
+  After L2:
+  → disabled
+  --------------------------------------------------
+  */
 
   kycButton
     .addEventListener(
@@ -2816,41 +3158,96 @@
         customerContextButton.disabled =
           true;
 
-        let submittedSuccessfully =
+        let actionCompleted =
           false;
 
+        let actionType =
+          null;
+
         try {
-          const kycResult =
-            await submitStripeKyc();
+          if (
+            !stripeKycVerified
+          ) {
+            actionType =
+              "basic_kyc";
 
-          submittedSuccessfully =
-            true;
+            const kycResult =
+              await submitStripeKyc();
 
-          console.log(
-            "STRIPE_SUBMIT_KYC_COMPLETE",
-            kycResult
-          );
+            actionCompleted =
+              true;
 
-          setStatus(
-            "Stripe KYC submitted.",
-            {
-              submitted:
-                true,
+            console.log(
+              "STRIPE_SUBMIT_KYC_COMPLETE",
+              kycResult
+            );
 
-              nextStep:
-                "Load CryptoCustomer again before testing transaction limits."
-            }
+            setStatus(
+              "Stripe KYC submitted.",
+              {
+                submitted:
+                  true,
+
+                nextStep:
+                  "Load CryptoCustomer again. If basic KYC is verified, continue to L2 document verification."
+              }
+            );
+
+            return;
+          }
+
+          if (
+            canStartDocumentVerification()
+          ) {
+            actionType =
+              "document_verification";
+
+            await verifyStripeDocuments();
+
+            actionCompleted =
+              true;
+
+            setStatus(
+              "Stripe L2 document-verification flow completed.",
+              {
+                documentFlowCompleted:
+                  true,
+
+                nextStep:
+                  "Load CryptoCustomer again and confirm id_document_verified = verified before testing ACH transaction limits."
+              }
+            );
+
+            return;
+          }
+
+          if (
+            stripeDocumentVerified
+          ) {
+            throw new Error(
+              "stripe_l2_already_verified"
+            );
+          }
+
+          throw new Error(
+            `stripe_kyc_action_not_available:${
+              stripeDocumentVerificationStatus ??
+              "unknown"
+            }`
           );
         } catch (
           error
         ) {
           console.error(
-            "STRIPE_SUBMIT_KYC_FAILED",
+            "STRIPE_KYC_ACTION_FAILED",
             error
           );
 
           setStatus(
-            "Stripe KYC failed.",
+            actionType ===
+              "document_verification"
+              ? "Stripe L2 document verification failed."
+              : "Stripe KYC failed.",
             {
               status:
                 error?.status ??
@@ -2871,17 +3268,24 @@
           customerContextButton.disabled =
             false;
 
+          /*
+          --------------------------------------------------
+          After a successful KYC or document action,
+          keep the button disabled until CryptoCustomer
+          is reloaded.
+
+          We never infer verification from the SDK action
+          completing.
+          --------------------------------------------------
+          */
+
           if (
-            submittedSuccessfully
+            actionCompleted
           ) {
             kycButton.disabled =
               true;
           } else {
-            kycButton.disabled =
-              !(
-                isSandboxMode() &&
-                !stripeKycVerified
-              );
+            syncKycActionButton();
           }
 
           syncFlowButtons();
@@ -3142,14 +3546,16 @@
                       "Create LinkAuthIntent",
                       "Authenticate",
                       "Load CryptoCustomer",
-                      "Get settlement-bound ACH transaction limits"
+                      "Get settlement-bound ACH transaction limits for an already-L2-verified customer"
                     ]
                   : [
                       "Register Link user",
                       "Create LinkAuthIntent",
                       "Authenticate",
                       "Load CryptoCustomer",
-                      "Submit KYC only if required",
+                      "Submit basic KYC only if required",
+                      "Complete L2 photo ID + selfie verification",
+                      "Reload CryptoCustomer",
                       "Get ACH transaction limits",
                       "Collect ACH",
                       "Create ACH Headless Session + Quote",
@@ -3182,9 +3588,9 @@
 
               message:
                 error?.message ??
-                String(
-                  error
-                ),
+                  String(
+                    error
+                  ),
 
               payload:
                 error?.payload ??
