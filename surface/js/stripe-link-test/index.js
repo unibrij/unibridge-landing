@@ -12,6 +12,7 @@ Owns ONLY:
 - derived flow guards
 - flow-button synchronization
 - KYC-button synchronization
+- lazy Clerk-auth composition
 - module composition
 - event wiring
 - action-level error handling
@@ -42,6 +43,15 @@ notification.
 
 Interactive Stripe elements that complete later are tracked
 separately from normal request/action busy state.
+
+Clerk invariant:
+
+The diagnostic page does NOT require an active Clerk
+session during bootstrap.
+
+Clerk exact-session binding is deferred until an
+authenticated UniBridge settlement/funding request actually
+needs a bearer token.
 --------------------------------------------------
 */
 
@@ -182,14 +192,6 @@ It does NOT represent Stripe or settlement truth.
 const activity = {
   /*
   Normal synchronous / awaited action lock.
-
-  Examples:
-  - register
-  - create_auth_intent
-  - load_customer
-  - transaction_limits
-  - headless_session
-  - checkout
   */
 
   activeAction:
@@ -199,13 +201,6 @@ const activity = {
   /*
   Stripe Link authentication element has been mounted
   and is waiting for the user's eventual callback.
-
-  stripeCustomer.js exposes onSuccess, but abandoned /
-  declined callbacks remain internal to that module.
-
-  Therefore Authenticate stays disabled while this
-  element is active. A new LinkAuthIntent may still be
-  created to restart the authentication path.
   */
 
   authenticationElementMounted:
@@ -215,9 +210,6 @@ const activity = {
   /*
   ACH collection element has been mounted and is waiting
   for Stripe's callback.
-
-  stripeFunding.js DOES emit onStateChange for every ACH
-  callback outcome, so this lock can be released later.
   */
 
   achCollectionElementMounted:
@@ -225,15 +217,8 @@ const activity = {
 
 
   /*
-  stripeFunding.collectAchPaymentMethod() emits:
-
-  1. one state-change notification when it clears old
-     payment-method state
-
-  2. another notification when the Stripe callback fires
-
-  Tracking notifications while the action is still being
-  created protects against an unusually fast callback.
+  collectAchPaymentMethod() may notify once during reset
+  and once again when the Stripe callback fires.
   */
 
   achCollectionNotificationCount:
@@ -286,12 +271,10 @@ function beginAction(
     actionName;
 
   /*
-  --------------------------------------------------
   Generic flow actions are locked by syncFlowUi().
 
   KYC is intentionally outside syncFlowUi(), so disable
   it explicitly while another orchestrated action runs.
-  --------------------------------------------------
   */
 
   ui.setKycEnabled(
@@ -340,10 +323,8 @@ function resetPaymentMethodState() {
     null;
 
   /*
-  --------------------------------------------------
   Any payment-method reset invalidates an older mounted
   ACH collection interaction.
-  --------------------------------------------------
   */
 
   activity
@@ -384,10 +365,8 @@ function resetStripeCustomerState() {
     false;
 
   /*
-  --------------------------------------------------
   A new customer/auth path invalidates any previously
   mounted Link authentication interaction.
-  --------------------------------------------------
   */
 
   activity
@@ -407,6 +386,9 @@ Module references
 let clerkAuth =
   null;
 
+let clerkAuthPromise =
+  null;
+
 let stripeCustomer =
   null;
 
@@ -418,6 +400,77 @@ let diagnosticSettlement =
 
 let stripeFunding =
   null;
+
+
+/*
+--------------------------------------------------
+Lazy Clerk authentication
+
+Clerk is NOT required during page bootstrap.
+
+The first authenticated settlement/funding request calls
+this function.
+
+createClerkAuth() then:
+
+- binds one exact Clerk session
+- performs its own exact-session recovery
+- mints a fresh bearer through getToken({ skipCache:true })
+
+If no usable Clerk session exists at that moment, only
+that authenticated action fails. The Stripe diagnostic
+itself remains initialized and usable.
+
+A failed initial binding clears clerkAuthPromise so the
+user may establish a session and retry later.
+
+Once successfully bound, we intentionally keep that exact
+Clerk binding for the lifetime of this page rather than
+silently switching identities.
+--------------------------------------------------
+*/
+
+async function getAuthenticatedJsonHeaders() {
+  if (
+    clerkAuth
+  ) {
+    return clerkAuth
+      .buildAuthenticatedJsonHeaders();
+  }
+
+  if (
+    !clerkAuthPromise
+  ) {
+    clerkAuthPromise =
+      createClerkAuth()
+        .then(
+          (
+            resolvedClerkAuth
+          ) => {
+            clerkAuth =
+              resolvedClerkAuth;
+
+            return clerkAuth;
+          }
+        )
+        .catch(
+          (
+            error
+          ) => {
+            clerkAuthPromise =
+              null;
+
+            throw error;
+          }
+        );
+  }
+
+  const resolvedClerkAuth =
+    await clerkAuthPromise;
+
+  return resolvedClerkAuth
+    .buildAuthenticatedJsonHeaders();
+}
 
 
 /*
@@ -503,12 +556,10 @@ function canLoadTransactionLimits() {
   }
 
   /*
-  --------------------------------------------------
   Sandbox settlement is created lazily by the limits
   action itself.
 
   Live diagnostic requires an explicit settlement ID.
-  --------------------------------------------------
   */
 
   if (
@@ -704,8 +755,7 @@ buttons disabled.
 ACH is special:
 
 After the payment element has been mounted, the NEXT
-funding notification represents its Stripe callback
-(success / abandoned / error / unknown).
+funding notification represents its Stripe callback.
 
 At that point the interactive lock can be released.
 --------------------------------------------------
@@ -741,6 +791,7 @@ Never dump whole Error objects because HTTP errors may
 carry response payloads.
 
 Never expose:
+
 - client_secret
 - cryptoPaymentToken
 - Clerk bearer
@@ -834,15 +885,6 @@ async function handleRegister() {
       actionName
     );
 
-    /*
-    --------------------------------------------------
-    Registration establishes a fresh identity path.
-
-    KYC remains disabled until authentication and an
-    authoritative CryptoCustomer load occur.
-    --------------------------------------------------
-    */
-
     ui.setKycEnabled(
       false
     );
@@ -871,10 +913,8 @@ async function handleCreateAuthIntent() {
   }
 
   /*
-  --------------------------------------------------
   A newly requested auth intent supersedes any mounted
   authentication element from the previous attempt.
-  --------------------------------------------------
   */
 
   activity
@@ -899,12 +939,10 @@ async function handleCreateAuthIntent() {
     );
 
     /*
-    --------------------------------------------------
     Do not project KYC here.
 
     A new successful auth intent has no reconciled
     CryptoCustomer yet.
-    --------------------------------------------------
     */
 
     ui.setKycEnabled(
@@ -928,12 +966,9 @@ Therefore:
 - activeAction protects element creation itself
 - authenticationElementMounted protects against a second
   Authenticate click afterward
-- onSuccess releases the mounted-state marker and enables
-  the CryptoCustomer action
-
-If the user abandons/declines, Authenticate remains
-disabled for that mounted attempt, but Create LinkAuthIntent
-remains available to start a clean retry.
+- stripeCustomer.js protects shared state against stale
+  callbacks from superseded auth intents
+- onSuccess releases the mounted-state marker
 --------------------------------------------------
 */
 
@@ -967,12 +1002,11 @@ async function handleAuthenticate() {
                 false;
 
               /*
-              --------------------------------------------------
-              CryptoCustomer exists now, but KYC/L2 state has
-              not yet been reconciled.
+              CryptoCustomer exists now, but KYC/L2 state
+              has not yet been reconciled.
 
-              Keep KYC disabled until explicit customer reload.
-              --------------------------------------------------
+              Keep KYC disabled until explicit customer
+              reload.
               */
 
               ui.setKycEnabled(
@@ -984,14 +1018,12 @@ async function handleAuthenticate() {
         });
 
     /*
-    --------------------------------------------------
     If authentication already completed synchronously,
     cryptoCustomerId is present and no mounted lock is
     needed.
 
     Otherwise the returned Stripe element represents an
     in-progress user interaction.
-    --------------------------------------------------
     */
 
     activity
@@ -1080,10 +1112,8 @@ async function handleLoadCustomerContext() {
       syncKycUi();
     } else {
       /*
-      --------------------------------------------------
       Never re-enable KYC from stale verification state
       after failed reconciliation.
-      --------------------------------------------------
       */
 
       ui.setKycEnabled(
@@ -1152,13 +1182,11 @@ async function handleKyc() {
     }
 
     /*
-    --------------------------------------------------
     Do not call canStartDocumentVerification() here while
     activeAction === "kyc", because that guard correctly
     returns false while an action lock is held.
 
     Evaluate the reconciled document facts directly.
-    --------------------------------------------------
     */
 
     const documentVerificationStartable =
@@ -1219,7 +1247,6 @@ async function handleKyc() {
     syncFlowUi();
 
     /*
-    --------------------------------------------------
     CRITICAL KYC RULE
 
     Success:
@@ -1227,7 +1254,6 @@ async function handleKyc() {
 
     Failure:
     → retry may be projected from current reconciled state.
-    --------------------------------------------------
     */
 
     if (
@@ -1277,12 +1303,10 @@ async function handleTransactionLimits() {
     );
 
     /*
-    --------------------------------------------------
     Internal funding notifications cannot re-enable the
     limits button while activeAction is held.
 
     Never sync KYC here.
-    --------------------------------------------------
     */
 
     syncFlowUi();
@@ -1350,7 +1374,6 @@ async function handleCollectAch() {
     );
   } finally {
     /*
-    --------------------------------------------------
     During a normal collectPaymentMethod() startup,
     stripeFunding emits one notification while clearing
     old payment state.
@@ -1359,7 +1382,6 @@ async function handleCollectAch() {
     function returned, the callback already fired.
 
     cryptoPaymentToken is an additional success signal.
-    --------------------------------------------------
     */
 
     const callbackAlreadyObserved =
@@ -1535,12 +1557,18 @@ async function bootstrap() {
 
   /*
   --------------------------------------------------
-  Bind one exact Clerk session
+  IMPORTANT:
+
+  Do NOT bind Clerk here.
+
+  The page must remain usable even when Clerk.session is
+  temporarily unavailable.
+
+  getAuthenticatedJsonHeaders() will lazily create the
+  exact Clerk binding when an authenticated settlement or
+  funding request first needs it.
   --------------------------------------------------
   */
-
-  clerkAuth =
-    await createClerkAuth();
 
 
   /*
@@ -1554,9 +1582,7 @@ async function bootstrap() {
       state,
       ui,
 
-      getAuthenticatedJsonHeaders:
-        clerkAuth
-          .buildAuthenticatedJsonHeaders
+      getAuthenticatedJsonHeaders
     });
 
 
@@ -1582,8 +1608,6 @@ async function bootstrap() {
   --------------------------------------------------
   Funding layer
 
-  IMPORTANT:
-
   Funding state changes go through the orchestrator bridge,
   NOT directly to syncFlowUi().
 
@@ -1600,9 +1624,7 @@ async function bootstrap() {
       ensureSdk:
         stripeCustomer.ensureSdk,
 
-      getAuthenticatedJsonHeaders:
-        clerkAuth
-          .buildAuthenticatedJsonHeaders,
+      getAuthenticatedJsonHeaders,
 
       ensureSandboxDiagnosticSettlement:
         diagnosticSettlement
@@ -1669,7 +1691,12 @@ async function bootstrap() {
         isSandboxMode(),
 
       clerkSessionBound:
-        true,
+        Boolean(
+          clerkAuth
+        ),
+
+      clerkAuthentication:
+        "deferred_until_authenticated_settlement_request",
 
       settlementPolicy:
         isSandboxMode()
@@ -1688,6 +1715,11 @@ async function bootstrap() {
 /*
 --------------------------------------------------
 Fatal bootstrap failure
+
+Only true page-initialization failures land here now.
+
+Missing Clerk session does NOT belong here because Clerk
+binding is deferred until an authenticated request.
 --------------------------------------------------
 */
 
