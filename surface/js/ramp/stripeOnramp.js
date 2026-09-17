@@ -7,6 +7,9 @@ window.UnibridgeStripeOnramp = (() => {
   const STRIPE_BROWSER_CONFIG_URL =
     "/v2/ramp/stripe/browser/config";
 
+  const STRIPE_HEADLESS_SESSION_URL =
+    "/v2/ramp/stripe/browser/headless-session";
+
   const CONTAINER_ID =
     "stripeOnrampContainer";
 
@@ -760,6 +763,121 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function createHeadlessSession({
+    settlementId,
+    authIntentId,
+    cryptoCustomerId,
+    cryptoPaymentToken,
+    setStatus,
+    flowToken
+  }) {
+    const normalizedSettlementId =
+      requireString(
+        settlementId,
+        "missing_settlement_id"
+      );
+
+    const normalizedAuthIntentId =
+      requireString(
+        authIntentId,
+        "missing_auth_intent_id"
+      );
+
+    const normalizedCryptoCustomerId =
+      requireString(
+        cryptoCustomerId,
+        "missing_crypto_customer_id"
+      );
+
+    const normalizedPaymentToken =
+      requireString(
+        cryptoPaymentToken,
+        "missing_crypto_payment_token"
+      );
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Creating secure Stripe payment session..."
+    );
+
+    const response =
+      await fetch(
+        STRIPE_HEADLESS_SESSION_URL,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Accept:
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              settlementId:
+                normalizedSettlementId,
+
+              authIntentId:
+                normalizedAuthIntentId,
+
+              cryptoCustomerId:
+                normalizedCryptoCustomerId,
+
+              paymentToken:
+                normalizedPaymentToken
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () =>
+            null
+        );
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    if (!response.ok) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `stripe_headless_session_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    if (
+      !payload ||
+      typeof payload !==
+        "object"
+    ) {
+      throw new Error(
+        "stripe_headless_session_invalid_response"
+      );
+    }
+
+    return payload;
+  }
+
+
   async function mount(
     ctx,
     action
@@ -950,7 +1068,7 @@ window.UnibridgeStripeOnramp = (() => {
     /*
     --------------------------------------------------
     ACH payment-method collection begins only after
-    Stripe confirms a positive ACH transaction limit.
+    Stripe confirms ACH availability.
     --------------------------------------------------
     */
 
@@ -981,8 +1099,47 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+    /*
+    --------------------------------------------------
+    Create the Stripe Headless Session.
+
+    Browser supplies only Stripe customer/payment
+    binding identifiers plus settlementId.
+
+    Canonical amount, wallet, network and currencies
+    remain backend-owned.
+    --------------------------------------------------
+    */
+
+    const headlessSession =
+      await createHeadlessSession({
+        settlementId,
+        authIntentId,
+        cryptoCustomerId,
+        cryptoPaymentToken,
+        setStatus,
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    console.log(
+      "STRIPE_HEADLESS_SESSION_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        session_ready:
+          Boolean(
+            headlessSession
+          )
+      }
+    );
+
     setStatus(
-      "Bank account connected. Preparing Stripe payment..."
+      "Stripe payment session created. Preparing final quote..."
     );
 
     /*
@@ -998,9 +1155,10 @@ window.UnibridgeStripeOnramp = (() => {
       - ACH transaction limits
       - ACH payment-method collection
       - cryptoPaymentToken
+      - settlement-bound Stripe Headless Session
 
     DO NOT log cryptoPaymentToken.
-    DO NOT create the headless session here yet.
+    DO NOT log the full Stripe session payload.
     DO NOT request session pricing here yet.
     DO NOT performCheckout() here yet.
     --------------------------------------------------
