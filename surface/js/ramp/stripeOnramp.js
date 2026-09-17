@@ -18,6 +18,7 @@ window.UnibridgeStripeOnramp = (() => {
 
   let stripeCustomerModule = null;
   let stripeKycModule = null;
+  let stripeLimitsModule = null;
 
   let activeFlowToken = null;
 
@@ -342,6 +343,20 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function ensureStripeLimitsModule() {
+    if (stripeLimitsModule) {
+      return stripeLimitsModule;
+    }
+
+    stripeLimitsModule =
+      await import(
+        "/surface/js/ramp/stripeEmbedded/stripeLimits.js"
+      );
+
+    return stripeLimitsModule;
+  }
+
+
   async function resolveAuthenticatedEmail() {
     const {
       ensureFiatClerkAuth
@@ -628,6 +643,59 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function loadAchLimits({
+    settlementId,
+    authIntentId,
+    cryptoCustomerId,
+    setStatus,
+    flowToken
+  }) {
+    const {
+      loadStripeTransactionLimits
+    } =
+      await ensureStripeLimitsModule();
+
+    if (
+      typeof loadStripeTransactionLimits !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_limits_runtime_missing"
+      );
+    }
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Checking Stripe bank transfer availability..."
+    );
+
+    const limits =
+      await loadStripeTransactionLimits({
+        settlementId,
+        authIntentId,
+        cryptoCustomerId
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    if (
+      limits?.available !==
+        true
+    ) {
+      throw new Error(
+        "stripe_ach_unavailable"
+      );
+    }
+
+    return limits;
+  }
+
+
   async function mount(
     ctx,
     action
@@ -777,20 +845,60 @@ window.UnibridgeStripeOnramp = (() => {
 
     container.replaceChildren();
 
+    /*
+    --------------------------------------------------
+    Transaction limits must be loaded only after the
+    final post-KYC CryptoCustomer reload.
+    --------------------------------------------------
+    */
+
+    const limits =
+      await loadAchLimits({
+        settlementId,
+        authIntentId,
+        cryptoCustomerId,
+        setStatus,
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    console.log(
+      "STRIPE_HEADLESS_ACH_LIMITS_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        available:
+          limits.available,
+
+        limit_count:
+          Array.isArray(
+            limits.limits
+          )
+            ? limits.limits.length
+            : 0
+      }
+    );
+
     setStatus(
-      "Stripe identity verified. Preparing bank payment..."
+      "Stripe bank transfer is available. Preparing payment..."
     );
 
     /*
     --------------------------------------------------
     Intentional stop point for this migration step.
 
-    DO NOT load transaction limits here yet.
+    Stripe KYC is complete.
+    CryptoCustomer has been reloaded.
+    ACH transaction limits are confirmed available.
+
     DO NOT collect us_bank_account here yet.
     DO NOT create the headless session here yet.
-
-    The next incremental step continues from the
-    verified, reloaded CryptoCustomer state.
+    DO NOT request session pricing here yet.
+    DO NOT performCheckout() here yet.
     --------------------------------------------------
     */
 
