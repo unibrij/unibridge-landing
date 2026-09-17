@@ -19,6 +19,7 @@ window.UnibridgeStripeOnramp = (() => {
   let stripeCustomerModule = null;
   let stripeKycModule = null;
   let stripeLimitsModule = null;
+  let stripePaymentMethodModule = null;
 
   let activeFlowToken = null;
 
@@ -357,6 +358,20 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function ensureStripePaymentMethodModule() {
+    if (stripePaymentMethodModule) {
+      return stripePaymentMethodModule;
+    }
+
+    stripePaymentMethodModule =
+      await import(
+        "/surface/js/ramp/stripeEmbedded/stripePaymentMethod.js"
+      );
+
+    return stripePaymentMethodModule;
+  }
+
+
   async function resolveAuthenticatedEmail() {
     const {
       ensureFiatClerkAuth
@@ -546,11 +561,8 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    Critical ordering:
-
-    Never inspect limits here.
-    First reload Stripe CryptoCustomer after textual
-    KYC / SSN submission.
+    Never inspect limits before reloading the Stripe
+    CryptoCustomer after KYC submission.
     --------------------------------------------------
     */
 
@@ -598,12 +610,6 @@ window.UnibridgeStripeOnramp = (() => {
       assertActiveFlow(
         flowToken
       );
-
-      /*
-      --------------------------------------------------
-      Reload again after Stripe document verification.
-      --------------------------------------------------
-      */
 
       customer =
         await loadCryptoCustomer({
@@ -693,6 +699,64 @@ window.UnibridgeStripeOnramp = (() => {
     }
 
     return limits;
+  }
+
+
+  async function collectAchPaymentMethod({
+    sdk: stripeSdk,
+    container,
+    setStatus,
+    flowToken
+  }) {
+    const {
+      startStripeAchPaymentMethodCollection
+    } =
+      await ensureStripePaymentMethodModule();
+
+    if (
+      typeof startStripeAchPaymentMethodCollection !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_payment_method_runtime_missing"
+      );
+    }
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Connect your bank account to continue."
+    );
+
+    const collection =
+      await startStripeAchPaymentMethodCollection({
+        sdk:
+          stripeSdk
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    container.replaceChildren(
+      collection.element
+    );
+
+    const completed =
+      await collection.completion;
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    container.replaceChildren();
+
+    return requireString(
+      completed?.cryptoPaymentToken,
+      "missing_crypto_payment_token"
+    );
   }
 
 
@@ -847,8 +911,8 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    Transaction limits must be loaded only after the
-    final post-KYC CryptoCustomer reload.
+    Limits are checked only after the final KYC
+    CryptoCustomer reload.
     --------------------------------------------------
     */
 
@@ -883,19 +947,59 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+    /*
+    --------------------------------------------------
+    ACH payment-method collection begins only after
+    Stripe confirms a positive ACH transaction limit.
+    --------------------------------------------------
+    */
+
+    const cryptoPaymentToken =
+      await collectAchPaymentMethod({
+        sdk:
+          stripeSdk,
+
+        container,
+        setStatus,
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    console.log(
+      "STRIPE_HEADLESS_ACH_PAYMENT_METHOD_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        payment_token_ready:
+          Boolean(
+            cryptoPaymentToken
+          )
+      }
+    );
+
     setStatus(
-      "Stripe bank transfer is available. Preparing payment..."
+      "Bank account connected. Preparing Stripe payment..."
     );
 
     /*
     --------------------------------------------------
     Intentional stop point for this migration step.
 
-    Stripe KYC is complete.
-    CryptoCustomer has been reloaded.
-    ACH transaction limits are confirmed available.
+    Completed:
+      - Link authentication
+      - CryptoCustomer binding
+      - Stripe KYC
+      - post-KYC CryptoCustomer reload
+      - document verification when required
+      - ACH transaction limits
+      - ACH payment-method collection
+      - cryptoPaymentToken
 
-    DO NOT collect us_bank_account here yet.
+    DO NOT log cryptoPaymentToken.
     DO NOT create the headless session here yet.
     DO NOT request session pricing here yet.
     DO NOT performCheckout() here yet.
