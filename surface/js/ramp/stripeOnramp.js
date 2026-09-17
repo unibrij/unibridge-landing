@@ -55,6 +55,18 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  function normalizeOptionalString(
+    value
+  ) {
+    return (
+      normalizeString(
+        value
+      ) ||
+      null
+    );
+  }
+
+
   function assertActiveFlow(
     token
   ) {
@@ -763,6 +775,115 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  function normalizeHeadlessSessionPayload({
+    payload,
+    settlementId
+  }) {
+    if (
+      !payload ||
+      typeof payload !==
+        "object"
+    ) {
+      throw new Error(
+        "stripe_headless_session_invalid_response"
+      );
+    }
+
+    const responseSettlementId =
+      requireString(
+        payload?.settlement_id,
+        "stripe_headless_session_missing_settlement_id"
+      );
+
+    if (
+      responseSettlementId !==
+        settlementId
+    ) {
+      throw new Error(
+        "stripe_headless_session_settlement_mismatch"
+      );
+    }
+
+    const session =
+      payload?.session;
+
+    if (
+      !session ||
+      typeof session !==
+        "object"
+    ) {
+      throw new Error(
+        "stripe_headless_session_missing_session"
+      );
+    }
+
+    const sessionId =
+      requireString(
+        session?.session_id,
+        "stripe_headless_session_missing_session_id"
+      );
+
+    const clientSecret =
+      requireString(
+        session?.client_secret,
+        "stripe_headless_session_missing_client_secret"
+      );
+
+    return {
+      settlementId:
+        responseSettlementId,
+
+      sessionId,
+
+      clientSecret,
+
+      status:
+        normalizeOptionalString(
+          session?.status
+        ),
+
+      livemode:
+        typeof session?.livemode ===
+          "boolean"
+          ? session.livemode
+          : null,
+
+      sourceAmount:
+        session?.source_amount ??
+        null,
+
+      sourceCurrency:
+        normalizeOptionalString(
+          session?.source_currency
+        )
+          ?.toLowerCase() ??
+        null,
+
+      destinationAmount:
+        session?.destination_amount ??
+        null,
+
+      destinationCurrency:
+        normalizeOptionalString(
+          session?.destination_currency
+        )
+          ?.toLowerCase() ??
+        null,
+
+      destinationNetwork:
+        normalizeOptionalString(
+          session?.destination_network
+        )
+          ?.toLowerCase() ??
+        null,
+
+      quoteExpiration:
+        session?.quote_expiration ??
+        null
+    };
+  }
+
+
   async function createHeadlessSession({
     settlementId,
     authIntentId,
@@ -864,17 +985,11 @@ window.UnibridgeStripeOnramp = (() => {
       throw error;
     }
 
-    if (
-      !payload ||
-      typeof payload !==
-        "object"
-    ) {
-      throw new Error(
-        "stripe_headless_session_invalid_response"
-      );
-    }
-
-    return payload;
+    return normalizeHeadlessSessionPayload({
+      payload,
+      settlementId:
+        normalizedSettlementId
+    });
   }
 
 
@@ -1101,13 +1216,10 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    Create the Stripe Headless Session.
+    Create and bind the Stripe Headless Session.
 
-    Browser supplies only Stripe customer/payment
-    binding identifiers plus settlementId.
-
-    Canonical amount, wallet, network and currencies
-    remain backend-owned.
+    Canonical amount, asset, network and wallet are
+    resolved by the backend from the settlement.
     --------------------------------------------------
     */
 
@@ -1129,22 +1241,60 @@ window.UnibridgeStripeOnramp = (() => {
       "STRIPE_HEADLESS_SESSION_READY",
       {
         settlement_id:
-          settlementId,
+          headlessSession
+            .settlementId,
 
-        session_ready:
+        session_id:
+          headlessSession
+            .sessionId,
+
+        status:
+          headlessSession
+            .status,
+
+        livemode:
+          headlessSession
+            .livemode,
+
+        source_amount:
+          headlessSession
+            .sourceAmount,
+
+        source_currency:
+          headlessSession
+            .sourceCurrency,
+
+        destination_amount:
+          headlessSession
+            .destinationAmount,
+
+        destination_currency:
+          headlessSession
+            .destinationCurrency,
+
+        destination_network:
+          headlessSession
+            .destinationNetwork,
+
+        quote_expiration:
+          headlessSession
+            .quoteExpiration,
+
+        client_secret_ready:
           Boolean(
             headlessSession
+              .clientSecret
           )
       }
     );
 
     setStatus(
-      "Stripe payment session created. Preparing final quote..."
+      "Stripe payment is ready for confirmation."
     );
 
     /*
     --------------------------------------------------
-    Intentional stop point for this migration step.
+    Intentional stop point.
 
     Completed:
       - Link authentication
@@ -1156,11 +1306,17 @@ window.UnibridgeStripeOnramp = (() => {
       - ACH payment-method collection
       - cryptoPaymentToken
       - settlement-bound Stripe Headless Session
+      - session_id validation
+      - client_secret validation
+      - transaction-details projection
 
-    DO NOT log cryptoPaymentToken.
-    DO NOT log the full Stripe session payload.
-    DO NOT request session pricing here yet.
-    DO NOT performCheckout() here yet.
+    Never log:
+      - cryptoPaymentToken
+      - clientSecret
+
+    NEXT:
+      - confirm actual Web SDK performCheckout contract
+      - execute checkout using this same Headless Session
     --------------------------------------------------
     */
 
