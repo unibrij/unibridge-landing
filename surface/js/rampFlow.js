@@ -176,47 +176,64 @@ window.UnibridgeRampFlow = (() => {
     ctx,
     action
   ) {
-    if (action?.step !== "mount_embedded_onramp") {
-      return false;
-    }
-
-    if (action.provider === "stripe_onramp") {
+    if (
+      action?.provider ===
+        "stripe_onramp" &&
+      action?.step ===
+        "start_stripe_headless"
+    ) {
       const provider =
         window.UnibridgeStripeOnramp;
 
       if (
         !provider ||
-        typeof provider.mount !== "function"
+        typeof provider.mount !==
+          "function"
       ) {
         throw new Error(
           "stripe_onramp_runtime_missing"
         );
       }
 
-      await provider.mount(ctx, action);
+      await provider.mount(
+        ctx,
+        action
+      );
 
       /*
-      Stripe embedded session consumes the action.
+      Stripe headless flow consumes the canonical
+      provider action after successful completion.
       */
-      ctx.setCurrentNextAction(null);
+      ctx.setCurrentNextAction(
+        null
+      );
 
       return true;
     }
 
-    if (action.provider === "onramp") {
+    if (
+      action?.provider ===
+        "onramp" &&
+      action?.step ===
+        "mount_embedded_onramp"
+    ) {
       const provider =
         window.UnibridgeOnrampMoney;
 
       if (
         !provider ||
-        typeof provider.mount !== "function"
+        typeof provider.mount !==
+          "function"
       ) {
         throw new Error(
           "onramp_money_runtime_missing"
         );
       }
 
-      await provider.mount(ctx, action);
+      await provider.mount(
+        ctx,
+        action
+      );
 
       /*
       Keep canonical action so the Overlay can be
@@ -373,12 +390,35 @@ window.UnibridgeRampFlow = (() => {
     };
   }
 
-  function isRetryableProviderAction(action) {
-    return (
-      action?.type === "step" &&
-      action?.provider === "onramp" &&
-      action?.step === "mount_embedded_onramp"
-    );
+  function isRetryableProviderAction(
+    action
+  ) {
+    if (
+      action?.type !==
+      "step"
+    ) {
+      return false;
+    }
+
+    if (
+      action?.provider ===
+        "stripe_onramp" &&
+      action?.step ===
+        "start_stripe_headless"
+    ) {
+      return true;
+    }
+
+    if (
+      action?.provider ===
+        "onramp" &&
+      action?.step ===
+        "mount_embedded_onramp"
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   async function processStepNextActions(ctx) {
@@ -567,8 +607,9 @@ window.UnibridgeRampFlow = (() => {
         );
 
       /*
-      Onramp Overlay can be reopened from the same
-      canonical action. Other failed actions are cleared.
+      Stripe headless and Onramp Money can both
+      retry from the same canonical provider action.
+      Other failed actions are cleared.
       */
       if (
         !isRetryableProviderAction(
