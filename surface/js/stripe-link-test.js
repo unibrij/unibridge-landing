@@ -53,6 +53,7 @@
   - There is no separate generic production quote request
   - cryptoPaymentToken is never displayed or logged
   - client_secret is never displayed or logged
+  - Clerk bearer token is never displayed or logged
 
   LIVE mode cannot:
       * register Link users
@@ -65,11 +66,11 @@
 
   Supply a real settlement in the URL:
 
-  /surface/stripe?settlementId=<SETTLEMENT_ID>
+  /surface/stripe-link-test.html?settlementId=<SETTLEMENT_ID>
 
   or:
 
-  /surface/stripe?settlement_id=<SETTLEMENT_ID>
+  /surface/stripe-link-test.html?settlement_id=<SETTLEMENT_ID>
   --------------------------------------------------
   */
 
@@ -427,6 +428,61 @@
       resolveDiagnosticSettlementId(),
       "missing_diagnostic_settlement_id"
     );
+  }
+
+
+  async function getClerkBearerToken() {
+    const clerk =
+      window.Clerk;
+
+    if (!clerk) {
+      throw new Error(
+        "clerk_not_available"
+      );
+    }
+
+    const session =
+      clerk.session;
+
+    if (!session) {
+      throw new Error(
+        "clerk_session_not_available"
+      );
+    }
+
+    if (
+      typeof session.getToken !==
+        "function"
+    ) {
+      throw new Error(
+        "clerk_get_token_not_available"
+      );
+    }
+
+    const token =
+      await session.getToken();
+
+    return requireString(
+      token,
+      "missing_clerk_bearer_token"
+    );
+  }
+
+
+  async function buildAuthenticatedJsonHeaders() {
+    const token =
+      await getClerkBearerToken();
+
+    return {
+      "Content-Type":
+        "application/json",
+
+      Accept:
+        "application/json",
+
+      Authorization:
+        `Bearer ${token}`
+    };
   }
 
 
@@ -1485,18 +1541,6 @@
             customerContextButton.disabled =
               false;
 
-            /*
-            --------------------------------------------------
-            Do not enable KYC immediately after authentication.
-
-            First reload CryptoCustomer and inspect Stripe's
-            current kyc_verified state.
-
-            loadCustomerContext() alone decides whether
-            Submit KYC should become available.
-            --------------------------------------------------
-            */
-
             kycButton.disabled =
               true;
 
@@ -1829,6 +1873,9 @@
 
     syncFlowButtons();
 
+    const headers =
+      await buildAuthenticatedJsonHeaders();
+
     const response =
       await fetch(
         TRANSACTION_LIMITS_URL,
@@ -1836,13 +1883,7 @@
           method:
             "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Accept:
-              "application/json"
-          },
+          headers,
 
           body:
             JSON.stringify({
@@ -2238,6 +2279,9 @@
       "Creating settlement-bound ACH Headless Session..."
     );
 
+    const headers =
+      await buildAuthenticatedJsonHeaders();
+
     const response =
       await fetch(
         HEADLESS_SESSION_URL,
@@ -2245,13 +2289,7 @@
           method:
             "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Accept:
-              "application/json"
-          },
+          headers,
 
           body:
             JSON.stringify({
@@ -2755,18 +2793,6 @@
           customerContextButton.disabled =
             false;
 
-          /*
-          --------------------------------------------------
-          KYC becomes available only when CryptoCustomer was
-          successfully loaded and Stripe explicitly reports
-          that kyc_verified is not yet verified.
-
-          If customer-context loading fails, KYC remains
-          disabled because the customer's actual state is
-          unknown.
-          --------------------------------------------------
-          */
-
           kycButton.disabled =
             !(
               customerContextLoaded &&
@@ -2844,16 +2870,6 @@
         } finally {
           customerContextButton.disabled =
             false;
-
-          /*
-          --------------------------------------------------
-          After successful KYC submission, keep Submit KYC
-          disabled until CryptoCustomer is reloaded.
-
-          loadCustomerContext() becomes authoritative for
-          the resulting Stripe kyc_verified state.
-          --------------------------------------------------
-          */
 
           if (
             submittedSuccessfully
