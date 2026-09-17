@@ -56,26 +56,37 @@ window.UnibridgeSettlementViewState = (() => {
     ) {
       return {
         key: "executing",
-        title: "Funding received. Transfer execution is progress."
+        title: "Funding received. Transfer execution is in progress."
       };
     }
 
     /*
     ------------------------------------------------
-    Processing / automatic retry in background
-    ------------------------------------------------
-    Do not expose retry internals to the user.
-    Present both as normal in-progress handling.
+    Normal processing
     ------------------------------------------------
     */
 
-    if (
-      s === "processing" ||
-      s === "execution_retryable"
-    ) {
+    if (s === "processing") {
       return {
         key: "processing",
         title: "Your transfer is being processed."
+      };
+    }
+
+    /*
+    ------------------------------------------------
+    Automatic retry in background
+    ------------------------------------------------
+    Do not expose retry internals or provider details
+    to the user. Indicate only that processing is
+    taking slightly longer than usual.
+    ------------------------------------------------
+    */
+
+    if (s === "execution_retryable") {
+      return {
+        key: "processing",
+        title: "Your transfer is taking a little longer than usual."
       };
     }
 
