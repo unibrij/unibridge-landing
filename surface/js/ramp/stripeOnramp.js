@@ -993,6 +993,116 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function performStripeCheckout({
+    sdk: stripeSdk,
+    headlessSession,
+    setStatus,
+    flowToken
+  }) {
+    if (
+      !stripeSdk ||
+      typeof stripeSdk.performCheckout !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_perform_checkout_not_available"
+      );
+    }
+
+    const sessionId =
+      requireString(
+        headlessSession?.sessionId,
+        "stripe_checkout_missing_session_id"
+      );
+
+    const clientSecret =
+      requireString(
+        headlessSession?.clientSecret,
+        "stripe_checkout_missing_client_secret"
+      );
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Confirming Stripe bank payment..."
+    );
+
+    /*
+    --------------------------------------------------
+    Stripe checkout contract:
+
+    performCheckout(
+      onrampSessionId,
+      async (requestedOnrampSessionId) => clientSecret
+    )
+
+    The client secret must belong to the exact same
+    Headless Session.
+
+    Never log or persist clientSecret.
+    --------------------------------------------------
+    */
+
+    const result =
+      await stripeSdk.performCheckout(
+        sessionId,
+
+        async (
+          requestedSessionId
+        ) => {
+          assertActiveFlow(
+            flowToken
+          );
+
+          const normalizedRequestedSessionId =
+            requireString(
+              requestedSessionId,
+              "stripe_checkout_missing_requested_session_id"
+            );
+
+          if (
+            normalizedRequestedSessionId !==
+              sessionId
+          ) {
+            throw new Error(
+              "stripe_checkout_session_mismatch"
+            );
+          }
+
+          return clientSecret;
+        }
+      );
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    if (
+      !result ||
+      result.successful !==
+        true
+    ) {
+      const error =
+        new Error(
+          "stripe_checkout_not_successful"
+        );
+
+      error.checkoutResult =
+        result ??
+        null;
+
+      throw error;
+    }
+
+    return {
+      successful:
+        true
+    };
+  }
+
+
   async function mount(
     ctx,
     action
@@ -1288,37 +1398,83 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
-    setStatus(
-      "Stripe payment is ready for confirmation."
-    );
+    /*
+    --------------------------------------------------
+    The Headless Session already contains the Stripe
+    transaction details / quote.
+
+    There is no separate generic quote request in the
+    production flow.
+    --------------------------------------------------
+    */
+
+    if (
+      typeof ctx.emit ===
+        "function"
+    ) {
+      ctx.emit(
+        "unibridge:quote"
+      );
+    }
 
     /*
     --------------------------------------------------
-    Intentional stop point.
-
-    Completed:
-      - Link authentication
-      - CryptoCustomer binding
-      - Stripe KYC
-      - post-KYC CryptoCustomer reload
-      - document verification when required
-      - ACH transaction limits
-      - ACH payment-method collection
-      - cryptoPaymentToken
-      - settlement-bound Stripe Headless Session
-      - session_id validation
-      - client_secret validation
-      - transaction-details projection
-
-    Never log:
-      - cryptoPaymentToken
-      - clientSecret
-
-    NEXT:
-      - confirm actual Web SDK performCheckout contract
-      - execute checkout using this same Headless Session
+    Perform Stripe checkout against the exact session
+    created for this settlement.
     --------------------------------------------------
     */
+
+    const checkoutResult =
+      await performStripeCheckout({
+        sdk:
+          stripeSdk,
+
+        headlessSession,
+
+        setStatus,
+
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    console.log(
+      "STRIPE_HEADLESS_CHECKOUT_SUBMITTED",
+      {
+        settlement_id:
+          settlementId,
+
+        session_id:
+          headlessSession
+            .sessionId,
+
+        successful:
+          checkoutResult
+            .successful ===
+          true
+      }
+    );
+
+    if (
+      typeof ctx.emit ===
+        "function"
+    ) {
+      ctx.emit(
+        "unibridge:payment"
+      );
+    }
+
+    ctx.setContinueDisabled(
+      true
+    );
+
+    container.replaceChildren();
+
+    setStatus(
+      "Payment submitted. Waiting for Stripe funding confirmation..."
+    );
 
     return true;
   }
