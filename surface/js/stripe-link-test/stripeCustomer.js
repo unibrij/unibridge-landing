@@ -876,6 +876,11 @@ export function createStripeCustomerFlow({
   Therefore state mutation for successful authentication
   lives inside the Stripe callback.
 
+  A callback belongs ONLY to the auth intent that started
+  it. If state.authIntentId has changed in the meantime,
+  that callback is stale and must be ignored before any
+  shared-state or UI mutation.
+
   onSuccess is optional and lets the orchestrator update
   button availability without moving Stripe callback logic
   into index.js.
@@ -918,6 +923,46 @@ export function createStripeCustomerFlow({
         async (
           result
         ) => {
+          /*
+          --------------------------------------------------
+          Stale-callback guard
+
+          Another LinkAuthIntent may have been created while
+          this Stripe element was still mounted.
+
+          Never allow an older callback to mutate:
+
+          - cryptoCustomerId
+          - verification state
+          - downstream limits/payment state
+          - current diagnostic status
+
+          The current authIntentId is the generation marker.
+          --------------------------------------------------
+          */
+
+          if (
+            normalizeString(
+              state.authIntentId
+            ) !==
+              normalizedAuthIntentId
+          ) {
+            console.warn(
+              "STRIPE_LINK_AUTH_STALE_RESULT_IGNORED",
+              {
+                authIntentId:
+                  normalizedAuthIntentId,
+
+                currentAuthIntentId:
+                  normalizeOptionalString(
+                    state.authIntentId
+                  )
+              }
+            );
+
+            return;
+          }
+
           console.log(
             "STRIPE_LINK_AUTH_RESULT",
             result
