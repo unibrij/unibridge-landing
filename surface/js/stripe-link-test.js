@@ -10,6 +10,8 @@
   STRIPE_ONRAMP_MODE=sandbox
   → Sandbox credentials
   → Full diagnostic flow enabled
+  → A clean US diagnostic settlement is created
+    automatically when ACH limits are requested.
 
   STRIPE_ONRAMP_MODE=live
   → Live credentials
@@ -33,12 +35,14 @@
   9. Complete L2 document verification if required
      (photo ID + selfie)
   10. Reload CryptoCustomer
-  11. Load settlement-bound ACH transaction limits
-  12. Collect ACH payment method
-  13. Obtain cryptoPaymentToken
-  14. Create settlement-bound Headless Session
-  15. Inspect session transaction details / quote
-  16. performCheckout() using the same session
+  11. Create clean US sandbox diagnostic settlement
+      owned by the current Clerk customer
+  12. Load settlement-bound ACH transaction limits
+  13. Collect ACH payment method
+  14. Obtain cryptoPaymentToken
+  15. Create settlement-bound Headless Session
+  16. Inspect session transaction details / quote
+  17. performCheckout() using the same session
 
   IMPORTANT:
   - No Stripe secret key here
@@ -70,8 +74,11 @@
       * create headless sessions
       * perform checkout
 
-  Diagnostic settlement:
+  Sandbox:
+  - settlementId in the URL is intentionally ignored.
+  - The test settlement is created server-side on demand.
 
+  Live diagnostic:
   /surface/stripe-link-test.html?settlementId=<SETTLEMENT_ID>
 
   or:
@@ -94,6 +101,9 @@
 
   const CUSTOMER_CONTEXT_URL =
     "/v2/ramp/stripe/browser/customer-context";
+
+  const SANDBOX_TEST_SETTLEMENT_URL =
+    "/v2/ramp/stripe/browser/test-settlement";
 
   const TRANSACTION_LIMITS_URL =
     "/v2/ramp/stripe/browser/transaction-limits";
@@ -143,6 +153,23 @@
 
   let checkoutCompleted =
     false;
+
+  /*
+  --------------------------------------------------
+  Sandbox diagnostic settlement state
+
+  This is NEVER initialized from the URL in sandbox.
+
+  It must come from:
+  POST /v2/ramp/stripe/browser/test-settlement
+  --------------------------------------------------
+  */
+
+  let sandboxDiagnosticSettlementId =
+    null;
+
+  let sandboxDiagnosticSettlementPromise =
+    null;
 
 
   /* =========================
@@ -412,7 +439,17 @@
   }
 
 
-  function resolveDiagnosticSettlementId() {
+  /*
+  --------------------------------------------------
+  URL settlement
+
+  Used only by LIVE safe diagnostic mode.
+
+  Sandbox intentionally does not trust/use this value.
+  --------------------------------------------------
+  */
+
+  function resolveUrlDiagnosticSettlementId() {
     const params =
       new URLSearchParams(
         window.location.search
@@ -434,11 +471,99 @@
   }
 
 
+  /*
+  --------------------------------------------------
+  Active diagnostic settlement
+
+  Sandbox:
+  → only the server-created test settlement
+
+  Live:
+  → explicit URL settlement
+  --------------------------------------------------
+  */
+
+  function resolveDiagnosticSettlementId() {
+    if (
+      isSandboxMode()
+    ) {
+      return (
+        sandboxDiagnosticSettlementId ||
+        null
+      );
+    }
+
+    return resolveUrlDiagnosticSettlementId();
+  }
+
+
   function requireDiagnosticSettlementId() {
     return requireString(
       resolveDiagnosticSettlementId(),
       "missing_diagnostic_settlement_id"
     );
+  }
+
+
+  function rememberSandboxDiagnosticSettlementId(
+    settlementId
+  ) {
+    const normalizedSettlementId =
+      requireString(
+        settlementId,
+        "missing_sandbox_diagnostic_settlement_id"
+      );
+
+    sandboxDiagnosticSettlementId =
+      normalizedSettlementId;
+
+    /*
+    --------------------------------------------------
+    Reflect the generated ID in the URL for visibility
+    and copy/paste debugging.
+
+    On a fresh page load in sandbox this URL value is
+    still ignored; a new authenticated diagnostic
+    settlement will be created on demand.
+    --------------------------------------------------
+    */
+
+    try {
+      const url =
+        new URL(
+          window.location.href
+        );
+
+      url.searchParams.set(
+        "settlementId",
+        normalizedSettlementId
+      );
+
+      url.searchParams.delete(
+        "settlement_id"
+      );
+
+      window.history.replaceState(
+        window.history.state,
+        "",
+        url
+      );
+    } catch (
+      error
+    ) {
+      console.warn(
+        "STRIPE_SANDBOX_SETTLEMENT_URL_UPDATE_FAILED",
+        {
+          message:
+            error?.message ??
+            String(
+              error
+            )
+        }
+      );
+    }
+
+    return normalizedSettlementId;
   }
 
 
@@ -584,12 +709,18 @@
 
 
   function canLoadTransactionLimits() {
+    const settlementCanBeResolved =
+      isSandboxMode() ||
+      Boolean(
+        resolveDiagnosticSettlementId()
+      );
+
     return Boolean(
       authIntentId &&
       cryptoCustomerId &&
       stripeKycVerified &&
       stripeDocumentVerified &&
-      resolveDiagnosticSettlementId()
+      settlementCanBeResolved
     );
   }
 
@@ -610,7 +741,8 @@
       stripeKycVerified &&
       stripeDocumentVerified &&
       achLimitsAvailable &&
-      cryptoPaymentToken
+      cryptoPaymentToken &&
+      sandboxDiagnosticSettlementId
     );
   }
 
@@ -815,6 +947,22 @@
             ? ` (${stripeDocumentVerificationStatus})`
             : ""
         }.`
+      );
+    }
+
+    if (
+      isSandboxMode()
+    ) {
+      if (
+        sandboxDiagnosticSettlementId
+      ) {
+        return (
+          "Get ACH Transaction Limits using the generated sandbox diagnostic settlement."
+        );
+      }
+
+      return (
+        "Get ACH Transaction Limits. A clean US sandbox diagnostic settlement will be created automatically first."
       );
     }
 
@@ -1468,6 +1616,160 @@
 
 
   /* =========================
+     SANDBOX DIAGNOSTIC
+     SETTLEMENT
+  ========================= */
+
+  async function createSandboxDiagnosticSettlement() {
+    requireSandboxMode(
+      "sandbox_test_settlement_disabled_in_live_mode"
+    );
+
+    const headers =
+      await buildAuthenticatedJsonHeaders();
+
+    setStatus(
+      "Creating clean US sandbox diagnostic settlement...",
+      {
+        mode:
+          browserConfig?.mode ??
+          null,
+
+        authenticated:
+          true
+      }
+    );
+
+    const response =
+      await fetch(
+        SANDBOX_TEST_SETTLEMENT_URL,
+        {
+          method:
+            "POST",
+
+          headers,
+
+          body:
+            JSON.stringify({})
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () =>
+            null
+        );
+
+    if (
+      !response.ok
+    ) {
+      const error =
+        new Error(
+          payload?.error?.message ||
+          payload?.message ||
+          `sandbox_test_settlement_http_${response.status}`
+        );
+
+      error.status =
+        response.status;
+
+      error.payload =
+        payload;
+
+      throw error;
+    }
+
+    if (
+      payload?.ok !==
+        true
+    ) {
+      throw new Error(
+        "sandbox_test_settlement_not_ok"
+      );
+    }
+
+    if (
+      payload?.diagnostic_only !==
+        true
+    ) {
+      throw new Error(
+        "sandbox_test_settlement_not_diagnostic"
+      );
+    }
+
+    const settlementId =
+      rememberSandboxDiagnosticSettlementId(
+        payload?.settlement_id
+      );
+
+    console.log(
+      "STRIPE_SANDBOX_TEST_SETTLEMENT_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        provider:
+          normalizeOptionalString(
+            payload?.provider
+          ),
+
+        source_country:
+          normalizeOptionalString(
+            payload?.source_country
+          ),
+
+        diagnostic_only:
+          true
+      }
+    );
+
+    return settlementId;
+  }
+
+
+  async function ensureSandboxDiagnosticSettlement() {
+    requireSandboxMode(
+      "sandbox_test_settlement_disabled_in_live_mode"
+    );
+
+    if (
+      sandboxDiagnosticSettlementId
+    ) {
+      return sandboxDiagnosticSettlementId;
+    }
+
+    if (
+      sandboxDiagnosticSettlementPromise
+    ) {
+      return sandboxDiagnosticSettlementPromise;
+    }
+
+    sandboxDiagnosticSettlementPromise =
+      createSandboxDiagnosticSettlement()
+        .catch(
+          (
+            error
+          ) => {
+            sandboxDiagnosticSettlementId =
+              null;
+
+            throw error;
+          }
+        )
+        .finally(
+          () => {
+            sandboxDiagnosticSettlementPromise =
+              null;
+          }
+        );
+
+    return sandboxDiagnosticSettlementPromise;
+  }
+
+
+  /* =========================
      REGISTER LINK USER
   ========================= */
 
@@ -1649,7 +1951,10 @@
         authIntentId,
 
         settlementId:
-          resolveDiagnosticSettlementId()
+          resolveDiagnosticSettlementId(),
+
+        sandboxSettlementAutomatic:
+          isSandboxMode()
       }
     );
 
@@ -1756,6 +2061,9 @@
 
                 settlementId:
                   resolveDiagnosticSettlementId(),
+
+                sandboxSettlementAutomatic:
+                  isSandboxMode(),
 
                 liveSafetyGuard:
                   isLiveMode(),
@@ -1933,6 +2241,14 @@
         settlementId:
           resolveDiagnosticSettlementId(),
 
+        sandboxSettlementAutomatic:
+          isSandboxMode(),
+
+        sandboxSettlementCreated:
+          Boolean(
+            sandboxDiagnosticSettlementId
+          ),
+
         kycAlreadyVerified:
           stripeKycVerified,
 
@@ -2048,14 +2364,6 @@
   /* =========================
      L2 DOCUMENT VERIFICATION
      SANDBOX ONLY
-
-     Stripe ACH requires L2:
-     photo ID + selfie.
-
-     Production orchestration uses:
-     await sdk.verifyDocuments()
-
-     Then CryptoCustomer must be reloaded.
   ========================= */
 
   async function verifyStripeDocuments() {
@@ -2117,15 +2425,6 @@
     const result =
       await sdk.verifyDocuments();
 
-    /*
-    --------------------------------------------------
-    Do not infer verified from verifyDocuments() return.
-
-    CryptoCustomer remains authoritative.
-    Reload it after the document flow.
-    --------------------------------------------------
-    */
-
     console.log(
       "STRIPE_DOCUMENT_VERIFICATION_FLOW_COMPLETE",
       {
@@ -2143,9 +2442,6 @@
   ========================= */
 
   async function loadTransactionLimits() {
-    const settlementId =
-      requireDiagnosticSettlementId();
-
     const normalizedAuthIntentId =
       requireString(
         authIntentId,
@@ -2174,8 +2470,32 @@
       );
     }
 
+    /*
+    --------------------------------------------------
+    Sandbox:
+
+    Create/reuse the clean server-side US diagnostic
+    settlement bound to the current Clerk customer.
+
+    Live:
+
+    Keep the old explicit settlement-ID requirement.
+    --------------------------------------------------
+    */
+
+    const settlementId =
+      isSandboxMode()
+        ? await ensureSandboxDiagnosticSettlement()
+        : requireDiagnosticSettlementId();
+
     setStatus(
-      `Loading settlement-bound Stripe ACH transaction limits (${browserConfig?.mode ?? "unknown"})...`
+      `Loading settlement-bound Stripe ACH transaction limits (${browserConfig?.mode ?? "unknown"})...`,
+      {
+        settlementId,
+
+        sandboxDiagnostic:
+          isSandboxMode()
+      }
     );
 
     achLimitsAvailable =
@@ -2346,6 +2666,9 @@
           transactionLimits
             .settlementId,
 
+        sandboxDiagnostic:
+          isSandboxMode(),
+
         currency:
           transactionLimits
             .currency,
@@ -2476,6 +2799,9 @@
             setStatus(
               "ACH payment method collected.",
               {
+                settlementId:
+                  resolveDiagnosticSettlementId(),
+
                 l2Verified:
                   true,
 
@@ -2594,7 +2920,13 @@
     resetCheckoutState();
 
     setStatus(
-      "Creating settlement-bound ACH Headless Session..."
+      "Creating settlement-bound ACH Headless Session...",
+      {
+        settlementId,
+
+        sandboxDiagnostic:
+          true
+      }
     );
 
     const headers =
@@ -3133,21 +3465,6 @@
     );
 
 
-  /*
-  --------------------------------------------------
-  Single KYC/L2 action button.
-
-  Before basic KYC:
-  → submitKycInfo()
-
-  After basic KYC but before L2:
-  → verifyDocuments()
-
-  After L2:
-  → disabled
-  --------------------------------------------------
-  */
-
   kycButton
     .addEventListener(
       "click",
@@ -3268,17 +3585,6 @@
           customerContextButton.disabled =
             false;
 
-          /*
-          --------------------------------------------------
-          After a successful KYC or document action,
-          keep the button disabled until CryptoCustomer
-          is reloaded.
-
-          We never infer verification from the SDK action
-          completing.
-          --------------------------------------------------
-          */
-
           if (
             actionCompleted
           ) {
@@ -3334,7 +3640,10 @@
 
               payload:
                 error?.payload ??
-                null
+                null,
+
+              settlementId:
+                resolveDiagnosticSettlementId()
             }
           );
         } finally {
@@ -3537,6 +3846,9 @@
                   settlementId
                 ),
 
+              sandboxSettlementAutomatic:
+                isSandboxMode(),
+
               liveSafetyGuard:
                 isLiveMode(),
 
@@ -3556,6 +3868,7 @@
                       "Submit basic KYC only if required",
                       "Complete L2 photo ID + selfie verification",
                       "Reload CryptoCustomer",
+                      "Automatically create US sandbox diagnostic settlement",
                       "Get ACH transaction limits",
                       "Collect ACH",
                       "Create ACH Headless Session + Quote",
@@ -3563,9 +3876,11 @@
                     ],
 
               diagnosticNote:
-                settlementId
-                  ? "Settlement-bound diagnostics are ready."
-                  : "Add ?settlementId=<SETTLEMENT_ID> to this URL before testing limits/session/checkout."
+                isSandboxMode()
+                  ? "No settlementId is required in the URL. A clean authenticated US sandbox diagnostic settlement will be created automatically when transaction limits are requested."
+                  : settlementId
+                    ? "Settlement-bound live-safe diagnostics are ready."
+                    : "Add ?settlementId=<SETTLEMENT_ID> to this URL before testing live-safe transaction limits."
             }
           );
         }
@@ -3588,9 +3903,9 @@
 
               message:
                 error?.message ??
-                  String(
-                    error
-                  ),
+                String(
+                  error
+                ),
 
               payload:
                 error?.payload ??
