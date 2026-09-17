@@ -106,6 +106,35 @@
       overflow-wrap: anywhere;
     }
   </style>
+
+  <!--
+  --------------------------------------------------
+  Clerk
+
+  Same public Clerk application used by UniBridge.
+
+  The Stripe diagnostic script is intentionally loaded
+  only after Clerk has initialized and a signed-in
+  session is available.
+
+  No Clerk token is written to the DOM or console.
+  --------------------------------------------------
+  -->
+
+  <script
+    defer
+    crossorigin="anonymous"
+    src="https://clerk.unibrij.io/npm/@clerk/ui@1/dist/ui.browser.js"
+    type="text/javascript"
+  ></script>
+
+  <script
+    defer
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_live_Y2xlcmsudW5pYnJpai5pbyQ"
+    src="https://clerk.unibrij.io/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
 </head>
 
 <body>
@@ -115,7 +144,9 @@
     </h1>
 
     <p>
-      Temporary Link, CryptoCustomer, KYC, ACH, transaction limits, and headless session test.
+      Temporary Link, CryptoCustomer, KYC/L2, ACH,
+      transaction limits, Headless Session, quote,
+      and checkout test.
     </p>
 
     <label for="email">
@@ -184,7 +215,7 @@
     </button>
 
     <h2>
-      Stripe KYC
+      Stripe KYC / L2
     </h2>
 
     <label for="kyc-first-name">
@@ -280,7 +311,7 @@
       type="button"
       disabled
     >
-      5. Submit KYC
+      5. Submit Stripe KYC
     </button>
 
     <h2>
@@ -298,6 +329,16 @@
     <h2>
       ACH Headless Session
     </h2>
+
+    <!--
+    --------------------------------------------------
+    Legacy fields retained for compatibility with the
+    diagnostic JS.
+
+    stripe-link-test.js disables them and does not send
+    them to settlement-bound backend endpoints.
+    --------------------------------------------------
+    -->
 
     <label for="session-amount">
       Source amount
@@ -339,7 +380,7 @@
       type="button"
       disabled
     >
-      7. Get ACH Transaction Limits
+      8. Get ACH Transaction Limits
     </button>
 
     <button
@@ -347,11 +388,11 @@
       type="button"
       disabled
     >
-      8. Create ACH Headless Session
+      10. Create ACH Headless Session + Quote
     </button>
 
     <h2>
-      Generic Headless Quote
+      Legacy Quote Inputs
     </h2>
 
     <label for="quote-amount">
@@ -383,20 +424,210 @@
       type="button"
       disabled
     >
-      9. Get Generic Headless Quote
+      11. Perform Checkout
     </button>
 
     <div id="status">
-      Loading Stripe Crypto SDK...
+      Loading Clerk authentication...
     </div>
 
     <div id="auth-container"></div>
   </main>
 
-  <script
-    type="module"
-    src="/surface/js/stripe-link-test.js?v=20260911-transaction-limits"
-  ></script>
+  <script>
+    (() => {
+      const STRIPE_TEST_SCRIPT =
+        "/surface/js/stripe-link-test.js?v=20260917-l2-clerk";
+
+      function setBootstrapStatus(
+        message,
+        payload = null
+      ) {
+        const status =
+          document.getElementById(
+            "status"
+          );
+
+        if (!status) {
+          return;
+        }
+
+        let text =
+          String(
+            message || ""
+          );
+
+        if (
+          payload !==
+          null
+        ) {
+          try {
+            text +=
+              "\n\n" +
+              JSON.stringify(
+                payload,
+                null,
+                2
+              );
+          } catch {
+            text +=
+              "\n\n" +
+              String(
+                payload
+              );
+          }
+        }
+
+        status.textContent =
+          text;
+      }
+
+
+      function loadStripeDiagnosticScript() {
+        return new Promise(
+          (
+            resolve,
+            reject
+          ) => {
+            const script =
+              document.createElement(
+                "script"
+              );
+
+            script.type =
+              "module";
+
+            script.src =
+              STRIPE_TEST_SCRIPT;
+
+            script.onload =
+              () =>
+                resolve();
+
+            script.onerror =
+              () =>
+                reject(
+                  new Error(
+                    "stripe_diagnostic_script_load_failed"
+                  )
+                );
+
+            document.body
+              .appendChild(
+                script
+              );
+          }
+        );
+      }
+
+
+      window.addEventListener(
+        "load",
+        async () => {
+          try {
+            if (
+              !window.Clerk
+            ) {
+              throw new Error(
+                "clerk_not_available_after_script_load"
+              );
+            }
+
+            setBootstrapStatus(
+              "Initializing Clerk..."
+            );
+
+            await window.Clerk.load({
+              ui: {
+                ClerkUI:
+                  window.__internal_ClerkUICtor
+              }
+            });
+
+            if (
+              !window.Clerk.session
+            ) {
+              throw new Error(
+                "clerk_session_not_available"
+              );
+            }
+
+            if (
+              typeof window.Clerk
+                .session
+                .getToken !==
+                "function"
+            ) {
+              throw new Error(
+                "clerk_get_token_not_available"
+              );
+            }
+
+            /*
+            --------------------------------------------------
+            Prove a bearer token can actually be obtained
+            before loading the Stripe diagnostic.
+
+            Never display or log the token.
+            --------------------------------------------------
+            */
+
+            const token =
+              await window.Clerk
+                .session
+                .getToken();
+
+            if (
+              !String(
+                token ?? ""
+              ).trim()
+            ) {
+              throw new Error(
+                "missing_clerk_bearer_token"
+              );
+            }
+
+            setBootstrapStatus(
+              "Clerk authenticated. Loading Stripe diagnostic...",
+              {
+                signedIn:
+                  true,
+
+                tokenReady:
+                  true
+              }
+            );
+
+            await loadStripeDiagnosticScript();
+          } catch (
+            error
+          ) {
+            console.error(
+              "STRIPE_DIAGNOSTIC_BOOTSTRAP_FAILED",
+              {
+                message:
+                  error?.message ??
+                  String(
+                    error
+                  )
+              }
+            );
+
+            setBootstrapStatus(
+              "Stripe diagnostic authentication bootstrap failed.",
+              {
+                message:
+                  error?.message ??
+                  String(
+                    error
+                  )
+              }
+            );
+          }
+        }
+      );
+    })();
+  </script>
 </body>
 
 </html>
