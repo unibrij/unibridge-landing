@@ -1,126 +1,73 @@
 // unibrij/unibridge-landing/surface/js/ramp/stripeOnramp.js
 
 window.UnibridgeStripeOnramp = (() => {
-  const STRIPE_CORE_SRC =
-    "https://js.stripe.com/clover/stripe.js";
+  const STRIPE_CRYPTO_MODULE =
+    "https://cdn.jsdelivr.net/npm/@stripe/crypto@1.1.0/+esm";
 
-  const STRIPE_ONRAMP_SRC =
-    "https://crypto-js.stripe.com/crypto-onramp-outer.js";
+  const STRIPE_BROWSER_CONFIG_URL =
+    "/v2/ramp/stripe/browser/config";
 
-  let activeSession = null;
+  const CONTAINER_ID =
+    "stripeOnrampContainer";
+
+  let browserConfig = null;
+  let browserConfigPromise = null;
+
+  let sdk = null;
+  let sdkPromise = null;
+
+  let stripeCustomerModule = null;
+  let stripeKycModule = null;
+
+  let activeFlowToken = null;
 
 
-  function loadScriptOnce(
-    src,
-    globalName
+  function normalizeString(
+    value
   ) {
-    return new Promise((resolve, reject) => {
-      if (
-        globalName &&
-        window[globalName]
-      ) {
-        resolve(true);
-        return;
-      }
+    return String(
+      value ?? ""
+    ).trim();
+  }
 
-      const existing =
-        Array.from(document.scripts)
-          .find(
-            (script) =>
-              script.src ===
-              new URL(
-                src,
-                document.baseURI
-              ).href
-          );
 
-      if (existing) {
-        if (
-          globalName &&
-          window[globalName]
-        ) {
-          resolve(true);
-          return;
-        }
+  function requireString(
+    value,
+    errorCode
+  ) {
+    const normalized =
+      normalizeString(
+        value
+      );
 
-        existing.addEventListener(
-          "load",
-          () => {
-            if (
-              globalName &&
-              !window[globalName]
-            ) {
-              reject(
-                new Error(
-                  "script_global_missing"
-                )
-              );
-              return;
-            }
+    if (!normalized) {
+      throw new Error(
+        errorCode
+      );
+    }
 
-            resolve(true);
-          },
-          {
-            once: true
-          }
-        );
+    return normalized;
+  }
 
-        existing.addEventListener(
-          "error",
-          () => {
-            reject(
-              new Error(
-                "script_load_failed"
-              )
-            );
-          },
-          {
-            once: true
-          }
-        );
 
-        return;
-      }
-
-      const script =
-        document.createElement("script");
-
-      script.src = src;
-      script.async = true;
-
-      script.onload = () => {
-        if (
-          globalName &&
-          !window[globalName]
-        ) {
-          reject(
-            new Error(
-              "script_global_missing"
-            )
-          );
-          return;
-        }
-
-        resolve(true);
-      };
-
-      script.onerror = () => {
-        reject(
-          new Error(
-            "script_load_failed"
-          )
-        );
-      };
-
-      document.head.appendChild(script);
-    });
+  function assertActiveFlow(
+    token
+  ) {
+    if (
+      !token ||
+      activeFlowToken !== token
+    ) {
+      throw new Error(
+        "stripe_headless_flow_replaced"
+      );
+    }
   }
 
 
   function getContainer() {
     let container =
       document.getElementById(
-        "stripeOnrampContainer"
+        CONTAINER_ID
       );
 
     if (container) {
@@ -138,13 +85,13 @@ window.UnibridgeStripeOnramp = (() => {
       );
 
     container.id =
-      "stripeOnrampContainer";
+      CONTAINER_ID;
 
     container.style.width =
       "100%";
 
     container.style.minHeight =
-      "620px";
+      "220px";
 
     container.style.marginTop =
       "16px";
@@ -170,57 +117,514 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  function clearContainer() {
+    document
+      .getElementById(
+        CONTAINER_ID
+      )
+      ?.remove();
+  }
+
+
   function reset() {
-    const session =
-      activeSession;
+    activeFlowToken =
+      null;
 
-    activeSession = null;
-
-    if (
-      session &&
-      typeof session.unmount ===
-        "function"
-    ) {
-      try {
-        session.unmount();
-      } catch (error) {
-        console.warn(
-          "STRIPE_ONRAMP_UNMOUNT_FAILED",
-          error
-        );
-      }
-    }
-
-    const container =
-      document.getElementById(
-        "stripeOnrampContainer"
+    try {
+      stripeKycModule
+        ?.resetStripeKycFlow?.();
+    } catch (error) {
+      console.warn(
+        "STRIPE_KYC_RESET_FAILED",
+        error
       );
-
-    if (container) {
-      container.remove();
     }
+
+    clearContainer();
+  }
+
+
+  async function loadBrowserConfig() {
+    if (browserConfig) {
+      return browserConfig;
+    }
+
+    if (browserConfigPromise) {
+      return browserConfigPromise;
+    }
+
+    browserConfigPromise =
+      fetch(
+        STRIPE_BROWSER_CONFIG_URL,
+        {
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json"
+          },
+
+          cache:
+            "no-store"
+        }
+      )
+        .then(
+          async (
+            response
+          ) => {
+            const payload =
+              await response
+                .json()
+                .catch(
+                  () =>
+                    null
+                );
+
+            if (!response.ok) {
+              throw new Error(
+                payload?.error?.message ||
+                payload?.message ||
+                `stripe_browser_config_http_${response.status}`
+              );
+            }
+
+            const publishableKey =
+              requireString(
+                payload?.publishableKey,
+                "missing_stripe_publishable_key"
+              );
+
+            if (
+              !publishableKey.startsWith(
+                "pk_"
+              )
+            ) {
+              throw new Error(
+                "invalid_stripe_publishable_key"
+              );
+            }
+
+            browserConfig = {
+              mode:
+                normalizeString(
+                  payload?.mode
+                ) ||
+                null,
+
+              isSandbox:
+                typeof payload?.isSandbox ===
+                  "boolean"
+                  ? payload.isSandbox
+                  : null,
+
+              publishableKey
+            };
+
+            return browserConfig;
+          }
+        )
+        .catch(
+          (
+            error
+          ) => {
+            browserConfigPromise =
+              null;
+
+            browserConfig =
+              null;
+
+            throw error;
+          }
+        );
+
+    return browserConfigPromise;
   }
 
 
   async function ensureSdk() {
-    await loadScriptOnce(
-      STRIPE_CORE_SRC,
-      "Stripe"
-    );
+    if (sdk) {
+      return sdk;
+    }
 
-    await loadScriptOnce(
-      STRIPE_ONRAMP_SRC,
-      "StripeOnramp"
+    if (sdkPromise) {
+      return sdkPromise;
+    }
+
+    sdkPromise =
+      (
+        async () => {
+          const config =
+            await loadBrowserConfig();
+
+          const module =
+            await import(
+              STRIPE_CRYPTO_MODULE
+            );
+
+          const initialize =
+            module
+              ?.loadCryptoOnrampAndInitialize;
+
+          if (
+            typeof initialize !==
+              "function"
+          ) {
+            throw new Error(
+              "loadCryptoOnrampAndInitialize_not_exported"
+            );
+          }
+
+          const instance =
+            await initialize(
+              config.publishableKey,
+              {
+                theme:
+                  "stripe"
+              }
+            );
+
+          if (!instance) {
+            throw new Error(
+              "stripe_embedded_components_initialization_failed"
+            );
+          }
+
+          sdk =
+            instance;
+
+          return sdk;
+        }
+      )()
+        .catch(
+          (
+            error
+          ) => {
+            sdkPromise =
+              null;
+
+            sdk =
+              null;
+
+            throw error;
+          }
+        );
+
+    return sdkPromise;
+  }
+
+
+  async function ensureStripeCustomerModule() {
+    if (stripeCustomerModule) {
+      return stripeCustomerModule;
+    }
+
+    stripeCustomerModule =
+      await import(
+        "/surface/js/ramp/stripeEmbedded/stripeCustomer.js"
+      );
+
+    return stripeCustomerModule;
+  }
+
+
+  async function ensureStripeKycModule() {
+    if (stripeKycModule) {
+      return stripeKycModule;
+    }
+
+    stripeKycModule =
+      await import(
+        "/surface/js/kyc/stripe/stripeKycFlow.js"
+      );
+
+    return stripeKycModule;
+  }
+
+
+  async function resolveAuthenticatedEmail() {
+    const {
+      ensureFiatClerkAuth
+    } = await import(
+      "/shared/pay/auth/clerkAuth.js"
     );
 
     if (
-      typeof window.StripeOnramp !==
-      "function"
+      typeof ensureFiatClerkAuth !==
+        "function"
     ) {
       throw new Error(
-        "stripe_onramp_sdk_missing"
+        "surface_customer_auth_unavailable"
       );
     }
+
+    const auth =
+      await ensureFiatClerkAuth();
+
+    return requireString(
+      auth?.email,
+      "authenticated_customer_email_missing"
+    )
+      .toLowerCase();
+  }
+
+
+  async function authenticateStripeCustomer({
+    sdk: stripeSdk,
+    container,
+    email,
+    setStatus,
+    flowToken
+  }) {
+    const {
+      createStripeLinkAuthIntent,
+      startStripeCustomerAuthentication
+    } =
+      await ensureStripeCustomerModule();
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Starting secure Stripe authentication..."
+    );
+
+    const {
+      authIntentId
+    } =
+      await createStripeLinkAuthIntent({
+        email
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    const authentication =
+      await startStripeCustomerAuthentication({
+        sdk:
+          stripeSdk,
+
+        authIntentId
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    container.replaceChildren(
+      authentication.element
+    );
+
+    setStatus(
+      "Complete Stripe authentication to continue."
+    );
+
+    const completed =
+      await authentication.completion;
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    container.replaceChildren();
+
+    return {
+      authIntentId:
+        requireString(
+          completed?.authIntentId ??
+          authIntentId,
+          "missing_auth_intent_id"
+        ),
+
+      cryptoCustomerId:
+        requireString(
+          completed?.cryptoCustomerId,
+          "missing_crypto_customer_id"
+        )
+    };
+  }
+
+
+  async function loadCryptoCustomer({
+    authIntentId,
+    cryptoCustomerId,
+    flowToken
+  }) {
+    const {
+      loadStripeCryptoCustomer
+    } =
+      await ensureStripeCustomerModule();
+
+    const customer =
+      await loadStripeCryptoCustomer({
+        authIntentId,
+        cryptoCustomerId
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    return customer;
+  }
+
+
+  async function runStripeIdentityFlow({
+    sdk: stripeSdk,
+    authIntentId,
+    cryptoCustomerId,
+    setStatus,
+    flowToken
+  }) {
+    const customerModule =
+      await ensureStripeCustomerModule();
+
+    const kycModule =
+      await ensureStripeKycModule();
+
+    const {
+      getStripeVerificationStatus,
+      isStripeVerificationVerified
+    } =
+      customerModule;
+
+    const {
+      runStripeKycFlow
+    } =
+      kycModule;
+
+    let customer =
+      await loadCryptoCustomer({
+        authIntentId,
+        cryptoCustomerId,
+        flowToken
+      });
+
+    if (
+      isStripeVerificationVerified(
+        customer,
+        "kyc_verified"
+      )
+    ) {
+      return customer;
+    }
+
+    setStatus(
+      "Complete Stripe identity verification."
+    );
+
+    await runStripeKycFlow({
+      sdk:
+        stripeSdk,
+
+      includeUsStepUp:
+        true,
+
+      setStatus
+    });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    /*
+    --------------------------------------------------
+    Critical ordering:
+
+    Never inspect limits here.
+    First reload Stripe CryptoCustomer after textual
+    KYC / SSN submission.
+    --------------------------------------------------
+    */
+
+    customer =
+      await loadCryptoCustomer({
+        authIntentId,
+        cryptoCustomerId,
+        flowToken
+      });
+
+    if (
+      isStripeVerificationVerified(
+        customer,
+        "kyc_verified"
+      )
+    ) {
+      return customer;
+    }
+
+    const documentStatus =
+      getStripeVerificationStatus(
+        customer,
+        "id_document_verified"
+      );
+
+    if (
+      documentStatus ===
+        "not_started"
+    ) {
+      if (
+        typeof stripeSdk.verifyDocuments !==
+          "function"
+      ) {
+        throw new Error(
+          "stripe_verify_documents_not_available"
+        );
+      }
+
+      setStatus(
+        "Stripe needs a photo ID and selfie to continue."
+      );
+
+      await stripeSdk.verifyDocuments();
+
+      assertActiveFlow(
+        flowToken
+      );
+
+      /*
+      --------------------------------------------------
+      Reload again after Stripe document verification.
+      --------------------------------------------------
+      */
+
+      customer =
+        await loadCryptoCustomer({
+          authIntentId,
+          cryptoCustomerId,
+          flowToken
+        });
+    }
+
+    if (
+      !isStripeVerificationVerified(
+        customer,
+        "kyc_verified"
+      )
+    ) {
+      const error =
+        new Error(
+          "stripe_kyc_not_verified"
+        );
+
+      error.verificationStatus =
+        getStripeVerificationStatus(
+          customer,
+          "kyc_verified"
+        );
+
+      error.documentVerificationStatus =
+        getStripeVerificationStatus(
+          customer,
+          "id_document_verified"
+        );
+
+      throw error;
+    }
+
+    return customer;
   }
 
 
@@ -228,167 +632,167 @@ window.UnibridgeStripeOnramp = (() => {
     ctx,
     action
   ) {
-    const meta =
-      action?.meta || {};
-
-    const clientSecret =
-      typeof meta.client_secret ===
-      "string"
-        ? meta.client_secret.trim()
-        : "";
-
-    const publishableKey =
-      typeof meta.publishable_key ===
-      "string"
-        ? meta.publishable_key.trim()
-        : "";
-
-    if (!clientSecret) {
+    if (
+      !ctx ||
+      typeof ctx.setStatus !==
+        "function" ||
+      typeof ctx.setContinueDisabled !==
+        "function"
+    ) {
       throw new Error(
-        "missing_stripe_onramp_client_secret"
+        "stripe_onramp_context_invalid"
       );
     }
 
-    if (!publishableKey) {
+    const settlementId =
+      requireString(
+        typeof ctx.getSettlementId ===
+          "function"
+          ? ctx.getSettlementId()
+          : action?.meta?.settlement_id,
+        "missing_settlement_id"
+      );
+
+    const actionSettlementId =
+      normalizeString(
+        action?.meta?.settlement_id
+      );
+
+    if (
+      actionSettlementId &&
+      actionSettlementId !==
+        settlementId
+    ) {
       throw new Error(
-        "missing_stripe_publishable_key"
+        "stripe_settlement_context_mismatch"
       );
     }
 
-    await ensureSdk();
-
-    /*
-    Always tear down any previous Stripe session before
-    mounting a new quote/session.
-    */
     reset();
+
+    const flowToken = {};
+
+    activeFlowToken =
+      flowToken;
+
+    const setStatus =
+      (
+        message,
+        type
+      ) => {
+        if (
+          activeFlowToken !==
+            flowToken
+        ) {
+          return;
+        }
+
+        ctx.setStatus(
+          message,
+          type
+        );
+      };
+
+    ctx.setContinueDisabled(
+      true
+    );
+
+    setStatus(
+      "Preparing Stripe bank funding..."
+    );
 
     const container =
       getContainer();
 
-    ctx.setContinueDisabled(true);
+    const [
+      stripeSdk,
+      email
+    ] =
+      await Promise.all([
+        ensureSdk(),
+        resolveAuthenticatedEmail()
+      ]);
 
-    ctx.setStatus(
-      "Opening Stripe payment..."
+    assertActiveFlow(
+      flowToken
     );
 
-    const stripeOnramp =
-      window.StripeOnramp(
-        publishableKey
-      );
+    const {
+      authIntentId,
+      cryptoCustomerId
+    } =
+      await authenticateStripeCustomer({
+        sdk:
+          stripeSdk,
 
-    const session =
-      stripeOnramp.createSession({
-        clientSecret,
-
-        appearance: {
-          theme: "dark"
-        }
+        container,
+        email,
+        setStatus,
+        flowToken
       });
 
-    if (
-      !session ||
-      typeof session.mount !==
-        "function"
-    ) {
-      throw new Error(
-        "stripe_onramp_session_mount_missing"
-      );
-    }
-
-    activeSession =
-      session;
-
-    if (
-      typeof session.addEventListener ===
-      "function"
-    ) {
-      session.addEventListener(
-        "onramp_session_updated",
-        (event) => {
-          /*
-          Ignore events from a session that has already
-          been replaced/reset.
-          */
-          if (
-            activeSession !==
-            session
-          ) {
-            return;
-          }
-
-          const stripeSession =
-            event?.payload?.session ||
-            null;
-
-          const status =
-            stripeSession?.status ||
-            null;
-
-          console.log(
-            "STRIPE_ONRAMP_SESSION_UPDATED",
-            {
-              status,
-
-              session_id:
-                stripeSession?.id ||
-                null
-            }
-          );
-
-          if (
-            status ===
-            "fulfillment_complete"
-          ) {
-            ctx.emit(
-              "unibridge:payment"
-            );
-
-            ctx.setStatus(
-              "Payment submitted. Waiting for on-chain confirmation..."
-            );
-
-            return;
-          }
-
-          if (
-            status ===
-            "rejected"
-          ) {
-            ctx.setContinueDisabled(
-              false
-            );
-
-            ctx.setStatus(
-              "Stripe payment was not completed.",
-              "error"
-            );
-
-            return;
-          }
-
-          ctx.setStatus(
-            "Complete the payment in the Stripe widget."
-          );
-        }
-      );
-    }
-
-    session.mount(
-      "#stripeOnrampContainer"
+    assertActiveFlow(
+      flowToken
     );
 
-    ctx.emit(
-      "unibridge:quote"
+    const customer =
+      await runStripeIdentityFlow({
+        sdk:
+          stripeSdk,
+
+        authIntentId,
+        cryptoCustomerId,
+        setStatus,
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
     );
 
-    ctx.emit(
-      "unibridge:payment"
+    const {
+      getStripeVerificationStatus
+    } =
+      await ensureStripeCustomerModule();
+
+    console.log(
+      "STRIPE_HEADLESS_KYC_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        kyc_status:
+          getStripeVerificationStatus(
+            customer,
+            "kyc_verified"
+          ),
+
+        document_status:
+          getStripeVerificationStatus(
+            customer,
+            "id_document_verified"
+          )
+      }
     );
 
-    ctx.setStatus(
-      "Complete the payment in the Stripe widget."
+    container.replaceChildren();
+
+    setStatus(
+      "Stripe identity verified. Preparing bank payment..."
     );
+
+    /*
+    --------------------------------------------------
+    Intentional stop point for this migration step.
+
+    DO NOT load transaction limits here yet.
+    DO NOT collect us_bank_account here yet.
+    DO NOT create the headless session here yet.
+
+    The next incremental step continues from the
+    verified, reloaded CryptoCustomer state.
+    --------------------------------------------------
+    */
 
     return true;
   }
