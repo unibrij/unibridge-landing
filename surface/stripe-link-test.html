@@ -113,9 +113,11 @@
 
   Same public Clerk application used by UniBridge.
 
-  The Stripe diagnostic script is intentionally loaded
-  only after Clerk has initialized and a signed-in
-  session is available.
+  The Stripe diagnostic module is loaded only after
+  Clerk itself has initialized.
+
+  Exact-session recovery and bearer-token minting belong
+  to stripe-link-test/clerkAuth.js.
 
   No Clerk token is written to the DOM or console.
   --------------------------------------------------
@@ -332,11 +334,15 @@
 
     <!--
     --------------------------------------------------
-    Legacy fields retained for compatibility with the
-    diagnostic JS.
+    Legacy diagnostic fields
 
-    stripe-link-test.js disables them and does not send
-    them to settlement-bound backend endpoints.
+    Retained for compatibility with the temporary test
+    page.
+
+    stripe-link-test/ui.js disables them.
+
+    They are NOT authoritative and are NOT sent to the
+    settlement-bound backend endpoints.
     --------------------------------------------------
     -->
 
@@ -436,8 +442,21 @@
 
   <script>
     (() => {
+      /*
+      --------------------------------------------------
+      Modular Stripe diagnostic entry point
+      --------------------------------------------------
+      */
+
       const STRIPE_TEST_SCRIPT =
-        "/surface/js/stripe-link-test.js?v=20260917-l2-clerk";
+        "/surface/js/stripe-link-test/index.js?v=20260917-modular";
+
+
+      /*
+      --------------------------------------------------
+      Bootstrap status
+      --------------------------------------------------
+      */
 
       function setBootstrapStatus(
         message,
@@ -459,7 +478,7 @@
 
         if (
           payload !==
-          null
+            null
         ) {
           try {
             text +=
@@ -482,6 +501,21 @@
           text;
       }
 
+
+      /*
+      --------------------------------------------------
+      Load modular diagnostic entry point
+
+      The module itself imports:
+
+      - ui.js
+      - clerkAuth.js
+      - stripeCustomer.js
+      - stripeKyc.js
+      - diagnosticSettlement.js
+      - stripeFunding.js
+      --------------------------------------------------
+      */
 
       function loadStripeDiagnosticScript() {
         return new Promise(
@@ -521,6 +555,28 @@
       }
 
 
+      /*
+      --------------------------------------------------
+      Bootstrap
+
+      Important:
+
+      We initialize Clerk here, but we intentionally do
+      NOT require Clerk.session or call getToken() here.
+
+      clerkAuth.js owns:
+
+      - exact-session binding
+      - Clerk client reload
+      - last-active-session recovery
+      - exact signed-in-session lookup
+      - fresh bearer-token minting
+
+      This avoids blocking the diagnostic before its Clerk
+      recovery logic gets a chance to run.
+      --------------------------------------------------
+      */
+
       window.addEventListener(
         "load",
         async () => {
@@ -544,83 +600,31 @@
               }
             });
 
-            if (
-              !window.Clerk.session
-            ) {
-              throw new Error(
-                "clerk_session_not_available"
-              );
-            }
-
-            if (
-              typeof window.Clerk
-                .session
-                .getToken !==
-                "function"
-            ) {
-              throw new Error(
-                "clerk_get_token_not_available"
-              );
-            }
-
-            /*
-            --------------------------------------------------
-            Prove a bearer token can actually be obtained
-            before loading the Stripe diagnostic.
-
-            Never display or log the token.
-            --------------------------------------------------
-            */
-
-            const token =
-              await window.Clerk
-                .session
-                .getToken();
-
-            if (
-              !String(
-                token ?? ""
-              ).trim()
-            ) {
-              throw new Error(
-                "missing_clerk_bearer_token"
-              );
-            }
-
             setBootstrapStatus(
-              "Clerk authenticated. Loading Stripe diagnostic...",
-              {
-                signedIn:
-                  true,
-
-                tokenReady:
-                  true
-              }
+              "Clerk initialized. Loading Stripe diagnostic..."
             );
 
             await loadStripeDiagnosticScript();
           } catch (
             error
           ) {
+            const message =
+              error?.message ??
+              String(
+                error
+              );
+
             console.error(
               "STRIPE_DIAGNOSTIC_BOOTSTRAP_FAILED",
               {
-                message:
-                  error?.message ??
-                  String(
-                    error
-                  )
+                message
               }
             );
 
             setBootstrapStatus(
-              "Stripe diagnostic authentication bootstrap failed.",
+              "Stripe diagnostic bootstrap failed.",
               {
-                message:
-                  error?.message ??
-                  String(
-                    error
-                  )
+                message
               }
             );
           }
