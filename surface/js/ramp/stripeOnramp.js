@@ -22,6 +22,7 @@ window.UnibridgeStripeOnramp = (() => {
   let stripeBrowserApiModule = null;
   let stripeCustomerModule = null;
   let stripeKycModule = null;
+  let stripeConsumerWalletModule = null;
   let stripeLimitsModule = null;
   let stripePaymentMethodModule = null;
 
@@ -374,6 +375,20 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function ensureStripeConsumerWalletModule() {
+    if (stripeConsumerWalletModule) {
+      return stripeConsumerWalletModule;
+    }
+
+    stripeConsumerWalletModule =
+      await import(
+        "/surface/js/ramp/stripeEmbedded/stripeConsumerWallet.js"
+      );
+
+    return stripeConsumerWalletModule;
+  }
+
+
   async function ensureStripeLimitsModule() {
     if (stripeLimitsModule) {
       return stripeLimitsModule;
@@ -701,9 +716,10 @@ window.UnibridgeStripeOnramp = (() => {
     --------------------------------------------------
     Final L2 gate.
 
-    No limits / ACH / Headless Session may run unless
-    both basic KYC and document verification are
-    verified on the final reloaded CryptoCustomer.
+    No wallet registration / limits / ACH / Headless
+    Session may run unless both basic KYC and document
+    verification are verified on the final reloaded
+    CryptoCustomer.
     --------------------------------------------------
     */
 
@@ -745,6 +761,63 @@ window.UnibridgeStripeOnramp = (() => {
     }
 
     return customer;
+  }
+
+
+  async function ensureSettlementConsumerWallet({
+    sdk: stripeSdk,
+    settlementId,
+    authIntentId,
+    cryptoCustomerId,
+    setStatus,
+    flowToken
+  }) {
+    const {
+      ensureStripeConsumerWallet
+    } =
+      await ensureStripeConsumerWalletModule();
+
+    if (
+      typeof ensureStripeConsumerWallet !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_consumer_wallet_runtime_missing"
+      );
+    }
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    setStatus(
+      "Preparing your secure Stripe wallet..."
+    );
+
+    const walletContext =
+      await ensureStripeConsumerWallet({
+        sdk:
+          stripeSdk,
+
+        settlementId,
+        authIntentId,
+        cryptoCustomerId
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    if (
+      walletContext?.registered !==
+        true
+    ) {
+      throw new Error(
+        "stripe_consumer_wallet_not_registered"
+      );
+    }
+
+    return walletContext;
   }
 
 
@@ -1301,8 +1374,61 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    Limits are checked only after the final L2
-    CryptoCustomer reload.
+    Ensure Stripe knows the exact canonical wallet
+    already assigned to this real settlement.
+
+    Wallet address and network originate from the
+    backend FundingSession.
+
+    No browser-selected wallet/network is accepted.
+    --------------------------------------------------
+    */
+
+    const walletContext =
+      await ensureSettlementConsumerWallet({
+        sdk:
+          stripeSdk,
+
+        settlementId,
+        authIntentId,
+        cryptoCustomerId,
+        setStatus,
+        flowToken
+      });
+
+    assertActiveFlow(
+      flowToken
+    );
+
+    console.log(
+      "STRIPE_CONSUMER_WALLET_READY",
+      {
+        settlement_id:
+          settlementId,
+
+        registered:
+          walletContext
+            .registered ===
+          true,
+
+        network:
+          walletContext
+            .network,
+
+        consumer_wallet_ready:
+          Boolean(
+            walletContext
+              .consumerWalletId
+          )
+      }
+    );
+
+    /*
+    --------------------------------------------------
+    Limits are checked only after:
+
+      final L2 CryptoCustomer reload
+      settlement ConsumerWallet registration
     --------------------------------------------------
     */
 
@@ -1339,8 +1465,11 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    ACH payment-method collection begins only after
-    Stripe confirms ACH availability.
+    ACH payment-method collection begins only after:
+
+      L2 verified
+      ConsumerWallet confirmed
+      ACH limits available
     --------------------------------------------------
     */
 
