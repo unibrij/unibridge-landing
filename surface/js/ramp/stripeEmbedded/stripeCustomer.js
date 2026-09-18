@@ -1,5 +1,10 @@
 // unibridge-landing/surface/js/ramp/stripeEmbedded/stripeCustomer.js
 
+import {
+  stripeBrowserPostJson
+} from "./stripeBrowserApi.js";
+
+
 const CREATE_LINK_AUTH_INTENT_URL =
   "/v2/ramp/stripe/browser/link-auth-intent";
 
@@ -35,68 +40,15 @@ function requireString(
 }
 
 
-async function postJson(
-  url,
-  body
-) {
-  const response =
-    await fetch(
-      url,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Accept:
-            "application/json"
-        },
-
-        body:
-          JSON.stringify(
-            body
-          )
-      }
-    );
-
-  const payload =
-    await response
-      .json()
-      .catch(
-        () =>
-          null
-      );
-
-  if (
-    !response.ok
-  ) {
-    const error =
-      new Error(
-        payload?.error?.message ||
-        payload?.message ||
-        `stripe_customer_http_${response.status}`
-      );
-
-    error.status =
-      response.status;
-
-    error.payload =
-      payload;
-
-    throw error;
-  }
-
-  return payload;
-}
-
-
 /*
 --------------------------------------------------
 Create LinkAuthIntent
 
 Email comes from the authenticated Surface flow.
+
+The browser request is authenticated with the
+current Clerk session through stripeBrowserApi.
+
 OAuth tokens never enter the browser.
 --------------------------------------------------
 */
@@ -112,11 +64,15 @@ export async function createStripeLinkAuthIntent({
       .toLowerCase();
 
   const payload =
-    await postJson(
+    await stripeBrowserPostJson(
       CREATE_LINK_AUTH_INTENT_URL,
       {
         email:
           normalizedEmail
+      },
+      {
+        errorPrefix:
+          "stripe_link_auth_intent"
       }
     );
 
@@ -289,6 +245,8 @@ Load / reload CryptoCustomer
 Backend exchanges the authenticated LinkAuthIntent
 for OAuth tokens and retrieves the CryptoCustomer.
 
+The browser request is authenticated with Clerk.
+
 OAuth access/refresh tokens remain backend-only.
 --------------------------------------------------
 */
@@ -310,7 +268,7 @@ export async function loadStripeCryptoCustomer({
     );
 
   const payload =
-    await postJson(
+    await stripeBrowserPostJson(
       CUSTOMER_CONTEXT_URL,
       {
         authIntentId:
@@ -318,6 +276,10 @@ export async function loadStripeCryptoCustomer({
 
         cryptoCustomerId:
           normalizedCryptoCustomerId
+      },
+      {
+        errorPrefix:
+          "stripe_customer_context"
       }
     );
 
