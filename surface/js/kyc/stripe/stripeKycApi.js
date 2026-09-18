@@ -1,9 +1,17 @@
 // unibridge-landing/surface/js/kyc/stripe/stripeKycApi.js
 
-const STRIPE_KYC_CONTEXT_ENDPOINT =
-  "ramp/stripe/browser/kyc-context";
+import {
+  stripeBrowserPostJson
+} from "../../ramp/stripeEmbedded/stripeBrowserApi.js";
 
-function isObject(value) {
+
+const STRIPE_KYC_CONTEXT_ENDPOINT =
+  "/v2/ramp/stripe/browser/kyc-context";
+
+
+function isObject(
+  value
+) {
   return Boolean(
     value &&
     typeof value === "object" &&
@@ -11,7 +19,10 @@ function isObject(value) {
   );
 }
 
-function uniqueStrings(values) {
+
+function uniqueStrings(
+  values
+) {
   return [
     ...new Set(
       (
@@ -20,47 +31,44 @@ function uniqueStrings(values) {
           : []
       )
         .map(
-          (value) =>
-            String(value ?? "").trim()
+          (
+            value
+          ) =>
+            String(
+              value ?? ""
+            ).trim()
         )
-        .filter(Boolean)
+        .filter(
+          Boolean
+        )
     )
   ];
 }
 
-function getApiPost() {
-  const apiPost =
-    window.UnibridgeApi?.apiPost;
-
-  if (
-    typeof apiPost !== "function"
-  ) {
-    throw new Error(
-      "surface_api_unavailable"
-    );
-  }
-
-  return apiPost;
-}
 
 export async function loadStripeKycContext({
   supplement = {},
   includeUsStepUp = false
 } = {}) {
-  const apiPost =
-    getApiPost();
-
   const response =
-    await apiPost(
+    await stripeBrowserPostJson(
       STRIPE_KYC_CONTEXT_ENDPOINT,
       {
         include_us_step_up:
-          Boolean(includeUsStepUp),
+          Boolean(
+            includeUsStepUp
+          ),
 
         supplement:
-          isObject(supplement)
+          isObject(
+            supplement
+          )
             ? supplement
             : {}
+      },
+      {
+        errorPrefix:
+          "stripe_kyc_context"
       }
     );
 
