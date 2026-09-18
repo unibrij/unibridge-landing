@@ -19,6 +19,7 @@ window.UnibridgeStripeOnramp = (() => {
   let sdk = null;
   let sdkPromise = null;
 
+  let stripeBrowserApiModule = null;
   let stripeCustomerModule = null;
   let stripeKycModule = null;
   let stripeLimitsModule = null;
@@ -331,6 +332,20 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
+  async function ensureStripeBrowserApiModule() {
+    if (stripeBrowserApiModule) {
+      return stripeBrowserApiModule;
+    }
+
+    stripeBrowserApiModule =
+      await import(
+        "/surface/js/ramp/stripeEmbedded/stripeBrowserApi.js"
+      );
+
+    return stripeBrowserApiModule;
+  }
+
+
   async function ensureStripeCustomerModule() {
     if (stripeCustomerModule) {
       return stripeCustomerModule;
@@ -547,57 +562,99 @@ window.UnibridgeStripeOnramp = (() => {
         flowToken
       });
 
-    if (
-      isStripeVerificationVerified(
-        customer,
-        "kyc_verified"
-      )
-    ) {
-      return customer;
-    }
-
-    setStatus(
-      "Complete Stripe identity verification."
-    );
-
-    await runStripeKycFlow({
-      sdk:
-        stripeSdk,
-
-      includeUsStepUp:
-        true,
-
-      setStatus
-    });
-
-    assertActiveFlow(
-      flowToken
-    );
-
     /*
     --------------------------------------------------
-    Never inspect limits before reloading the Stripe
-    CryptoCustomer after KYC submission.
+    Basic Stripe KYC
+
+    Basic KYC alone is not enough for ACH.
+    Do not return early merely because kyc_verified
+    is already verified.
     --------------------------------------------------
     */
 
-    customer =
-      await loadCryptoCustomer({
-        authIntentId,
-        cryptoCustomerId,
-        flowToken
-      });
-
     if (
-      isStripeVerificationVerified(
+      !isStripeVerificationVerified(
         customer,
         "kyc_verified"
       )
     ) {
-      return customer;
+      setStatus(
+        "Complete Stripe identity verification."
+      );
+
+      await runStripeKycFlow({
+        sdk:
+          stripeSdk,
+
+        includeUsStepUp:
+          true,
+
+        setStatus
+      });
+
+      assertActiveFlow(
+        flowToken
+      );
+
+      customer =
+        await loadCryptoCustomer({
+          authIntentId,
+          cryptoCustomerId,
+          flowToken
+        });
     }
 
-    const documentStatus =
+    /*
+    --------------------------------------------------
+    Basic KYC must be verified before continuing into
+    the document / selfie L2 step.
+    --------------------------------------------------
+    */
+
+    if (
+      !isStripeVerificationVerified(
+        customer,
+        "kyc_verified"
+      )
+    ) {
+      const error =
+        new Error(
+          "stripe_kyc_not_verified"
+        );
+
+      error.verificationStatus =
+        getStripeVerificationStatus(
+          customer,
+          "kyc_verified"
+        );
+
+      error.documentVerificationStatus =
+        getStripeVerificationStatus(
+          customer,
+          "id_document_verified"
+        );
+
+      throw error;
+    }
+
+    /*
+    --------------------------------------------------
+    Stripe L2
+
+    ACH requires the document verification level.
+
+    The runtime evidence for this flow is:
+
+      kyc_verified = verified
+      id_document_verified = verified
+
+    If document verification has not started, invoke
+    Stripe's document/selfie flow and then reload the
+    CryptoCustomer before making any funding decision.
+    --------------------------------------------------
+    */
+
+    let documentStatus =
       getStripeVerificationStatus(
         customer,
         "id_document_verified"
@@ -632,17 +689,43 @@ window.UnibridgeStripeOnramp = (() => {
           cryptoCustomerId,
           flowToken
         });
+
+      documentStatus =
+        getStripeVerificationStatus(
+          customer,
+          "id_document_verified"
+        );
     }
 
-    if (
-      !isStripeVerificationVerified(
+    /*
+    --------------------------------------------------
+    Final L2 gate.
+
+    No limits / ACH / Headless Session may run unless
+    both basic KYC and document verification are
+    verified on the final reloaded CryptoCustomer.
+    --------------------------------------------------
+    */
+
+    const kycVerified =
+      isStripeVerificationVerified(
         customer,
         "kyc_verified"
-      )
+      );
+
+    const documentVerified =
+      isStripeVerificationVerified(
+        customer,
+        "id_document_verified"
+      );
+
+    if (
+      !kycVerified ||
+      !documentVerified
     ) {
       const error =
         new Error(
-          "stripe_kyc_not_verified"
+          "stripe_l2_not_verified"
         );
 
       error.verificationStatus =
@@ -652,6 +735,7 @@ window.UnibridgeStripeOnramp = (() => {
         );
 
       error.documentVerificationStatus =
+        documentStatus ??
         getStripeVerificationStatus(
           customer,
           "id_document_verified"
@@ -924,66 +1008,45 @@ window.UnibridgeStripeOnramp = (() => {
       "Creating secure Stripe payment session..."
     );
 
-    const response =
-      await fetch(
-        STRIPE_HEADLESS_SESSION_URL,
-        {
-          method:
-            "POST",
+    const {
+      stripeBrowserPostJson
+    } =
+      await ensureStripeBrowserApiModule();
 
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Accept:
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              settlementId:
-                normalizedSettlementId,
-
-              authIntentId:
-                normalizedAuthIntentId,
-
-              cryptoCustomerId:
-                normalizedCryptoCustomerId,
-
-              paymentToken:
-                normalizedPaymentToken
-            })
-        }
+    if (
+      typeof stripeBrowserPostJson !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_browser_api_runtime_missing"
       );
+    }
 
     const payload =
-      await response
-        .json()
-        .catch(
-          () =>
-            null
-        );
+      await stripeBrowserPostJson(
+        STRIPE_HEADLESS_SESSION_URL,
+        {
+          settlementId:
+            normalizedSettlementId,
+
+          authIntentId:
+            normalizedAuthIntentId,
+
+          cryptoCustomerId:
+            normalizedCryptoCustomerId,
+
+          paymentToken:
+            normalizedPaymentToken
+        },
+        {
+          errorPrefix:
+            "stripe_headless_session"
+        }
+      );
 
     assertActiveFlow(
       flowToken
     );
-
-    if (!response.ok) {
-      const error =
-        new Error(
-          payload?.error?.message ||
-          payload?.message ||
-          `stripe_headless_session_http_${response.status}`
-        );
-
-      error.status =
-        response.status;
-
-      error.payload =
-        payload;
-
-      throw error;
-    }
 
     return normalizeHeadlessSessionPayload({
       payload,
@@ -1028,22 +1091,6 @@ window.UnibridgeStripeOnramp = (() => {
     setStatus(
       "Confirming Stripe bank payment..."
     );
-
-    /*
-    --------------------------------------------------
-    Stripe checkout contract:
-
-    performCheckout(
-      onrampSessionId,
-      async (requestedOnrampSessionId) => clientSecret
-    )
-
-    The client secret must belong to the exact same
-    Headless Session.
-
-    Never log or persist clientSecret.
-    --------------------------------------------------
-    */
 
     const result =
       await stripeSdk.performCheckout(
@@ -1254,7 +1301,7 @@ window.UnibridgeStripeOnramp = (() => {
 
     /*
     --------------------------------------------------
-    Limits are checked only after the final KYC
+    Limits are checked only after the final L2
     CryptoCustomer reload.
     --------------------------------------------------
     */
@@ -1398,16 +1445,6 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
-    /*
-    --------------------------------------------------
-    The Headless Session already contains the Stripe
-    transaction details / quote.
-
-    There is no separate generic quote request in the
-    production flow.
-    --------------------------------------------------
-    */
-
     if (
       typeof ctx.emit ===
         "function"
@@ -1416,13 +1453,6 @@ window.UnibridgeStripeOnramp = (() => {
         "unibridge:quote"
       );
     }
-
-    /*
-    --------------------------------------------------
-    Perform Stripe checkout against the exact session
-    created for this settlement.
-    --------------------------------------------------
-    */
 
     const checkoutResult =
       await performStripeCheckout({
