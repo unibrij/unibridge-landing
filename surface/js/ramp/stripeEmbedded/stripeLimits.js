@@ -1,5 +1,10 @@
 // unibrij/unibridge-landing/surface/js/ramp/stripeEmbedded/stripeLimits.js
 
+import {
+  stripeBrowserPostJson
+} from "./stripeBrowserApi.js";
+
+
 const TRANSACTION_LIMITS_URL =
   "/v2/ramp/stripe/browser/transaction-limits";
 
@@ -32,60 +37,6 @@ function requireString(
 }
 
 
-async function postJson(
-  url,
-  body
-) {
-  const response =
-    await fetch(
-      url,
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Accept:
-            "application/json"
-        },
-
-        body:
-          JSON.stringify(
-            body
-          )
-      }
-    );
-
-  const payload =
-    await response
-      .json()
-      .catch(
-        () =>
-          null
-      );
-
-  if (
-    !response.ok
-  ) {
-    const error =
-      new Error(
-        payload?.error?.message ||
-        payload?.message ||
-        `stripe_limits_http_${response.status}`
-      );
-
-    error.status =
-      response.status;
-
-    throw error;
-  }
-
-  return payload;
-}
-
-
 /*
 --------------------------------------------------
 Load settlement-bound Stripe ACH limits
@@ -96,8 +47,10 @@ Browser supplies only:
   authIntentId
   cryptoCustomerId
 
-Wallet and destination network remain canonical
-backend-owned funding facts.
+Wallet, destination network and funding amount remain
+canonical backend-owned settlement funding facts.
+
+Authentication is supplied by stripeBrowserApi.
 --------------------------------------------------
 */
 
@@ -125,7 +78,7 @@ export async function loadStripeTransactionLimits({
     );
 
   const payload =
-    await postJson(
+    await stripeBrowserPostJson(
       TRANSACTION_LIMITS_URL,
       {
         settlementId:
@@ -136,6 +89,10 @@ export async function loadStripeTransactionLimits({
 
         cryptoCustomerId:
           normalizedCryptoCustomerId
+      },
+      {
+        errorPrefix:
+          "stripe_limits"
       }
     );
 
