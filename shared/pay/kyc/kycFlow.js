@@ -48,6 +48,9 @@ const DEFAULT_RETRY_DELAYS =
     12000
   ]);
 
+const RECONCILE_TIMEOUT_MS =
+  10000;
+
 function normalizeString(
   value
 ) {
@@ -380,6 +383,80 @@ function wait(
   );
 }
 
+function withTimeout(
+  task,
+  timeoutMs,
+  code
+) {
+  return new Promise(
+    (
+      resolve,
+      reject
+    ) => {
+      let settled =
+        false;
+
+      const timeoutId =
+        globalThis.setTimeout(
+          () => {
+            if (settled) {
+              return;
+            }
+
+            settled =
+              true;
+
+            reject(
+              new Error(
+                code
+              )
+            );
+          },
+          timeoutMs
+        );
+
+      Promise.resolve()
+        .then(
+          task
+        )
+        .then(
+          (value) => {
+            if (settled) {
+              return;
+            }
+
+            settled =
+              true;
+
+            globalThis.clearTimeout(
+              timeoutId
+            );
+
+            resolve(
+              value
+            );
+          },
+          (error) => {
+            if (settled) {
+              return;
+            }
+
+            settled =
+              true;
+
+            globalThis.clearTimeout(
+              timeoutId
+            );
+
+            reject(
+              error
+            );
+          }
+        );
+    }
+  );
+}
+
 function buildResult({
   outcome,
   session,
@@ -470,16 +547,27 @@ async function reconcileWithRetries({
     attempts += 1;
 
     try {
+      const reconciledSession =
+        await withTimeout(
+          () =>
+            reconcileSession({
+              kyc_session_id:
+                current
+                  .kyc_session_id,
+
+              attempt:
+                attempts
+            }),
+
+          RECONCILE_TIMEOUT_MS,
+
+          "kyc_reconcile_timeout"
+        );
+
       current =
         mergeSession(
           current,
-          await reconcileSession({
-            kyc_session_id:
-              current
-                .kyc_session_id,
-            attempt:
-              attempts
-          })
+          reconciledSession
         );
 
       reconciledAtLeastOnce =
@@ -937,8 +1025,10 @@ export async function runKycFlow({
         url:
           session
             .verification_url,
+
         onComplete:
           provider.onComplete,
+
         onError:
           provider.onError
       });
