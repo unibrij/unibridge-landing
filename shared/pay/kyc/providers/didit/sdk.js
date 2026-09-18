@@ -18,7 +18,7 @@ const DIDIT_CONFIGURATION =
       false,
 
     closeModalOnComplete:
-      false,
+      true,
 
     showCloseButton:
       true,
@@ -61,7 +61,7 @@ function requireBrowserEnvironment() {
 function getDiditSdk() {
   if (
     typeof window ===
-    "undefined"
+      "undefined"
   ) {
     return null;
   }
