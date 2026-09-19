@@ -37,11 +37,13 @@ function requireElement(
   return element;
 }
 
+
 function clearElement(
   element
 ) {
   element.replaceChildren();
 }
+
 
 function createElement(
   tag,
@@ -89,6 +91,7 @@ function resolveReceiptId(
   ).trim();
 }
 
+
 function resolvePayoutDate(
   item
 ) {
@@ -98,6 +101,20 @@ function resolvePayoutDate(
   );
 }
 
+
+/*
+--------------------------------------------------
+Shared status presentation
+
+History statuses are canonical payout lifecycle
+statuses.
+
+The visual treatment is intentionally provider-
+agnostic and maps those statuses into the existing
+shared History CSS states.
+--------------------------------------------------
+*/
+
 function resolveStatusClass(
   status
 ) {
@@ -106,9 +123,40 @@ function resolveStatusClass(
       status
     );
 
-  return (
-    `history-status-${normalized || "unknown"}`
-  );
+  const completedStatuses =
+    new Set([
+      "completed",
+      "complete",
+      "executed",
+      "success",
+      "succeeded",
+      "payout_completed",
+      "execution_completed"
+    ]);
+
+  const failedStatuses =
+    new Set([
+      "failed",
+      "funds_returned"
+    ]);
+
+  if (
+    completedStatuses.has(
+      normalized
+    )
+  ) {
+    return "is-completed";
+  }
+
+  if (
+    failedStatuses.has(
+      normalized
+    )
+  ) {
+    return "is-failed";
+  }
+
+  return "is-pending";
 }
 
 
@@ -212,6 +260,7 @@ function buildStateCard({
   return card;
 }
 
+
 function renderState(
   root,
   {
@@ -240,15 +289,15 @@ Recipient
 --------------------------------------------------
 */
 
-function buildRecipientMain(
+function buildRecipientIdentity(
   item
 ) {
-  const recipientMain =
+  const recipientIdentity =
     createElement(
       "div",
       {
         className:
-          "history-recipient-main"
+          "history-recipient-identity"
       }
     );
 
@@ -271,12 +320,12 @@ function buildRecipientMain(
     "true"
   );
 
-  const recipientCopy =
+  const recipientText =
     createElement(
       "div",
       {
         className:
-          "history-recipient-copy"
+          "history-recipient-text"
       }
     );
 
@@ -294,17 +343,72 @@ function buildRecipientMain(
       }
     );
 
-  const recipientDestination =
+  const recipientSummary =
     createElement(
       "span",
       {
         className:
-          "history-recipient-destination",
+          "history-recipient-summary",
 
         text:
           buildHistoryRecipientSummary(
             item
           )
+      }
+    );
+
+  recipientText.append(
+    recipientName,
+    recipientSummary
+  );
+
+  recipientIdentity.append(
+    avatar,
+    recipientText
+  );
+
+  return recipientIdentity;
+}
+
+
+/*
+--------------------------------------------------
+Payout details
+--------------------------------------------------
+*/
+
+function buildPayoutDetails(
+  item
+) {
+  const details =
+    createElement(
+      "div",
+      {
+        className:
+          "history-payout-details"
+      }
+    );
+
+  const amount =
+    createElement(
+      "strong",
+      {
+        className:
+          "history-payout-amount",
+
+        text:
+          formatHistoryAmount(
+            item
+          )
+      }
+    );
+
+  const meta =
+    createElement(
+      "div",
+      {
+        className:
+          "history-payout-meta"
       }
     );
 
@@ -324,59 +428,12 @@ function buildRecipientMain(
       }
     );
 
-  recipientCopy.append(
-    recipientName,
-    recipientDestination,
-    payoutDate
-  );
-
-  recipientMain.append(
-    avatar,
-    recipientCopy
-  );
-
-  return recipientMain;
-}
-
-
-/*
---------------------------------------------------
-Payout summary
---------------------------------------------------
-*/
-
-function buildPayoutSummary(
-  item
-) {
-  const summary =
-    createElement(
-      "div",
-      {
-        className:
-          "history-payout-summary"
-      }
-    );
-
-  const amount =
-    createElement(
-      "strong",
-      {
-        className:
-          "history-payout-amount",
-
-        text:
-          formatHistoryAmount(
-            item
-          )
-      }
-    );
-
   const status =
     createElement(
       "span",
       {
         className:
-          `history-status-pill ${resolveStatusClass(
+          `history-status ${resolveStatusClass(
             item?.status
           )}`,
 
@@ -387,12 +444,17 @@ function buildPayoutSummary(
       }
     );
 
-  summary.append(
-    amount,
+  meta.append(
+    payoutDate,
     status
   );
 
-  return summary;
+  details.append(
+    amount,
+    meta
+  );
+
+  return details;
 }
 
 
@@ -440,7 +502,7 @@ function buildPayoutActions({
           "a",
           {
             className:
-              "history-secondary-button",
+              "history-action-button",
 
             text:
               "Send again"
@@ -470,7 +532,7 @@ function buildPayoutActions({
         "button",
         {
           className:
-            "history-secondary-button",
+            "history-action-button",
 
           text:
             "Receipt"
@@ -554,27 +616,27 @@ function buildPayoutCard({
       }
     );
 
-  const header =
+  const main =
     createElement(
       "div",
       {
         className:
-          "history-payout-header"
+          "history-payout-main"
       }
     );
 
-  header.append(
-    buildRecipientMain(
+  main.append(
+    buildRecipientIdentity(
       item
     ),
 
-    buildPayoutSummary(
+    buildPayoutDetails(
       item
     )
   );
 
   card.append(
-    header,
+    main,
 
     buildPayoutActions({
       item,
@@ -704,6 +766,7 @@ export async function initPayHistory({
   let receiptErrorCard =
     null;
 
+
   function removeReceiptError() {
     if (!receiptErrorCard) {
       return;
@@ -714,6 +777,7 @@ export async function initPayHistory({
     receiptErrorCard =
       null;
   }
+
 
   function showReceiptError() {
     if (destroyed) {
@@ -736,9 +800,11 @@ export async function initPayHistory({
     );
   }
 
+
   clearElement(
     root
   );
+
 
   if (!accessToken) {
     renderState(
@@ -766,6 +832,7 @@ export async function initPayHistory({
     };
   }
 
+
   renderState(
     root,
     {
@@ -773,6 +840,7 @@ export async function initPayHistory({
         "Loading history..."
     }
   );
+
 
   try {
     const result =
@@ -782,6 +850,7 @@ export async function initPayHistory({
         limit
       });
 
+
     if (destroyed) {
       return {
         root,
@@ -790,12 +859,14 @@ export async function initPayHistory({
       };
     }
 
+
     const recentPayouts =
       Array.isArray(
         result?.recent_payouts
       )
         ? result.recent_payouts
         : [];
+
 
     if (
       recentPayouts.length ===
@@ -826,12 +897,17 @@ export async function initPayHistory({
       };
     }
 
+
     renderPayoutHistory({
       root,
+
       payouts:
         recentPayouts,
+
       accessToken,
+
       buildRepeatUrl,
+
       onReceiptError:
         showReceiptError
     });
@@ -856,6 +932,7 @@ export async function initPayHistory({
       );
     }
   }
+
 
   return {
     root,
