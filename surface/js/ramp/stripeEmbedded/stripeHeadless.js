@@ -11,6 +11,15 @@ const STRIPE_HEADLESS_SESSION_URL =
 const STRIPE_HEADLESS_CHECKOUT_URL =
   "/v2/ramp/stripe/browser/headless-checkout";
 
+const STRIPE_HEADLESS_SUBMISSION_URL =
+  "/v2/ramp/stripe/browser/headless-submission";
+
+const SUBMISSION_RECORD_MAX_ATTEMPTS =
+  3;
+
+const SUBMISSION_RECORD_RETRY_DELAY_MS =
+  300;
+
 
 function normalizeString(
   value
@@ -48,6 +57,20 @@ function normalizeOptionalString(
       value
     ) ||
     null
+  );
+}
+
+
+function wait(
+  milliseconds
+) {
+  return new Promise(
+    (resolve) => {
+      setTimeout(
+        resolve,
+        milliseconds
+      );
+    }
   );
 }
 
@@ -236,6 +259,187 @@ function normalizeHeadlessCheckoutPayload({
 
 /*
 --------------------------------------------------
+Submission response normalization
+
+This response confirms only that UniBridge recorded
+the canonical funding_submission lifecycle fact.
+
+It does NOT represent funding confirmation.
+--------------------------------------------------
+*/
+
+function normalizeHeadlessSubmissionPayload({
+  payload,
+  settlementId,
+  sessionId
+}) {
+  if (
+    !payload ||
+    typeof payload !==
+      "object"
+  ) {
+    throw new Error(
+      "stripe_headless_submission_invalid_response"
+    );
+  }
+
+  if (
+    payload?.ok !==
+      true
+  ) {
+    throw new Error(
+      "stripe_headless_submission_not_recorded"
+    );
+  }
+
+  const responseSettlementId =
+    requireString(
+      payload?.settlement_id,
+      "stripe_headless_submission_missing_settlement_id"
+    );
+
+  if (
+    responseSettlementId !==
+      settlementId
+  ) {
+    throw new Error(
+      "stripe_headless_submission_settlement_mismatch"
+    );
+  }
+
+  const responseSessionId =
+    requireString(
+      payload?.session_id,
+      "stripe_headless_submission_missing_session_id"
+    );
+
+  if (
+    responseSessionId !==
+      sessionId
+  ) {
+    throw new Error(
+      "stripe_headless_submission_session_mismatch"
+    );
+  }
+
+  return {
+    recorded:
+      true,
+
+    alreadySubmitted:
+      payload?.already_submitted ===
+      true
+  };
+}
+
+
+/*
+--------------------------------------------------
+Record canonical submission
+
+This call happens only after Stripe SDK has already
+reported successful === true.
+
+The backend writer is idempotent, so bounded retries
+are safe and preserve the first submitted_at value.
+
+Failure after all attempts remains informational and
+must never convert a successful Stripe checkout into
+a failed payment.
+--------------------------------------------------
+*/
+
+async function recordStripeHeadlessSubmission({
+  settlementId,
+  authIntentId,
+  sessionId
+}) {
+  let lastError =
+    null;
+
+  for (
+    let attempt = 1;
+    attempt <=
+      SUBMISSION_RECORD_MAX_ATTEMPTS;
+    attempt += 1
+  ) {
+    try {
+      const payload =
+        await stripeBrowserPostJson(
+          STRIPE_HEADLESS_SUBMISSION_URL,
+          {
+            settlementId,
+
+            authIntentId,
+
+            sessionId
+          },
+          {
+            errorPrefix:
+              "stripe_headless_submission"
+          }
+        );
+
+      const submission =
+        normalizeHeadlessSubmissionPayload({
+          payload,
+
+          settlementId,
+
+          sessionId
+        });
+
+      return {
+        recorded:
+          submission.recorded ===
+          true,
+
+        alreadySubmitted:
+          submission.alreadySubmitted ===
+          true
+      };
+    } catch (
+      error
+    ) {
+      lastError =
+        error;
+
+      if (
+        attempt <
+        SUBMISSION_RECORD_MAX_ATTEMPTS
+      ) {
+        await wait(
+          SUBMISSION_RECORD_RETRY_DELAY_MS *
+          attempt
+        );
+      }
+    }
+  }
+
+  console.warn(
+    "STRIPE_HEADLESS_SUBMISSION_RECORD_FAILED",
+    {
+      attempts:
+        SUBMISSION_RECORD_MAX_ATTEMPTS,
+
+      message:
+        lastError?.message ??
+        "stripe_headless_submission_record_failed"
+    }
+  );
+
+  return {
+    recorded:
+      false,
+
+    alreadySubmitted:
+      false
+  };
+}
+
+
+/*
+--------------------------------------------------
 Create Headless Session
 
 The backend remains authoritative for:
@@ -337,6 +541,17 @@ When invoked:
 5. return only the checkout-stage client_secret.
 
 The create-stage client_secret is never reused here.
+
+After Stripe SDK returns successful === true:
+
+6. report the successful submission to UniBridge;
+7. backend verifies ownership/binding again;
+8. backend records the canonical funding_submission
+   fact.
+
+Failure to record that informational lifecycle fact
+must NOT turn a successful Stripe checkout into a
+failed payment.
 --------------------------------------------------
 */
 
@@ -464,9 +679,6 @@ export async function performStripeHeadlessCheckout({
     );
 
 
-  assertFlowActive();
-
-
   if (
     !result ||
     result.successful !==
@@ -485,8 +697,37 @@ export async function performStripeHeadlessCheckout({
   }
 
 
+  /*
+  --------------------------------------------------
+  Successful Stripe checkout boundary
+
+  From this point forward the payment submission has
+  already succeeded according to Stripe SDK.
+
+  No flow cancellation, browser state change, or
+  canonical-submission recording failure may convert
+  that success into a payment failure.
+  --------------------------------------------------
+  */
+
+  const submission =
+    await recordStripeHeadlessSubmission({
+      settlementId:
+        normalizedSettlementId,
+
+      authIntentId:
+        normalizedAuthIntentId,
+
+      sessionId
+    });
+
+
   return {
     successful:
+      true,
+
+    submissionRecorded:
+      submission.recorded ===
       true
   };
 }
