@@ -1,27 +1,14 @@
 // unibrij/unibridge-landing/surface/js/ramp/stripeOnramp.js
 
 window.UnibridgeStripeOnramp = (() => {
-  const STRIPE_CRYPTO_MODULE =
-    "https://cdn.jsdelivr.net/npm/@stripe/crypto@1.1.0/+esm";
-
-  const STRIPE_BROWSER_CONFIG_URL =
-    "/v2/ramp/stripe/browser/config";
-
-  const STRIPE_HEADLESS_SESSION_URL =
-    "/v2/ramp/stripe/browser/headless-session";
-
   const CONTAINER_ID =
     "stripeOnrampContainer";
 
-  let browserConfig = null;
-  let browserConfigPromise = null;
 
-  let sdk = null;
-  let sdkPromise = null;
+  let stripeRuntimeModule = null;
+  let stripeIdentityModule = null;
+  let stripeHeadlessModule = null;
 
-  let stripeBrowserApiModule = null;
-  let stripeCustomerModule = null;
-  let stripeKycModule = null;
   let stripeConsumerWalletModule = null;
   let stripeLimitsModule = null;
   let stripePaymentMethodModule = null;
@@ -54,18 +41,6 @@ window.UnibridgeStripeOnramp = (() => {
     }
 
     return normalized;
-  }
-
-
-  function normalizeOptionalString(
-    value
-  ) {
-    return (
-      normalizeString(
-        value
-      ) ||
-      null
-    );
   }
 
 
@@ -150,11 +125,13 @@ window.UnibridgeStripeOnramp = (() => {
       null;
 
     try {
-      stripeKycModule
-        ?.resetStripeKycFlow?.();
-    } catch (error) {
+      stripeIdentityModule
+        ?.resetStripeIdentityFlow?.();
+    } catch (
+      error
+    ) {
       console.warn(
-        "STRIPE_KYC_RESET_FAILED",
+        "STRIPE_IDENTITY_RESET_FAILED",
         error
       );
     }
@@ -163,215 +140,83 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
-  async function loadBrowserConfig() {
-    if (browserConfig) {
-      return browserConfig;
+  /*
+  --------------------------------------------------
+  Focused Stripe module loading
+
+  stripeRuntime.js:
+    browser config + Stripe SDK initialization
+
+  stripeIdentity.js:
+    Clerk email + Link auth + CryptoCustomer + KYC/L2
+
+  stripeHeadless.js:
+    Headless create + checkout lifecycle
+
+  This file remains the Surface flow orchestrator.
+  --------------------------------------------------
+  */
+
+  async function ensureStripeRuntimeModule() {
+    if (stripeRuntimeModule) {
+      return stripeRuntimeModule;
     }
 
-    if (browserConfigPromise) {
-      return browserConfigPromise;
-    }
-
-    browserConfigPromise =
-      fetch(
-        STRIPE_BROWSER_CONFIG_URL,
-        {
-          method:
-            "GET",
-
-          headers: {
-            Accept:
-              "application/json"
-          },
-
-          cache:
-            "no-store"
-        }
-      )
-        .then(
-          async (
-            response
-          ) => {
-            const payload =
-              await response
-                .json()
-                .catch(
-                  () =>
-                    null
-                );
-
-            if (!response.ok) {
-              throw new Error(
-                payload?.error?.message ||
-                payload?.message ||
-                `stripe_browser_config_http_${response.status}`
-              );
-            }
-
-            const publishableKey =
-              requireString(
-                payload?.publishableKey,
-                "missing_stripe_publishable_key"
-              );
-
-            if (
-              !publishableKey.startsWith(
-                "pk_"
-              )
-            ) {
-              throw new Error(
-                "invalid_stripe_publishable_key"
-              );
-            }
-
-            browserConfig = {
-              mode:
-                normalizeString(
-                  payload?.mode
-                ) ||
-                null,
-
-              isSandbox:
-                typeof payload?.isSandbox ===
-                  "boolean"
-                  ? payload.isSandbox
-                  : null,
-
-              publishableKey
-            };
-
-            return browserConfig;
-          }
-        )
-        .catch(
-          (
-            error
-          ) => {
-            browserConfigPromise =
-              null;
-
-            browserConfig =
-              null;
-
-            throw error;
-          }
-        );
-
-    return browserConfigPromise;
-  }
-
-
-  async function ensureSdk() {
-    if (sdk) {
-      return sdk;
-    }
-
-    if (sdkPromise) {
-      return sdkPromise;
-    }
-
-    sdkPromise =
-      (
-        async () => {
-          const config =
-            await loadBrowserConfig();
-
-          const module =
-            await import(
-              STRIPE_CRYPTO_MODULE
-            );
-
-          const initialize =
-            module
-              ?.loadCryptoOnrampAndInitialize;
-
-          if (
-            typeof initialize !==
-              "function"
-          ) {
-            throw new Error(
-              "loadCryptoOnrampAndInitialize_not_exported"
-            );
-          }
-
-          const instance =
-            await initialize(
-              config.publishableKey,
-              {
-                theme:
-                  "stripe"
-              }
-            );
-
-          if (!instance) {
-            throw new Error(
-              "stripe_embedded_components_initialization_failed"
-            );
-          }
-
-          sdk =
-            instance;
-
-          return sdk;
-        }
-      )()
-        .catch(
-          (
-            error
-          ) => {
-            sdkPromise =
-              null;
-
-            sdk =
-              null;
-
-            throw error;
-          }
-        );
-
-    return sdkPromise;
-  }
-
-
-  async function ensureStripeBrowserApiModule() {
-    if (stripeBrowserApiModule) {
-      return stripeBrowserApiModule;
-    }
-
-    stripeBrowserApiModule =
+    stripeRuntimeModule =
       await import(
-        "/surface/js/ramp/stripeEmbedded/stripeBrowserApi.js"
+        "/surface/js/ramp/stripeEmbedded/stripeRuntime.js"
       );
 
-    return stripeBrowserApiModule;
+    return stripeRuntimeModule;
   }
 
 
-  async function ensureStripeCustomerModule() {
-    if (stripeCustomerModule) {
-      return stripeCustomerModule;
+  async function ensureStripeIdentityModule() {
+    if (stripeIdentityModule) {
+      return stripeIdentityModule;
     }
 
-    stripeCustomerModule =
+    stripeIdentityModule =
       await import(
-        "/surface/js/ramp/stripeEmbedded/stripeCustomer.js"
+        "/surface/js/ramp/stripeEmbedded/stripeIdentity.js"
       );
 
-    return stripeCustomerModule;
+    return stripeIdentityModule;
   }
 
 
-  async function ensureStripeKycModule() {
-    if (stripeKycModule) {
-      return stripeKycModule;
+  async function ensureStripeHeadlessModule() {
+    if (stripeHeadlessModule) {
+      return stripeHeadlessModule;
     }
 
-    stripeKycModule =
+    stripeHeadlessModule =
       await import(
-        "/surface/js/kyc/stripe/stripeKycFlow.js"
+        "/surface/js/ramp/stripeEmbedded/stripeHeadless.js"
       );
 
-    return stripeKycModule;
+    return stripeHeadlessModule;
+  }
+
+
+  async function ensureStripeRuntimeSdk() {
+    const runtimeModule =
+      await ensureStripeRuntimeModule();
+
+    const ensureStripeSdk =
+      runtimeModule
+        ?.ensureStripeSdk;
+
+    if (
+      typeof ensureStripeSdk !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_runtime_sdk_missing"
+      );
+    }
+
+    return ensureStripeSdk();
   }
 
 
@@ -414,353 +259,6 @@ window.UnibridgeStripeOnramp = (() => {
       );
 
     return stripePaymentMethodModule;
-  }
-
-
-  async function resolveAuthenticatedEmail() {
-    const {
-      ensureFiatClerkAuth
-    } = await import(
-      "/shared/pay/auth/clerkAuth.js"
-    );
-
-    if (
-      typeof ensureFiatClerkAuth !==
-        "function"
-    ) {
-      throw new Error(
-        "surface_customer_auth_unavailable"
-      );
-    }
-
-    const auth =
-      await ensureFiatClerkAuth();
-
-    return requireString(
-      auth?.email,
-      "authenticated_customer_email_missing"
-    )
-      .toLowerCase();
-  }
-
-
-  async function authenticateStripeCustomer({
-    sdk: stripeSdk,
-    container,
-    email,
-    setStatus,
-    flowToken
-  }) {
-    const {
-      createStripeLinkAuthIntent,
-      startStripeCustomerAuthentication
-    } =
-      await ensureStripeCustomerModule();
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    setStatus(
-      "Starting secure Stripe authentication..."
-    );
-
-    const {
-      authIntentId
-    } =
-      await createStripeLinkAuthIntent({
-        email
-      });
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    const authentication =
-      await startStripeCustomerAuthentication({
-        sdk:
-          stripeSdk,
-
-        authIntentId
-      });
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    container.replaceChildren(
-      authentication.element
-    );
-
-    setStatus(
-      "Complete Stripe authentication to continue."
-    );
-
-    const completed =
-      await authentication.completion;
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    container.replaceChildren();
-
-    return {
-      authIntentId:
-        requireString(
-          completed?.authIntentId ??
-          authIntentId,
-          "missing_auth_intent_id"
-        ),
-
-      cryptoCustomerId:
-        requireString(
-          completed?.cryptoCustomerId,
-          "missing_crypto_customer_id"
-        )
-    };
-  }
-
-
-  async function loadCryptoCustomer({
-    authIntentId,
-    cryptoCustomerId,
-    flowToken
-  }) {
-    const {
-      loadStripeCryptoCustomer
-    } =
-      await ensureStripeCustomerModule();
-
-    const customer =
-      await loadStripeCryptoCustomer({
-        authIntentId,
-        cryptoCustomerId
-      });
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    return customer;
-  }
-
-
-  async function runStripeIdentityFlow({
-    sdk: stripeSdk,
-    authIntentId,
-    cryptoCustomerId,
-    setStatus,
-    flowToken
-  }) {
-    const customerModule =
-      await ensureStripeCustomerModule();
-
-    const kycModule =
-      await ensureStripeKycModule();
-
-    const {
-      getStripeVerificationStatus,
-      isStripeVerificationVerified
-    } =
-      customerModule;
-
-    const {
-      runStripeKycFlow
-    } =
-      kycModule;
-
-    let customer =
-      await loadCryptoCustomer({
-        authIntentId,
-        cryptoCustomerId,
-        flowToken
-      });
-
-    /*
-    --------------------------------------------------
-    Basic Stripe KYC
-
-    Basic KYC alone is not enough for ACH.
-    Do not return early merely because kyc_verified
-    is already verified.
-    --------------------------------------------------
-    */
-
-    if (
-      !isStripeVerificationVerified(
-        customer,
-        "kyc_verified"
-      )
-    ) {
-      setStatus(
-        "Complete Stripe identity verification."
-      );
-
-      await runStripeKycFlow({
-        sdk:
-          stripeSdk,
-
-        includeUsStepUp:
-          true,
-
-        setStatus
-      });
-
-      assertActiveFlow(
-        flowToken
-      );
-
-      customer =
-        await loadCryptoCustomer({
-          authIntentId,
-          cryptoCustomerId,
-          flowToken
-        });
-    }
-
-    /*
-    --------------------------------------------------
-    Basic KYC must be verified before continuing into
-    the document / selfie L2 step.
-    --------------------------------------------------
-    */
-
-    if (
-      !isStripeVerificationVerified(
-        customer,
-        "kyc_verified"
-      )
-    ) {
-      const error =
-        new Error(
-          "stripe_kyc_not_verified"
-        );
-
-      error.verificationStatus =
-        getStripeVerificationStatus(
-          customer,
-          "kyc_verified"
-        );
-
-      error.documentVerificationStatus =
-        getStripeVerificationStatus(
-          customer,
-          "id_document_verified"
-        );
-
-      throw error;
-    }
-
-    /*
-    --------------------------------------------------
-    Stripe L2
-
-    ACH requires the document verification level.
-
-    The runtime evidence for this flow is:
-
-      kyc_verified = verified
-      id_document_verified = verified
-
-    If document verification has not started, invoke
-    Stripe's document/selfie flow and then reload the
-    CryptoCustomer before making any funding decision.
-    --------------------------------------------------
-    */
-
-    let documentStatus =
-      getStripeVerificationStatus(
-        customer,
-        "id_document_verified"
-      );
-
-    if (
-      documentStatus ===
-        "not_started"
-    ) {
-      if (
-        typeof stripeSdk.verifyDocuments !==
-          "function"
-      ) {
-        throw new Error(
-          "stripe_verify_documents_not_available"
-        );
-      }
-
-      setStatus(
-        "Stripe needs a photo ID and selfie to continue."
-      );
-
-      await stripeSdk.verifyDocuments();
-
-      assertActiveFlow(
-        flowToken
-      );
-
-      customer =
-        await loadCryptoCustomer({
-          authIntentId,
-          cryptoCustomerId,
-          flowToken
-        });
-
-      documentStatus =
-        getStripeVerificationStatus(
-          customer,
-          "id_document_verified"
-        );
-    }
-
-    /*
-    --------------------------------------------------
-    Final L2 gate.
-
-    No wallet registration / limits / ACH / Headless
-    Session may run unless both basic KYC and document
-    verification are verified on the final reloaded
-    CryptoCustomer.
-    --------------------------------------------------
-    */
-
-    const kycVerified =
-      isStripeVerificationVerified(
-        customer,
-        "kyc_verified"
-      );
-
-    const documentVerified =
-      isStripeVerificationVerified(
-        customer,
-        "id_document_verified"
-      );
-
-    if (
-      !kycVerified ||
-      !documentVerified
-    ) {
-      const error =
-        new Error(
-          "stripe_l2_not_verified"
-        );
-
-      error.verificationStatus =
-        getStripeVerificationStatus(
-          customer,
-          "kyc_verified"
-        );
-
-      error.documentVerificationStatus =
-        documentStatus ??
-        getStripeVerificationStatus(
-          customer,
-          "id_document_verified"
-        );
-
-      throw error;
-    }
-
-    return customer;
   }
 
 
@@ -932,296 +430,38 @@ window.UnibridgeStripeOnramp = (() => {
   }
 
 
-  function normalizeHeadlessSessionPayload({
-    payload,
-    settlementId
-  }) {
-    if (
-      !payload ||
-      typeof payload !==
-        "object"
-    ) {
-      throw new Error(
-        "stripe_headless_session_invalid_response"
-      );
-    }
+  /*
+  --------------------------------------------------
+  Surface Stripe orchestration
 
-    const responseSettlementId =
-      requireString(
-        payload?.settlement_id,
-        "stripe_headless_session_missing_settlement_id"
-      );
+  Visible flow:
 
-    if (
-      responseSettlementId !==
-        settlementId
-    ) {
-      throw new Error(
-        "stripe_headless_session_settlement_mismatch"
-      );
-    }
+  Stripe runtime
+      ↓
+  Stripe identity
+      ↓
+  settlement ConsumerWallet
+      ↓
+  ACH limits
+      ↓
+  ACH payment method
+      ↓
+  Headless session create
+      ↓
+  Headless checkout
+      ↓
+  funding observation
 
-    const session =
-      payload?.session;
+  This function owns:
 
-    if (
-      !session ||
-      typeof session !==
-        "object"
-    ) {
-      throw new Error(
-        "stripe_headless_session_missing_session"
-      );
-    }
+  - stage ordering
+  - visible status
+  - Surface container
+  - active-flow cancellation
 
-    const sessionId =
-      requireString(
-        session?.session_id,
-        "stripe_headless_session_missing_session_id"
-      );
-
-    const clientSecret =
-      requireString(
-        session?.client_secret,
-        "stripe_headless_session_missing_client_secret"
-      );
-
-    return {
-      settlementId:
-        responseSettlementId,
-
-      sessionId,
-
-      clientSecret,
-
-      status:
-        normalizeOptionalString(
-          session?.status
-        ),
-
-      livemode:
-        typeof session?.livemode ===
-          "boolean"
-          ? session.livemode
-          : null,
-
-      sourceAmount:
-        session?.source_amount ??
-        null,
-
-      sourceCurrency:
-        normalizeOptionalString(
-          session?.source_currency
-        )
-          ?.toLowerCase() ??
-        null,
-
-      destinationAmount:
-        session?.destination_amount ??
-        null,
-
-      destinationCurrency:
-        normalizeOptionalString(
-          session?.destination_currency
-        )
-          ?.toLowerCase() ??
-        null,
-
-      destinationNetwork:
-        normalizeOptionalString(
-          session?.destination_network
-        )
-          ?.toLowerCase() ??
-        null,
-
-      quoteExpiration:
-        session?.quote_expiration ??
-        null
-    };
-  }
-
-
-  async function createHeadlessSession({
-    settlementId,
-    authIntentId,
-    cryptoCustomerId,
-    cryptoPaymentToken,
-    setStatus,
-    flowToken
-  }) {
-    const normalizedSettlementId =
-      requireString(
-        settlementId,
-        "missing_settlement_id"
-      );
-
-    const normalizedAuthIntentId =
-      requireString(
-        authIntentId,
-        "missing_auth_intent_id"
-      );
-
-    const normalizedCryptoCustomerId =
-      requireString(
-        cryptoCustomerId,
-        "missing_crypto_customer_id"
-      );
-
-    const normalizedPaymentToken =
-      requireString(
-        cryptoPaymentToken,
-        "missing_crypto_payment_token"
-      );
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    setStatus(
-      "Creating secure Stripe payment session..."
-    );
-
-    const {
-      stripeBrowserPostJson
-    } =
-      await ensureStripeBrowserApiModule();
-
-    if (
-      typeof stripeBrowserPostJson !==
-        "function"
-    ) {
-      throw new Error(
-        "stripe_browser_api_runtime_missing"
-      );
-    }
-
-    const payload =
-      await stripeBrowserPostJson(
-        STRIPE_HEADLESS_SESSION_URL,
-        {
-          settlementId:
-            normalizedSettlementId,
-
-          authIntentId:
-            normalizedAuthIntentId,
-
-          cryptoCustomerId:
-            normalizedCryptoCustomerId,
-
-          paymentToken:
-            normalizedPaymentToken
-        },
-        {
-          errorPrefix:
-            "stripe_headless_session"
-        }
-      );
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    return normalizeHeadlessSessionPayload({
-      payload,
-      settlementId:
-        normalizedSettlementId
-    });
-  }
-
-
-  async function performStripeCheckout({
-    sdk: stripeSdk,
-    headlessSession,
-    setStatus,
-    flowToken
-  }) {
-    if (
-      !stripeSdk ||
-      typeof stripeSdk.performCheckout !==
-        "function"
-    ) {
-      throw new Error(
-        "stripe_perform_checkout_not_available"
-      );
-    }
-
-    const sessionId =
-      requireString(
-        headlessSession?.sessionId,
-        "stripe_checkout_missing_session_id"
-      );
-
-    const clientSecret =
-      requireString(
-        headlessSession?.clientSecret,
-        "stripe_checkout_missing_client_secret"
-      );
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    setStatus(
-      "Confirming Stripe bank payment..."
-    );
-
-    const result =
-      await stripeSdk.performCheckout(
-        sessionId,
-
-        async (
-          requestedSessionId
-        ) => {
-          assertActiveFlow(
-            flowToken
-          );
-
-          const normalizedRequestedSessionId =
-            requireString(
-              requestedSessionId,
-              "stripe_checkout_missing_requested_session_id"
-            );
-
-          if (
-            normalizedRequestedSessionId !==
-              sessionId
-          ) {
-            throw new Error(
-              "stripe_checkout_session_mismatch"
-            );
-          }
-
-          return clientSecret;
-        }
-      );
-
-    assertActiveFlow(
-      flowToken
-    );
-
-    if (
-      !result ||
-      result.successful !==
-        true
-    ) {
-      const error =
-        new Error(
-          "stripe_checkout_not_successful"
-        );
-
-      error.checkoutResult =
-        result ??
-        null;
-
-      throw error;
-    }
-
-    return {
-      successful:
-        true
-    };
-  }
-
+  Provider mechanics remain delegated.
+  --------------------------------------------------
+  */
 
   async function mount(
     ctx,
@@ -1238,6 +478,7 @@ window.UnibridgeStripeOnramp = (() => {
         "stripe_onramp_context_invalid"
       );
     }
+
 
     const settlementId =
       requireString(
@@ -1263,12 +504,23 @@ window.UnibridgeStripeOnramp = (() => {
       );
     }
 
+
     reset();
+
 
     const flowToken = {};
 
     activeFlowToken =
       flowToken;
+
+
+    const assertCurrentFlow =
+      () => {
+        assertActiveFlow(
+          flowToken
+        );
+      };
+
 
     const setStatus =
       (
@@ -1288,6 +540,7 @@ window.UnibridgeStripeOnramp = (() => {
         );
       };
 
+
     ctx.setContinueDisabled(
       true
     );
@@ -1296,59 +549,150 @@ window.UnibridgeStripeOnramp = (() => {
       "Preparing Stripe bank funding..."
     );
 
+
     const container =
       getContainer();
 
+
+    /*
+    --------------------------------------------------
+    Load independent Stripe modules in parallel.
+
+    Identity module loading is shared with the email
+    lookup so it is not imported twice.
+    --------------------------------------------------
+    */
+
+    const identityModulePromise =
+      ensureStripeIdentityModule();
+
+
     const [
       stripeSdk,
+      identityModule,
+      headlessModule,
       email
     ] =
       await Promise.all([
-        ensureSdk(),
-        resolveAuthenticatedEmail()
+        ensureStripeRuntimeSdk(),
+
+        identityModulePromise,
+
+        ensureStripeHeadlessModule(),
+
+        identityModulePromise
+          .then(
+            (
+              module
+            ) => {
+              const resolveAuthenticatedStripeEmail =
+                module
+                  ?.resolveAuthenticatedStripeEmail;
+
+              if (
+                typeof resolveAuthenticatedStripeEmail !==
+                  "function"
+              ) {
+                throw new Error(
+                  "stripe_identity_email_runtime_missing"
+                );
+              }
+
+              return resolveAuthenticatedStripeEmail();
+            }
+          )
       ]);
 
-    assertActiveFlow(
-      flowToken
-    );
 
-    const {
-      authIntentId,
-      cryptoCustomerId
-    } =
-      await authenticateStripeCustomer({
+    assertCurrentFlow();
+
+
+    const runStripeIdentityStage =
+      identityModule
+        ?.runStripeIdentityStage;
+
+    const createStripeHeadlessSession =
+      headlessModule
+        ?.createStripeHeadlessSession;
+
+    const performStripeHeadlessCheckout =
+      headlessModule
+        ?.performStripeHeadlessCheckout;
+
+
+    if (
+      typeof runStripeIdentityStage !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_identity_runtime_missing"
+      );
+    }
+
+    if (
+      typeof createStripeHeadlessSession !==
+        "function" ||
+      typeof performStripeHeadlessCheckout !==
+        "function"
+    ) {
+      throw new Error(
+        "stripe_headless_runtime_missing"
+      );
+    }
+
+
+    /*
+    --------------------------------------------------
+    Stripe identity stage
+
+    stripeIdentity.js owns:
+
+    Clerk email
+      → LinkAuthIntent
+      → Stripe Link authentication
+      → CryptoCustomer
+      → basic KYC
+      → L2 document/selfie
+      → final verified identity
+
+    No ConsumerWallet / limits / ACH / Headless work
+    begins until this stage returns successfully.
+    --------------------------------------------------
+    */
+
+    const identity =
+      await runStripeIdentityStage({
         sdk:
           stripeSdk,
 
         container,
+
         email,
+
         setStatus,
-        flowToken
+
+        assertActive:
+          assertCurrentFlow
       });
 
-    assertActiveFlow(
-      flowToken
-    );
 
-    const customer =
-      await runStripeIdentityFlow({
-        sdk:
-          stripeSdk,
+    assertCurrentFlow();
 
-        authIntentId,
-        cryptoCustomerId,
-        setStatus,
-        flowToken
-      });
 
-    assertActiveFlow(
-      flowToken
-    );
+    const authIntentId =
+      requireString(
+        identity
+          ?.authIntentId,
+        "missing_auth_intent_id"
+      );
 
-    const {
-      getStripeVerificationStatus
-    } =
-      await ensureStripeCustomerModule();
+    const cryptoCustomerId =
+      requireString(
+        identity
+          ?.cryptoCustomerId,
+        "missing_crypto_customer_id"
+      );
+
 
     console.log(
       "STRIPE_HEADLESS_KYC_READY",
@@ -1357,25 +701,27 @@ window.UnibridgeStripeOnramp = (() => {
           settlementId,
 
         kyc_status:
-          getStripeVerificationStatus(
-            customer,
-            "kyc_verified"
-          ),
+          identity
+            ?.kycStatus ??
+          null,
 
         document_status:
-          getStripeVerificationStatus(
-            customer,
-            "id_document_verified"
-          )
+          identity
+            ?.documentStatus ??
+          null
       }
     );
 
+
     container.replaceChildren();
+
 
     /*
     --------------------------------------------------
-    Ensure Stripe knows the exact canonical wallet
-    already assigned to this real settlement.
+    Settlement ConsumerWallet
+
+    Stripe must know the exact canonical wallet already
+    assigned to this real settlement.
 
     Wallet address and network originate from the
     backend FundingSession.
@@ -1390,15 +736,19 @@ window.UnibridgeStripeOnramp = (() => {
           stripeSdk,
 
         settlementId,
+
         authIntentId,
+
         cryptoCustomerId,
+
         setStatus,
+
         flowToken
       });
 
-    assertActiveFlow(
-      flowToken
-    );
+
+    assertCurrentFlow();
+
 
     console.log(
       "STRIPE_CONSUMER_WALLET_READY",
@@ -1423,27 +773,34 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+
     /*
     --------------------------------------------------
-    Limits are checked only after:
+    ACH limits
 
-      final L2 CryptoCustomer reload
-      settlement ConsumerWallet registration
+    Checked only after:
+
+    - final L2 verification
+    - settlement ConsumerWallet registration
     --------------------------------------------------
     */
 
     const limits =
       await loadAchLimits({
         settlementId,
+
         authIntentId,
+
         cryptoCustomerId,
+
         setStatus,
+
         flowToken
       });
 
-    assertActiveFlow(
-      flowToken
-    );
+
+    assertCurrentFlow();
+
 
     console.log(
       "STRIPE_HEADLESS_ACH_LIMITS_READY",
@@ -1463,13 +820,16 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+
     /*
     --------------------------------------------------
-    ACH payment-method collection begins only after:
+    ACH payment-method collection
 
-      L2 verified
-      ConsumerWallet confirmed
-      ACH limits available
+    Begins only after:
+
+    - KYC/L2 verified
+    - ConsumerWallet confirmed
+    - ACH limits available
     --------------------------------------------------
     */
 
@@ -1479,13 +839,15 @@ window.UnibridgeStripeOnramp = (() => {
           stripeSdk,
 
         container,
+
         setStatus,
+
         flowToken
       });
 
-    assertActiveFlow(
-      flowToken
-    );
+
+    assertCurrentFlow();
+
 
     console.log(
       "STRIPE_HEADLESS_ACH_PAYMENT_METHOD_READY",
@@ -1500,28 +862,49 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+
     /*
     --------------------------------------------------
-    Create and bind the Stripe Headless Session.
+    Create and bind Stripe Headless Session
 
-    Canonical amount, asset, network and wallet are
-    resolved by the backend from the settlement.
+    stripeHeadless.js sends only correlation IDs and
+    the Stripe payment token.
+
+    Backend resolves canonical:
+
+    - amount
+    - source currency
+    - destination asset
+    - network
+    - wallet
+    - settlement speed
+
+    Backend persists the authoritative Headless Session
+    binding before returning.
     --------------------------------------------------
     */
 
+    assertCurrentFlow();
+
+    setStatus(
+      "Creating secure Stripe payment session..."
+    );
+
+
     const headlessSession =
-      await createHeadlessSession({
+      await createStripeHeadlessSession({
         settlementId,
+
         authIntentId,
+
         cryptoCustomerId,
-        cryptoPaymentToken,
-        setStatus,
-        flowToken
+
+        cryptoPaymentToken
       });
 
-    assertActiveFlow(
-      flowToken
-    );
+
+    assertCurrentFlow();
+
 
     console.log(
       "STRIPE_HEADLESS_SESSION_READY",
@@ -1564,15 +947,10 @@ window.UnibridgeStripeOnramp = (() => {
 
         quote_expiration:
           headlessSession
-            .quoteExpiration,
-
-        client_secret_ready:
-          Boolean(
-            headlessSession
-              .clientSecret
-          )
+            .quoteExpiration
       }
     );
+
 
     if (
       typeof ctx.emit ===
@@ -1583,21 +961,52 @@ window.UnibridgeStripeOnramp = (() => {
       );
     }
 
+
+    /*
+    --------------------------------------------------
+    Headless checkout
+
+    Critical invariant:
+
+    create-stage client_secret is NOT reused here.
+
+    stripeHeadless.js allows Stripe SDK to request the
+    checkout stage.
+
+    Callback:
+      → UniBridge /headless-checkout
+      → server binding assertion
+      → Stripe /checkout
+      → checkout-stage client_secret
+      → Stripe SDK
+    --------------------------------------------------
+    */
+
+    assertCurrentFlow();
+
+    setStatus(
+      "Confirming Stripe bank payment..."
+    );
+
+
     const checkoutResult =
-      await performStripeCheckout({
+      await performStripeHeadlessCheckout({
         sdk:
           stripeSdk,
 
+        settlementId,
+
+        authIntentId,
+
         headlessSession,
 
-        setStatus,
-
-        flowToken
+        assertActive:
+          assertCurrentFlow
       });
 
-    assertActiveFlow(
-      flowToken
-    );
+
+    assertCurrentFlow();
+
 
     console.log(
       "STRIPE_HEADLESS_CHECKOUT_SUBMITTED",
@@ -1616,6 +1025,19 @@ window.UnibridgeStripeOnramp = (() => {
       }
     );
 
+
+    /*
+    --------------------------------------------------
+    Checkout successful means submitted.
+
+    It does NOT mean settlement funding has already
+    been confirmed.
+
+    Existing funding observation remains authoritative
+    for the transition to funding_confirmed.
+    --------------------------------------------------
+    */
+
     if (
       typeof ctx.emit ===
         "function"
@@ -1624,6 +1046,7 @@ window.UnibridgeStripeOnramp = (() => {
         "unibridge:payment"
       );
     }
+
 
     ctx.setContinueDisabled(
       true
@@ -1634,6 +1057,7 @@ window.UnibridgeStripeOnramp = (() => {
     setStatus(
       "Payment submitted. Waiting for Stripe funding confirmation..."
     );
+
 
     return true;
   }
