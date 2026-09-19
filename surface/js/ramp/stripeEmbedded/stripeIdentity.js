@@ -12,95 +12,39 @@ import {
 let stripeKycModule = null;
 
 
-/*
---------------------------------------------------
-Basic helpers
---------------------------------------------------
-*/
-
-function normalizeString(
-  value
-) {
-  return String(
-    value ?? ""
-  ).trim();
-}
-
-
-function requireString(
-  value,
-  errorCode
-) {
-  const normalized =
-    normalizeString(
-      value
-    );
+function requireString(value, errorCode) {
+  const normalized = String(value ?? "").trim();
 
   if (!normalized) {
-    throw new Error(
-      errorCode
-    );
+    throw new Error(errorCode);
   }
 
   return normalized;
 }
 
 
-function assertFlowActive(
-  assertActive
-) {
-  if (
-    typeof assertActive ===
-      "function"
-  ) {
+function assertFlowActive(assertActive) {
+  if (typeof assertActive === "function") {
     assertActive();
   }
 }
 
 
-/*
---------------------------------------------------
-Stripe KYC module
-
-Keep KYC provider UI/runtime lazy.
-
-The browser module loader already caches the module;
-this local reference is retained only so reset() can
-reach an already-loaded KYC flow without loading it
-solely for cleanup.
---------------------------------------------------
-*/
-
 async function ensureStripeKycModule() {
-  if (stripeKycModule) {
-    return stripeKycModule;
-  }
-
-  stripeKycModule =
-    await import(
+  if (!stripeKycModule) {
+    stripeKycModule = await import(
       "/surface/js/kyc/stripe/stripeKycFlow.js"
     );
+  }
 
   return stripeKycModule;
 }
 
 
-/*
---------------------------------------------------
-Reset identity UI state
-
-If Stripe KYC has never been loaded, there is no KYC
-state here to reset.
---------------------------------------------------
-*/
-
 export function resetStripeIdentityFlow() {
   try {
-    stripeKycModule
-      ?.resetStripeKycFlow?.();
-  } catch (
-    error
-  ) {
+    stripeKycModule?.resetStripeKycFlow?.();
+  } catch (error) {
     console.warn(
       "STRIPE_KYC_RESET_FAILED",
       error
@@ -109,91 +53,43 @@ export function resetStripeIdentityFlow() {
 }
 
 
-/*
---------------------------------------------------
-Authenticated UniBridge email
-
-Clerk remains the authenticated source for the email
-used to initialize Stripe Link authentication.
-
-This function does not establish reusable identity
-ownership. Backend customer context remains
-authoritative for settlement operations.
---------------------------------------------------
-*/
-
 export async function resolveAuthenticatedStripeEmail() {
   const {
     ensureFiatClerkAuth
-  } =
-    await import(
-      "/shared/pay/auth/clerkAuth.js"
-    );
+  } = await import(
+    "/shared/pay/auth/clerkAuth.js"
+  );
 
-  if (
-    typeof ensureFiatClerkAuth !==
-      "function"
-  ) {
+  if (typeof ensureFiatClerkAuth !== "function") {
     throw new Error(
       "surface_customer_auth_unavailable"
     );
   }
 
-  const auth =
-    await ensureFiatClerkAuth();
+  const auth = await ensureFiatClerkAuth();
 
   return requireString(
     auth?.email,
     "authenticated_customer_email_missing"
-  )
-    .toLowerCase();
+  ).toLowerCase();
 }
 
-
-/*
---------------------------------------------------
-Load current CryptoCustomer
-
-Every reload uses the same:
-
-LinkAuthIntent
-  ↔ CryptoCustomer
-
-relationship.
-
-The backend independently verifies this relationship
-again before sensitive Headless operations.
---------------------------------------------------
-*/
 
 async function loadCryptoCustomer({
   authIntentId,
   cryptoCustomerId,
   assertActive
 }) {
-  const customer =
-    await loadStripeCryptoCustomer({
-      authIntentId,
-      cryptoCustomerId
-    });
+  const customer = await loadStripeCryptoCustomer({
+    authIntentId,
+    cryptoCustomerId
+  });
 
-  assertFlowActive(
-    assertActive
-  );
+  assertFlowActive(assertActive);
 
   return customer;
 }
 
-
-/*
---------------------------------------------------
-Stripe Link authentication
-
-Creates the LinkAuthIntent, mounts Stripe's
-authentication element, waits for completion and
-returns the resulting correlation identifiers.
---------------------------------------------------
-*/
 
 async function authenticateStripeCustomer({
   sdk,
@@ -202,9 +98,7 @@ async function authenticateStripeCustomer({
   setStatus,
   assertActive
 }) {
-  if (
-    !sdk
-  ) {
+  if (!sdk) {
     throw new Error(
       "stripe_sdk_missing"
     );
@@ -212,66 +106,45 @@ async function authenticateStripeCustomer({
 
   if (
     !container ||
-    typeof container.replaceChildren !==
-      "function"
+    typeof container.replaceChildren !== "function"
   ) {
     throw new Error(
       "stripe_identity_container_invalid"
     );
   }
 
-  if (
-    typeof setStatus !==
-      "function"
-  ) {
+  if (typeof setStatus !== "function") {
     throw new Error(
       "stripe_identity_status_handler_missing"
     );
   }
 
-  const normalizedEmail =
-    requireString(
-      email,
-      "authenticated_customer_email_missing"
-    )
-      .toLowerCase();
+  const normalizedEmail = requireString(
+    email,
+    "authenticated_customer_email_missing"
+  ).toLowerCase();
 
-
-  assertFlowActive(
-    assertActive
-  );
+  assertFlowActive(assertActive);
 
   setStatus(
     "Starting secure Stripe authentication..."
   );
 
-
   const {
     authIntentId
-  } =
-    await createStripeLinkAuthIntent({
-      email:
-        normalizedEmail
-    });
+  } = await createStripeLinkAuthIntent({
+    email: normalizedEmail
+  });
 
-
-  assertFlowActive(
-    assertActive
-  );
-
+  assertFlowActive(assertActive);
 
   const authentication =
     await startStripeCustomerAuthentication({
       sdk,
-
       authIntentId
     });
 
-
-  assertFlowActive(
-    assertActive
-  );
-
+  assertFlowActive(assertActive);
 
   if (
     !authentication?.element ||
@@ -282,7 +155,6 @@ async function authenticateStripeCustomer({
     );
   }
 
-
   container.replaceChildren(
     authentication.element
   );
@@ -291,51 +163,36 @@ async function authenticateStripeCustomer({
     "Complete Stripe authentication to continue."
   );
 
-
   const completed =
     await authentication.completion;
 
-
-  assertFlowActive(
-    assertActive
-  );
-
+  assertFlowActive(assertActive);
 
   container.replaceChildren();
 
-
   return {
-    authIntentId:
-      requireString(
-        completed?.authIntentId ??
+    authIntentId: requireString(
+      completed?.authIntentId ??
         authIntentId,
-        "missing_auth_intent_id"
-      ),
+      "missing_auth_intent_id"
+    ),
 
-    cryptoCustomerId:
-      requireString(
-        completed?.cryptoCustomerId,
-        "missing_crypto_customer_id"
-      )
+    cryptoCustomerId: requireString(
+      completed?.cryptoCustomerId,
+      "missing_crypto_customer_id"
+    )
   };
 }
 
 
 /*
---------------------------------------------------
-Stripe KYC + L2
-
-ACH requires:
+ACH identity requirement:
 
 kyc_verified = verified
 id_document_verified = verified
 
-Basic KYC alone is not enough.
-
-The CryptoCustomer is reloaded after each interactive
-verification stage before any final funding decision
-is made.
---------------------------------------------------
+Reload CryptoCustomer after every interactive
+verification step before making the final decision.
 */
 
 async function verifyStripeIdentity({
@@ -345,28 +202,6 @@ async function verifyStripeIdentity({
   setStatus,
   assertActive
 }) {
-  const kycModule =
-    await ensureStripeKycModule();
-
-  const runStripeKycFlow =
-    kycModule
-      ?.runStripeKycFlow;
-
-  if (
-    typeof runStripeKycFlow !==
-      "function"
-  ) {
-    throw new Error(
-      "stripe_kyc_runtime_missing"
-    );
-  }
-
-
-  assertFlowActive(
-    assertActive
-  );
-
-
   let customer =
     await loadCryptoCustomer({
       authIntentId,
@@ -376,9 +211,7 @@ async function verifyStripeIdentity({
 
 
   /*
-  --------------------------------------------------
-  Basic Stripe KYC
-  --------------------------------------------------
+  Basic KYC
   */
 
   if (
@@ -387,24 +220,31 @@ async function verifyStripeIdentity({
       "kyc_verified"
     )
   ) {
+    const {
+      runStripeKycFlow
+    } = await ensureStripeKycModule();
+
+    assertFlowActive(assertActive);
+
+    if (
+      typeof runStripeKycFlow !== "function"
+    ) {
+      throw new Error(
+        "stripe_kyc_runtime_missing"
+      );
+    }
+
     setStatus(
       "Complete Stripe identity verification."
     );
 
     await runStripeKycFlow({
       sdk,
-
-      includeUsStepUp:
-        true,
-
+      includeUsStepUp: true,
       setStatus
     });
 
-
-    assertFlowActive(
-      assertActive
-    );
-
+    assertFlowActive(assertActive);
 
     customer =
       await loadCryptoCustomer({
@@ -414,15 +254,6 @@ async function verifyStripeIdentity({
       });
   }
 
-
-  /*
-  --------------------------------------------------
-  Basic KYC gate
-
-  Do not continue to ACH L2 unless the reloaded
-  CryptoCustomer confirms basic KYC.
-  --------------------------------------------------
-  */
 
   if (
     !isStripeVerificationVerified(
@@ -452,9 +283,7 @@ async function verifyStripeIdentity({
 
 
   /*
-  --------------------------------------------------
-  Stripe L2 document/selfie verification
-  --------------------------------------------------
+  ACH L2 document/selfie
   */
 
   let documentStatus =
@@ -463,33 +292,22 @@ async function verifyStripeIdentity({
       "id_document_verified"
     );
 
-
-  if (
-    documentStatus ===
-      "not_started"
-  ) {
+  if (documentStatus === "not_started") {
     if (
-      typeof sdk.verifyDocuments !==
-        "function"
+      typeof sdk?.verifyDocuments !== "function"
     ) {
       throw new Error(
         "stripe_verify_documents_not_available"
       );
     }
 
-
     setStatus(
       "Stripe needs a photo ID and selfie to continue."
     );
 
-
     await sdk.verifyDocuments();
 
-
-    assertFlowActive(
-      assertActive
-    );
-
+    assertFlowActive(assertActive);
 
     customer =
       await loadCryptoCustomer({
@@ -497,7 +315,6 @@ async function verifyStripeIdentity({
         cryptoCustomerId,
         assertActive
       });
-
 
     documentStatus =
       getStripeVerificationStatus(
@@ -508,14 +325,7 @@ async function verifyStripeIdentity({
 
 
   /*
-  --------------------------------------------------
   Final ACH identity gate
-
-  No ConsumerWallet registration, transaction-limit
-  request, ACH collection or Headless session may run
-  unless both checks are verified on the final loaded
-  CryptoCustomer.
-  --------------------------------------------------
   */
 
   const kycVerified =
@@ -529,7 +339,6 @@ async function verifyStripeIdentity({
       customer,
       "id_document_verified"
     );
-
 
   if (
     !kycVerified ||
@@ -556,7 +365,6 @@ async function verifyStripeIdentity({
     throw error;
   }
 
-
   return {
     customer,
 
@@ -576,33 +384,16 @@ async function verifyStripeIdentity({
 
 
 /*
---------------------------------------------------
-Public identity stage
+Public identity boundary:
 
-Owns the complete browser-side Stripe identity phase:
+Clerk email
+→ Link authentication
+→ CryptoCustomer
+→ basic KYC
+→ L2 document/selfie
 
-Clerk authenticated email
-        ↓
-LinkAuthIntent
-        ↓
-Stripe Link authentication
-        ↓
-CryptoCustomer
-        ↓
-Basic Stripe KYC
-        ↓
-L2 document/selfie verification
-        ↓
-verified identity context
-
-It intentionally stops before:
-
-- ConsumerWallet registration
-- transaction limits
-- payment-method collection
-- Headless session creation
-- checkout
---------------------------------------------------
+Stops before wallet, limits, ACH collection
+and Headless execution.
 */
 
 export async function runStripeIdentityStage({
@@ -612,63 +403,39 @@ export async function runStripeIdentityStage({
   setStatus,
   assertActive = null
 }) {
-  assertFlowActive(
-    assertActive
-  );
-
+  assertFlowActive(assertActive);
 
   const {
     authIntentId,
     cryptoCustomerId
-  } =
-    await authenticateStripeCustomer({
-      sdk,
-
-      container,
-
-      email,
-
-      setStatus,
-
-      assertActive
-    });
-
-
-  assertFlowActive(
+  } = await authenticateStripeCustomer({
+    sdk,
+    container,
+    email,
+    setStatus,
     assertActive
-  );
+  });
 
+  assertFlowActive(assertActive);
 
   const identity =
     await verifyStripeIdentity({
       sdk,
-
       authIntentId,
-
       cryptoCustomerId,
-
       setStatus,
-
       assertActive
     });
 
-
-  assertFlowActive(
-    assertActive
-  );
-
+  assertFlowActive(assertActive);
 
   return {
     authIntentId,
-
     cryptoCustomerId,
-
     customer:
       identity.customer,
-
     kycStatus:
       identity.kycStatus,
-
     documentStatus:
       identity.documentStatus
   };
