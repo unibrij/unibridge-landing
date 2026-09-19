@@ -1005,8 +1005,22 @@ window.UnibridgeStripeOnramp = (() => {
       });
 
 
-    assertCurrentFlow();
+    /*
+    --------------------------------------------------
+    Successful Stripe checkout boundary
 
+    From this point forward Stripe has already reported
+    the bank payment as successfully submitted.
+
+    Do NOT assert active flow after this boundary.
+
+    A later Surface flow replacement must not convert
+    the successful Stripe checkout into an error.
+
+    UI/event mutation is allowed only if this remains
+    the active Surface flow.
+    --------------------------------------------------
+    */
 
     console.log(
       "STRIPE_HEADLESS_CHECKOUT_SUBMITTED",
@@ -1021,6 +1035,11 @@ window.UnibridgeStripeOnramp = (() => {
         successful:
           checkoutResult
             .successful ===
+          true,
+
+        submission_recorded:
+          checkoutResult
+            .submissionRecorded ===
           true
       }
     );
@@ -1035,28 +1054,37 @@ window.UnibridgeStripeOnramp = (() => {
 
     Existing funding observation remains authoritative
     for the transition to funding_confirmed.
+
+    If this flow has already been replaced, do not
+    mutate the replacement flow UI or emit its payment
+    event.
     --------------------------------------------------
     */
 
     if (
-      typeof ctx.emit ===
-        "function"
+      activeFlowToken ===
+        flowToken
     ) {
-      ctx.emit(
-        "unibridge:payment"
+      if (
+        typeof ctx.emit ===
+          "function"
+      ) {
+        ctx.emit(
+          "unibridge:payment"
+        );
+      }
+
+
+      ctx.setContinueDisabled(
+        true
+      );
+
+      container.replaceChildren();
+
+      setStatus(
+        "Bank payment submitted successfully. We’ll continue processing your transfer automatically. You can safely close this page."
       );
     }
-
-
-    ctx.setContinueDisabled(
-      true
-    );
-
-    container.replaceChildren();
-
-    setStatus(
-      "Payment submitted. Waiting for Stripe funding confirmation..."
-    );
 
 
     return true;
