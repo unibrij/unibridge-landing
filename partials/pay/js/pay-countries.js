@@ -25,6 +25,12 @@ window.UNIBRIDGE_COUNTRY_OPTIONS = {
       label: "United Arab Emirates",
       flag: "🇦🇪",
       currency: "AED"
+    },
+    {
+      value: "TR",
+      label: "Turkey",
+      flag: "🇹🇷",
+      currency: "TRY"
     }
   ],
 
