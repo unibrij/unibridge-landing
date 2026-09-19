@@ -808,7 +808,7 @@ export async function initPayHistory({
             "No payouts yet",
 
           message:
-            "Completed payouts will appear here."
+            "Your payouts will appear here."
         }
       );
 
