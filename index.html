@@ -1830,22 +1830,23 @@
 
           <div class="hero-video-container fade-in">
             <video
-              data-testid="video-bg"
-              class="video-bg"
-              autoplay
-              loop
-              muted
-              playsinline
-              poster="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
-            >
-              <source
-                src="https://cdn.cmsfly.com/68f22c67ce081000452aabdb/videos/1000112904-7d1aI.mp4"
-                type="video/mp4"
-              />
-              <div class="video-fallback">
-                <div>UniBridge - Managed Payout Routes</div>
-              </div>
-            </video>
+  class="video-bg"
+  autoplay
+  loop
+  muted
+  playsinline
+  preload="metadata"
+  poster="/icons/social/saturn-purple-nebula-poster.webp"
+>
+  <source
+    src="/icons/social/saturn-purple-nebula-lite.webm"
+    type="video/webm"
+  />
+  <source
+    src="/icons/social/saturn-purple-nebula-lite.mp4"
+    type="video/mp4"
+  />
+</video>
             <div data-testid="video-overlay" class="video-overlay"></div>
           </div>
         </div>
