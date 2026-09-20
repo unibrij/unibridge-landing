@@ -50,9 +50,9 @@ header {
 }
 
 .nav-logo {
-  width: 260px;
+  width: 290px;
   height: auto;
-  max-height: 58px;
+  max-height: 64px;
   object-fit: contain;
   display: block;
 }
@@ -266,9 +266,9 @@ header {
   }
 
   .nav-logo {
-    width: 220px;
+    width: 235px;
     height: auto;
-    max-height: 50px;
+    max-height: 54px;
   }
 
   .nav-links {
@@ -305,9 +305,9 @@ header {
   }
 
   .nav-logo {
-    width: 190px;
+    width: 210px;
     height: auto;
-    max-height: 44px;
+    max-height: 48px;
   }
 
   .footer {
