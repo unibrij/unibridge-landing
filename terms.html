@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Terms of Use | UniBridge</title>
+
+  <meta
+    name="description"
+    content="Terms that apply when you use UniBridge directly to pay, receive, or manage a payment."
+  />
+
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #003366;
+      --navy-dark: #0b1230;
+      --teal: #00D4AA;
+      --teal-hover: #00b894;
+      --teal-dark: #00a98a;
+      --text: #23282f;
+      --muted: #5a6c7d;
+      --bg: #f8fafc;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: #243244;
+
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        "Open Sans",
+        "Helvetica Neue",
+        sans-serif;
+
+      line-height: 1.75;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--teal-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ===== HERO ===== */
+
+    .hero {
+      position: relative;
+      padding: 88px 24px 54px;
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 72% 22%,
+          rgba(0, 212, 170, 0.12),
+          transparent 30%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f8fafc 100%
+        );
+    }
+
+    .hero-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 16px;
+
+      color: var(--teal-dark);
+
+      font-size: 0.78rem;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+
+      color: var(--navy);
+
+      font-size: clamp(2.35rem, 5vw, 4.1rem);
+      line-height: 1.06;
+      font-weight: 700;
+      letter-spacing: -0.055em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+
+      color: var(--muted);
+
+      font-size: 1.08rem;
+      line-height: 1.72;
+    }
+
+    /* ===== TERMS ===== */
+
+    .page-wrap {
+      padding: 22px 24px 112px;
+    }
+
+    .terms-card {
+      max-width: 960px;
+      margin: 0 auto;
+
+      background: #ffffff;
+
+      border: 1px solid rgba(0, 51, 102, 0.07);
+      border-radius: 24px;
+
+      box-shadow:
+        0 28px 80px rgba(0, 51, 102, 0.08),
+        0 10px 30px rgba(0, 51, 102, 0.04);
+
+      overflow: hidden;
+    }
+
+    .terms-top {
+      padding: 30px 42px;
+
+      background:
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(0, 212, 170, 0.10),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #003366 0%,
+          #062f57 52%,
+          #0b1230 100%
+        );
+
+      color: #ffffff;
+    }
+
+    .terms-top p {
+      margin: 0;
+      max-width: 800px;
+
+      color: rgba(255, 255, 255, 0.82);
+
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .terms-content {
+      padding: 46px 42px 52px;
+    }
+
+    .last-updated {
+      display: inline-flex;
+      align-items: center;
+
+      margin: 0 0 28px;
+      padding: 8px 13px;
+
+      border-radius: 999px;
+
+      background: rgba(0, 212, 170, 0.10);
+      color: #007f73;
+
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 42px 0 14px;
+
+      color: var(--navy);
+
+      font-size: 1.35rem;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    h2:first-of-type {
+      margin-top: 28px;
+    }
+
+    p {
+      margin: 0 0 18px;
+
+      color: #46596b;
+
+      font-size: 1rem;
+      line-height: 1.78;
+    }
+
+    ul {
+      margin: 0 0 22px;
+      padding-left: 22px;
+
+      color: #46596b;
+    }
+
+    li {
+      margin-bottom: 10px;
+      line-height: 1.72;
+    }
+
+    strong {
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    .note-box {
+      margin: 34px 0;
+      padding: 20px 22px;
+
+      border-radius: 16px;
+      border: 1px solid rgba(0, 51, 102, 0.08);
+
+      background: var(--bg);
+      color: #46596b;
+    }
+
+    .note-box p {
+      margin: 0;
+    }
+
+    .footer-note {
+      margin-top: 46px;
+      padding-top: 28px;
+
+      border-top: 1px solid rgba(0, 51, 102, 0.08);
+
+      color: #6b7a88;
+      font-size: 0.94rem;
+    }
+
+    /* ===== RESPONSIVE ===== */
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 62px 18px 36px;
+      }
+
+      .page-wrap {
+        padding: 16px 18px 82px;
+      }
+
+      .terms-card {
+        border-radius: 20px;
+      }
+
+      .terms-top {
+        padding: 28px 24px;
+      }
+
+      .terms-content {
+        padding: 34px 24px 40px;
+      }
+
+      h1 {
+        font-size: 2.35rem;
+        line-height: 1.12;
+      }
+
+      h2 {
+        margin-top: 34px;
+        font-size: 1.18rem;
+      }
+
+      p,
+      li {
+        font-size: 0.96rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero p {
+        font-size: 0.98rem;
+      }
+
+      .terms-content {
+        padding: 30px 20px 36px;
+      }
+
+      .terms-top {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="site-header"></div>
+
+  <main>
+
+    <section class="hero">
+      <div class="hero-inner">
+
+        <p class="eyebrow">
+          Terms
+        </p>
+
+        <h1>
+          Terms of Use
+        </h1>
+
+        <p>
+          The terms that apply when you use UniBridge directly
+          to pay, receive, or manage a payment.
+        </p>
+
+      </div>
+    </section>
+
+    <section class="page-wrap">
+      <article class="terms-card">
+
+        <div class="terms-top">
+          <p>
+            UniBridge coordinates the path of a payment across
+            supported providers and payment rails.
+            We do not hold customer funds or maintain customer balances.
+          </p>
+        </div>
+
+        <div class="terms-content">
+
+          <p class="last-updated">
+            Last updated: September 2026
+          </p>
+
+          <p>
+            These Terms of Use govern your use of UniBridge products
+            and services made available directly to users by
+            <strong>UniBridge Technologies Ltd.</strong>
+            (“UniBridge”, “we”, “our”), including supported Pay,
+            Receive, payment history, and related payment experiences.
+          </p>
+
+          <p>
+            By using UniBridge, you agree to these Terms.
+            If you use UniBridge through a business, platform,
+            or other partner integration, additional terms may apply.
+          </p>
+
+          <!-- 1 -->
+
+          <h2>
+            1. Using UniBridge
+          </h2>
+
+          <p>
+            You may use UniBridge only for lawful payment purposes
+            and through the products, countries, payment methods,
+            currencies, routes, and providers made available to you.
+          </p>
+
+          <ul>
+            <li>
+              You must provide accurate information when creating
+              or completing a payment.
+            </li>
+
+            <li>
+              You must use UniBridge only for payments you are
+              authorized to make, request, or receive.
+            </li>
+
+            <li>
+              You are responsible for protecting access to your account,
+              device, wallet, credentials, and authentication methods.
+            </li>
+
+            <li>
+              Availability may differ by country, payment method,
+              provider, route, currency, amount, and account status.
+            </li>
+          </ul>
+
+          <!-- 2 -->
+
+          <h2>
+            2. UniBridge’s role
+          </h2>
+
+          <p>
+            UniBridge coordinates payment workflows across the providers
+            responsible for the different parts of a payment,
+            such as funding, identity verification, settlement,
+            custody, banking connectivity, and local payout.
+          </p>
+
+          <p>
+            Unless expressly stated otherwise, UniBridge does not hold
+            customer funds or maintain customer balances.
+          </p>
+
+          <p>
+            Funds may be received, held, converted, transferred,
+            or paid out by third-party providers responsible
+            for the relevant part of the payment flow.
+          </p>
+
+          <!-- 3 -->
+
+          <h2>
+            3. Paying with UniBridge
+          </h2>
+
+          <p>
+            When you start a payment, UniBridge may present one or more
+            available ways to fund and complete that payment.
+          </p>
+
+          <p>
+            The available route may depend on factors including
+            the sending country, receiving country, amount,
+            payment method, currency, provider availability,
+            payment limits, and recipient details.
+          </p>
+
+          <ul>
+            <li>
+              A quote may be time-limited and may change before
+              a payment is confirmed.
+            </li>
+
+            <li>
+              Fees, exchange rates, payment limits, and expected
+              recipient amounts may depend on the selected route
+              and the providers involved.
+            </li>
+
+            <li>
+              You must review the amount, currency, fees,
+              recipient information, and payment instructions
+              before continuing.
+            </li>
+
+            <li>
+              A displayed route or quote does not guarantee that
+              the route will remain available until the payment
+              has been accepted and funded.
+            </li>
+          </ul>
+
+          <!-- 4 -->
+
+          <h2>
+            4. Receiving with UniBridge
+          </h2>
+
+          <p>
+            Where Receive is available, UniBridge may allow a user
+            to create payment instructions, a payment request,
+            or another way for a sender to initiate a payment
+            to that recipient.
+          </p>
+
+          <p>
+            The sender may be able to choose from available funding
+            methods and payment routes when completing the payment.
+          </p>
+
+          <ul>
+            <li>
+              Creating a payment request does not guarantee
+              that the sender will complete the payment.
+            </li>
+
+            <li>
+              A request does not guarantee that a particular
+              funding method, provider, route, amount,
+              or currency will be available to the sender.
+            </li>
+
+            <li>
+              The recipient is responsible for providing accurate
+              destination and payout information.
+            </li>
+
+            <li>
+              The sender remains responsible for reviewing
+              the payment before confirming it.
+            </li>
+          </ul>
+
+          <!-- 5 -->
+
+          <h2>
+            5. Payment and recipient information
+          </h2>
+
+          <p>
+            You are responsible for reviewing recipient, beneficiary,
+            account, wallet, payout destination, and other payment
+            information before submitting a payment.
+          </p>
+
+          <p>
+            UniBridge may validate required fields, formatting,
+            supported routes, provider requirements, and operational
+            readiness. Unless expressly stated otherwise,
+            those checks do not independently confirm the identity,
+            ownership, or correctness of information you provide.
+          </p>
+
+          <p>
+            Payments sent using incorrect information may be delayed,
+            rejected, irreversible, or delivered to the wrong destination
+            depending on the payment rail and provider involved.
+          </p>
+
+          <!-- 6 -->
+
+          <h2>
+            6. Identity and compliance checks
+          </h2>
+
+          <p>
+            Some payment methods, routes, providers, or jurisdictions
+            may require identity verification, eligibility checks,
+            sanctions screening, fraud controls, source-of-funds checks,
+            or other compliance procedures.
+          </p>
+
+          <p>
+            These checks may be performed by third-party providers
+            responsible for the relevant part of the payment flow.
+          </p>
+
+          <p>
+            A payment may be delayed, restricted, rejected,
+            or require additional information where necessary
+            to satisfy applicable law, provider requirements,
+            security controls, or compliance obligations.
+          </p>
+
+          <!-- 7 -->
+
+          <h2>
+            7. Fees, rates, and limits
+          </h2>
+
+          <p>
+            Any applicable fees, exchange rates, limits,
+            and estimated recipient amounts are shown or determined
+            as part of the relevant payment flow.
+          </p>
+
+          <p>
+            Rates and provider pricing may change over time
+            and may be time-sensitive.
+          </p>
+
+          <ul>
+            <li>
+              Minimum and maximum amounts may apply.
+            </li>
+
+            <li>
+              Providers may apply their own limits,
+              eligibility rules, or fees.
+            </li>
+
+            <li>
+              Network, banking, conversion, or provider charges
+              may apply where disclosed in the payment flow.
+            </li>
+          </ul>
+
+          <!-- 8 -->
+
+          <h2>
+            8. Payment history and Send again
+          </h2>
+
+          <p>
+            UniBridge may provide payment history, receipts,
+            and information about previous recipients or payouts
+            associated with your account.
+          </p>
+
+          <p>
+            Where available, <strong>Send again</strong> may use
+            information from a previous completed payment to prefill
+            a new payment.
+          </p>
+
+          <p>
+            Send again creates a new payment.
+            It does not automatically repeat or re-execute
+            the previous transaction.
+          </p>
+
+          <p>
+            You must review the new payment, including the amount,
+            route, fees, recipient information, and any updated
+            payment instructions, before continuing.
+          </p>
+
+          <!-- 9 -->
+
+          <h2>
+            9. Payment status, delays, and failures
+          </h2>
+
+          <p>
+            Payment timing depends on the providers, payment rails,
+            networks, banks, and other systems involved in the route.
+          </p>
+
+          <p>
+            A payment may be delayed, rejected, paused,
+            or fail because of provider availability, incorrect
+            information, payment limits, compliance checks,
+            banking conditions, network conditions,
+            or other operational factors.
+          </p>
+
+          <p>
+            Status information shown by UniBridge reflects
+            the information available from the relevant workflow
+            and providers at that time.
+          </p>
+
+          <!-- 10 -->
+
+          <h2>
+            10. Cancellations, returns, and recovery
+          </h2>
+
+          <p>
+            Whether a payment can be cancelled, returned,
+            refunded, reversed, or recovered depends on its status,
+            the payment method, the payment rail,
+            and the providers involved.
+          </p>
+
+          <p>
+            Some payments may become irreversible after they are
+            funded, submitted, settled, or executed.
+          </p>
+
+          <p>
+            Where recovery or return is available,
+            UniBridge may coordinate the applicable process
+            with the relevant providers.
+          </p>
+
+          <!-- 11 -->
+
+          <h2>
+            11. Third-party providers
+          </h2>
+
+          <p>
+            UniBridge relies on third-party providers for parts
+            of supported payment workflows.
+          </p>
+
+          <p>
+            Those providers may apply their own terms,
+            privacy policies, eligibility rules, compliance requirements,
+            processing times, limits, and service availability.
+          </p>
+
+          <p>
+            UniBridge does not control every decision, restriction,
+            delay, outage, or service change made by an independent
+            provider, bank, payment rail, blockchain network,
+            or other third-party system.
+          </p>
+
+          <!-- 12 -->
+
+          <h2>
+            12. Prohibited use
+          </h2>
+
+          <p>
+            You must not use UniBridge:
+          </p>
+
+          <ul>
+            <li>
+              For unlawful, fraudulent, deceptive,
+              or unauthorized activity
+            </li>
+
+            <li>
+              To evade sanctions, financial restrictions,
+              payment limits, identity checks,
+              or compliance controls
+            </li>
+
+            <li>
+              To interfere with, probe, bypass,
+              or compromise UniBridge systems,
+              providers, or security controls
+            </li>
+
+            <li>
+              To submit information you are not authorized
+              to use or provide
+            </li>
+
+            <li>
+              In any way that violates applicable law
+              or the rights of another person
+            </li>
+          </ul>
+
+          <p>
+            UniBridge may restrict, suspend, or refuse access
+            where reasonably necessary for security,
+            legal, compliance, provider, or operational reasons.
+          </p>
+
+          <!-- 13 -->
+
+          <h2>
+            13. Privacy
+          </h2>
+
+          <p>
+            Information handled through UniBridge is subject to the
+            <a href="/privacy">UniBridge Privacy Policy</a>.
+          </p>
+
+          <p>
+            Transaction and recipient information may be retained
+            where needed to provide payment history, receipts,
+            support, reconciliation, and features such as Send again.
+          </p>
+
+          <p>
+            Identity verification may be handled by third-party
+            verification providers as described in the Privacy Policy.
+          </p>
+
+          <!-- 14 -->
+
+          <h2>
+            14. Service availability
+          </h2>
+
+          <p>
+            UniBridge services are provided on an “as is”
+            and “as available” basis unless otherwise agreed
+            or required by applicable law.
+          </p>
+
+          <p>
+            We may add, change, restrict, pause,
+            or discontinue features, routes,
+            payment methods, providers, or jurisdictions
+            as the service evolves.
+          </p>
+
+          <p>
+            We do not guarantee uninterrupted availability
+            of every route, provider, payment method,
+            currency, or payment rail.
+          </p>
+
+          <!-- 15 -->
+
+          <h2>
+            15. Liability
+          </h2>
+
+          <p>
+            To the fullest extent permitted by applicable law,
+            UniBridge is not responsible for losses caused solely
+            by incorrect information supplied by a user,
+            independent third-party provider failures,
+            payment rail or network outages,
+            or events outside UniBridge’s reasonable control.
+          </p>
+
+          <p>
+            Nothing in these Terms excludes or limits liability
+            where doing so would be prohibited by applicable law.
+          </p>
+
+          <!-- 16 -->
+
+          <h2>
+            16. Changes to these Terms
+          </h2>
+
+          <p>
+            We may update these Terms from time to time
+            to reflect changes in UniBridge products,
+            providers, payment routes, operations,
+            or legal requirements.
+          </p>
+
+          <p>
+            The current version will be published on this page.
+          </p>
+
+          <!-- 17 -->
+
+          <h2>
+            17. Governing law
+          </h2>
+
+          <p>
+            Unless applicable law requires otherwise,
+            these Terms and any related dispute are governed
+            by the laws of <strong>England and Wales</strong>.
+          </p>
+
+          <!-- 18 -->
+
+          <h2>
+            18. Contact
+          </h2>
+
+          <p>
+            For support or legal inquiries:
+          </p>
+
+          <p>
+            <strong>UniBridge Technologies Ltd.</strong><br />
+            Email:
+            <a href="mailto:support@unibrij.io">
+              support@unibrij.io
+            </a>
+          </p>
+
+          <div class="note-box">
+            <p>
+              These Terms apply when you use UniBridge directly.
+              Businesses and platforms using UniBridge as part of
+              their own products may also be subject to separate
+              Partner Access Terms or other agreements.
+            </p>
+          </div>
+
+          <p class="footer-note">
+            © 2026 UniBridge Technologies Ltd. — All rights reserved.
+          </p>
+
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="/partials/js/includes.js"></script>
+</body>
+</html>
