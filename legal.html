@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Partner Access Terms | UniBridge Protocol</title>
+  <title>Partner Access Terms | UniBridge</title>
+
   <meta
     name="description"
-    content="Partner Access Terms for controlled UniBridge documentation, review access, technical evaluation, and phased partner enablement."
+    content="Terms that apply when using UniBridge partner tools, documentation, environments, and integrations."
   />
 
   <link rel="icon" type="image/png" href="/favicon.png" />
@@ -36,15 +37,28 @@
     }
 
     body {
-      background: #f8fafc;
+      background: var(--bg);
       color: #243244;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        "Open Sans",
+        "Helvetica Neue",
+        sans-serif;
+
       line-height: 1.75;
       overflow-x: hidden;
     }
 
     a {
-      color: #00a98a;
+      color: var(--teal-dark);
       text-decoration: none;
       font-weight: 600;
     }
@@ -53,13 +67,24 @@
       text-decoration: underline;
     }
 
+    /* ===== HERO ===== */
+
     .hero {
       position: relative;
       padding: 88px 24px 54px;
       overflow: hidden;
+
       background:
-        radial-gradient(circle at 72% 22%, rgba(0, 212, 170, 0.12), transparent 30%),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        radial-gradient(
+          circle at 72% 22%,
+          rgba(0, 212, 170, 0.12),
+          transparent 30%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f8fafc 100%
+        );
     }
 
     .hero-inner {
@@ -69,7 +94,9 @@
 
     .eyebrow {
       margin: 0 0 16px;
-      color: #00a98a;
+
+      color: var(--teal-dark);
+
       font-size: 0.78rem;
       font-weight: 750;
       letter-spacing: 0.11em;
@@ -78,7 +105,9 @@
 
     h1 {
       margin: 0 0 20px;
-      color: #003366;
+
+      color: var(--navy);
+
       font-size: clamp(2.35rem, 5vw, 4.1rem);
       line-height: 1.06;
       font-weight: 700;
@@ -88,10 +117,14 @@
     .hero p {
       margin: 0;
       max-width: 760px;
-      color: #5a6c7d;
+
+      color: var(--muted);
+
       font-size: 1.08rem;
-      line-height: 1.82;
+      line-height: 1.72;
     }
+
+    /* ===== TERMS ===== */
 
     .page-wrap {
       padding: 22px 24px 112px;
@@ -100,28 +133,46 @@
     .terms-card {
       max-width: 960px;
       margin: 0 auto;
+
       background: #ffffff;
+
       border: 1px solid rgba(0, 51, 102, 0.07);
       border-radius: 24px;
+
       box-shadow:
         0 28px 80px rgba(0, 51, 102, 0.08),
         0 10px 30px rgba(0, 51, 102, 0.04);
+
       overflow: hidden;
     }
 
     .terms-top {
-      padding: 34px 42px;
+      padding: 30px 42px;
+
       background:
-        radial-gradient(circle at 20% 20%, rgba(0, 212, 170, 0.10), transparent 32%),
-        linear-gradient(135deg, #003366 0%, #062f57 52%, #0b1230 100%);
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(0, 212, 170, 0.10),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #003366 0%,
+          #062f57 52%,
+          #0b1230 100%
+        );
+
       color: #ffffff;
     }
 
     .terms-top p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 0.98rem;
-      line-height: 1.72;
+      max-width: 800px;
+
+      color: rgba(255, 255, 255, 0.82);
+
+      font-size: 1rem;
+      line-height: 1.7;
     }
 
     .terms-content {
@@ -131,18 +182,24 @@
     .last-updated {
       display: inline-flex;
       align-items: center;
+
       margin: 0 0 28px;
       padding: 8px 13px;
+
       border-radius: 999px;
+
       background: rgba(0, 212, 170, 0.10);
       color: #007f73;
+
       font-size: 0.82rem;
       font-weight: 700;
     }
 
     h2 {
       margin: 42px 0 14px;
-      color: #003366;
+
+      color: var(--navy);
+
       font-size: 1.35rem;
       line-height: 1.35;
       font-weight: 700;
@@ -155,7 +212,9 @@
 
     p {
       margin: 0 0 18px;
+
       color: #46596b;
+
       font-size: 1rem;
       line-height: 1.78;
     }
@@ -163,6 +222,7 @@
     ul {
       margin: 0 0 22px;
       padding-left: 22px;
+
       color: #46596b;
     }
 
@@ -172,16 +232,18 @@
     }
 
     strong {
-      color: #003366;
+      color: var(--navy);
       font-weight: 700;
     }
 
     .note-box {
       margin: 34px 0;
       padding: 20px 22px;
+
       border-radius: 16px;
-      background: #f8fafc;
       border: 1px solid rgba(0, 51, 102, 0.08);
+
+      background: var(--bg);
       color: #46596b;
     }
 
@@ -192,10 +254,14 @@
     .footer-note {
       margin-top: 46px;
       padding-top: 28px;
+
       border-top: 1px solid rgba(0, 51, 102, 0.08);
+
       color: #6b7a88;
       font-size: 0.94rem;
     }
+
+    /* ===== RESPONSIVE ===== */
 
     @media (max-width: 768px) {
       .hero {
@@ -224,8 +290,8 @@
       }
 
       h2 {
-        font-size: 1.18rem;
         margin-top: 34px;
+        font-size: 1.18rem;
       }
 
       p,
@@ -254,165 +320,428 @@
   <div id="site-header"></div>
 
   <main>
+
     <section class="hero">
       <div class="hero-inner">
-        <p class="eyebrow">Partner Access</p>
-        <h1>Partner Access Terms</h1>
-        <p>
-          Terms governing controlled UniBridge documentation, technical materials,
-          review environments, and phased partner enablement.
+
+        <p class="eyebrow">
+          Partner Access
         </p>
+
+        <h1>
+          Partner Access Terms
+        </h1>
+
+        <p>
+          The terms that apply when you use UniBridge partner tools,
+          documentation, environments, and integrations.
+        </p>
+
       </div>
     </section>
 
     <section class="page-wrap">
       <article class="terms-card">
+
         <div class="terms-top">
           <p>
-            UniBridge access is designed for controlled review, corridor evaluation,
-            and partner-led validation. Access does not imply production approval,
-            live transaction rights, or unrestricted corridor enablement.
+            Access may vary by partner, corridor, and environment.
+            Production use requires the applicable onboarding,
+            configuration, and approval for the relevant integration.
           </p>
         </div>
 
         <div class="terms-content">
-          <p class="last-updated">Last Updated: 2026</p>
 
-          <p>
-            UniBridge Technologies Ltd. (“UniBridge”, “we”, “our”) provides controlled partner access to private
-            documentation, technical materials, communications, and selected integration or coordination
-            pathways for evaluation, onboarding review, and phased enablement. UniBridge operates as a
-            <strong>non-custodial infrastructure coordination layer</strong> for stablecoin-settled payout review,
-            route coordination, and execution tracking across approved regulated counterparties. These Partner
-            Access Terms govern your access to UniBridge materials and any related technical access made
-            available to you.
+          <p class="last-updated">
+            Last updated: September 2026
           </p>
 
-          <h2>1. Controlled Partner Access</h2>
           <p>
-            UniBridge access is controlled and may be granted in stages. Access may include documentation,
-            technical review, sandbox or review-only environments, selected API or integration access, and other
-            partner materials, depending on use case fit, corridor scope, partner status, and operational readiness.
-          </p>
-          <ul>
-            <li>Access is provided solely for internal evaluation, partnership review, and technical assessment.</li>
-            <li>Access does not imply production approval, live transaction rights, unrestricted API availability, or corridor enablement.</li>
-            <li>UniBridge may grant, limit, expand, suspend, or revoke access at its discretion.</li>
-          </ul>
-
-          <h2>2. Infrastructure Role; No Custody</h2>
-          <p>
-            UniBridge acts as an infrastructure coordination layer and does not custody client funds, maintain
-            user balances or wallets, or directly onboard retail financial customers.
-          </p>
-          <ul>
-            <li>Settlement or payout execution occurs directly between integrated regulated partners and execution providers.</li>
-            <li>Access to UniBridge materials or technical pathways does not by itself constitute the provision of financial services, payment services, money transmission, or regulated execution services.</li>
-            <li>Nothing in UniBridge materials, communications, or documentation changes the allocation of operational responsibility between UniBridge, partners, and regulated counterparties.</li>
-          </ul>
-
-          <h2>3. Compliance Responsibilities</h2>
-          <p>
-            UniBridge applies a risk-based approach to partner onboarding, jurisdictional and corridor review,
-            and infrastructure-level transaction flow integrity. Partner access is subject to compliance,
-            operational, and corridor considerations.
-          </p>
-          <ul>
-            <li>Licensing and regulatory compliance remain the responsibility of each partner and its regulated counterparties.</li>
-            <li>All KYC/KYB, AML/CFT, sanctions screening, and transaction monitoring obligations remain with the relevant partner or regulated provider.</li>
-            <li>UniBridge may decline, suspend, restrict, or discontinue access or integrations that present elevated compliance, sanctions, or operational risk.</li>
-            <li>Nothing in UniBridge materials, communications, or documentation constitutes legal, compliance, or regulatory advice.</li>
-          </ul>
-
-          <h2>4. No Production Reliance Unless Expressly Approved</h2>
-          <p>
-            UniBridge materials, route descriptions, examples, corridor references, and technical access are
-            provided for evaluation and integration review unless we expressly confirm otherwise in writing.
-          </p>
-          <ul>
-            <li>You must not rely on private documentation or evaluation access as authorization for production use.</li>
-            <li>Any route logic, examples, operational descriptions, or corridor references are illustrative unless specifically approved for your use case.</li>
-            <li>Production access, live transaction handling, and corridor enablement require separate confirmation from UniBridge.</li>
-          </ul>
-
-          <h2>5. Data Handling, Privacy, and Logs</h2>
-          <p>
-            UniBridge may log requests, communications, and technical interactions for security, debugging,
-            reliability, partner assessment, and access-control purposes.
-          </p>
-          <ul>
-            <li>Do not submit production customer data or unnecessary personal data unless expressly authorized in writing.</li>
-            <li>Use test data, placeholders, or hashed identifiers wherever reasonably possible.</li>
-            <li>By sending any data to UniBridge, you confirm that you have the right to disclose and process that data for the relevant purpose.</li>
-          </ul>
-
-          <h2>6. User-Provided Payment Details</h2>
-          <p>
-            Users and partners are responsible for reviewing and confirming that any recipient, beneficiary,
-            account, wallet, payout, or payment instruction details they submit are complete, accurate, and
-            authorized before continuing. UniBridge may validate required fields, formatting, route compatibility,
-            and operational readiness, but does not independently verify the truth, ownership, or correctness of
-            user-provided recipient or account information unless expressly stated.
-          </p>
-
-          <h2>7. Intellectual Property and Usage Restrictions</h2>
-          <p>
-            UniBridge Protocol, the UniBridge brand, its coordination architecture, route resolution framework,
-            deterministic session and settlement lifecycle designs, execution-lifecycle concepts, and all related
-            materials, workflows, designs, and documentation are the intellectual property of
+            These Partner Access Terms govern access to and use of
+            UniBridge partner tools, documentation, technical environments,
+            integrations, and related materials made available by
             <strong>UniBridge Technologies Ltd.</strong>
+            (“UniBridge”, “we”, “our”).
           </p>
+
+          <p>
+            UniBridge provides a non-custodial cross-border payment
+            coordination layer that connects funding, settlement,
+            and local payout across supported providers and payment rails.
+          </p>
+
+          <!-- 1 -->
+
+          <h2>
+            1. Your access
+          </h2>
+
+          <p>
+            Partner Access may include documentation, development or
+            review environments, hosted or embedded experiences,
+            APIs, credentials, technical tools, and other integration
+            materials depending on the services available to you.
+          </p>
+
           <ul>
-            <li>All materials are provided on a limited, non-transferable, evaluation-only basis unless otherwise agreed in writing.</li>
-            <li>You may not copy, distribute, publish, sublicense, commercialize, reverse engineer, or create derivative materials from UniBridge content without prior written consent.</li>
-            <li>No commercial rights, license grants, or ownership interests are transferred by access to UniBridge materials.</li>
+            <li>
+              Access may differ by integration type, country,
+              corridor, payment rail, provider, and environment.
+            </li>
+
+            <li>
+              Access to one feature, route, or environment does not
+              automatically provide access to others.
+            </li>
+
+            <li>
+              You must use Partner Access only for authorized business,
+              technical, integration, and operational purposes.
+            </li>
+
+            <li>
+              UniBridge may limit, suspend, or revoke access where
+              reasonably necessary for security, compliance,
+              provider requirements, misuse, or operational risk.
+            </li>
           </ul>
 
-          <h2>8. No Warranties; Limited Availability</h2>
+          <!-- 2 -->
+
+          <h2>
+            2. UniBridge’s role
+          </h2>
+
           <p>
-            UniBridge access, materials, and technical pathways are provided on an “as is” and “as available”
-            basis, without warranties of availability, accuracy, completeness, performance, or fitness for any
-            particular purpose.
+            UniBridge coordinates payment workflows across the providers
+            responsible for funding, settlement, compliance, custody,
+            and local payout.
           </p>
+
+          <p>
+            Unless expressly agreed otherwise, UniBridge does not hold
+            customer funds or maintain customer balances.
+          </p>
+
           <ul>
-            <li>UniBridge may modify, restrict, or discontinue any materials or access pathway at any time.</li>
-            <li>No uptime commitment, service-level commitment, or production-readiness guarantee applies unless separately agreed in writing.</li>
-            <li>Partners remain responsible for their own technical, operational, legal, and regulatory decisions.</li>
+            <li>
+              Funding and payout execution may be performed by
+              third-party providers connected to the relevant route.
+            </li>
+
+            <li>
+              Custody, regulated payment activity, identity verification,
+              or other regulated functions may be performed by the
+              provider responsible for that part of the workflow.
+            </li>
+
+            <li>
+              Access to UniBridge does not by itself change the legal
+              or regulatory role of any partner or provider involved
+              in a payment.
+            </li>
           </ul>
 
-          <h2>9. Third-Party Infrastructure and Services</h2>
+          <!-- 3 -->
+
+          <h2>
+            3. Production use
+          </h2>
+
           <p>
-            UniBridge may rely on third-party infrastructure or service providers in connection with
-            communications, hosting, logging, monitoring, documentation delivery, or messaging.
+            Development, sandbox, testing, or review access does not
+            by itself authorize production use.
           </p>
+
+          <p>
+            Production availability may depend on the relevant corridor,
+            provider coverage, technical configuration, onboarding,
+            compliance requirements, account status, and other
+            operational conditions.
+          </p>
+
           <ul>
-            <li>Any such third-party provider is not a party to any agreement between you and UniBridge unless expressly stated otherwise.</li>
-            <li>Additional third-party terms may apply where relevant.</li>
+            <li>
+              Use only the environment and credentials made available
+              for your current level of access.
+            </li>
+
+            <li>
+              Do not use sandbox, testing, or review credentials
+              for live customer transactions.
+            </li>
+
+            <li>
+              Production routes remain subject to provider availability,
+              limits, supported payment methods, and route-specific
+              requirements.
+            </li>
+
+            <li>
+              UniBridge may change or discontinue a route where a
+              provider, payment rail, regulatory requirement,
+              or operational condition changes.
+            </li>
           </ul>
 
-          <h2>10. Governing Law</h2>
+          <!-- 4 -->
+
+          <h2>
+            4. Compliance responsibilities
+          </h2>
+
           <p>
-            Unless otherwise agreed in writing, these Partner Access Terms and any related dispute are governed
-            by the laws of <strong>England and Wales</strong>.
+            Compliance responsibilities depend on the role performed
+            by each partner and provider, the applicable payment flow,
+            and any agreement governing that relationship.
           </p>
 
-          <h2>11. Contact</h2>
           <p>
-            For legal or partnership inquiries, contact:<br />
+            UniBridge may apply route, jurisdiction, security,
+            transaction, provider, or other operational controls
+            before or during a payment workflow.
+          </p>
+
+          <ul>
+            <li>
+              Partners are responsible for complying with laws,
+              regulations, licensing requirements, and contractual
+              obligations applicable to their own activities.
+            </li>
+
+            <li>
+              KYC, KYB, AML/CFT, sanctions screening, transaction
+              monitoring, and related checks may be performed by
+              UniBridge-integrated providers according to the role
+              they perform in the relevant workflow.
+            </li>
+
+            <li>
+              UniBridge may restrict or discontinue access to a route
+              or integration where required by law, provider policy,
+              sanctions restrictions, security concerns,
+              or material operational risk.
+            </li>
+
+            <li>
+              Nothing in UniBridge documentation or communications
+              constitutes legal, tax, regulatory, or compliance advice.
+            </li>
+          </ul>
+
+          <!-- 5 -->
+
+          <h2>
+            5. Data and security
+          </h2>
+
+          <p>
+            UniBridge may process and log information reasonably needed
+            to authenticate access, operate integrations, coordinate
+            supported workflows, troubleshoot issues, prevent abuse,
+            and maintain service security and reliability.
+          </p>
+
+          <ul>
+            <li>
+              Use production customer or payment data only through
+              integrations and environments approved for production use.
+            </li>
+
+            <li>
+              Do not submit live customer data to sandbox, testing,
+              or review environments unless that environment expressly
+              supports such use.
+            </li>
+
+            <li>
+              You must take reasonable steps to protect credentials,
+              access tokens, API keys, and other authentication material.
+            </li>
+
+            <li>
+              You must not share credentials with unauthorized persons
+              or attempt to bypass UniBridge access or security controls.
+            </li>
+
+            <li>
+              By providing information through an integration,
+              you confirm that you are authorized to provide
+              and process that information for the relevant purpose.
+            </li>
+          </ul>
+
+          <p>
+            Personal information is handled in accordance with the
+            <a href="/privacy">UniBridge Privacy Policy</a>.
+          </p>
+
+          <!-- 6 -->
+
+          <h2>
+            6. Payment information
+          </h2>
+
+          <p>
+            Users and partners are responsible for reviewing the recipient,
+            beneficiary, account, wallet, payout destination, and other
+            payment instructions they provide before a payment is submitted.
+          </p>
+
+          <p>
+            UniBridge may validate required fields, formatting,
+            supported routes, provider requirements, and operational
+            readiness. Unless expressly stated otherwise, those checks
+            do not constitute independent verification of the identity,
+            ownership, or correctness of user-provided recipient
+            or account information.
+          </p>
+
+          <!-- 7 -->
+
+          <h2>
+            7. Intellectual property and permitted use
+          </h2>
+
+          <p>
+            UniBridge software, technology, documentation, workflows,
+            interfaces, brand assets, designs, and related materials
+            are owned by UniBridge or its licensors and are protected
+            by applicable intellectual property laws.
+          </p>
+
+          <ul>
+            <li>
+              Access gives you only the limited right to use the
+              relevant materials and tools for the purpose for which
+              access was provided.
+            </li>
+
+            <li>
+              You may not copy, publish, sublicense, sell,
+              commercialize, or distribute non-public UniBridge
+              materials except as expressly permitted.
+            </li>
+
+            <li>
+              You may not reverse engineer, probe, circumvent,
+              interfere with, or attempt unauthorized access to
+              UniBridge systems or security controls.
+            </li>
+
+            <li>
+              No ownership interest or broader intellectual property
+              license is transferred merely because access is provided.
+            </li>
+          </ul>
+
+          <!-- 8 -->
+
+          <h2>
+            8. Availability and warranties
+          </h2>
+
+          <p>
+            Unless otherwise agreed in writing, Partner Access,
+            documentation, development environments, and related
+            technical services are provided on an “as is”
+            and “as available” basis.
+          </p>
+
+          <ul>
+            <li>
+              Features, routes, providers, limits, and supported
+              payment methods may change over time.
+            </li>
+
+            <li>
+              No uptime, service-level, route-availability,
+              or production-readiness commitment applies unless
+              separately agreed in writing.
+            </li>
+
+            <li>
+              Partners remain responsible for testing their integration
+              and determining whether it is suitable for their own
+              products and use cases.
+            </li>
+          </ul>
+
+          <!-- 9 -->
+
+          <h2>
+            9. Third-party services
+          </h2>
+
+          <p>
+            UniBridge coordinates with third-party services that may
+            provide functions such as authentication, identity verification,
+            funding, custody, banking connectivity, settlement,
+            blockchain infrastructure, or local payout execution.
+          </p>
+
+          <p>
+            The availability, eligibility, pricing, limits,
+            processing times, and terms of a payment route may therefore
+            depend in part on the provider responsible for that step.
+          </p>
+
+          <ul>
+            <li>
+              Third-party providers may apply their own terms,
+              privacy policies, compliance requirements,
+              and eligibility rules.
+            </li>
+
+            <li>
+              UniBridge does not control every decision, restriction,
+              outage, or service change made by an independent provider.
+            </li>
+          </ul>
+
+          <!-- 10 -->
+
+          <h2>
+            10. Governing law
+          </h2>
+
+          <p>
+            Unless otherwise agreed in writing, these Partner Access Terms
+            and any related dispute are governed by the laws of
+            <strong>England and Wales</strong>.
+          </p>
+
+          <!-- 11 -->
+
+          <h2>
+            11. Contact
+          </h2>
+
+          <p>
+            For legal or partnership inquiries:
+          </p>
+
+          <p>
             <strong>UniBridge Technologies Ltd.</strong><br />
-            Email: <a href="mailto:support@unibrij.io">support@unibrij.io</a>
+            Email:
+            <a href="mailto:support@unibrij.io">
+              support@unibrij.io
+            </a>
           </p>
 
           <div class="note-box">
             <p>
-              These terms apply to controlled partner access, private materials, communications,
-              sandbox or review-only environments, and related technical evaluation pathways.
+              These terms apply to UniBridge Partner Access,
+              including partner tools, documentation, technical
+              environments, integrations, and related materials.
             </p>
           </div>
 
           <p class="footer-note">
             © 2026 UniBridge Technologies Ltd. — All rights reserved.
           </p>
+
         </div>
       </article>
     </section>
