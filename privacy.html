@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Privacy Policy | UniBridge</title>
+
   <meta
     name="description"
-    content="UniBridge Privacy Policy: what we collect, why we use it, how we protect it, and the choices you have."
+    content="UniBridge Privacy Policy: how information is handled when you use UniBridge."
   />
 
   <link rel="icon" type="image/png" href="/favicon.png" />
@@ -36,15 +37,26 @@
     }
 
     body {
-      background: #f8fafc;
+      background: var(--bg);
       color: #243244;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        "Open Sans",
+        "Helvetica Neue",
+        sans-serif;
       line-height: 1.75;
       overflow-x: hidden;
     }
 
     a {
-      color: #00a98a;
+      color: var(--teal-dark);
       text-decoration: none;
       font-weight: 600;
     }
@@ -59,9 +71,18 @@
       position: relative;
       padding: 88px 24px 54px;
       overflow: hidden;
+
       background:
-        radial-gradient(circle at 72% 22%, rgba(0, 212, 170, 0.12), transparent 30%),
-        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        radial-gradient(
+          circle at 72% 22%,
+          rgba(0, 212, 170, 0.12),
+          transparent 30%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f8fafc 100%
+        );
     }
 
     .hero-inner {
@@ -71,7 +92,7 @@
 
     .eyebrow {
       margin: 0 0 16px;
-      color: #00a98a;
+      color: var(--teal-dark);
       font-size: 0.78rem;
       font-weight: 750;
       letter-spacing: 0.11em;
@@ -80,7 +101,7 @@
 
     .hero h1 {
       margin: 0 0 20px;
-      color: #003366;
+      color: var(--navy);
       font-size: clamp(2.35rem, 5vw, 4.1rem);
       line-height: 1.06;
       font-weight: 700;
@@ -89,13 +110,13 @@
 
     .hero p {
       margin: 0;
-      max-width: 760px;
-      color: #5a6c7d;
+      max-width: 720px;
+      color: var(--muted);
       font-size: 1.08rem;
-      line-height: 1.82;
+      line-height: 1.72;
     }
 
-    /* ===== POLICY CONTENT ===== */
+    /* ===== POLICY ===== */
 
     .page-wrap {
       padding: 22px 24px 112px;
@@ -114,18 +135,30 @@
     }
 
     .policy-top {
-      padding: 34px 42px;
+      padding: 30px 42px;
+
       background:
-        radial-gradient(circle at 20% 20%, rgba(0, 212, 170, 0.10), transparent 32%),
-        linear-gradient(135deg, #003366 0%, #062f57 52%, #0b1230 100%);
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(0, 212, 170, 0.10),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #003366 0%,
+          #062f57 52%,
+          #0b1230 100%
+        );
+
       color: #ffffff;
     }
 
     .policy-top p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 0.98rem;
-      line-height: 1.72;
+      max-width: 780px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 1rem;
+      line-height: 1.7;
     }
 
     .policy-content {
@@ -135,18 +168,24 @@
     .last-updated {
       display: inline-flex;
       align-items: center;
+
       margin: 0 0 28px;
       padding: 8px 13px;
+
       border-radius: 999px;
+
       background: rgba(0, 212, 170, 0.10);
       color: #007f73;
+
       font-size: 0.82rem;
       font-weight: 700;
     }
 
     .policy-content h2 {
       margin: 42px 0 14px;
-      color: #003366;
+
+      color: var(--navy);
+
       font-size: 1.35rem;
       line-height: 1.35;
       font-weight: 700;
@@ -159,7 +198,9 @@
 
     .policy-content p {
       margin: 0 0 18px;
+
       color: #46596b;
+
       font-size: 1rem;
       line-height: 1.78;
     }
@@ -176,16 +217,18 @@
     }
 
     .policy-content strong {
-      color: #003366;
+      color: var(--navy);
       font-weight: 700;
     }
 
     .note-box {
       margin: 34px 0;
       padding: 20px 22px;
+
       border-radius: 16px;
-      background: #f8fafc;
       border: 1px solid rgba(0, 51, 102, 0.08);
+
+      background: var(--bg);
       color: #46596b;
     }
 
@@ -196,7 +239,9 @@
     .footer-note {
       margin-top: 46px;
       padding-top: 28px;
+
       border-top: 1px solid rgba(0, 51, 102, 0.08);
+
       color: #6b7a88;
       font-size: 0.94rem;
     }
@@ -230,8 +275,8 @@
       }
 
       .policy-content h2 {
-        font-size: 1.18rem;
         margin-top: 34px;
+        font-size: 1.18rem;
       }
 
       .policy-content p,
@@ -260,15 +305,22 @@
   <div id="site-header"></div>
 
   <main>
+
     <section class="hero">
       <div class="hero-inner">
-        <p class="eyebrow">Privacy</p>
 
-        <h1>Privacy Policy</h1>
+        <p class="eyebrow">
+          Privacy
+        </p>
+
+        <h1>
+          Privacy Policy
+        </h1>
 
         <p>
-          What we collect, why we use it, and the choices you have.
+          How information is handled when you use UniBridge.
         </p>
+
       </div>
     </section>
 
@@ -277,7 +329,8 @@
 
         <div class="policy-top">
           <p>
-            We use personal information only to operate UniBridge, support users and partners,
+            We use information only where needed to operate UniBridge,
+            support users and partners, coordinate payments,
             and keep our services secure.
           </p>
         </div>
@@ -285,80 +338,117 @@
         <div class="policy-content">
 
           <p class="last-updated">
-            Last updated: 2026
+            Last updated: September 2026
           </p>
 
           <p>
-            This Privacy Policy explains how UniBridge Technologies Ltd. (“UniBridge”, “we”, “our”)
-            collects, uses, stores, and protects information when you use our website,
-            services, forms, or communications.
+            This Privacy Policy explains how UniBridge Technologies Ltd.
+            (“UniBridge”, “we”, “our”) handles information when you use
+            our website, payment services, forms, support channels,
+            or other UniBridge services.
           </p>
 
-          <h2>1. What we collect</h2>
+          <!-- 1 -->
+
+          <h2>
+            1. Information we handle
+          </h2>
 
           <p>
-            We may collect the following information:
+            The information we handle depends on how you use UniBridge.
+            It may include:
           </p>
 
           <ul>
-            <li>Name</li>
-
-            <li>Email address</li>
-
             <li>
-              Company, organization, project, or role information you choose to submit
+              Your name and email address when you create or use
+              an account, contact us, request support, or submit a form
             </li>
 
             <li>
-              Message content submitted through our forms, emails, or communications
+              Company, organization, project, or role information
+              you choose to provide
             </li>
 
             <li>
-              Partner access, corridor, integration, or technical review information you voluntarily provide
+              Messages and information you send through our forms,
+              email, support, or other communications
             </li>
 
             <li>
-              Recipient, beneficiary, payout, wallet, account, or payment instruction details submitted by users or partners where required for evaluation, routing, support, transaction processing, or related workflows.
+              Partner, corridor, integration, or technical information
+              you voluntarily provide
             </li>
 
             <li>
-              Technical metadata such as IP address, browser type, device information, access timestamps, and referring pages
+              Transaction information associated with payments
+              made through UniBridge
             </li>
 
             <li>
-              System logs generated through hosting, security, analytics, reliability, and operational infrastructure
+              Recipient, beneficiary, payout destination,
+              account, wallet, or payment instruction information
+              required to coordinate a payment
+            </li>
+
+            <li>
+              Technical metadata such as IP address, browser type,
+              device information, access timestamps, and referring pages
+            </li>
+
+            <li>
+              System logs used for security, reliability,
+              diagnostics, and service operation
             </li>
           </ul>
 
-          <h2>2. How we use it</h2>
+          <!-- 2 -->
+
+          <h2>
+            2. How we use it
+          </h2>
 
           <p>
-            We may use collected information for the following purposes:
+            We use information where reasonably necessary to:
           </p>
 
           <ul>
             <li>
-              Responding to inquiries, requests, and partner access submissions
+              Provide and coordinate UniBridge services
             </li>
 
             <li>
-              Reviewing partnership, corridor, integration, or controlled validation requests
+              Create, process, track, and support payment workflows
             </li>
 
             <li>
-              Operating, securing, debugging, and improving the website and partner access process
+              Provide payment history and receipts
             </li>
 
             <li>
-              Maintaining service reliability, preventing abuse, and protecting infrastructure integrity
+              Support features that make repeat payments easier
             </li>
 
             <li>
-              Communicating with prospective or current partners regarding access, evaluation, onboarding, or technical review
+              Respond to inquiries and support requests
             </li>
 
             <li>
-              Maintaining records related to access-control, review decisions, and operational readiness
+              Review partner, corridor, integration,
+              or technical requests
+            </li>
+
+            <li>
+              Operate, secure, debug, and improve our services
+            </li>
+
+            <li>
+              Prevent abuse and protect our infrastructure
+            </li>
+
+            <li>
+              Maintain records where reasonably necessary
+              for operational, security, legal, or compliance purposes
             </li>
           </ul>
 
@@ -366,68 +456,187 @@
             We do <strong>not</strong> sell or rent personal information.
           </p>
 
-          <h2>3. Why we process it</h2>
+          <!-- 3 -->
+
+          <h2>
+            3. Transaction history and Send again
+          </h2>
 
           <p>
-            Where applicable, we process information based on one or more lawful grounds, including your consent,
-            our legitimate interests in operating and securing our website and partner access process,
-            the need to respond to your requests, and the need to maintain records for business, legal,
-            security, and compliance purposes.
+            When you make a payment through UniBridge, we may retain
+            transaction records and recipient or payout instruction
+            information associated with your authenticated account.
           </p>
 
-          <h2>4. How long we keep it</h2>
-
           <p>
-            Information may be stored in:
+            This information may be used to provide your payment history,
+            receipts, support, reconciliation, and features such as
+            <strong>Send again</strong>.
           </p>
 
-          <ul>
-            <li>
-              Cloud hosting and infrastructure services
-            </li>
-
-            <li>
-              Internal operational, communications, and partner review systems
-            </li>
-
-            <li>
-              Automated logs used for security, reliability, analytics, and diagnostics
-            </li>
-          </ul>
-
           <p>
-            We retain information only for as long as reasonably necessary for the purposes described in this
-            Privacy Policy, including responding to inquiries, managing partner access, maintaining operational
-            records, complying with legal obligations, resolving disputes, and protecting our systems.
+            When you use Send again, information from a previous
+            completed payment may be used to prefill a new payment.
+            The previous transaction is used only as the source
+            for that prefill.
           </p>
 
-          <h2>5. Cookies and tracking</h2>
-
           <p>
-            We may use essential website technologies, security logging, and limited analytics tools to operate
-            and monitor website performance. We do not use advertising trackers or third-party marketing cookies.
+            A new payment remains a separate transaction and requires
+            a new quote and a new settlement.
           </p>
 
-          <h2>6. Service providers</h2>
+          <!-- 4 -->
+
+          <h2>
+            4. KYC and identity verification
+          </h2>
 
           <p>
-            We may use third-party infrastructure and service providers for hosting, website security, logging,
-            analytics, communications, form processing, documentation delivery, and operational support.
-            These providers may process limited information on our behalf as necessary to provide their services.
+            Identity verification may be performed through third-party
+            verification providers.
           </p>
 
-          <h2>7. International transfers</h2>
-
           <p>
-            Information may be processed or stored in countries other than your country of residence, depending
-            on the location of our service providers and infrastructure. Where required, we take reasonable steps
-            to ensure appropriate safeguards apply to such processing.
+            Where identity information must pass through UniBridge
+            to complete a verification or related provider workflow,
+            that information is processed only as needed for that purpose
+            and is not retained by UniBridge as underlying KYC data.
           </p>
 
-          <h2>8. Your rights</h2>
+          <p>
+            UniBridge does not retain identity documents, document images,
+            document numbers, selfies, biometric verification data,
+            or raw KYC provider payloads as part of its customer records.
+          </p>
 
           <p>
-            You may request, subject to applicable law:
+            We may retain limited verification metadata needed to operate
+            the service, such as verification status, provider and session
+            references, and relevant timestamps.
+          </p>
+
+          <p>
+            This allows UniBridge to determine whether an authenticated
+            user has already completed an applicable verification without
+            storing the underlying KYC material itself.
+          </p>
+
+          <p>
+            Where required, UniBridge may check the current status
+            of a prior verification with the verification provider
+            before relying on it.
+          </p>
+
+          <!-- 5 -->
+
+          <h2>
+            5. Why we process information
+          </h2>
+
+          <p>
+            Where applicable, we process personal information on one
+            or more lawful grounds, including your consent, performance
+            or preparation of a contractual relationship, our legitimate
+            interests in operating and securing our services, responding
+            to your requests, and complying with legal obligations.
+          </p>
+
+          <!-- 6 -->
+
+          <h2>
+            6. How long we keep information
+          </h2>
+
+          <p>
+            We retain information only for as long as reasonably necessary
+            for the purpose for which it is used.
+          </p>
+
+          <p>
+            Depending on the type of information, this may include periods
+            needed to provide account functionality, payment history,
+            Send again, receipts, customer support, reconciliation,
+            security, dispute resolution, legal compliance,
+            and operational recordkeeping.
+          </p>
+
+          <p>
+            Different categories of information may therefore have
+            different retention periods.
+          </p>
+
+          <p>
+            Information processed transiently for identity verification
+            is not retained as underlying KYC data by UniBridge.
+          </p>
+
+          <!-- 7 -->
+
+          <h2>
+            7. Cookies and tracking
+          </h2>
+
+          <p>
+            We may use essential website technologies, security logging,
+            and limited analytics tools to operate our website
+            and understand service performance.
+          </p>
+
+          <p>
+            We do not use advertising trackers or third-party
+            marketing cookies.
+          </p>
+
+          <!-- 8 -->
+
+          <h2>
+            8. Service providers
+          </h2>
+
+          <p>
+            UniBridge works with third-party providers for functions
+            such as hosting, authentication, identity verification,
+            website security, logging, communications, payment funding,
+            custody, compliance, and payout execution.
+          </p>
+
+          <p>
+            Depending on the workflow, information may be sent directly
+            to or processed by the provider responsible for a particular
+            step.
+          </p>
+
+          <p>
+            Those providers may process and retain information
+            under their own legal, regulatory, and privacy obligations.
+          </p>
+
+          <!-- 9 -->
+
+          <h2>
+            9. International transfers
+          </h2>
+
+          <p>
+            Information may be processed or stored outside your country
+            of residence depending on where UniBridge infrastructure
+            and relevant service providers operate.
+          </p>
+
+          <p>
+            Where required, we take reasonable steps to apply appropriate
+            safeguards to international processing and transfers.
+          </p>
+
+          <!-- 10 -->
+
+          <h2>
+            10. Your rights
+          </h2>
+
+          <p>
+            Subject to applicable law, you may have the right to request:
           </p>
 
           <ul>
@@ -444,7 +653,7 @@
             </li>
 
             <li>
-              Restriction or objection to certain processing activities
+              Restriction of or objection to certain processing
             </li>
 
             <li>
@@ -453,29 +662,57 @@
           </ul>
 
           <p>
-            To make a request, contact:
+            To make a privacy request, contact
             <a href="mailto:support@unibrij.io">
               support@unibrij.io
-            </a>
+            </a>.
           </p>
-
-          <h2>9. Security</h2>
 
           <p>
-            We use reasonable technical, organizational, and operational measures designed to protect information
-            against unauthorized access, misuse, loss, alteration, or disclosure.
-            No website, communication method, or technical system can be guaranteed to be fully secure.
+            If information relating to you is held directly
+            by a third-party identity, payment, or compliance provider,
+            certain requests may need to be made directly
+            to that provider.
           </p>
 
-          <h2>10. Changes to this policy</h2>
+          <!-- 11 -->
+
+          <h2>
+            11. Security
+          </h2>
 
           <p>
-            We may update this Privacy Policy from time to time to reflect changes in our website,
-            partner access process, technical operations, service providers, or legal obligations.
-            The updated version will be posted on this page.
+            We use reasonable technical, organizational, and operational
+            measures designed to protect information against unauthorized
+            access, misuse, loss, alteration, or disclosure.
           </p>
 
-          <h2>11. Governing law</h2>
+          <p>
+            No website, communication method, or technical system
+            can be guaranteed to be completely secure.
+          </p>
+
+          <!-- 12 -->
+
+          <h2>
+            12. Changes to this policy
+          </h2>
+
+          <p>
+            We may update this Privacy Policy from time to time
+            to reflect changes in our services, operations,
+            providers, or legal obligations.
+          </p>
+
+          <p>
+            The current version will be published on this page.
+          </p>
+
+          <!-- 13 -->
+
+          <h2>
+            13. Governing law
+          </h2>
 
           <p>
             This Privacy Policy is governed by the laws of
@@ -483,10 +720,17 @@
             unless applicable data protection law requires otherwise.
           </p>
 
-          <h2>12. Contact</h2>
+          <!-- 14 -->
+
+          <h2>
+            14. Contact
+          </h2>
 
           <p>
-            For privacy, legal, or partnership inquiries, contact:<br />
+            For privacy or legal inquiries:
+          </p>
+
+          <p>
             <strong>UniBridge Technologies Ltd.</strong><br />
             Email:
             <a href="mailto:support@unibrij.io">
@@ -496,9 +740,10 @@
 
           <div class="note-box">
             <p>
-              This Privacy Policy applies to UniBridge website usage, contact submissions,
-              controlled partner access requests, validation requests,
-              and related technical evaluation pathways.
+              This Privacy Policy applies to information handled through
+              UniBridge websites, accounts, communications, support,
+              partner access, payment history, and supported
+              payment workflows.
             </p>
           </div>
 
