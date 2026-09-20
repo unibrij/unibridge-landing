@@ -12,6 +12,13 @@ import {
 let stripeKycModule = null;
 
 
+const VERIFICATION_POLL_MAX_ATTEMPTS =
+  10;
+
+const VERIFICATION_POLL_DELAY_MS =
+  3000;
+
+
 function requireString(value, errorCode) {
   const normalized = String(value ?? "").trim();
 
@@ -27,6 +34,19 @@ function assertFlowActive(assertActive) {
   if (typeof assertActive === "function") {
     assertActive();
   }
+}
+
+
+function wait(
+  milliseconds
+) {
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        milliseconds
+      )
+  );
 }
 
 
@@ -88,6 +108,77 @@ async function loadCryptoCustomer({
   assertFlowActive(assertActive);
 
   return customer;
+}
+
+
+async function waitForPendingVerification({
+  customer,
+  verificationName,
+  authIntentId,
+  cryptoCustomerId,
+  setStatus,
+  statusText,
+  assertActive
+}) {
+  let currentCustomer =
+    customer;
+
+  let status =
+    getStripeVerificationStatus(
+      currentCustomer,
+      verificationName
+    );
+
+  if (status !== "pending") {
+    return currentCustomer;
+  }
+
+  if (
+    typeof setStatus === "function" &&
+    statusText
+  ) {
+    setStatus(
+      statusText
+    );
+  }
+
+  for (
+    let attempt = 0;
+    attempt <
+      VERIFICATION_POLL_MAX_ATTEMPTS;
+    attempt += 1
+  ) {
+    assertFlowActive(
+      assertActive
+    );
+
+    await wait(
+      VERIFICATION_POLL_DELAY_MS
+    );
+
+    assertFlowActive(
+      assertActive
+    );
+
+    currentCustomer =
+      await loadCryptoCustomer({
+        authIntentId,
+        cryptoCustomerId,
+        assertActive
+      });
+
+    status =
+      getStripeVerificationStatus(
+        currentCustomer,
+        verificationName
+      );
+
+    if (status !== "pending") {
+      break;
+    }
+  }
+
+  return currentCustomer;
 }
 
 
@@ -193,6 +284,10 @@ id_document_verified = verified
 
 Reload CryptoCustomer after every interactive
 verification step before making the final decision.
+
+Stripe may temporarily report "pending" after an
+accepted verification submission. Pending is polled
+for a bounded period rather than treated as failure.
 */
 
 async function verifyStripeIdentity({
@@ -214,11 +309,45 @@ async function verifyStripeIdentity({
   Basic KYC
   */
 
-  if (
-    !isStripeVerificationVerified(
+  let kycStatus =
+    getStripeVerificationStatus(
       customer,
       "kyc_verified"
-    )
+    );
+
+
+  /*
+  A previous KYC submission may still be resolving.
+
+  Do not submit the KYC payload again while Stripe
+  already reports it as pending.
+  */
+
+  if (kycStatus === "pending") {
+    customer =
+      await waitForPendingVerification({
+        customer,
+        verificationName:
+          "kyc_verified",
+        authIntentId,
+        cryptoCustomerId,
+        setStatus,
+        statusText:
+          "Stripe is reviewing your identity information...",
+        assertActive
+      });
+
+    kycStatus =
+      getStripeVerificationStatus(
+        customer,
+        "kyc_verified"
+      );
+  }
+
+
+  if (
+    kycStatus !== "verified" &&
+    kycStatus !== "pending"
   ) {
     const {
       runStripeKycFlow
@@ -252,6 +381,52 @@ async function verifyStripeIdentity({
         cryptoCustomerId,
         assertActive
       });
+
+    kycStatus =
+      getStripeVerificationStatus(
+        customer,
+        "kyc_verified"
+      );
+
+    if (kycStatus === "pending") {
+      customer =
+        await waitForPendingVerification({
+          customer,
+          verificationName:
+            "kyc_verified",
+          authIntentId,
+          cryptoCustomerId,
+          setStatus,
+          statusText:
+            "Stripe is reviewing your identity information...",
+          assertActive
+        });
+
+      kycStatus =
+        getStripeVerificationStatus(
+          customer,
+          "kyc_verified"
+        );
+    }
+  }
+
+
+  if (kycStatus === "pending") {
+    const error =
+      new Error(
+        "stripe_kyc_pending"
+      );
+
+    error.verificationStatus =
+      kycStatus;
+
+    error.documentVerificationStatus =
+      getStripeVerificationStatus(
+        customer,
+        "id_document_verified"
+      );
+
+    throw error;
   }
 
 
@@ -292,6 +467,34 @@ async function verifyStripeIdentity({
       "id_document_verified"
     );
 
+
+  /*
+  A previous document-verification submission may
+  still be resolving.
+  */
+
+  if (documentStatus === "pending") {
+    customer =
+      await waitForPendingVerification({
+        customer,
+        verificationName:
+          "id_document_verified",
+        authIntentId,
+        cryptoCustomerId,
+        setStatus,
+        statusText:
+          "Stripe is reviewing your identity documents...",
+        assertActive
+      });
+
+    documentStatus =
+      getStripeVerificationStatus(
+        customer,
+        "id_document_verified"
+      );
+  }
+
+
   if (documentStatus === "not_started") {
     if (
       typeof sdk?.verifyDocuments !== "function"
@@ -321,6 +524,27 @@ async function verifyStripeIdentity({
         customer,
         "id_document_verified"
       );
+
+    if (documentStatus === "pending") {
+      customer =
+        await waitForPendingVerification({
+          customer,
+          verificationName:
+            "id_document_verified",
+          authIntentId,
+          cryptoCustomerId,
+          setStatus,
+          statusText:
+            "Stripe is reviewing your identity documents...",
+          assertActive
+        });
+
+      documentStatus =
+        getStripeVerificationStatus(
+          customer,
+          "id_document_verified"
+        );
+    }
   }
 
 
@@ -339,6 +563,26 @@ async function verifyStripeIdentity({
       customer,
       "id_document_verified"
     );
+
+
+  if (documentStatus === "pending") {
+    const error =
+      new Error(
+        "stripe_l2_pending"
+      );
+
+    error.verificationStatus =
+      getStripeVerificationStatus(
+        customer,
+        "kyc_verified"
+      );
+
+    error.documentVerificationStatus =
+      documentStatus;
+
+    throw error;
+  }
+
 
   if (
     !kycVerified ||
