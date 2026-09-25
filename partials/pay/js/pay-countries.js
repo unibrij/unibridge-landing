@@ -8,12 +8,209 @@ window.UNIBRIDGE_COUNTRY_OPTIONS = {
       flag: "🇺🇸",
       currency: "USD"
     },
+
+    /*
+    --------------------------------------------------
+    Europe / SEPA
+
+    Use concrete ISO 3166-1 alpha-2 countries.
+
+    Do not use the synthetic "EU" routing code here:
+    funding providers may require the actual customer
+    country for availability resolution.
+
+    EUR remains the source funding currency for the
+    UniBridge Europe / SEPA flow.
+    --------------------------------------------------
+    */
+
     {
-      value: "EU",
-      label: "Europe / SEPA",
-      flag: "🇪🇺",
+      value: "AT",
+      label: "Austria",
+      flag: "🇦🇹",
       currency: "EUR"
     },
+    {
+      value: "BE",
+      label: "Belgium",
+      flag: "🇧🇪",
+      currency: "EUR"
+    },
+    {
+      value: "BG",
+      label: "Bulgaria",
+      flag: "🇧🇬",
+      currency: "EUR"
+    },
+    {
+      value: "HR",
+      label: "Croatia",
+      flag: "🇭🇷",
+      currency: "EUR"
+    },
+    {
+      value: "CY",
+      label: "Cyprus",
+      flag: "🇨🇾",
+      currency: "EUR"
+    },
+    {
+      value: "CZ",
+      label: "Czechia",
+      flag: "🇨🇿",
+      currency: "EUR"
+    },
+    {
+      value: "DK",
+      label: "Denmark",
+      flag: "🇩🇰",
+      currency: "EUR"
+    },
+    {
+      value: "EE",
+      label: "Estonia",
+      flag: "🇪🇪",
+      currency: "EUR"
+    },
+    {
+      value: "FI",
+      label: "Finland",
+      flag: "🇫🇮",
+      currency: "EUR"
+    },
+    {
+      value: "FR",
+      label: "France",
+      flag: "🇫🇷",
+      currency: "EUR"
+    },
+    {
+      value: "DE",
+      label: "Germany",
+      flag: "🇩🇪",
+      currency: "EUR"
+    },
+    {
+      value: "GR",
+      label: "Greece",
+      flag: "🇬🇷",
+      currency: "EUR"
+    },
+    {
+      value: "HU",
+      label: "Hungary",
+      flag: "🇭🇺",
+      currency: "EUR"
+    },
+    {
+      value: "IS",
+      label: "Iceland",
+      flag: "🇮🇸",
+      currency: "EUR"
+    },
+    {
+      value: "IE",
+      label: "Ireland",
+      flag: "🇮🇪",
+      currency: "EUR"
+    },
+    {
+      value: "IT",
+      label: "Italy",
+      flag: "🇮🇹",
+      currency: "EUR"
+    },
+    {
+      value: "LV",
+      label: "Latvia",
+      flag: "🇱🇻",
+      currency: "EUR"
+    },
+    {
+      value: "LI",
+      label: "Liechtenstein",
+      flag: "🇱🇮",
+      currency: "EUR"
+    },
+    {
+      value: "LT",
+      label: "Lithuania",
+      flag: "🇱🇹",
+      currency: "EUR"
+    },
+    {
+      value: "LU",
+      label: "Luxembourg",
+      flag: "🇱🇺",
+      currency: "EUR"
+    },
+    {
+      value: "MT",
+      label: "Malta",
+      flag: "🇲🇹",
+      currency: "EUR"
+    },
+    {
+      value: "NL",
+      label: "Netherlands",
+      flag: "🇳🇱",
+      currency: "EUR"
+    },
+    {
+      value: "NO",
+      label: "Norway",
+      flag: "🇳🇴",
+      currency: "EUR"
+    },
+    {
+      value: "PL",
+      label: "Poland",
+      flag: "🇵🇱",
+      currency: "EUR"
+    },
+    {
+      value: "PT",
+      label: "Portugal",
+      flag: "🇵🇹",
+      currency: "EUR"
+    },
+    {
+      value: "RO",
+      label: "Romania",
+      flag: "🇷🇴",
+      currency: "EUR"
+    },
+    {
+      value: "SK",
+      label: "Slovakia",
+      flag: "🇸🇰",
+      currency: "EUR"
+    },
+    {
+      value: "SI",
+      label: "Slovenia",
+      flag: "🇸🇮",
+      currency: "EUR"
+    },
+    {
+      value: "ES",
+      label: "Spain",
+      flag: "🇪🇸",
+      currency: "EUR"
+    },
+    {
+      value: "SE",
+      label: "Sweden",
+      flag: "🇸🇪",
+      currency: "EUR"
+    },
+    {
+      value: "CH",
+      label: "Switzerland",
+      flag: "🇨🇭",
+      currency: "EUR"
+    },
+
     {
       value: "GB",
       label: "United Kingdom",
@@ -25,12 +222,6 @@ window.UNIBRIDGE_COUNTRY_OPTIONS = {
       label: "United Arab Emirates",
       flag: "🇦🇪",
       currency: "AED"
-    },
-    {
-      value: "TR",
-      label: "Turkey",
-      flag: "🇹🇷",
-      currency: "TRY"
     }
   ],
 
