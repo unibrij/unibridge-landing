@@ -93,6 +93,27 @@ function createUnavailableState(
 }
 
 
+function createUnknownState(
+  country
+) {
+  return {
+    country:
+      normalizeCountry(
+        country
+      ),
+
+    available:
+      null,
+
+    status:
+      "unknown",
+
+    message:
+      null
+  };
+}
+
+
 function normalizeAvailabilityResponse(
   country,
   response
@@ -124,10 +145,21 @@ function normalizeAvailabilityResponse(
     };
   }
 
-  return createUnavailableState(
-    normalizedCountry,
-    response?.status ||
-      "unavailable"
+  if (
+    response?.ok ===
+      true &&
+    response?.available ===
+      false
+  ) {
+    return createUnavailableState(
+      normalizedCountry,
+      response?.status ||
+        "unavailable"
+    );
+  }
+
+  return createUnknownState(
+    normalizedCountry
   );
 }
 
@@ -250,13 +282,14 @@ export function createRampAvailability({
         catch (error) {
           /*
           --------------------------------------------------
-          Fail closed.
+          Presentation fallback.
 
-          If availability cannot be established, Surface
-          must not offer a ramp route optimistically.
+          Lookup failure means availability is unknown.
 
-          The underlying error remains internal and no
-          provider identity is exposed to the customer.
+          Do not present an operational outage unless the
+          backend explicitly reported available = false.
+
+          Backend sender routing remains authoritative.
           --------------------------------------------------
           */
 
@@ -273,7 +306,7 @@ export function createRampAvailability({
           );
 
           const state =
-            createUnavailableState(
+            createUnknownState(
               normalized
             );
 
@@ -325,7 +358,8 @@ export function createRampAvailability({
     }
 
     const unavailable =
-      !state.available;
+      state.available ===
+      false;
 
     const nativeOption =
       Array.from(
@@ -339,9 +373,6 @@ export function createRampAvailability({
         );
 
     if (nativeOption) {
-      nativeOption.disabled =
-        unavailable;
-
       nativeOption.dataset
         .rampAvailability =
         state.status;
@@ -378,35 +409,37 @@ export function createRampAvailability({
             normalized
         );
 
-    if (optionButton) {
-      optionButton.disabled =
-        unavailable;
-
-      optionButton.setAttribute(
-        "aria-disabled",
-        unavailable
-          ? "true"
-          : "false"
-      );
-
-      optionButton.classList.toggle(
-        "is-unavailable",
-        unavailable
-      );
-
-      optionButton.dataset
-        .rampAvailability =
-        state.status;
-
-      optionButton.textContent =
-        unavailable
-          ? `${getCountryLabel(
-              normalized
-            )} · ${UNAVAILABLE_MESSAGE}`
-          : getCountryLabel(
-              normalized
-            );
+    if (!optionButton) {
+      return;
     }
+
+    /*
+    --------------------------------------------------
+    Informational presentation only.
+
+    Unavailable markets remain selectable.
+    Unknown markets remain visually neutral.
+    Backend sender routing remains authoritative.
+    --------------------------------------------------
+    */
+
+    optionButton.classList.toggle(
+      "is-unavailable",
+      unavailable
+    );
+
+    optionButton.dataset
+      .rampAvailability =
+      state.status;
+
+    optionButton.textContent =
+      unavailable
+        ? `${getCountryLabel(
+            normalized
+          )} · ${UNAVAILABLE_MESSAGE}`
+        : getCountryLabel(
+            normalized
+          );
   }
 
 
@@ -443,7 +476,8 @@ export function createRampAvailability({
     const unavailable =
       Boolean(
         state &&
-        !state.available
+        state.available ===
+          false
       );
 
     shell.classList.toggle(
@@ -512,56 +546,6 @@ export function createRampAvailability({
   }
 
 
-  async function ensureAvailable(
-    country
-  ) {
-    const normalized =
-      normalizeCountry(
-        country
-      );
-
-    if (!normalized) {
-      throw new Error(
-        "source_country_required"
-      );
-    }
-
-    let state =
-      getState(
-        normalized
-      );
-
-    if (!state) {
-      state =
-        await fetchCountry(
-          normalized
-        );
-
-      applyCountryStateToUi(
-        normalized
-      );
-
-      syncSelectedCountryUi();
-    }
-
-    if (
-      !state?.available
-    ) {
-      const error =
-        new Error(
-          UNAVAILABLE_MESSAGE
-        );
-
-      error.code =
-        "ramp_temporarily_unavailable";
-
-      throw error;
-    }
-
-    return state;
-  }
-
-
   function bind() {
     const select =
       resolveSourceSelect();
@@ -598,7 +582,6 @@ export function createRampAvailability({
     applyUi,
 
     getState,
-    isAvailable,
-    ensureAvailable
+    isAvailable
   };
 }
