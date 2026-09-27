@@ -3,8 +3,17 @@
 const ENDPOINT =
   "options/ramp-source-availability";
 
-const UNAVAILABLE_MESSAGE =
+const MAINTENANCE_LABEL =
   "Temporarily unavailable";
+
+const UNAVAILABLE_LABEL =
+  "Currently unavailable";
+
+const MAINTENANCE_MESSAGE =
+  "Service may be temporarily unavailable. You can still continue.";
+
+const UNAVAILABLE_MESSAGE =
+  "This payment route is currently unavailable.";
 
 
 function normalizeCountry(
@@ -16,6 +25,18 @@ function normalizeCountry(
   )
     .trim()
     .toUpperCase();
+}
+
+
+function normalizeStatus(
+  value
+) {
+  return String(
+    value ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
 }
 
 
@@ -71,10 +92,34 @@ function getCountryLabel(
 }
 
 
+function createMaintenanceState(
+  country,
+  message =
+    MAINTENANCE_MESSAGE
+) {
+  return {
+    country:
+      normalizeCountry(
+        country
+      ),
+
+    available:
+      true,
+
+    status:
+      "maintenance",
+
+    message:
+      message ||
+      MAINTENANCE_MESSAGE
+  };
+}
+
+
 function createUnavailableState(
   country,
-  status =
-    "unavailable"
+  message =
+    UNAVAILABLE_MESSAGE
 ) {
   return {
     country:
@@ -85,9 +130,11 @@ function createUnavailableState(
     available:
       false,
 
-    status,
+    status:
+      "unavailable",
 
     message:
+      message ||
       UNAVAILABLE_MESSAGE
   };
 }
@@ -124,6 +171,43 @@ function normalizeAvailabilityResponse(
       country
     );
 
+  const status =
+    normalizeStatus(
+      response?.status
+    );
+
+  /*
+  --------------------------------------------------
+  Maintenance
+
+  Maintenance is still usable.
+
+  Preserve it as an available state so it remains
+  selectable and does not block quote creation.
+  --------------------------------------------------
+  */
+
+  if (
+    response?.ok ===
+      true &&
+    response?.available ===
+      true &&
+    status ===
+      "maintenance"
+  ) {
+    return createMaintenanceState(
+      normalizedCountry,
+      response?.message ||
+        MAINTENANCE_MESSAGE
+    );
+  }
+
+  /*
+  --------------------------------------------------
+  Normal available route
+  --------------------------------------------------
+  */
+
   if (
     response?.ok ===
       true &&
@@ -145,6 +229,12 @@ function normalizeAvailabilityResponse(
     };
   }
 
+  /*
+  --------------------------------------------------
+  Explicit unavailable route
+  --------------------------------------------------
+  */
+
   if (
     response?.ok ===
       true &&
@@ -153,14 +243,35 @@ function normalizeAvailabilityResponse(
   ) {
     return createUnavailableState(
       normalizedCountry,
-      response?.status ||
-        "unavailable"
+      response?.message ||
+        UNAVAILABLE_MESSAGE
     );
   }
 
   return createUnknownState(
     normalizedCountry
   );
+}
+
+
+function getPresentationLabel(
+  state
+) {
+  if (
+    state?.status ===
+      "maintenance"
+  ) {
+    return MAINTENANCE_LABEL;
+  }
+
+  if (
+    state?.available ===
+      false
+  ) {
+    return UNAVAILABLE_LABEL;
+  }
+
+  return null;
 }
 
 
@@ -287,7 +398,7 @@ export function createRampAvailability({
           Lookup failure means availability is unknown.
 
           Do not present an operational outage unless the
-          backend explicitly reported available = false.
+          backend explicitly reported it.
 
           Backend sender routing remains authoritative.
           --------------------------------------------------
@@ -357,9 +468,22 @@ export function createRampAvailability({
       return;
     }
 
+    const warning =
+      state.status ===
+        "maintenance";
+
     const unavailable =
       state.available ===
-      false;
+        false;
+
+    const highlighted =
+      warning ||
+      unavailable;
+
+    const presentationLabel =
+      getPresentationLabel(
+        state
+      );
 
     const nativeOption =
       Array.from(
@@ -378,8 +502,9 @@ export function createRampAvailability({
         state.status;
 
       nativeOption.title =
-        unavailable
-          ? UNAVAILABLE_MESSAGE
+        highlighted
+          ? state.message ||
+            ""
           : "";
     }
 
@@ -415,13 +540,27 @@ export function createRampAvailability({
 
     /*
     --------------------------------------------------
-    Informational presentation only.
+    Public presentation
 
-    Unavailable markets remain selectable.
-    Unknown markets remain visually neutral.
+    Do not expose internal operational terminology.
+
+    maintenance:
+      "Temporarily unavailable"
+      still selectable / available
+      warning styling only.
+
+    unavailable:
+      "Currently unavailable"
+      red styling.
+
     Backend sender routing remains authoritative.
     --------------------------------------------------
     */
+
+    optionButton.classList.toggle(
+      "is-maintenance",
+      warning
+    );
 
     optionButton.classList.toggle(
       "is-unavailable",
@@ -433,13 +572,19 @@ export function createRampAvailability({
       state.status;
 
     optionButton.textContent =
-      unavailable
+      presentationLabel
         ? `${getCountryLabel(
             normalized
-          )} · ${UNAVAILABLE_MESSAGE}`
+          )} · ${presentationLabel}`
         : getCountryLabel(
             normalized
           );
+
+    optionButton.title =
+      highlighted
+        ? state.message ||
+          ""
+        : "";
   }
 
 
@@ -473,12 +618,39 @@ export function createRampAvailability({
       return;
     }
 
+    const warning =
+      Boolean(
+        state &&
+        state.status ===
+          "maintenance"
+      );
+
     const unavailable =
       Boolean(
         state &&
         state.available ===
           false
       );
+
+    const highlighted =
+      warning ||
+      unavailable;
+
+    /*
+    --------------------------------------------------
+    Preserve the existing selected-field presentation.
+
+    The route status is visible in the open dropdown,
+    while the selected field keeps the normal country
+    label and receives only the matching warning /
+    unavailable styling.
+    --------------------------------------------------
+    */
+
+    shell.classList.toggle(
+      "has-maintenance-selection",
+      warning
+    );
 
     shell.classList.toggle(
       "has-unavailable-selection",
@@ -495,13 +667,15 @@ export function createRampAvailability({
       country
     ) {
       valueNode.textContent =
-        unavailable
-          ? `${getCountryLabel(
-              country
-            )} · ${UNAVAILABLE_MESSAGE}`
-          : getCountryLabel(
-              country
-            );
+        getCountryLabel(
+          country
+        );
+
+      valueNode.title =
+        highlighted
+          ? state?.message ||
+            ""
+          : "";
     }
   }
 
