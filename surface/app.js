@@ -40,6 +40,10 @@ import {
   createSurfaceReceiveView
 } from "./receive-view.js";
 
+import {
+  createRampAvailability
+} from "./ramp-availability.js";
+
 
 let initPromise = null;
 
@@ -171,6 +175,21 @@ async function init() {
         return surfaceContext
           ?.getReceiveDestinationCountry();
       }
+    });
+
+
+  /* =========================
+     RAMP AVAILABILITY
+  ========================= */
+
+  const rampAvailability =
+    createRampAvailability({
+      apiGet,
+
+      sourceSelect:
+        getValue(
+          "source_country"
+        )
     });
 
 
@@ -366,6 +385,10 @@ async function init() {
       getSourceCountryCode,
       getCustomerPaymentCurrency,
 
+      ensureRampAvailable:
+        rampAvailability
+          .ensureAvailable,
+
       getActiveContinueButton,
       setContinueButtonsDisabled,
       setContinueButtonMode,
@@ -442,6 +465,17 @@ async function init() {
   setupSurfacePwaInstall({
     setStatus
   });
+
+
+  /* =========================
+     RAMP AVAILABILITY UI
+  ========================= */
+
+  rampAvailability
+    .bind();
+
+  void rampAvailability
+    .load();
 
 
   /* =========================
