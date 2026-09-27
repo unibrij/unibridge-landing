@@ -410,6 +410,48 @@ Country select
 
 /*
 --------------------------------------------------
+Ramp source availability
+
+Informational presentation only.
+
+Unavailable markets remain selectable.
+Backend sender routing remains authoritative.
+--------------------------------------------------
+*/
+
+.country-select-option.is-unavailable {
+  border: 1px solid rgba(248, 113, 113, 0.16);
+  background: rgba(248, 113, 113, 0.06);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.country-select-option.is-unavailable:hover,
+.country-select-option.is-unavailable.is-selected {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(248, 113, 113, 0.10);
+  color: #fca5a5;
+}
+
+.country-select-shell.has-unavailable-selection
+.country-select-trigger {
+  border-color: rgba(248, 113, 113, 0.42);
+  box-shadow:
+    0 0 0 3px rgba(248, 113, 113, 0.08);
+}
+
+.country-select-shell.has-unavailable-selection
+.country-select-value {
+  color: #fca5a5;
+}
+
+.country-select-shell.has-unavailable-selection
+.country-select-chevron {
+  color: rgba(248, 113, 113, 0.88);
+}
+
+
+/*
+--------------------------------------------------
 Amount
 --------------------------------------------------
 */
