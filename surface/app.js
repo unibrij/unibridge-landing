@@ -385,10 +385,6 @@ async function init() {
       getSourceCountryCode,
       getCustomerPaymentCurrency,
 
-      ensureRampAvailable:
-        rampAvailability
-          .ensureAvailable,
-
       getActiveContinueButton,
       setContinueButtonsDisabled,
       setContinueButtonMode,
