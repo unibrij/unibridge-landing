@@ -46,6 +46,33 @@ const RAMP_LIMITS =
       UK: Object.freeze({
         min: 9,
         currency: "GBP"
+      }),
+
+      /*
+      --------------------------------------------------
+      United States
+
+      Verified from the Onramp Hosted / Overlay flow
+      with USD ACH selected.
+
+      Current observed maximum:
+        50,000 USD
+
+      This limit applies only after the backend selects
+      Onramp as the funding provider.
+
+      It is intentionally not applied as a generic
+      pre-quote US limit because other US providers may
+      expose different customer-specific limits.
+
+      Minimum is intentionally not hardcoded until a
+      provider-enforced ACH minimum is verified.
+      --------------------------------------------------
+      */
+
+      US: Object.freeze({
+        max: 50000,
+        currency: "USD"
       })
     })
   });
@@ -66,12 +93,19 @@ function normalizeProvider(
 function normalizeCountry(
   value
 ) {
-  return String(
-    value ||
-    ""
-  )
-    .toUpperCase()
-    .trim();
+  const normalized =
+    String(
+      value ||
+      ""
+    )
+      .toUpperCase()
+      .trim();
+
+  if (normalized === "USA") {
+    return "US";
+  }
+
+  return normalized;
 }
 
 
