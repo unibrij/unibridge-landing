@@ -250,6 +250,9 @@ export function createReceiveRateFlow({
   let expanded =
     false;
 
+  let snapTimer =
+    null;
+
 
   const ratePanel =
     els?.rateSheet
@@ -372,19 +375,51 @@ export function createReceiveRateFlow({
 
 
   function getExpandedHeight() {
-    const viewportHeight =
-      window.visualViewport
-        ?.height ||
-      window.innerHeight;
+    if (!ratePanel) {
+      return 0;
+    }
 
-    return Math.max(
-      0,
-      viewportHeight - 12
+    const maxHeight =
+      Number.parseFloat(
+        window
+          .getComputedStyle(
+            ratePanel
+          )
+          .maxHeight
+      );
+
+    if (
+      Number.isFinite(
+        maxHeight
+      ) &&
+      maxHeight > 0
+    ) {
+      return maxHeight;
+    }
+
+    return ratePanel
+      .getBoundingClientRect()
+      .height;
+  }
+
+
+  function clearSnapTimer() {
+    if (snapTimer === null) {
+      return;
+    }
+
+    window.clearTimeout(
+      snapTimer
     );
+
+    snapTimer =
+      null;
   }
 
 
   function resetDrag() {
+    clearSnapTimer();
+
     dragStartY =
       null;
 
@@ -402,9 +437,6 @@ export function createReceiveRateFlow({
     }
 
     ratePanel.style.height =
-      "";
-
-    ratePanel.style.maxHeight =
       "";
 
     ratePanel.style.transition =
@@ -429,27 +461,32 @@ export function createReceiveRateFlow({
       return;
     }
 
-    if (!collapsedHeight) {
+    clearSnapTimer();
+
+    const currentHeight =
+      ratePanel
+        .getBoundingClientRect()
+        .height;
+
+    if (
+      !expanded ||
+      collapsedHeight === null
+    ) {
       collapsedHeight =
-        ratePanel.getBoundingClientRect()
-          .height;
+        currentHeight;
     }
 
     dragStartY =
       event.clientY;
 
     dragStartHeight =
-      ratePanel.getBoundingClientRect()
-        .height;
+      currentHeight;
 
     ratePanel.style.transition =
       "none";
 
-    ratePanel.style.maxHeight =
-      "none";
-
     ratePanel.style.height =
-      `${dragStartHeight}px`;
+      `${currentHeight}px`;
 
     rateDragZone.setPointerCapture(
       event.pointerId
@@ -479,7 +516,10 @@ export function createReceiveRateFlow({
       dragStartHeight;
 
     const maxHeight =
-      getExpandedHeight();
+      Math.max(
+        minHeight,
+        getExpandedHeight()
+      );
 
     const nextHeight =
       Math.min(
@@ -518,28 +558,33 @@ export function createReceiveRateFlow({
       );
     }
 
-    const currentHeight =
-      ratePanel.getBoundingClientRect()
-        .height;
+    const endY =
+      event.clientY;
+
+    const movement =
+      dragStartY -
+      endY;
 
     const minHeight =
       collapsedHeight ||
-      currentHeight;
+      ratePanel
+        .getBoundingClientRect()
+        .height;
 
     const maxHeight =
-      getExpandedHeight();
+      Math.max(
+        minHeight,
+        getExpandedHeight()
+      );
 
-    const midpoint =
-      minHeight +
-      (
-        maxHeight -
-        minHeight
-      ) *
-      0.35;
-
-    expanded =
-      currentHeight >=
-      midpoint;
+    if (movement >= 32) {
+      expanded =
+        true;
+    }
+    else if (movement <= -32) {
+      expanded =
+        false;
+    }
 
     dragStartY =
       null;
@@ -555,17 +600,33 @@ export function createReceiveRateFlow({
         ? `${maxHeight}px`
         : `${minHeight}px`;
 
-    window.setTimeout(
-      () => {
-        if (!ratePanel) {
-          return;
-        }
+    clearSnapTimer();
 
-        ratePanel.style.transition =
-          "";
-      },
-      180
-    );
+    snapTimer =
+      window.setTimeout(
+        () => {
+          snapTimer =
+            null;
+
+          if (!ratePanel) {
+            return;
+          }
+
+          ratePanel.style.transition =
+            "";
+
+          if (!expanded) {
+            ratePanel.style.height =
+              "";
+
+            collapsedHeight =
+              ratePanel
+                .getBoundingClientRect()
+                .height;
+          }
+        },
+        180
+      );
   }
 
 
@@ -697,6 +758,19 @@ export function createReceiveRateFlow({
       els.ratePricing,
       false
     );
+
+    if (
+      ratePanel &&
+      !expanded
+    ) {
+      ratePanel.style.height =
+        "";
+
+      collapsedHeight =
+        ratePanel
+          .getBoundingClientRect()
+          .height;
+    }
   }
 
 
