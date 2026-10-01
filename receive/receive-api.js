@@ -285,3 +285,78 @@ export async function createReceiveProfile({
     }
   );
 }
+
+
+export async function previewReceivePricing({
+  receiveProfileId,
+  sourceCountry,
+  amount
+}) {
+  const normalizedReceiveProfileId =
+    normalizeString(
+      receiveProfileId
+    );
+
+  const normalizedSourceCountry =
+    normalizeString(
+      sourceCountry
+    ).toUpperCase();
+
+  const normalizedAmount =
+    normalizeString(
+      amount
+    );
+
+  if (!normalizedReceiveProfileId) {
+    throw new Error(
+      "Receive profile missing."
+    );
+  }
+
+  if (!normalizedSourceCountry) {
+    throw new Error(
+      "Source country missing."
+    );
+  }
+
+  if (!normalizedAmount) {
+    throw new Error(
+      "Amount missing."
+    );
+  }
+
+  const authorizationHeaders =
+    await buildClerkAuthorizationHeader();
+
+  return fetchJson(
+    buildProxyUrl(
+      "receive/pricing-preview"
+    ),
+    {
+      method:
+        "POST",
+
+      headers: {
+        Accept:
+          "application/json",
+
+        "Content-Type":
+          "application/json",
+
+        ...authorizationHeaders
+      },
+
+      body:
+        JSON.stringify({
+          receive_profile_id:
+            normalizedReceiveProfileId,
+
+          source_country:
+            normalizedSourceCountry,
+
+          amount:
+            normalizedAmount
+        })
+    }
+  );
+}
