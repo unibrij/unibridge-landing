@@ -68,6 +68,109 @@ function isSignedIn() {
   );
 }
 
+function getCountryLabel(country) {
+  const normalized =
+    normalizeUpper(
+      country
+    );
+
+  if (!normalized) {
+    return "";
+  }
+
+  try {
+    if (
+      typeof Intl.DisplayNames ===
+        "function"
+    ) {
+      const names =
+        new Intl.DisplayNames(
+          ["en"],
+          {
+            type:
+              "region"
+          }
+        );
+
+      return (
+        names.of(
+          normalized
+        ) ||
+        normalized
+      );
+    }
+  }
+  catch {
+    // Fall back to the country code.
+  }
+
+  return normalized;
+}
+
+function getCountryFlag(country) {
+  const normalized =
+    normalizeUpper(
+      country
+    );
+
+  if (
+    !/^[A-Z]{2}$/.test(
+      normalized
+    )
+  ) {
+    return "";
+  }
+
+  return String.fromCodePoint(
+    ...normalized
+      .split("")
+      .map(
+        character =>
+          127397 +
+          character.charCodeAt(0)
+      )
+  );
+}
+
+function buildCountryOptions(catalog) {
+  const countries =
+    new Set();
+
+  for (const route of catalog) {
+    const country =
+      normalizeUpper(
+        route?.country
+      );
+
+    if (country) {
+      countries.add(
+        country
+      );
+    }
+  }
+
+  return Array
+    .from(countries)
+    .map(
+      country => ({
+        value:
+          country,
+
+        label:
+          [
+            getCountryFlag(
+              country
+            ),
+            getCountryLabel(
+              country
+            )
+          ]
+            .filter(Boolean)
+            .join(" ")
+      })
+    );
+}
+
 
 export function createReceiveCreateFlow({
   els,
@@ -81,6 +184,23 @@ export function createReceiveCreateFlow({
   let beneficiaryReady = false;
   let fieldRenderVersion = 0;
   let eventsBound = false;
+
+  const countrySelect =
+    els?.destinationCountry
+      ? createReceiveSelect({
+          select:
+            els.destinationCountry,
+
+          placeholder:
+            "Choose a country",
+
+          options:
+            [],
+
+          searchable:
+            false
+        })
+      : null;
 
   const railSelect =
     els?.payoutRail
@@ -374,6 +494,8 @@ export function createReceiveCreateFlow({
         "";
     }
 
+    countrySelect?.sync();
+
     resetRail();
     syncAuthUi();
 
@@ -469,6 +591,12 @@ export function createReceiveCreateFlow({
         "No receive routes are currently available."
       );
     }
+
+    countrySelect?.setOptions(
+      buildCountryOptions(
+        catalog
+      )
+    );
 
     await handleCountryChange();
   }
