@@ -241,8 +241,14 @@ export function createReceiveRateFlow({
   let dragStartY =
     null;
 
-  let dragOffsetY =
-    0;
+  let dragStartHeight =
+    null;
+
+  let collapsedHeight =
+    null;
+
+  let expanded =
+    false;
 
 
   const ratePanel =
@@ -252,10 +258,10 @@ export function createReceiveRateFlow({
       ) ||
     null;
 
-  const rateHandle =
+  const rateDragZone =
     els?.rateSheet
       ?.querySelector(
-        ".receive-rate-handle"
+        ".receive-rate-drag-zone"
       ) ||
     null;
 
@@ -365,18 +371,40 @@ export function createReceiveRateFlow({
   }
 
 
+  function getExpandedHeight() {
+    const viewportHeight =
+      window.visualViewport
+        ?.height ||
+      window.innerHeight;
+
+    return Math.max(
+      0,
+      viewportHeight - 12
+    );
+  }
+
+
   function resetDrag() {
     dragStartY =
       null;
 
-    dragOffsetY =
-      0;
+    dragStartHeight =
+      null;
+
+    collapsedHeight =
+      null;
+
+    expanded =
+      false;
 
     if (!ratePanel) {
       return;
     }
 
-    ratePanel.style.transform =
+    ratePanel.style.height =
+      "";
+
+    ratePanel.style.maxHeight =
       "";
 
     ratePanel.style.transition =
@@ -387,7 +415,7 @@ export function createReceiveRateFlow({
   function startDrag(event) {
     if (
       !ratePanel ||
-      !rateHandle
+      !rateDragZone
     ) {
       return;
     }
@@ -401,16 +429,29 @@ export function createReceiveRateFlow({
       return;
     }
 
+    if (!collapsedHeight) {
+      collapsedHeight =
+        ratePanel.getBoundingClientRect()
+          .height;
+    }
+
     dragStartY =
       event.clientY;
 
-    dragOffsetY =
-      0;
+    dragStartHeight =
+      ratePanel.getBoundingClientRect()
+        .height;
 
     ratePanel.style.transition =
       "none";
 
-    rateHandle.setPointerCapture(
+    ratePanel.style.maxHeight =
+      "none";
+
+    ratePanel.style.height =
+      `${dragStartHeight}px`;
+
+    rateDragZone.setPointerCapture(
       event.pointerId
     );
 
@@ -422,20 +463,36 @@ export function createReceiveRateFlow({
     if (
       dragStartY ===
         null ||
+      dragStartHeight ===
+        null ||
       !ratePanel
     ) {
       return;
     }
 
-    dragOffsetY =
-      Math.max(
-        0,
-        event.clientY -
-        dragStartY
+    const deltaY =
+      dragStartY -
+      event.clientY;
+
+    const minHeight =
+      collapsedHeight ||
+      dragStartHeight;
+
+    const maxHeight =
+      getExpandedHeight();
+
+    const nextHeight =
+      Math.min(
+        maxHeight,
+        Math.max(
+          minHeight,
+          dragStartHeight +
+          deltaY
+        )
       );
 
-    ratePanel.style.transform =
-      `translateY(${dragOffsetY}px)`;
+    ratePanel.style.height =
+      `${nextHeight}px`;
   }
 
 
@@ -443,58 +500,70 @@ export function createReceiveRateFlow({
     if (
       dragStartY ===
         null ||
+      dragStartHeight ===
+        null ||
       !ratePanel ||
-      !rateHandle
+      !rateDragZone
     ) {
       return;
     }
 
     if (
-      rateHandle.hasPointerCapture(
+      rateDragZone.hasPointerCapture(
         event.pointerId
       )
     ) {
-      rateHandle.releasePointerCapture(
+      rateDragZone.releasePointerCapture(
         event.pointerId
       );
     }
 
-    const shouldClose =
-      dragOffsetY >=
-      Math.min(
-        140,
-        ratePanel.offsetHeight *
-          0.22
-      );
+    const currentHeight =
+      ratePanel.getBoundingClientRect()
+        .height;
+
+    const minHeight =
+      collapsedHeight ||
+      currentHeight;
+
+    const maxHeight =
+      getExpandedHeight();
+
+    const midpoint =
+      minHeight +
+      (
+        maxHeight -
+        minHeight
+      ) *
+      0.35;
+
+    expanded =
+      currentHeight >=
+      midpoint;
 
     dragStartY =
       null;
 
-    if (shouldClose) {
-      ratePanel.style.transition =
-        "transform 180ms ease";
-
-      ratePanel.style.transform =
-        `translateY(${ratePanel.offsetHeight}px)`;
-
-      window.setTimeout(
-        () => {
-          close();
-        },
-        180
-      );
-
-      return;
-    }
+    dragStartHeight =
+      null;
 
     ratePanel.style.transition =
-      "transform 180ms ease";
+      "height 180ms ease";
 
-    ratePanel.style.transform =
-      "translateY(0)";
+    ratePanel.style.height =
+      expanded
+        ? `${maxHeight}px`
+        : `${minHeight}px`;
 
     window.setTimeout(
-      resetDrag,
+      () => {
+        if (!ratePanel) {
+          return;
+        }
+
+        ratePanel.style.transition =
+          "";
+      },
       180
     );
   }
@@ -525,6 +594,13 @@ export function createReceiveRateFlow({
 
     window.requestAnimationFrame(
       () => {
+        if (ratePanel) {
+          collapsedHeight =
+            ratePanel
+              .getBoundingClientRect()
+              .height;
+        }
+
         if (
           !els
             ?.rateSourceCountry
@@ -544,13 +620,6 @@ export function createReceiveRateFlow({
 
 
   function close() {
-    /*
-    Invalidate any in-flight preview.
-
-    The request may still resolve, but its result
-    must no longer mutate this UI.
-    */
-
     requestVersion +=
       1;
 
@@ -852,25 +921,25 @@ export function createReceiveRateFlow({
         close
       );
 
-    rateHandle
+    rateDragZone
       ?.addEventListener(
         "pointerdown",
         startDrag
       );
 
-    rateHandle
+    rateDragZone
       ?.addEventListener(
         "pointermove",
         moveDrag
       );
 
-    rateHandle
+    rateDragZone
       ?.addEventListener(
         "pointerup",
         endDrag
       );
 
-    rateHandle
+    rateDragZone
       ?.addEventListener(
         "pointercancel",
         endDrag
