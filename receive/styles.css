@@ -27,10 +27,16 @@ body {
   overflow-x: hidden;
 }
 
+body.receive-rate-open,
+body.receive-select-open {
+  overflow: hidden;
+}
+
 .receive-view {
   position: relative;
   z-index: 2;
-  width: min(100%, 440px);
+
+  width: min(100%, 392px);
 }
 
 .receive-view[hidden] {
@@ -41,7 +47,6 @@ body {
 /*
 --------------------------------------------------
 Card
-Mirrors Pay glass-card geometry
 --------------------------------------------------
 */
 
@@ -49,13 +54,16 @@ Mirrors Pay glass-card geometry
   position: relative;
   z-index: 2;
 
-  width: min(100%, 440px);
+  width: min(100%, 392px);
   box-sizing: border-box;
 
-  margin-top: 8px;
-  padding: 14px;
+  margin-top: 6px;
+  padding: 13px;
 
-  border: 1px solid var(--receive-border);
+  border:
+    1px solid
+    var(--receive-border);
+
   border-radius: 20px;
 
   background:
@@ -66,17 +74,20 @@ Mirrors Pay glass-card geometry
     );
 
   box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    inset 0 0 26px rgba(94, 234, 212, 0.045);
+    0 24px 70px
+      rgba(0, 0, 0, 0.24),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.13),
+    inset 0 0 26px
+      rgba(94, 234, 212, 0.045);
 
   backdrop-filter:
-    blur(8px)
-    saturate(125%);
+    blur(4px)
+    saturate(124%);
 
   -webkit-backdrop-filter:
-    blur(8px)
-    saturate(125%);
+    blur(4px)
+    saturate(124%);
 }
 
 
@@ -92,7 +103,7 @@ Header
   align-items: center;
   gap: 8px;
 
-  margin: 0 0 16px;
+  margin: 0 0 14px;
 
   text-align: center;
 }
@@ -100,11 +111,13 @@ Header
 .receive-eyebrow {
   margin: 0;
 
-  color: var(--receive-accent-soft);
+  color:
+    var(--receive-accent-soft);
 
   font-size: 12px;
   font-weight: 850;
   line-height: 1.2;
+
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -116,9 +129,10 @@ Header
 
   color: #ffffff;
 
-  font-size: 28px;
+  font-size: 25px;
   line-height: 1.08;
   font-weight: 650;
+
   letter-spacing: -0.04em;
 }
 
@@ -127,9 +141,10 @@ Header
 
   max-width: 390px;
 
-  color: rgba(255, 255, 255, 0.76);
+  color:
+    rgba(255, 255, 255, 0.76);
 
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -166,13 +181,15 @@ Sections
   font-size: 14px;
   line-height: 1.3;
   font-weight: 850;
+
   letter-spacing: -0.02em;
 }
 
 .receive-section-heading p {
   margin: 0;
 
-  color: var(--receive-muted);
+  color:
+    var(--receive-muted);
 
   font-size: 11px;
   line-height: 1.45;
@@ -182,7 +199,6 @@ Sections
 /*
 --------------------------------------------------
 Fields
-Mirrors Pay / Surface fields
 --------------------------------------------------
 */
 
@@ -198,7 +214,8 @@ Mirrors Pay / Surface fields
 
   margin: 0;
 
-  color: var(--receive-muted);
+  color:
+    var(--receive-muted);
 
   font-size: 12px;
 
@@ -208,7 +225,8 @@ Mirrors Pay / Surface fields
 .receive-field-label {
   display: block;
 
-  color: var(--receive-muted);
+  color:
+    var(--receive-muted);
 
   font-size: 12px;
   line-height: 1.35;
@@ -222,13 +240,16 @@ Mirrors Pay / Surface fields
 
   width: 100%;
   min-width: 0;
-  min-height: 42px;
+  min-height: 44px;
 
   box-sizing: border-box;
 
   padding: 10px 12px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
   border-radius: 13px;
 
   background:
@@ -268,18 +289,22 @@ Mirrors Pay / Surface fields
 .receive-field select:disabled,
 .receive-field textarea:disabled {
   opacity: 0.7;
-  cursor: not-allowed;
+
+  cursor:
+    not-allowed;
 }
 
 .receive-field input.field-invalid,
 .receive-field select.field-invalid,
 .receive-field textarea.field-invalid {
   border-color:
-    rgba(248, 113, 113, 0.85) !important;
+    rgba(248, 113, 113, 0.85)
+    !important;
 
   box-shadow:
     0 0 0 3px
-    rgba(248, 113, 113, 0.16) !important;
+    rgba(248, 113, 113, 0.16)
+    !important;
 }
 
 .receive-field option {
@@ -305,8 +330,7 @@ Beneficiary fields
 
 /*
 --------------------------------------------------
-Shared country picker
-Mirrors Pay country-select styles
+Shared country select trigger
 --------------------------------------------------
 */
 
@@ -322,10 +346,6 @@ Mirrors Pay country-select styles
   z-index: 40;
 }
 
-.country-select-shell.is-open {
-  z-index: 160;
-}
-
 .country-select-trigger {
   display: flex;
   align-items: center;
@@ -334,7 +354,7 @@ Mirrors Pay country-select styles
 
   width: 100%;
   min-width: 0;
-  min-height: 42px;
+  min-height: 44px;
 
   box-sizing: border-box;
 
@@ -363,6 +383,9 @@ Mirrors Pay country-select styles
   box-shadow: none;
 
   cursor: pointer;
+
+  touch-action:
+    manipulation;
 }
 
 .country-select-trigger:hover {
@@ -389,6 +412,7 @@ Mirrors Pay country-select styles
   display: block;
 
   min-width: 0;
+
   flex: 1 1 auto;
 
   color: #ffffff;
@@ -404,7 +428,9 @@ Mirrors Pay country-select styles
 
 .country-select-chevron {
   display: block;
-  flex: 0 0 auto;
+
+  flex:
+    0 0 auto;
 
   color:
     rgba(94, 234, 212, 0.92);
@@ -414,6 +440,9 @@ Mirrors Pay country-select styles
 
   transform:
     translateY(-1px);
+
+  transition:
+    transform 150ms ease;
 }
 
 .country-select-shell.is-open
@@ -423,67 +452,245 @@ Mirrors Pay country-select styles
     rotate(180deg);
 }
 
-.country-select-menu {
-  display: none;
 
+/*
+--------------------------------------------------
+Country picker
+Mobile-first bottom sheet
+--------------------------------------------------
+*/
+
+.country-select-picker {
+  position: fixed;
+  z-index: 1200;
+
+  inset: 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  padding: 0;
+
+  isolation: isolate;
+}
+
+.country-select-picker[hidden] {
+  display: none !important;
+}
+
+.country-select-picker-backdrop {
   position: absolute;
-  z-index: 200;
+  z-index: 0;
 
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
+  inset: 0;
 
-  min-width: 0;
+  width: 100%;
+  height: 100%;
 
-  padding: 6px;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background:
+    rgba(0, 5, 20, 0.78);
+
+  backdrop-filter:
+    blur(5px);
+
+  -webkit-backdrop-filter:
+    blur(5px);
+
+  cursor: default;
+}
+
+.country-select-picker-panel {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-height:
+    min(
+      82dvh,
+      680px
+    );
+
+  min-height: 0;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  padding:
+    10px
+    14px
+    max(
+      14px,
+      env(safe-area-inset-bottom)
+    );
 
   border:
     1px solid
     rgba(94, 234, 212, 0.24);
 
-  border-radius: 16px;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+
+  border-radius:
+    22px
+    22px
+    0
+    0;
 
   background:
-    rgba(2, 18, 48, 0.98);
+    linear-gradient(
+      180deg,
+      rgba(8, 31, 67, 0.995) 0%,
+      rgba(0, 14, 45, 0.998) 100%
+    );
 
   box-shadow:
-    0 18px 48px
-      rgba(0, 0, 0, 0.38),
-    inset 0 1px 0
-      rgba(255, 255, 255, 0.08);
+    0 -18px 70px
+    rgba(0, 0, 0, 0.48);
 
-  backdrop-filter:
-    blur(14px)
-    saturate(130%);
-
-  -webkit-backdrop-filter:
-    blur(14px)
-    saturate(130%);
+  overscroll-behavior:
+    contain;
 }
 
-.country-select-shell.is-open
-.country-select-menu {
-  display: grid;
-  gap: 4px;
+.country-select-picker-handle {
+  flex:
+    0 0 auto;
+
+  width: 42px;
+  height: 4px;
+
+  margin:
+    0 auto
+    14px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(255, 255, 255, 0.22);
 }
 
-.country-select-search {
+.country-select-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  flex:
+    0 0 auto;
+
+  min-width: 0;
+
+  margin-bottom: 12px;
+}
+
+.country-select-picker-title {
   display: block;
 
-  width: 100%;
   min-width: 0;
-  min-height: 40px;
+
+  color: #ffffff;
+
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-select-picker-close {
+  display: grid;
+  place-items: center;
+
+  flex:
+    0 0 auto;
+
+  width: 40px;
+  height: 40px;
 
   box-sizing: border-box;
 
-  margin: 0 0 6px;
-  padding: 9px 11px;
+  margin: 0;
+  padding: 0;
 
   border:
     1px solid
     rgba(255, 255, 255, 0.12);
 
-  border-radius: 11px;
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  color:
+    rgba(255, 255, 255, 0.84);
+
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  touch-action:
+    manipulation;
+}
+
+.country-select-picker-close:focus,
+.country-select-picker-close:hover {
+  border-color:
+    rgba(94, 234, 212, 0.30);
+
+  background:
+    rgba(20, 184, 166, 0.10);
+
+  color: #ffffff;
+
+  outline: none;
+}
+
+.country-select-search {
+  display: block;
+
+  flex:
+    0 0 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+
+  box-sizing: border-box;
+
+  margin:
+    0
+    0
+    10px;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  border-radius: 12px;
 
   background:
     rgba(255, 255, 255, 0.075);
@@ -491,7 +698,7 @@ Mirrors Pay country-select styles
   color: #ffffff;
 
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
 
   outline: none;
 }
@@ -512,47 +719,70 @@ Mirrors Pay country-select styles
 
 .country-select-options {
   display: grid;
-  gap: 2px;
+  grid-auto-rows:
+    min-content;
+  gap: 4px;
 
-  max-height: 250px;
+  flex:
+    1 1 auto;
+
+  min-height: 0;
 
   overflow-x: hidden;
   overflow-y: auto;
 
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
+  padding:
+    2px
+    0;
+
+  overscroll-behavior:
+    contain;
+
+  -webkit-overflow-scrolling:
+    touch;
+
+  scrollbar-width:
+    thin;
 }
 
 .country-select-option {
-  display: block;
+  display: flex;
+  align-items: center;
 
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 48px;
 
   box-sizing: border-box;
 
   margin: 0;
-  padding: 9px 10px;
+  padding:
+    11px
+    12px;
 
   border: 0;
-  border-radius: 11px;
+  border-radius: 13px;
 
-  background: transparent;
+  background:
+    transparent;
 
   color: #ffffff;
 
   font: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 550;
   line-height: 1.35;
 
   text-align: left;
+
   overflow-wrap: anywhere;
 
   box-shadow: none;
 
   cursor: pointer;
+
+  touch-action:
+    manipulation;
 }
 
 .country-select-option:hover,
@@ -567,6 +797,12 @@ Mirrors Pay country-select styles
   outline: none;
 }
 
+.country-select-option.is-selected {
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(94, 234, 212, 0.20);
+}
+
 .country-select-option:focus-visible {
   box-shadow:
     inset 0 0 0 1px
@@ -574,11 +810,14 @@ Mirrors Pay country-select styles
 }
 
 .country-select-option:active {
-  transform: none;
+  transform:
+    scale(0.985);
 }
 
 .country-select-empty {
-  padding: 11px 10px;
+  padding:
+    14px
+    12px;
 
   color:
     rgba(255, 255, 255, 0.52);
@@ -593,7 +832,6 @@ Mirrors Pay country-select styles
 /*
 --------------------------------------------------
 Actions
-Mirrors Pay buttons
 --------------------------------------------------
 */
 
@@ -609,7 +847,7 @@ Mirrors Pay buttons
 
 .receive-result-actions {
   grid-template-columns:
-    1fr 1fr;
+    1fr;
 }
 
 .receive-primary-button,
@@ -622,13 +860,18 @@ Mirrors Pay buttons
 
   border-radius: 14px;
 
-  padding: 11px 14px;
+  padding:
+    11px
+    14px;
 
   font: inherit;
   font-size: 14px;
   font-weight: 850;
 
   cursor: pointer;
+
+  touch-action:
+    manipulation;
 
   transition:
     background 160ms ease,
@@ -685,7 +928,9 @@ Mirrors Pay buttons
 .receive-primary-button:disabled,
 .receive-secondary-button:disabled {
   opacity: 0.55;
-  cursor: not-allowed;
+
+  cursor:
+    not-allowed;
 }
 
 .receive-text-button {
@@ -695,7 +940,8 @@ Mirrors Pay buttons
 
   border: 0;
 
-  background: transparent;
+  background:
+    transparent;
 
   color:
     rgba(94, 234, 212, 0.88);
@@ -714,7 +960,9 @@ Messages
 .receive-message {
   margin-top: 12px;
 
-  padding: 10px 12px;
+  padding:
+    10px
+    12px;
 
   border-radius: 14px;
 
@@ -748,12 +996,21 @@ Created QR
   display: grid;
   place-items: center;
 
-  width: min(100%, 258px);
+  width:
+    min(
+      100%,
+      258px
+    );
+
   min-height: 250px;
 
   box-sizing: border-box;
 
-  margin: 4px auto 16px;
+  margin:
+    4px
+    auto
+    16px;
+
   padding: 12px;
 
   border:
@@ -775,7 +1032,12 @@ Created QR
 .receive-qr svg {
   display: block;
 
-  width: min(100%, 230px);
+  width:
+    min(
+      100%,
+      230px
+    );
+
   max-width: 230px;
 
   height: auto;
@@ -823,7 +1085,6 @@ Public receive state
 /*
 --------------------------------------------------
 Recipient summary
-Mirrors Pay summary-box language
 --------------------------------------------------
 */
 
@@ -920,7 +1181,9 @@ Receive metadata
 
   min-width: 0;
 
-  padding: 8px 10px;
+  padding:
+    8px
+    10px;
 
   border:
     1px solid
@@ -965,7 +1228,6 @@ Receive metadata
 /*
 --------------------------------------------------
 Payment entry points
-Mirrors Pay choice-card
 --------------------------------------------------
 */
 
@@ -979,15 +1241,15 @@ Mirrors Pay choice-card
 }
 
 .receive-payment-option {
-  width: 100%;
-  box-sizing: border-box;
-
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
 
+  width: 100%;
   min-height: 68px;
+
+  box-sizing: border-box;
 
   padding: 13px;
 
@@ -1012,6 +1274,9 @@ Mirrors Pay choice-card
   text-align: left;
 
   cursor: pointer;
+
+  touch-action:
+    manipulation;
 
   transition:
     border-color 160ms ease,
@@ -1060,20 +1325,18 @@ Mirrors Pay choice-card
 /*
 --------------------------------------------------
 Receive rate checker
+Mobile-first
 --------------------------------------------------
 */
 
 .receive-rate-cta {
   width: 100%;
+
   margin-top: 12px;
 }
 
 .receive-rate-open-button {
-  min-height: 42px;
-}
-
-body.receive-rate-open {
-  overflow: hidden;
+  min-height: 44px;
 }
 
 .receive-rate-sheet {
@@ -1088,13 +1351,7 @@ body.receive-rate-open {
 
   box-sizing: border-box;
 
-  padding:
-    16px
-    16px
-    max(
-      16px,
-      env(safe-area-inset-bottom)
-    );
+  padding: 0;
 }
 
 .receive-rate-sheet[hidden] {
@@ -1130,11 +1387,11 @@ body.receive-rate-open {
   position: relative;
   z-index: 1;
 
-  width: min(100%, 440px);
+  width: 100%;
 
   max-height:
     min(
-      82vh,
+      86dvh,
       720px
     );
 
@@ -1145,18 +1402,25 @@ body.receive-rate-open {
 
   padding:
     10px
-    16px
-    18px;
+    14px
+    max(
+      18px,
+      env(safe-area-inset-bottom)
+    );
 
   border:
     1px solid
     rgba(94, 234, 212, 0.24);
 
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+
   border-radius:
     22px
     22px
-    18px
-    18px;
+    0
+    0;
 
   background:
     linear-gradient(
@@ -1184,7 +1448,8 @@ body.receive-rate-open {
     0 auto
     14px;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     rgba(255, 255, 255, 0.22);
@@ -1213,10 +1478,12 @@ body.receive-rate-open {
 
   color: #ffffff;
 
-  font-size: 22px;
+  font-size: 21px;
   line-height: 1.15;
   font-weight: 750;
-  letter-spacing: -0.035em;
+
+  letter-spacing:
+    -0.035em;
 }
 
 .receive-rate-header > div > p:last-child {
@@ -1230,16 +1497,14 @@ body.receive-rate-open {
 }
 
 .receive-rate-close-button {
-  flex:
-    0
-    0
-    auto;
-
   display: grid;
   place-items: center;
 
-  width: 36px;
-  height: 36px;
+  flex:
+    0 0 auto;
+
+  width: 40px;
+  height: 40px;
 
   margin: 0;
   padding: 0;
@@ -1261,6 +1526,9 @@ body.receive-rate-open {
   line-height: 1;
 
   cursor: pointer;
+
+  touch-action:
+    manipulation;
 }
 
 .receive-rate-close-button:hover {
@@ -1306,7 +1574,9 @@ body.receive-rate-open {
   font-size: 11px;
   line-height: 1;
   font-weight: 850;
-  letter-spacing: 0.04em;
+
+  letter-spacing:
+    0.04em;
 
   pointer-events: none;
 }
@@ -1339,96 +1609,9 @@ Hidden
 
 /*
 --------------------------------------------------
-Responsive
-Mirrors Pay 430px breakpoint
+Very small phones
 --------------------------------------------------
 */
-
-@media (max-width: 430px) {
-  .receive-view {
-    width: min(100%, 392px);
-  }
-
-  .receive-card {
-    width: min(100%, 392px);
-
-    margin-top: 6px;
-    padding: 13px;
-
-    background:
-      linear-gradient(
-        180deg,
-        rgba(9, 34, 72, 0.22) 0%,
-        rgba(0, 14, 45, 0.12) 100%
-      );
-
-    backdrop-filter:
-      blur(4px)
-      saturate(124%);
-
-    -webkit-backdrop-filter:
-      blur(4px)
-      saturate(124%);
-  }
-
-  .receive-header {
-    margin-bottom: 14px;
-  }
-
-  .receive-header h2 {
-    font-size: 25px;
-  }
-
-  .receive-header > p:not(.receive-eyebrow) {
-    font-size: 13px;
-  }
-
-  .receive-result-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .receive-qr {
-    width: min(100%, 258px);
-    min-height: 250px;
-  }
-
-  .receive-rate-sheet {
-    padding:
-      0
-      0
-      env(safe-area-inset-bottom);
-  }
-
-  .receive-rate-panel {
-    width: 100%;
-
-    max-height:
-      min(
-        86vh,
-        720px
-      );
-
-    border-right: 0;
-    border-bottom: 0;
-    border-left: 0;
-
-    border-radius:
-      22px
-      22px
-      0
-      0;
-
-    padding:
-      10px
-      14px
-      18px;
-  }
-
-  .receive-rate-header h2 {
-    font-size: 21px;
-  }
-}
-
 
 @media (max-width: 360px) {
   .receive-header h2 {
@@ -1440,7 +1623,147 @@ Mirrors Pay 430px breakpoint
   }
 
   .receive-qr {
-    width: min(100%, 250px);
+    width:
+      min(
+        100%,
+        250px
+      );
+
     padding: 9px;
+  }
+
+  .country-select-picker-panel {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+
+/*
+--------------------------------------------------
+Larger screens
+Progressive enhancement from mobile
+--------------------------------------------------
+*/
+
+@media (min-width: 431px) {
+  .receive-view {
+    width:
+      min(
+        100%,
+        440px
+      );
+  }
+
+  .receive-card {
+    width:
+      min(
+        100%,
+        440px
+      );
+
+    margin-top: 8px;
+    padding: 14px;
+
+    backdrop-filter:
+      blur(8px)
+      saturate(125%);
+
+    -webkit-backdrop-filter:
+      blur(8px)
+      saturate(125%);
+  }
+
+  .receive-header {
+    margin-bottom: 16px;
+  }
+
+  .receive-header h2 {
+    font-size: 28px;
+  }
+
+  .receive-header > p:not(.receive-eyebrow) {
+    font-size: 14px;
+  }
+
+  .receive-result-actions {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+  .receive-rate-sheet {
+    padding:
+      16px
+      16px
+      max(
+        16px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .receive-rate-panel {
+    width:
+      min(
+        100%,
+        440px
+      );
+
+    max-height:
+      min(
+        82dvh,
+        720px
+      );
+
+    padding:
+      10px
+      16px
+      18px;
+
+    border:
+      1px solid
+      rgba(94, 234, 212, 0.24);
+
+    border-radius:
+      22px
+      22px
+      18px
+      18px;
+  }
+
+  .receive-rate-header h2 {
+    font-size: 22px;
+  }
+}
+
+
+@media (min-width: 700px) {
+  .country-select-picker {
+    padding: 24px;
+  }
+
+  .country-select-picker-panel {
+    width:
+      min(
+        100%,
+        440px
+      );
+
+    max-height:
+      min(
+        78dvh,
+        620px
+      );
+
+    padding:
+      10px
+      16px
+      18px;
+
+    border:
+      1px solid
+      rgba(94, 234, 212, 0.24);
+
+    border-radius: 22px;
   }
 }
