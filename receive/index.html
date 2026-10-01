@@ -60,7 +60,7 @@
 
   <link
     rel="stylesheet"
-    href="/receive/styles.css?v=2"
+    href="/receive/styles.css?v=3"
   />
 
   <link
@@ -265,23 +265,95 @@
             />
           </label>
 
+
           <div class="receive-result-actions">
+
             <button
               id="copyReceiveLinkButton"
-              class="receive-primary-button"
+              class="receive-primary-button receive-action-button"
               type="button"
             >
-              Copy link
+              <svg
+                class="receive-action-icon"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect
+                  x="9"
+                  y="9"
+                  width="10"
+                  height="10"
+                  rx="2"
+                ></rect>
+
+                <path
+                  d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"
+                ></path>
+              </svg>
+
+              <span>
+                Copy link
+              </span>
             </button>
+
 
             <button
               id="shareReceiveLinkButton"
-              class="receive-secondary-button"
+              class="receive-secondary-button receive-action-button"
               type="button"
               hidden
             >
-              Share
+              <svg
+                class="receive-action-icon"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="18"
+                  cy="5"
+                  r="2.5"
+                ></circle>
+
+                <circle
+                  cx="6"
+                  cy="12"
+                  r="2.5"
+                ></circle>
+
+                <circle
+                  cx="18"
+                  cy="19"
+                  r="2.5"
+                ></circle>
+
+                <path
+                  d="M8.2 10.8 15.8 6.2"
+                ></path>
+
+                <path
+                  d="m8.2 13.2 7.6 4.6"
+                ></path>
+              </svg>
+
+              <span>
+                Share
+              </span>
             </button>
+
           </div>
         </div>
 
@@ -293,7 +365,61 @@
             type="button"
             hidden
           >
-            Check today's rate
+            <span class="receive-rate-open-icon">
+              <svg
+                viewBox="0 0 24 24"
+                width="22"
+                height="22"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M4 19V5"
+                ></path>
+
+                <path
+                  d="M4 19h16"
+                ></path>
+
+                <path
+                  d="m7 15 4-5 3 3 6-7"
+                ></path>
+              </svg>
+            </span>
+
+            <span class="receive-rate-open-copy">
+              <strong>
+                Check today's rate
+              </strong>
+
+              <small>
+                See an estimate of how much you would receive.
+              </small>
+            </span>
+
+            <span
+              class="receive-rate-open-chevron"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="m9 18 6-6-6-6"
+                ></path>
+              </svg>
+            </span>
           </button>
         </div>
 
@@ -493,42 +619,7 @@
             <select
               id="receiveRateSourceCountry"
               required
-            >
-              <option
-                value=""
-                data-currency=""
-              >
-                Choose a country
-              </option>
-
-              <option
-                value="AE"
-                data-currency="AED"
-              >
-                United Arab Emirates
-              </option>
-
-              <option
-                value="US"
-                data-currency="USD"
-              >
-                United States
-              </option>
-
-              <option
-                value="GB"
-                data-currency="GBP"
-              >
-                United Kingdom
-              </option>
-
-              <option
-                value="EU"
-                data-currency="EUR"
-              >
-                European Union
-              </option>
-            </select>
+            ></select>
           </label>
 
 
