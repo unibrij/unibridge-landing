@@ -238,6 +238,27 @@ export function createReceiveRateFlow({
   let loading =
     false;
 
+  let dragStartY =
+    null;
+
+  let dragOffsetY =
+    0;
+
+
+  const ratePanel =
+    els?.rateSheet
+      ?.querySelector(
+        ".receive-rate-panel"
+      ) ||
+    null;
+
+  const rateHandle =
+    els?.rateSheet
+      ?.querySelector(
+        ".receive-rate-handle"
+      ) ||
+    null;
+
 
   const rateSourceSelect =
     els?.rateSourceCountry
@@ -344,10 +365,147 @@ export function createReceiveRateFlow({
   }
 
 
+  function resetDrag() {
+    dragStartY =
+      null;
+
+    dragOffsetY =
+      0;
+
+    if (!ratePanel) {
+      return;
+    }
+
+    ratePanel.style.transform =
+      "";
+
+    ratePanel.style.transition =
+      "";
+  }
+
+
+  function startDrag(event) {
+    if (
+      !ratePanel ||
+      !rateHandle
+    ) {
+      return;
+    }
+
+    if (
+      event.pointerType ===
+        "mouse" &&
+      event.button !==
+        0
+    ) {
+      return;
+    }
+
+    dragStartY =
+      event.clientY;
+
+    dragOffsetY =
+      0;
+
+    ratePanel.style.transition =
+      "none";
+
+    rateHandle.setPointerCapture(
+      event.pointerId
+    );
+
+    event.preventDefault();
+  }
+
+
+  function moveDrag(event) {
+    if (
+      dragStartY ===
+        null ||
+      !ratePanel
+    ) {
+      return;
+    }
+
+    dragOffsetY =
+      Math.max(
+        0,
+        event.clientY -
+        dragStartY
+      );
+
+    ratePanel.style.transform =
+      `translateY(${dragOffsetY}px)`;
+  }
+
+
+  function endDrag(event) {
+    if (
+      dragStartY ===
+        null ||
+      !ratePanel ||
+      !rateHandle
+    ) {
+      return;
+    }
+
+    if (
+      rateHandle.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      rateHandle.releasePointerCapture(
+        event.pointerId
+      );
+    }
+
+    const shouldClose =
+      dragOffsetY >=
+      Math.min(
+        140,
+        ratePanel.offsetHeight *
+          0.22
+      );
+
+    dragStartY =
+      null;
+
+    if (shouldClose) {
+      ratePanel.style.transition =
+        "transform 180ms ease";
+
+      ratePanel.style.transform =
+        `translateY(${ratePanel.offsetHeight}px)`;
+
+      window.setTimeout(
+        () => {
+          close();
+        },
+        180
+      );
+
+      return;
+    }
+
+    ratePanel.style.transition =
+      "transform 180ms ease";
+
+    ratePanel.style.transform =
+      "translateY(0)";
+
+    window.setTimeout(
+      resetDrag,
+      180
+    );
+  }
+
+
   function open() {
     if (!receiveProfileId) {
       return;
     }
+
+    resetDrag();
 
     clearMessage();
     clearPricing();
@@ -406,6 +564,8 @@ export function createReceiveRateFlow({
     document.body.classList.remove(
       "receive-rate-open"
     );
+
+    resetDrag();
   }
 
 
@@ -608,6 +768,7 @@ export function createReceiveRateFlow({
       1;
 
     setLoading(false);
+    resetDrag();
 
     if (els?.rateAmount) {
       els.rateAmount.value =
@@ -689,6 +850,30 @@ export function createReceiveRateFlow({
       ?.addEventListener(
         "click",
         close
+      );
+
+    rateHandle
+      ?.addEventListener(
+        "pointerdown",
+        startDrag
+      );
+
+    rateHandle
+      ?.addEventListener(
+        "pointermove",
+        moveDrag
+      );
+
+    rateHandle
+      ?.addEventListener(
+        "pointerup",
+        endDrag
+      );
+
+    rateHandle
+      ?.addEventListener(
+        "pointercancel",
+        endDrag
       );
 
     els?.rateSourceCountry
