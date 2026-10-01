@@ -1,10 +1,7 @@
 // unibridge-landing/receive/receive-select.js
 
 function normalizeString(value) {
-  return String(
-    value ??
-    ""
-  ).trim();
+  return String(value ?? "").trim();
 }
 
 
@@ -32,13 +29,6 @@ function normalizeOptions(options = []) {
 }
 
 
-let selectInstanceCounter =
-  0;
-
-let activeSelectCloser =
-  null;
-
-
 export function createReceiveSelect({
   select,
   placeholder = "Select",
@@ -50,11 +40,6 @@ export function createReceiveSelect({
       "RECEIVE_SELECT_MISSING"
     );
   }
-
-
-  const instanceId =
-    `receive-select-${++selectInstanceCounter}`;
-
 
   select.classList.add(
     "country-native-select"
@@ -98,17 +83,12 @@ export function createReceiveSelect({
 
   trigger.setAttribute(
     "aria-haspopup",
-    "dialog"
+    "listbox"
   );
 
   trigger.setAttribute(
     "aria-expanded",
     "false"
-  );
-
-  trigger.setAttribute(
-    "aria-controls",
-    `${instanceId}-picker`
   );
 
 
@@ -143,128 +123,18 @@ export function createReceiveSelect({
     chevron
   );
 
-  shell.appendChild(
-    trigger
-  );
 
-
-  const picker =
+  const menu =
     document.createElement(
       "div"
     );
 
-  picker.id =
-    `${instanceId}-picker`;
+  menu.className =
+    "country-select-menu";
 
-  picker.className =
-    "country-select-picker";
-
-  picker.hidden =
-    true;
-
-
-  const backdrop =
-    document.createElement(
-      "button"
-    );
-
-  backdrop.type =
-    "button";
-
-  backdrop.className =
-    "country-select-picker-backdrop";
-
-  backdrop.setAttribute(
-    "aria-label",
-    "Close selector"
-  );
-
-
-  const panel =
-    document.createElement(
-      "section"
-    );
-
-  panel.className =
-    "country-select-picker-panel";
-
-  panel.setAttribute(
+  menu.setAttribute(
     "role",
-    "dialog"
-  );
-
-  panel.setAttribute(
-    "aria-modal",
-    "true"
-  );
-
-  panel.setAttribute(
-    "aria-labelledby",
-    `${instanceId}-title`
-  );
-
-
-  const handle =
-    document.createElement(
-      "div"
-    );
-
-  handle.className =
-    "country-select-picker-handle";
-
-  handle.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-
-  const header =
-    document.createElement(
-      "header"
-    );
-
-  header.className =
-    "country-select-picker-header";
-
-
-  const title =
-    document.createElement(
-      "strong"
-    );
-
-  title.id =
-    `${instanceId}-title`;
-
-  title.className =
-    "country-select-picker-title";
-
-  title.textContent =
-    placeholder;
-
-
-  const closeButton =
-    document.createElement(
-      "button"
-    );
-
-  closeButton.type =
-    "button";
-
-  closeButton.className =
-    "country-select-picker-close";
-
-  closeButton.setAttribute(
-    "aria-label",
-    "Close"
-  );
-
-  closeButton.textContent =
-    "×";
-
-
-  header.append(
-    title,
-    closeButton
+    "listbox"
   );
 
 
@@ -288,6 +158,10 @@ export function createReceiveSelect({
 
     searchInput.autocomplete =
       "off";
+
+    menu.appendChild(
+      searchInput
+    );
   }
 
 
@@ -299,43 +173,55 @@ export function createReceiveSelect({
   results.className =
     "country-select-options";
 
-  results.setAttribute(
-    "role",
-    "listbox"
-  );
-
-
-  panel.append(
-    handle,
-    header
-  );
-
-  if (searchInput) {
-    panel.appendChild(
-      searchInput
-    );
-  }
-
-  panel.appendChild(
+  menu.appendChild(
     results
   );
 
 
-  picker.append(
-    backdrop,
-    panel
-  );
-
-  document.body.appendChild(
-    picker
+  shell.append(
+    trigger,
+    menu
   );
 
 
   let currentOptions =
     [];
 
-  let isOpen =
-    false;
+
+  function close() {
+    shell.classList.remove(
+      "is-open"
+    );
+
+    trigger.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+  }
+
+
+  function open() {
+    shell.classList.add(
+      "is-open"
+    );
+
+    trigger.setAttribute(
+      "aria-expanded",
+      "true"
+    );
+
+    if (searchInput) {
+      searchInput.value =
+        "";
+
+      renderOptions();
+
+      queueMicrotask(
+        () =>
+          searchInput.focus()
+      );
+    }
+  }
 
 
   function sync() {
@@ -376,150 +262,6 @@ export function createReceiveSelect({
   }
 
 
-  function close({
-    restoreFocus = true
-  } = {}) {
-    if (!isOpen) {
-      return;
-    }
-
-    isOpen =
-      false;
-
-    if (
-      activeSelectCloser ===
-      close
-    ) {
-      activeSelectCloser =
-        null;
-    }
-
-    picker.hidden =
-      true;
-
-    shell.classList.remove(
-      "is-open"
-    );
-
-    trigger.setAttribute(
-      "aria-expanded",
-      "false"
-    );
-
-    document.body.classList.remove(
-      "receive-select-open"
-    );
-
-    if (
-      restoreFocus &&
-      document.body.contains(
-        trigger
-      )
-    ) {
-      trigger.focus();
-    }
-  }
-
-
-  function open() {
-    if (isOpen) {
-      return;
-    }
-
-    if (
-      activeSelectCloser &&
-      activeSelectCloser !==
-        close
-    ) {
-      activeSelectCloser({
-        restoreFocus:
-          false
-      });
-    }
-
-    activeSelectCloser =
-      close;
-
-    isOpen =
-      true;
-
-    if (searchInput) {
-      searchInput.value =
-        "";
-    }
-
-    renderOptions();
-
-    picker.hidden =
-      false;
-
-    shell.classList.add(
-      "is-open"
-    );
-
-    trigger.setAttribute(
-      "aria-expanded",
-      "true"
-    );
-
-    document.body.classList.add(
-      "receive-select-open"
-    );
-
-    requestAnimationFrame(
-      () => {
-        if (searchInput) {
-          searchInput.focus();
-
-          return;
-        }
-
-        const selected =
-          results.querySelector(
-            ".country-select-option.is-selected"
-          );
-
-        const first =
-          results.querySelector(
-            ".country-select-option"
-          );
-
-        (
-          selected ||
-          first ||
-          closeButton
-        )
-          ?.focus();
-      }
-    );
-  }
-
-
-  function selectOption(
-    option
-  ) {
-    select.value =
-      option.value;
-
-    sync();
-
-    close({
-      restoreFocus:
-        true
-    });
-
-    select.dispatchEvent(
-      new Event(
-        "change",
-        {
-          bubbles:
-            true
-        }
-      )
-    );
-  }
-
-
   function renderOptions(
     query = ""
   ) {
@@ -542,7 +284,6 @@ export function createReceiveSelect({
 
     results.replaceChildren();
 
-
     if (!visible.length) {
       const empty =
         document.createElement(
@@ -562,11 +303,7 @@ export function createReceiveSelect({
       return;
     }
 
-
-    for (
-      const option
-      of visible
-    ) {
+    for (const option of visible) {
       const button =
         document.createElement(
           "button"
@@ -594,8 +331,20 @@ export function createReceiveSelect({
         event => {
           event.stopPropagation();
 
-          selectOption(
-            option
+          select.value =
+            option.value;
+
+          sync();
+          close();
+
+          select.dispatchEvent(
+            new Event(
+              "change",
+              {
+                bubbles:
+                  true
+              }
+            )
           );
         }
       );
@@ -604,7 +353,6 @@ export function createReceiveSelect({
         button
       );
     }
-
 
     sync();
   }
@@ -623,7 +371,6 @@ export function createReceiveSelect({
 
     select.replaceChildren();
 
-
     const empty =
       document.createElement(
         "option"
@@ -639,10 +386,9 @@ export function createReceiveSelect({
       empty
     );
 
-
     for (
-      const option
-      of currentOptions
+      const option of
+        currentOptions
     ) {
       const element =
         document.createElement(
@@ -660,7 +406,6 @@ export function createReceiveSelect({
       );
     }
 
-
     if (
       currentOptions.some(
         option =>
@@ -670,12 +415,10 @@ export function createReceiveSelect({
     ) {
       select.value =
         previousValue;
-    }
-    else {
+    } else {
       select.value =
         "";
     }
-
 
     renderOptions();
     sync();
@@ -685,32 +428,17 @@ export function createReceiveSelect({
   trigger.addEventListener(
     "click",
     event => {
-      event.preventDefault();
       event.stopPropagation();
 
-      if (isOpen) {
+      if (
+        shell.classList.contains(
+          "is-open"
+        )
+      ) {
         close();
-
-        return;
+      } else {
+        open();
       }
-
-      open();
-    }
-  );
-
-
-  backdrop.addEventListener(
-    "click",
-    () => {
-      close();
-    }
-  );
-
-
-  closeButton.addEventListener(
-    "click",
-    () => {
-      close();
     }
   );
 
@@ -731,80 +459,15 @@ export function createReceiveSelect({
   );
 
 
-  picker.addEventListener(
-    "keydown",
+  document.addEventListener(
+    "pointerdown",
     event => {
       if (
-        event.key ===
-        "Escape"
+        !shell.contains(
+          event.target
+        )
       ) {
-        event.preventDefault();
-
         close();
-
-        return;
-      }
-
-      if (
-        event.key !==
-        "Tab"
-      ) {
-        return;
-      }
-
-
-      const focusable =
-        Array
-          .from(
-            panel.querySelectorAll(
-              [
-                "button:not([disabled])",
-                "input:not([disabled])",
-                "[tabindex]:not([tabindex='-1'])"
-              ].join(",")
-            )
-          )
-          .filter(
-            element =>
-              !element.hidden
-          );
-
-
-      if (!focusable.length) {
-        return;
-      }
-
-
-      const first =
-        focusable[0];
-
-      const last =
-        focusable[
-          focusable.length - 1
-        ];
-
-
-      if (
-        event.shiftKey &&
-        document.activeElement ===
-          first
-      ) {
-        event.preventDefault();
-
-        last.focus();
-
-        return;
-      }
-
-
-      if (
-        !event.shiftKey &&
-        document.activeElement ===
-          last
-      ) {
-        event.preventDefault();
-
-        first.focus();
       }
     }
   );
@@ -822,15 +485,8 @@ export function createReceiveSelect({
     input:
       select,
 
-    picker,
-
     setOptions,
-
     sync,
-
-    open,
-
-    close,
 
     focus() {
       trigger.focus();
