@@ -35,6 +35,9 @@ function normalizeOptions(options = []) {
 let selectInstanceCounter =
   0;
 
+let activeSelectCloser =
+  null;
+
 
 export function createReceiveSelect({
   select,
@@ -57,12 +60,6 @@ export function createReceiveSelect({
     "country-native-select"
   );
 
-
-  /*
-  --------------------------------------------------
-  Trigger shell
-  --------------------------------------------------
-  */
 
   const shell =
     document.createElement(
@@ -150,17 +147,6 @@ export function createReceiveSelect({
     trigger
   );
 
-
-  /*
-  --------------------------------------------------
-  Mobile-first picker sheet
-
-  The picker is mounted directly under <body>,
-  not inside another bottom sheet.
-
-  This prevents nested dropdown / scroll issues.
-  --------------------------------------------------
-  */
 
   const picker =
     document.createElement(
@@ -352,12 +338,6 @@ export function createReceiveSelect({
     false;
 
 
-  /*
-  --------------------------------------------------
-  State
-  --------------------------------------------------
-  */
-
   function sync() {
     const selected =
       currentOptions.find(
@@ -406,6 +386,14 @@ export function createReceiveSelect({
     isOpen =
       false;
 
+    if (
+      activeSelectCloser ===
+      close
+    ) {
+      activeSelectCloser =
+        null;
+    }
+
     picker.hidden =
       true;
 
@@ -437,6 +425,20 @@ export function createReceiveSelect({
     if (isOpen) {
       return;
     }
+
+    if (
+      activeSelectCloser &&
+      activeSelectCloser !==
+        close
+    ) {
+      activeSelectCloser({
+        restoreFocus:
+          false
+      });
+    }
+
+    activeSelectCloser =
+      close;
 
     isOpen =
       true;
@@ -492,12 +494,6 @@ export function createReceiveSelect({
     );
   }
 
-
-  /*
-  --------------------------------------------------
-  Options
-  --------------------------------------------------
-  */
 
   function selectOption(
     option
@@ -686,12 +682,6 @@ export function createReceiveSelect({
   }
 
 
-  /*
-  --------------------------------------------------
-  Events
-  --------------------------------------------------
-  */
-
   trigger.addEventListener(
     "click",
     event => {
@@ -819,12 +809,6 @@ export function createReceiveSelect({
     }
   );
 
-
-  /*
-  --------------------------------------------------
-  Initial state
-  --------------------------------------------------
-  */
 
   setOptions(
     options
