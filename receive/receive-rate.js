@@ -1,12 +1,7 @@
 // unibridge-landing/receive/receive-rate.js
 
-import {
-  previewReceivePricing
-} from "./receive-api.js";
-
-import {
-  createReceiveSelect
-} from "./receive-select.js";
+import { previewReceivePricing } from "./receive-api.js";
+import { createReceiveSelect } from "./receive-select.js";
 
 import {
   createPricingViewModel,
@@ -17,1074 +12,459 @@ import {
 
 
 function normalizeString(value) {
-  return String(
-    value ??
-    ""
-  ).trim();
+  return String(value ?? "").trim();
 }
-
 
 function normalizeUpper(value) {
-  return normalizeString(
-    value
-  ).toUpperCase();
+  return normalizeString(value).toUpperCase();
 }
 
-
-function setHidden(
-  element,
-  hidden
-) {
-  if (!element) {
-    return;
-  }
-
-  element.hidden =
-    Boolean(hidden);
+function setHidden(element, hidden) {
+  if (element) element.hidden = Boolean(hidden);
 }
-
 
 function getSourceMarkets() {
-  const markets =
-    globalThis
-      ?.UNIBRIDGE_COUNTRY_OPTIONS
-      ?.source;
+  const markets = globalThis?.UNIBRIDGE_COUNTRY_OPTIONS?.source;
 
-  if (!Array.isArray(markets)) {
-    return [];
-  }
+  if (!Array.isArray(markets)) return [];
 
   return markets
-    .map(
-      market => ({
-        value:
-          normalizeUpper(
-            market?.value
-          ),
-
-        label:
-          normalizeString(
-            market?.label
-          ),
-
-        flag:
-          normalizeString(
-            market?.flag
-          ),
-
-        currency:
-          normalizeUpper(
-            market?.currency
-          )
-      })
-    )
-    .filter(
-      market =>
-        market.value &&
-        market.label
-    );
+    .map(market => ({
+      value: normalizeUpper(market?.value),
+      label: normalizeString(market?.label),
+      flag: normalizeString(market?.flag),
+      currency: normalizeUpper(market?.currency)
+    }))
+    .filter(market => market.value && market.label);
 }
 
-
-function getSourceMarket(
-  sourceCountry
-) {
-  const normalized =
-    normalizeUpper(
-      sourceCountry
-    );
-
-  if (!normalized) {
-    return null;
-  }
-
-  return (
-    getSourceMarkets()
-      .find(
-        market =>
-          market.value ===
-          normalized
-      ) ||
-    null
-  );
+function getSourceMarket(sourceCountry) {
+  const country = normalizeUpper(sourceCountry);
+  return getSourceMarkets().find(market => market.value === country) || null;
 }
 
-
-function getSourceCurrency(
-  sourceCountry
-) {
-  return normalizeUpper(
-    getSourceMarket(
-      sourceCountry
-    )?.currency
-  );
+function getSourceCurrency(sourceCountry) {
+  return normalizeUpper(getSourceMarket(sourceCountry)?.currency);
 }
 
-
-function getSourceLabel(
-  sourceCountry
-) {
-  const market =
-    getSourceMarket(
-      sourceCountry
-    );
-
-  return (
-    normalizeString(
-      market?.label
-    ) ||
-    normalizeUpper(
-      sourceCountry
-    )
-  );
+function getSourceLabel(sourceCountry) {
+  return getSourceMarket(sourceCountry)?.label || normalizeUpper(sourceCountry);
 }
-
 
 function buildSourceOptions() {
-  return getSourceMarkets()
-    .map(
-      market => ({
-        value:
-          market.value,
-
-        label:
-          [
-            market.flag,
-            market.label
-          ]
-            .filter(Boolean)
-            .join(" ")
-      })
-    );
+  return getSourceMarkets().map(market => ({
+    value: market.value,
+    label: [market.flag, market.label].filter(Boolean).join(" ")
+  }));
 }
 
-
-function getDestinationLabel(
-  country
-) {
-  const normalized =
-    normalizeUpper(
-      country
-    );
-
-  if (!normalized) {
-    return "";
-  }
+function getDestinationLabel(country) {
+  const normalized = normalizeUpper(country);
+  if (!normalized) return "";
 
   try {
-    if (
-      typeof Intl.DisplayNames ===
-        "function"
-    ) {
-      const names =
-        new Intl.DisplayNames(
-          ["en"],
-          {
-            type:
-              "region"
-          }
-        );
-
-      return (
-        names.of(
-          normalized
-        ) ||
-        normalized
-      );
-    }
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(normalized) || normalized;
+  } catch {
+    return normalized;
   }
-  catch {
-    // Fall back to the country code.
-  }
-
-  return normalized;
 }
 
-
-function resolveNoAvailableRouteMessage(
-  routes
-) {
-  if (!Array.isArray(routes)) {
-    return null;
-  }
+function resolveNoAvailableRouteMessage(routes) {
+  if (!Array.isArray(routes)) return null;
 
   for (const route of routes) {
-    const message =
-      formatRouteLimitMessage(
-        route
-      );
-
-    if (message) {
-      return message;
-    }
+    const message = formatRouteLimitMessage(route);
+    if (message) return message;
   }
 
   return null;
 }
 
 
-export function createReceiveRateFlow({
-  els
-} = {}) {
-  let receiveProfileId =
-    null;
+export function createReceiveRateFlow({ els } = {}) {
+  let receiveProfileId = null;
+  let eventsBound = false;
+  let requestVersion = 0;
+  let loading = false;
 
-  let eventsBound =
-    false;
-
-  let requestVersion =
-    0;
-
-  let loading =
-    false;
-
-  let dragStartY =
-    null;
-
-  let dragStartHeight =
-    null;
-
-  let collapsedHeight =
-    null;
-
-  let expanded =
-    false;
-
-  let snapTimer =
-    null;
-
+  let dragStartY = null;
+  let dragStartHeight = null;
+  let collapsedHeight = null;
+  let expanded = false;
 
   const ratePanel =
-    els?.rateSheet
-      ?.querySelector(
-        ".receive-rate-panel"
-      ) ||
-    null;
+    els?.rateSheet?.querySelector(".receive-rate-panel") || null;
 
   const rateDragZone =
-    els?.rateSheet
-      ?.querySelector(
-        ".receive-rate-drag-zone"
-      ) ||
-    null;
+    els?.rateSheet?.querySelector(".receive-rate-drag-zone") || null;
 
-
-  const rateSourceSelect =
-    els?.rateSourceCountry
-      ? createReceiveSelect({
-          select:
-            els.rateSourceCountry,
-
-          placeholder:
-            "Choose a country",
-
-          options:
-            buildSourceOptions(),
-
-          searchable:
-            false
-        })
-      : null;
+  const rateSourceSelect = els?.rateSourceCountry
+    ? createReceiveSelect({
+        select: els.rateSourceCountry,
+        placeholder: "Choose a country",
+        options: buildSourceOptions(),
+        searchable: false
+      })
+    : null;
 
 
   function clearMessage() {
-    if (!els?.rateMessage) {
-      return;
-    }
-
-    els.rateMessage.textContent =
-      "";
-
-    setHidden(
-      els.rateMessage,
-      true
-    );
+    if (!els?.rateMessage) return;
+    els.rateMessage.textContent = "";
+    setHidden(els.rateMessage, true);
   }
-
 
   function showMessage(message) {
-    if (!els?.rateMessage) {
-      return;
-    }
+    if (!els?.rateMessage) return;
 
     els.rateMessage.textContent =
-      normalizeString(
-        message
-      ) ||
-      "Unable to check today's rate.";
+      normalizeString(message) || "Unable to check today's rate.";
 
-    setHidden(
-      els.rateMessage,
-      false
-    );
+    setHidden(els.rateMessage, false);
   }
-
 
   function clearPricing() {
-    if (!els?.ratePricing) {
-      return;
-    }
-
+    if (!els?.ratePricing) return;
     els.ratePricing.replaceChildren();
-
-    setHidden(
-      els.ratePricing,
-      true
-    );
+    setHidden(els.ratePricing, true);
   }
-
 
   function setLoading(value) {
-    loading =
-      Boolean(value);
+    loading = Boolean(value);
 
-    if (!els?.rateCheckButton) {
-      return;
-    }
+    if (!els?.rateCheckButton) return;
 
-    els.rateCheckButton.disabled =
-      loading;
-
-    els.rateCheckButton.textContent =
-      loading
-        ? "Checking…"
-        : "Check rate";
+    els.rateCheckButton.disabled = loading;
+    els.rateCheckButton.textContent = loading ? "Checking…" : "Check rate";
   }
-
 
   function syncSourceOptions() {
-    rateSourceSelect
-      ?.setOptions(
-        buildSourceOptions()
-      );
+    rateSourceSelect?.setOptions(buildSourceOptions());
   }
-
 
   function syncCurrency() {
-    if (!els?.rateCurrency) {
-      return;
-    }
+    if (!els?.rateCurrency) return;
 
     els.rateCurrency.textContent =
-      getSourceCurrency(
-        els
-          ?.rateSourceCountry
-          ?.value
-      );
+      getSourceCurrency(els?.rateSourceCountry?.value);
   }
 
+
+  // --------------------------------------------------
+  // Sheet drag
+  // --------------------------------------------------
 
   function getExpandedHeight() {
-    if (!ratePanel) {
-      return 0;
-    }
+    if (!ratePanel) return 0;
 
-    const maxHeight =
-      Number.parseFloat(
-        window
-          .getComputedStyle(
-            ratePanel
-          )
-          .maxHeight
-      );
-
-    if (
-      Number.isFinite(
-        maxHeight
-      ) &&
-      maxHeight > 0
-    ) {
-      return maxHeight;
-    }
-
-    return ratePanel
-      .getBoundingClientRect()
-      .height;
-  }
-
-
-  function clearSnapTimer() {
-    if (snapTimer === null) {
-      return;
-    }
-
-    window.clearTimeout(
-      snapTimer
+    const maxHeight = Number.parseFloat(
+      window.getComputedStyle(ratePanel).maxHeight
     );
 
-    snapTimer =
-      null;
+    return Number.isFinite(maxHeight) && maxHeight > 0
+      ? maxHeight
+      : ratePanel.getBoundingClientRect().height;
   }
-
 
   function resetDrag() {
-    clearSnapTimer();
+    dragStartY = null;
+    dragStartHeight = null;
+    collapsedHeight = null;
+    expanded = false;
 
-    dragStartY =
-      null;
+    if (!ratePanel) return;
 
-    dragStartHeight =
-      null;
-
-    collapsedHeight =
-      null;
-
-    expanded =
-      false;
-
-    if (!ratePanel) {
-      return;
-    }
-
-    ratePanel.style.height =
-      "";
-
-    ratePanel.style.transition =
-      "";
+    ratePanel.style.height = "";
+    ratePanel.style.transition = "";
   }
 
-
   function startDrag(event) {
-    if (
-      !ratePanel ||
-      !rateDragZone
-    ) {
-      return;
+    if (!ratePanel || !rateDragZone) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    const currentHeight = ratePanel.getBoundingClientRect().height;
+
+    if (collapsedHeight === null) {
+      collapsedHeight = currentHeight;
     }
 
-    if (
-      event.pointerType ===
-        "mouse" &&
-      event.button !==
-        0
-    ) {
-      return;
-    }
+    dragStartY = event.clientY;
+    dragStartHeight = currentHeight;
 
-    clearSnapTimer();
+    ratePanel.style.transition = "none";
+    ratePanel.style.height = `${currentHeight}px`;
 
-    const currentHeight =
-      ratePanel
-        .getBoundingClientRect()
-        .height;
-
-    if (
-      !expanded ||
-      collapsedHeight === null
-    ) {
-      collapsedHeight =
-        currentHeight;
-    }
-
-    dragStartY =
-      event.clientY;
-
-    dragStartHeight =
-      currentHeight;
-
-    ratePanel.style.transition =
-      "none";
-
-    ratePanel.style.height =
-      `${currentHeight}px`;
-
-    rateDragZone.setPointerCapture(
-      event.pointerId
-    );
-
+    rateDragZone.setPointerCapture(event.pointerId);
     event.preventDefault();
   }
 
-
   function moveDrag(event) {
-    if (
-      dragStartY ===
-        null ||
-      dragStartHeight ===
-        null ||
-      !ratePanel
-    ) {
-      return;
-    }
+    if (dragStartY === null || dragStartHeight === null || !ratePanel) return;
 
-    const deltaY =
-      dragStartY -
-      event.clientY;
-
-    const minHeight =
-      collapsedHeight ||
-      dragStartHeight;
-
-    const maxHeight =
-      Math.max(
-        minHeight,
-        getExpandedHeight()
-      );
-
-    const nextHeight =
-      Math.min(
-        maxHeight,
-        Math.max(
-          minHeight,
-          dragStartHeight +
-          deltaY
-        )
-      );
+    const deltaY = dragStartY - event.clientY;
+    const minHeight = collapsedHeight ?? dragStartHeight;
+    const maxHeight = Math.max(minHeight, getExpandedHeight());
 
     ratePanel.style.height =
-      `${nextHeight}px`;
+      `${Math.min(maxHeight, Math.max(minHeight, dragStartHeight + deltaY))}px`;
   }
-
 
   function endDrag(event) {
     if (
-      dragStartY ===
-        null ||
-      dragStartHeight ===
-        null ||
+      dragStartY === null ||
+      dragStartHeight === null ||
       !ratePanel ||
       !rateDragZone
     ) {
       return;
     }
 
-    if (
-      rateDragZone.hasPointerCapture(
-        event.pointerId
-      )
-    ) {
-      rateDragZone.releasePointerCapture(
-        event.pointerId
-      );
+    if (rateDragZone.hasPointerCapture(event.pointerId)) {
+      rateDragZone.releasePointerCapture(event.pointerId);
     }
 
-    const endY =
-      event.clientY;
-
-    const movement =
-      dragStartY -
-      endY;
-
+    const movement = dragStartY - event.clientY;
     const minHeight =
-      collapsedHeight ||
-      ratePanel
-        .getBoundingClientRect()
-        .height;
+      collapsedHeight ?? ratePanel.getBoundingClientRect().height;
 
-    const maxHeight =
-      Math.max(
-        minHeight,
-        getExpandedHeight()
-      );
+    const maxHeight = Math.max(minHeight, getExpandedHeight());
 
-    if (movement >= 32) {
-      expanded =
-        true;
-    }
-    else if (movement <= -32) {
-      expanded =
-        false;
-    }
+    if (movement >= 32) expanded = true;
+    if (movement <= -32) expanded = false;
 
-    dragStartY =
-      null;
+    dragStartY = null;
+    dragStartHeight = null;
 
-    dragStartHeight =
-      null;
+    ratePanel.style.transition = "height 180ms ease";
+    ratePanel.style.height = `${expanded ? maxHeight : minHeight}px`;
 
-    ratePanel.style.transition =
-      "height 180ms ease";
+    window.setTimeout(() => {
+      if (!ratePanel) return;
 
-    ratePanel.style.height =
-      expanded
-        ? `${maxHeight}px`
-        : `${minHeight}px`;
+      ratePanel.style.transition = "";
 
-    clearSnapTimer();
-
-    snapTimer =
-      window.setTimeout(
-        () => {
-          snapTimer =
-            null;
-
-          if (!ratePanel) {
-            return;
-          }
-
-          ratePanel.style.transition =
-            "";
-
-          if (!expanded) {
-            ratePanel.style.height =
-              "";
-
-            collapsedHeight =
-              ratePanel
-                .getBoundingClientRect()
-                .height;
-          }
-        },
-        180
-      );
+      if (!expanded) {
+        ratePanel.style.height = "";
+        collapsedHeight = ratePanel.getBoundingClientRect().height;
+      }
+    }, 180);
   }
 
 
+  // --------------------------------------------------
+  // Sheet lifecycle
+  // --------------------------------------------------
+
   function open() {
-    if (!receiveProfileId) {
-      return;
-    }
+    if (!receiveProfileId) return;
 
     resetDrag();
-
     clearMessage();
     clearPricing();
     setLoading(false);
-
     syncSourceOptions();
     syncCurrency();
 
-    setHidden(
-      els?.rateSheet,
-      false
-    );
+    setHidden(els?.rateSheet, false);
+    document.body.classList.add("receive-rate-open");
 
-    document.body.classList.add(
-      "receive-rate-open"
-    );
-
-    window.requestAnimationFrame(
-      () => {
-        if (ratePanel) {
-          collapsedHeight =
-            ratePanel
-              .getBoundingClientRect()
-              .height;
-        }
-
-        if (
-          !els
-            ?.rateSourceCountry
-            ?.value
-        ) {
-          rateSourceSelect
-            ?.focus();
-
-          return;
-        }
-
-        els?.rateAmount
-          ?.focus();
+    window.requestAnimationFrame(() => {
+      if (ratePanel) {
+        collapsedHeight = ratePanel.getBoundingClientRect().height;
       }
-    );
+
+      if (!els?.rateSourceCountry?.value) {
+        rateSourceSelect?.focus();
+      } else {
+        els?.rateAmount?.focus();
+      }
+    });
   }
 
-
   function close() {
-    requestVersion +=
-      1;
-
+    requestVersion += 1;
     setLoading(false);
 
-    setHidden(
-      els?.rateSheet,
-      true
-    );
-
-    document.body.classList.remove(
-      "receive-rate-open"
-    );
+    setHidden(els?.rateSheet, true);
+    document.body.classList.remove("receive-rate-open");
 
     resetDrag();
   }
 
 
-  function renderResult({
-    payload,
-    route,
-    amount
-  }) {
-    if (!els?.ratePricing) {
-      return;
-    }
+  // --------------------------------------------------
+  // Pricing
+  // --------------------------------------------------
 
-    const sourceCountry =
-      normalizeUpper(
-        payload?.source_country ??
-        els
-          ?.rateSourceCountry
-          ?.value
-      );
+  function renderResult({ payload, route, amount }) {
+    if (!els?.ratePricing) return;
 
-    const sourceCurrency =
-      getSourceCurrency(
-        sourceCountry
-      );
-
-    const sourceLabel =
-      getSourceLabel(
-        sourceCountry
-      );
-
-    const destinationLabel =
-      getDestinationLabel(
-        payload?.receiver_country
-      );
-
-    const model =
-      createPricingViewModel({
-        quote:
-          payload,
-
-        route,
-
-        customerPaymentAmount:
-          amount,
-
-        customerPaymentCurrency:
-          sourceCurrency,
-
-        sourceLabel,
-
-        destinationLabel
-      });
-
-    renderPricing(
-      els.ratePricing,
-      model
+    const sourceCountry = normalizeUpper(
+      payload?.source_country ?? els?.rateSourceCountry?.value
     );
 
-    setHidden(
-      els.ratePricing,
-      false
-    );
+    const model = createPricingViewModel({
+      quote: payload,
+      route,
+      customerPaymentAmount: amount,
+      customerPaymentCurrency: getSourceCurrency(sourceCountry),
+      sourceLabel: getSourceLabel(sourceCountry),
+      destinationLabel: getDestinationLabel(payload?.receiver_country)
+    });
 
-    if (
-      ratePanel &&
-      !expanded
-    ) {
-      ratePanel.style.height =
-        "";
+    renderPricing(els.ratePricing, model);
+    setHidden(els.ratePricing, false);
 
-      collapsedHeight =
-        ratePanel
-          .getBoundingClientRect()
-          .height;
+    if (ratePanel && !expanded) {
+      ratePanel.style.height = "";
+      collapsedHeight = ratePanel.getBoundingClientRect().height;
     }
   }
 
-
   async function checkRate() {
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     clearMessage();
     clearPricing();
 
     if (!receiveProfileId) {
-      showMessage(
-        "Receive profile missing."
-      );
-
+      showMessage("Receive profile missing.");
       return;
     }
 
-    const sourceCountry =
-      normalizeUpper(
-        els
-          ?.rateSourceCountry
-          ?.value
-      );
-
-    const amount =
-      normalizeString(
-        els
-          ?.rateAmount
-          ?.value
-      );
+    const sourceCountry = normalizeUpper(els?.rateSourceCountry?.value);
+    const amount = normalizeString(els?.rateAmount?.value);
 
     if (!sourceCountry) {
-      showMessage(
-        "Choose where the sender is paying from."
-      );
-
-      rateSourceSelect
-        ?.focus();
-
+      showMessage("Choose where the sender is paying from.");
+      rateSourceSelect?.focus();
       return;
     }
 
-    if (
-      !amount ||
-      !Number.isFinite(
-        Number(amount)
-      ) ||
-      Number(amount) <= 0
-    ) {
-      showMessage(
-        "Enter a valid amount."
-      );
-
-      els?.rateAmount
-        ?.focus();
-
+    if (!amount || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+      showMessage("Enter a valid amount.");
+      els?.rateAmount?.focus();
       return;
     }
 
-    const version =
-      ++requestVersion;
-
+    const version = ++requestVersion;
     setLoading(true);
 
     try {
-      const payload =
-        await previewReceivePricing({
-          receiveProfileId,
-          sourceCountry,
-          amount
-        });
+      const payload = await previewReceivePricing({
+        receiveProfileId,
+        sourceCountry,
+        amount
+      });
 
-      if (
-        version !==
-        requestVersion
-      ) {
-        return;
-      }
+      if (version !== requestVersion) return;
 
-      const routes =
-        Array.isArray(
-          payload?.routes
-        )
-          ? payload.routes
-          : [];
-
-      const route =
-        selectFirstAvailableRoute(
-          routes
-        );
+      const routes = Array.isArray(payload?.routes) ? payload.routes : [];
+      const route = selectFirstAvailableRoute(routes);
 
       if (!route) {
         throw new Error(
-          resolveNoAvailableRouteMessage(
-            routes
-          ) ||
+          resolveNoAvailableRouteMessage(routes) ||
           "No route is available for this amount."
         );
       }
 
-      renderResult({
-        payload,
-        route,
-        amount
-      });
-    }
-    catch (error) {
-      if (
-        version !==
-        requestVersion
-      ) {
-        return;
-      }
+      renderResult({ payload, route, amount });
+    } catch (error) {
+      if (version !== requestVersion) return;
 
       showMessage(
-        error?.message ||
-        "Unable to check today's rate."
+        error?.message || "Unable to check today's rate."
       );
-    }
-    finally {
-      if (
-        version ===
-        requestVersion
-      ) {
+    } finally {
+      if (version === requestVersion) {
         setLoading(false);
       }
     }
   }
 
 
-  function reset() {
-    receiveProfileId =
-      null;
+  // --------------------------------------------------
+  // Public flow API
+  // --------------------------------------------------
 
-    requestVersion +=
-      1;
+  function reset() {
+    receiveProfileId = null;
+    requestVersion += 1;
 
     setLoading(false);
     resetDrag();
 
-    if (els?.rateAmount) {
-      els.rateAmount.value =
-        "";
-    }
-
-    if (els?.rateSourceCountry) {
-      els.rateSourceCountry.value =
-        "";
-    }
+    if (els?.rateAmount) els.rateAmount.value = "";
+    if (els?.rateSourceCountry) els.rateSourceCountry.value = "";
 
     syncSourceOptions();
     syncCurrency();
-
     clearMessage();
     clearPricing();
 
-    setHidden(
-      els?.rateSheet,
-      true
-    );
+    setHidden(els?.rateSheet, true);
+    setHidden(els?.rateOpenButton, true);
 
-    document.body.classList.remove(
-      "receive-rate-open"
-    );
-
-    setHidden(
-      els?.rateOpenButton,
-      true
-    );
+    document.body.classList.remove("receive-rate-open");
   }
-
 
   function setReceiveProfileId(value) {
-    receiveProfileId =
-      normalizeString(
-        value
-      ) ||
-      null;
-
-    requestVersion +=
-      1;
+    receiveProfileId = normalizeString(value) || null;
+    requestVersion += 1;
 
     setLoading(false);
     clearMessage();
     clearPricing();
-
     syncSourceOptions();
     syncCurrency();
 
-    setHidden(
-      els?.rateOpenButton,
-      !receiveProfileId
-    );
+    setHidden(els?.rateOpenButton, !receiveProfileId);
   }
-
 
   function bind() {
-    if (eventsBound) {
-      return;
-    }
+    if (eventsBound) return;
+    eventsBound = true;
 
-    eventsBound =
-      true;
+    els?.rateOpenButton?.addEventListener("click", open);
+    els?.rateCloseButton?.addEventListener("click", close);
+    els?.rateBackdrop?.addEventListener("click", close);
 
-    els?.rateOpenButton
-      ?.addEventListener(
-        "click",
-        open
-      );
+    rateDragZone?.addEventListener("pointerdown", startDrag);
+    rateDragZone?.addEventListener("pointermove", moveDrag);
+    rateDragZone?.addEventListener("pointerup", endDrag);
+    rateDragZone?.addEventListener("pointercancel", endDrag);
 
-    els?.rateCloseButton
-      ?.addEventListener(
-        "click",
-        close
-      );
+    els?.rateSourceCountry?.addEventListener("change", () => {
+      syncCurrency();
+      clearMessage();
+      clearPricing();
+    });
 
-    els?.rateBackdrop
-      ?.addEventListener(
-        "click",
-        close
-      );
+    els?.rateAmount?.addEventListener("input", () => {
+      clearMessage();
+      clearPricing();
+    });
 
-    rateDragZone
-      ?.addEventListener(
-        "pointerdown",
-        startDrag
-      );
+    els?.rateAmount?.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      checkRate();
+    });
 
-    rateDragZone
-      ?.addEventListener(
-        "pointermove",
-        moveDrag
-      );
+    els?.rateCheckButton?.addEventListener("click", checkRate);
 
-    rateDragZone
-      ?.addEventListener(
-        "pointerup",
-        endDrag
-      );
-
-    rateDragZone
-      ?.addEventListener(
-        "pointercancel",
-        endDrag
-      );
-
-    els?.rateSourceCountry
-      ?.addEventListener(
-        "change",
-        () => {
-          syncCurrency();
-          clearMessage();
-          clearPricing();
-        }
-      );
-
-    els?.rateAmount
-      ?.addEventListener(
-        "input",
-        () => {
-          clearMessage();
-          clearPricing();
-        }
-      );
-
-    els?.rateAmount
-      ?.addEventListener(
-        "keydown",
-        event => {
-          if (
-            event.key ===
-            "Enter"
-          ) {
-            event.preventDefault();
-
-            checkRate();
-          }
-        }
-      );
-
-    els?.rateCheckButton
-      ?.addEventListener(
-        "click",
-        checkRate
-      );
-
-    document.addEventListener(
-      "keydown",
-      event => {
-        if (
-          event.key ===
-            "Escape" &&
-          !els
-            ?.rateSheet
-            ?.hidden
-        ) {
-          close();
-        }
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !els?.rateSheet?.hidden) {
+        close();
       }
-    );
+    });
 
     setLoading(false);
-
     syncSourceOptions();
     syncCurrency();
-
-    setHidden(
-      els?.rateOpenButton,
-      !receiveProfileId
-    );
+    setHidden(els?.rateOpenButton, !receiveProfileId);
   }
-
 
   return {
     bind,
