@@ -27,8 +27,7 @@ body {
   overflow-x: hidden;
 }
 
-body.receive-rate-open,
-body.receive-select-open {
+body.receive-rate-open {
   overflow: hidden;
 }
 
@@ -330,7 +329,7 @@ Beneficiary fields
 
 /*
 --------------------------------------------------
-Shared country select trigger
+Shared country picker
 --------------------------------------------------
 */
 
@@ -344,6 +343,10 @@ Shared country select trigger
   width: 100%;
 
   z-index: 40;
+}
+
+.country-select-shell.is-open {
+  z-index: 160;
 }
 
 .country-select-trigger {
@@ -452,224 +455,52 @@ Shared country select trigger
     rotate(180deg);
 }
 
+.country-select-menu {
+  display: none;
 
-/*
---------------------------------------------------
-Country picker
-Mobile-first bottom sheet
---------------------------------------------------
-*/
-
-.country-select-picker {
-  position: fixed;
-  z-index: 1200;
-
-  inset: 0;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  box-sizing: border-box;
-
-  padding: 0;
-
-  isolation: isolate;
-}
-
-.country-select-picker[hidden] {
-  display: none !important;
-}
-
-.country-select-picker-backdrop {
   position: absolute;
-  z-index: 0;
+  z-index: 200;
 
-  inset: 0;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
 
-  width: 100%;
-  height: 100%;
+  min-width: 0;
 
-  margin: 0;
-  padding: 0;
-
-  border: 0;
-
-  background:
-    rgba(0, 5, 20, 0.78);
-
-  backdrop-filter:
-    blur(5px);
-
-  -webkit-backdrop-filter:
-    blur(5px);
-
-  cursor: default;
-}
-
-.country-select-picker-panel {
-  position: relative;
-  z-index: 1;
-
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  max-height:
-    min(
-      82dvh,
-      680px
-    );
-
-  min-height: 0;
-
-  box-sizing: border-box;
-
-  overflow: hidden;
-
-  padding:
-    10px
-    14px
-    max(
-      14px,
-      env(safe-area-inset-bottom)
-    );
+  padding: 6px;
 
   border:
     1px solid
     rgba(94, 234, 212, 0.24);
 
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-
-  border-radius:
-    22px
-    22px
-    0
-    0;
+  border-radius: 16px;
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(8, 31, 67, 0.995) 0%,
-      rgba(0, 14, 45, 0.998) 100%
-    );
+    rgba(2, 18, 48, 0.98);
 
   box-shadow:
-    0 -18px 70px
-    rgba(0, 0, 0, 0.48);
+    0 18px 48px
+      rgba(0, 0, 0, 0.38),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.08);
 
-  overscroll-behavior:
-    contain;
+  backdrop-filter:
+    blur(14px)
+    saturate(130%);
+
+  -webkit-backdrop-filter:
+    blur(14px)
+    saturate(130%);
 }
 
-.country-select-picker-handle {
-  flex:
-    0 0 auto;
-
-  width: 42px;
-  height: 4px;
-
-  margin:
-    0 auto
-    14px;
-
-  border-radius:
-    999px;
-
-  background:
-    rgba(255, 255, 255, 0.22);
-}
-
-.country-select-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  flex:
-    0 0 auto;
-
-  min-width: 0;
-
-  margin-bottom: 12px;
-}
-
-.country-select-picker-title {
-  display: block;
-
-  min-width: 0;
-
-  color: #ffffff;
-
-  font-size: 18px;
-  line-height: 1.25;
-  font-weight: 800;
-
-  letter-spacing:
-    -0.025em;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.country-select-picker-close {
+.country-select-shell.is-open
+.country-select-menu {
   display: grid;
-  place-items: center;
-
-  flex:
-    0 0 auto;
-
-  width: 40px;
-  height: 40px;
-
-  box-sizing: border-box;
-
-  margin: 0;
-  padding: 0;
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.12);
-
-  border-radius: 50%;
-
-  background:
-    rgba(255, 255, 255, 0.06);
-
-  color:
-    rgba(255, 255, 255, 0.84);
-
-  font: inherit;
-  font-size: 24px;
-  line-height: 1;
-
-  cursor: pointer;
-
-  touch-action:
-    manipulation;
-}
-
-.country-select-picker-close:focus,
-.country-select-picker-close:hover {
-  border-color:
-    rgba(94, 234, 212, 0.30);
-
-  background:
-    rgba(20, 184, 166, 0.10);
-
-  color: #ffffff;
-
-  outline: none;
+  gap: 4px;
 }
 
 .country-select-search {
   display: block;
-
-  flex:
-    0 0 auto;
 
   width: 100%;
   min-width: 0;
@@ -677,20 +508,14 @@ Mobile-first bottom sheet
 
   box-sizing: border-box;
 
-  margin:
-    0
-    0
-    10px;
-
-  padding:
-    10px
-    12px;
+  margin: 0 0 6px;
+  padding: 9px 11px;
 
   border:
     1px solid
     rgba(255, 255, 255, 0.12);
 
-  border-radius: 12px;
+  border-radius: 11px;
 
   background:
     rgba(255, 255, 255, 0.075);
@@ -698,7 +523,7 @@ Mobile-first bottom sheet
   color: #ffffff;
 
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
 
   outline: none;
 }
@@ -719,21 +544,12 @@ Mobile-first bottom sheet
 
 .country-select-options {
   display: grid;
-  grid-auto-rows:
-    min-content;
-  gap: 4px;
+  gap: 2px;
 
-  flex:
-    1 1 auto;
-
-  min-height: 0;
+  max-height: 250px;
 
   overflow-x: hidden;
   overflow-y: auto;
-
-  padding:
-    2px
-    0;
 
   overscroll-behavior:
     contain;
@@ -746,22 +562,19 @@ Mobile-first bottom sheet
 }
 
 .country-select-option {
-  display: flex;
-  align-items: center;
+  display: block;
 
   width: 100%;
   min-width: 0;
-  min-height: 48px;
+  min-height: 44px;
 
   box-sizing: border-box;
 
   margin: 0;
-  padding:
-    11px
-    12px;
+  padding: 9px 10px;
 
   border: 0;
-  border-radius: 13px;
+  border-radius: 11px;
 
   background:
     transparent;
@@ -769,8 +582,8 @@ Mobile-first bottom sheet
   color: #ffffff;
 
   font: inherit;
-  font-size: 14px;
-  font-weight: 550;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.35;
 
   text-align: left;
@@ -797,12 +610,6 @@ Mobile-first bottom sheet
   outline: none;
 }
 
-.country-select-option.is-selected {
-  box-shadow:
-    inset 0 0 0 1px
-    rgba(94, 234, 212, 0.20);
-}
-
 .country-select-option:focus-visible {
   box-shadow:
     inset 0 0 0 1px
@@ -810,14 +617,13 @@ Mobile-first bottom sheet
 }
 
 .country-select-option:active {
-  transform:
-    scale(0.985);
+  transform: none;
 }
 
 .country-select-empty {
   padding:
-    14px
-    12px;
+    11px
+    10px;
 
   color:
     rgba(255, 255, 255, 0.52);
@@ -1631,11 +1437,6 @@ Very small phones
 
     padding: 9px;
   }
-
-  .country-select-picker-panel {
-    padding-right: 12px;
-    padding-left: 12px;
-  }
 }
 
 
@@ -1733,37 +1534,5 @@ Progressive enhancement from mobile
 
   .receive-rate-header h2 {
     font-size: 22px;
-  }
-}
-
-
-@media (min-width: 700px) {
-  .country-select-picker {
-    padding: 24px;
-  }
-
-  .country-select-picker-panel {
-    width:
-      min(
-        100%,
-        440px
-      );
-
-    max-height:
-      min(
-        78dvh,
-        620px
-      );
-
-    padding:
-      10px
-      16px
-      18px;
-
-    border:
-      1px solid
-      rgba(94, 234, 212, 0.24);
-
-    border-radius: 22px;
   }
 }
