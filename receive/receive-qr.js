@@ -12,17 +12,14 @@ const QR_QUIET_ZONE_MODULES =
 const QR_LOGO_URL =
   "/connect/icons/app/ub-app-icon-512.png";
 
-const QR_LOGO_RATIO =
+const QR_CENTER_RESERVE_RATIO =
   0.18;
 
 const QR_LOGO_CROP_RATIO =
   0.88;
 
-const QR_LOGO_PADDING_RATIO =
-  0.07;
-
-const QR_LOGO_BACKGROUND_RADIUS_RATIO =
-  0.22;
+const QR_LOGO_INSET_RATIO =
+  0.12;
 
 
 function loadImage(src) {
@@ -52,87 +49,193 @@ function loadImage(src) {
 }
 
 
-function drawRoundedRect(
-  context,
-  x,
-  y,
-  width,
-  height,
-  radius
-) {
-  const safeRadius =
-    Math.min(
-      radius,
-      width / 2,
-      height / 2
+function getQrModuleCount(qrCode) {
+  const moduleCount =
+    Number(
+      qrCode
+        ?._oQRCode
+        ?.getModuleCount
+        ?.()
     );
+
+  if (
+    Number.isFinite(
+      moduleCount
+    ) &&
+    moduleCount > 0
+  ) {
+    return moduleCount;
+  }
+
+  return null;
+}
+
+
+function getCenterReservation(
+  canvas,
+  moduleCount
+) {
+  if (
+    !canvas ||
+    !moduleCount
+  ) {
+    return null;
+  }
+
+  let reserveModules =
+    Math.floor(
+      moduleCount *
+      QR_CENTER_RESERVE_RATIO
+    );
+
+  if (
+    reserveModules %
+      2 ===
+    0
+  ) {
+    reserveModules -=
+      1;
+  }
+
+  reserveModules =
+    Math.max(
+      5,
+      reserveModules
+    );
+
+  const startModule =
+    Math.floor(
+      (
+        moduleCount -
+        reserveModules
+      ) /
+      2
+    );
+
+  const endModule =
+    startModule +
+    reserveModules;
+
+  const x1 =
+    Math.round(
+      canvas.width *
+      startModule /
+      moduleCount
+    );
+
+  const y1 =
+    Math.round(
+      canvas.height *
+      startModule /
+      moduleCount
+    );
+
+  const x2 =
+    Math.round(
+      canvas.width *
+      endModule /
+      moduleCount
+    );
+
+  const y2 =
+    Math.round(
+      canvas.height *
+      endModule /
+      moduleCount
+    );
+
+  const width =
+    x2 - x1;
+
+  const height =
+    y2 - y1;
+
+  const size =
+    Math.min(
+      width,
+      height
+    );
+
+  return {
+    x:
+      x1,
+
+    y:
+      y1,
+
+    width,
+
+    height,
+
+    centerX:
+      x1 +
+      width / 2,
+
+    centerY:
+      y1 +
+      height / 2,
+
+    radius:
+      size / 2
+  };
+}
+
+
+function reserveQrCenter(
+  canvas,
+  moduleCount
+) {
+  const reservation =
+    getCenterReservation(
+      canvas,
+      moduleCount
+    );
+
+  if (!reservation) {
+    return null;
+  }
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+  if (!context) {
+    return null;
+  }
+
+  context.save();
+
+  context.fillStyle =
+    "#ffffff";
 
   context.beginPath();
 
-  context.moveTo(
-    x + safeRadius,
-    y
+  context.arc(
+    reservation.centerX,
+    reservation.centerY,
+    reservation.radius,
+    0,
+    Math.PI * 2
   );
 
-  context.lineTo(
-    x + width - safeRadius,
-    y
-  );
+  context.fill();
 
-  context.quadraticCurveTo(
-    x + width,
-    y,
-    x + width,
-    y + safeRadius
-  );
+  context.restore();
 
-  context.lineTo(
-    x + width,
-    y + height - safeRadius
-  );
-
-  context.quadraticCurveTo(
-    x + width,
-    y + height,
-    x + width - safeRadius,
-    y + height
-  );
-
-  context.lineTo(
-    x + safeRadius,
-    y + height
-  );
-
-  context.quadraticCurveTo(
-    x,
-    y + height,
-    x,
-    y + height - safeRadius
-  );
-
-  context.lineTo(
-    x,
-    y + safeRadius
-  );
-
-  context.quadraticCurveTo(
-    x,
-    y,
-    x + safeRadius,
-    y
-  );
-
-  context.closePath();
+  return reservation;
 }
 
 
 function drawQrLogo(
   canvas,
-  image
+  image,
+  reservation
 ) {
   if (
     !canvas ||
-    !image
+    !image ||
+    !reservation
   ) {
     return;
   }
@@ -146,54 +249,36 @@ function drawQrLogo(
     return;
   }
 
-  const qrSize =
-    Math.min(
-      canvas.width,
-      canvas.height
-    );
+  const reservationSize =
+    reservation.radius *
+    2;
 
-  const logoSize =
-    Math.round(
-      qrSize *
-      QR_LOGO_RATIO
-    );
-
-  const padding =
+  const inset =
     Math.max(
-      4,
+      2,
       Math.round(
-        logoSize *
-        QR_LOGO_PADDING_RATIO
+        reservationSize *
+        QR_LOGO_INSET_RATIO
       )
     );
 
-  const backgroundSize =
-    logoSize +
-    padding * 2;
-
-  const backgroundX =
-    Math.round(
-      (
-        canvas.width -
-        backgroundSize
-      ) /
-      2
+  const logoSize =
+    Math.max(
+      1,
+      reservationSize -
+      inset * 2
     );
 
-  const backgroundY =
-    Math.round(
-      (
-        canvas.height -
-        backgroundSize
-      ) /
-      2
-    );
+  const logoRadius =
+    logoSize / 2;
 
-  const backgroundRadius =
-    Math.round(
-      backgroundSize *
-      QR_LOGO_BACKGROUND_RADIUS_RATIO
-    );
+  const logoX =
+    reservation.centerX -
+    logoRadius;
+
+  const logoY =
+    reservation.centerY -
+    logoRadius;
 
   const imageWidth =
     image.naturalWidth ||
@@ -230,39 +315,19 @@ function drawQrLogo(
       2
     );
 
-  const logoX =
-    Math.round(
-      (
-        canvas.width -
-        logoSize
-      ) /
-      2
-    );
-
-  const logoY =
-    Math.round(
-      (
-        canvas.height -
-        logoSize
-      ) /
-      2
-    );
-
   context.save();
 
-  context.fillStyle =
-    "#ffffff";
+  context.beginPath();
 
-  drawRoundedRect(
-    context,
-    backgroundX,
-    backgroundY,
-    backgroundSize,
-    backgroundSize,
-    backgroundRadius
+  context.arc(
+    reservation.centerX,
+    reservation.centerY,
+    logoRadius,
+    0,
+    Math.PI * 2
   );
 
-  context.fill();
+  context.clip();
 
   context.drawImage(
     image,
@@ -277,28 +342,6 @@ function drawQrLogo(
   );
 
   context.restore();
-}
-
-
-function getQrModuleCount(qrCode) {
-  const moduleCount =
-    Number(
-      qrCode
-        ?._oQRCode
-        ?.getModuleCount
-        ?.()
-    );
-
-  if (
-    Number.isFinite(
-      moduleCount
-    ) &&
-    moduleCount > 0
-  ) {
-    return moduleCount;
-  }
-
-  return null;
 }
 
 
@@ -455,28 +498,39 @@ export async function renderReceiveQr({
     return;
   }
 
-  try {
-    const logo =
-      await loadImage(
-        QR_LOGO_URL
-      );
-
-    drawQrLogo(
-      sourceCanvas,
-      logo
-    );
-  }
-  catch (error) {
-    console.warn(
-      "RECEIVE_QR_LOGO_FAILED",
-      error
-    );
-  }
-
   const moduleCount =
     getQrModuleCount(
       qrCode
     );
+
+  if (moduleCount) {
+    try {
+      const logo =
+        await loadImage(
+          QR_LOGO_URL
+        );
+
+      const reservation =
+        reserveQrCenter(
+          sourceCanvas,
+          moduleCount
+        );
+
+      if (reservation) {
+        drawQrLogo(
+          sourceCanvas,
+          logo,
+          reservation
+        );
+      }
+    }
+    catch (error) {
+      console.warn(
+        "RECEIVE_QR_LOGO_FAILED",
+        error
+      );
+    }
+  }
 
   const finalCanvas =
     addQrQuietZone(
