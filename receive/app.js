@@ -16,6 +16,10 @@ import {
   createReceivePublicFlow
 } from "./receive-public.js";
 
+import {
+  createReceiveRateFlow
+} from "./receive-rate.js";
+
 
 const els = {
   createView:
@@ -64,7 +68,37 @@ const els = {
     document.getElementById("shareReceiveLinkButton"),
 
   createAnotherButton:
-    document.getElementById("createAnotherReceiveButton")
+    document.getElementById("createAnotherReceiveButton"),
+
+  rateOpenButton:
+    document.getElementById("openReceiveRateButton"),
+
+  rateSheet:
+    document.getElementById("receiveRateSheet"),
+
+  rateBackdrop:
+    document.getElementById("receiveRateBackdrop"),
+
+  rateCloseButton:
+    document.getElementById("closeReceiveRateButton"),
+
+  rateSourceCountry:
+    document.getElementById("receiveRateSourceCountry"),
+
+  rateAmount:
+    document.getElementById("receiveRateAmount"),
+
+  rateCurrency:
+    document.getElementById("receiveRateCurrency"),
+
+  rateCheckButton:
+    document.getElementById("checkReceiveRateButton"),
+
+  rateMessage:
+    document.getElementById("receiveRateMessage"),
+
+  ratePricing:
+    document.getElementById("receiveRatePricing")
 };
 
 
@@ -132,6 +166,13 @@ function showCreateError(message) {
 
 
 async function initCreateMode() {
+  const rateFlow =
+    createReceiveRateFlow({
+      els
+    });
+
+  rateFlow.bind();
+
   const shareFlow =
     createReceiveShareFlow({
       els,
@@ -146,16 +187,26 @@ async function initCreateMode() {
       showCreateError,
 
       onCreated:
-        result =>
-          shareFlow.showCreated(
+        async result => {
+          rateFlow.setReceiveProfileId(
             result
-          )
+              ?.receive_profile
+              ?.receive_profile_id
+          );
+
+          await shareFlow.showCreated(
+            result
+          );
+        }
     });
 
   shareFlow.bind({
     onCreateAnother:
-      () =>
-        createFlow.reset()
+      () => {
+        rateFlow.reset();
+
+        return createFlow.reset();
+      }
   });
 
   await createFlow.init();
