@@ -1,7 +1,10 @@
 // unibridge-landing/receive/receive-select.js
 
 function normalizeString(value) {
-  return String(value ?? "").trim();
+  return String(
+    value ??
+    ""
+  ).trim();
 }
 
 
@@ -29,6 +32,10 @@ function normalizeOptions(options = []) {
 }
 
 
+let selectInstanceCounter =
+  0;
+
+
 export function createReceiveSelect({
   select,
   placeholder = "Select",
@@ -41,10 +48,21 @@ export function createReceiveSelect({
     );
   }
 
+
+  const instanceId =
+    `receive-select-${++selectInstanceCounter}`;
+
+
   select.classList.add(
     "country-native-select"
   );
 
+
+  /*
+  --------------------------------------------------
+  Trigger shell
+  --------------------------------------------------
+  */
 
   const shell =
     document.createElement(
@@ -83,12 +101,17 @@ export function createReceiveSelect({
 
   trigger.setAttribute(
     "aria-haspopup",
-    "listbox"
+    "dialog"
   );
 
   trigger.setAttribute(
     "aria-expanded",
     "false"
+  );
+
+  trigger.setAttribute(
+    "aria-controls",
+    `${instanceId}-picker`
   );
 
 
@@ -123,18 +146,139 @@ export function createReceiveSelect({
     chevron
   );
 
+  shell.appendChild(
+    trigger
+  );
 
-  const menu =
+
+  /*
+  --------------------------------------------------
+  Mobile-first picker sheet
+
+  The picker is mounted directly under <body>,
+  not inside another bottom sheet.
+
+  This prevents nested dropdown / scroll issues.
+  --------------------------------------------------
+  */
+
+  const picker =
     document.createElement(
       "div"
     );
 
-  menu.className =
-    "country-select-menu";
+  picker.id =
+    `${instanceId}-picker`;
 
-  menu.setAttribute(
+  picker.className =
+    "country-select-picker";
+
+  picker.hidden =
+    true;
+
+
+  const backdrop =
+    document.createElement(
+      "button"
+    );
+
+  backdrop.type =
+    "button";
+
+  backdrop.className =
+    "country-select-picker-backdrop";
+
+  backdrop.setAttribute(
+    "aria-label",
+    "Close selector"
+  );
+
+
+  const panel =
+    document.createElement(
+      "section"
+    );
+
+  panel.className =
+    "country-select-picker-panel";
+
+  panel.setAttribute(
     "role",
-    "listbox"
+    "dialog"
+  );
+
+  panel.setAttribute(
+    "aria-modal",
+    "true"
+  );
+
+  panel.setAttribute(
+    "aria-labelledby",
+    `${instanceId}-title`
+  );
+
+
+  const handle =
+    document.createElement(
+      "div"
+    );
+
+  handle.className =
+    "country-select-picker-handle";
+
+  handle.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  const header =
+    document.createElement(
+      "header"
+    );
+
+  header.className =
+    "country-select-picker-header";
+
+
+  const title =
+    document.createElement(
+      "strong"
+    );
+
+  title.id =
+    `${instanceId}-title`;
+
+  title.className =
+    "country-select-picker-title";
+
+  title.textContent =
+    placeholder;
+
+
+  const closeButton =
+    document.createElement(
+      "button"
+    );
+
+  closeButton.type =
+    "button";
+
+  closeButton.className =
+    "country-select-picker-close";
+
+  closeButton.setAttribute(
+    "aria-label",
+    "Close"
+  );
+
+  closeButton.textContent =
+    "×";
+
+
+  header.append(
+    title,
+    closeButton
   );
 
 
@@ -158,10 +302,6 @@ export function createReceiveSelect({
 
     searchInput.autocomplete =
       "off";
-
-    menu.appendChild(
-      searchInput
-    );
   }
 
 
@@ -173,56 +313,50 @@ export function createReceiveSelect({
   results.className =
     "country-select-options";
 
-  menu.appendChild(
+  results.setAttribute(
+    "role",
+    "listbox"
+  );
+
+
+  panel.append(
+    handle,
+    header
+  );
+
+  if (searchInput) {
+    panel.appendChild(
+      searchInput
+    );
+  }
+
+  panel.appendChild(
     results
   );
 
 
-  shell.append(
-    trigger,
-    menu
+  picker.append(
+    backdrop,
+    panel
+  );
+
+  document.body.appendChild(
+    picker
   );
 
 
   let currentOptions =
     [];
 
-
-  function close() {
-    shell.classList.remove(
-      "is-open"
-    );
-
-    trigger.setAttribute(
-      "aria-expanded",
-      "false"
-    );
-  }
+  let isOpen =
+    false;
 
 
-  function open() {
-    shell.classList.add(
-      "is-open"
-    );
-
-    trigger.setAttribute(
-      "aria-expanded",
-      "true"
-    );
-
-    if (searchInput) {
-      searchInput.value =
-        "";
-
-      renderOptions();
-
-      queueMicrotask(
-        () =>
-          searchInput.focus()
-      );
-    }
-  }
-
+  /*
+  --------------------------------------------------
+  State
+  --------------------------------------------------
+  */
 
   function sync() {
     const selected =
@@ -262,6 +396,134 @@ export function createReceiveSelect({
   }
 
 
+  function close({
+    restoreFocus = true
+  } = {}) {
+    if (!isOpen) {
+      return;
+    }
+
+    isOpen =
+      false;
+
+    picker.hidden =
+      true;
+
+    shell.classList.remove(
+      "is-open"
+    );
+
+    trigger.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    document.body.classList.remove(
+      "receive-select-open"
+    );
+
+    if (
+      restoreFocus &&
+      document.body.contains(
+        trigger
+      )
+    ) {
+      trigger.focus();
+    }
+  }
+
+
+  function open() {
+    if (isOpen) {
+      return;
+    }
+
+    isOpen =
+      true;
+
+    if (searchInput) {
+      searchInput.value =
+        "";
+    }
+
+    renderOptions();
+
+    picker.hidden =
+      false;
+
+    shell.classList.add(
+      "is-open"
+    );
+
+    trigger.setAttribute(
+      "aria-expanded",
+      "true"
+    );
+
+    document.body.classList.add(
+      "receive-select-open"
+    );
+
+    requestAnimationFrame(
+      () => {
+        if (searchInput) {
+          searchInput.focus();
+
+          return;
+        }
+
+        const selected =
+          results.querySelector(
+            ".country-select-option.is-selected"
+          );
+
+        const first =
+          results.querySelector(
+            ".country-select-option"
+          );
+
+        (
+          selected ||
+          first ||
+          closeButton
+        )
+          ?.focus();
+      }
+    );
+  }
+
+
+  /*
+  --------------------------------------------------
+  Options
+  --------------------------------------------------
+  */
+
+  function selectOption(
+    option
+  ) {
+    select.value =
+      option.value;
+
+    sync();
+
+    close({
+      restoreFocus:
+        true
+    });
+
+    select.dispatchEvent(
+      new Event(
+        "change",
+        {
+          bubbles:
+            true
+        }
+      )
+    );
+  }
+
+
   function renderOptions(
     query = ""
   ) {
@@ -284,6 +546,7 @@ export function createReceiveSelect({
 
     results.replaceChildren();
 
+
     if (!visible.length) {
       const empty =
         document.createElement(
@@ -303,7 +566,11 @@ export function createReceiveSelect({
       return;
     }
 
-    for (const option of visible) {
+
+    for (
+      const option
+      of visible
+    ) {
       const button =
         document.createElement(
           "button"
@@ -331,20 +598,8 @@ export function createReceiveSelect({
         event => {
           event.stopPropagation();
 
-          select.value =
-            option.value;
-
-          sync();
-          close();
-
-          select.dispatchEvent(
-            new Event(
-              "change",
-              {
-                bubbles:
-                  true
-              }
-            )
+          selectOption(
+            option
           );
         }
       );
@@ -353,6 +608,7 @@ export function createReceiveSelect({
         button
       );
     }
+
 
     sync();
   }
@@ -371,6 +627,7 @@ export function createReceiveSelect({
 
     select.replaceChildren();
 
+
     const empty =
       document.createElement(
         "option"
@@ -386,9 +643,10 @@ export function createReceiveSelect({
       empty
     );
 
+
     for (
-      const option of
-        currentOptions
+      const option
+      of currentOptions
     ) {
       const element =
         document.createElement(
@@ -406,6 +664,7 @@ export function createReceiveSelect({
       );
     }
 
+
     if (
       currentOptions.some(
         option =>
@@ -415,30 +674,53 @@ export function createReceiveSelect({
     ) {
       select.value =
         previousValue;
-    } else {
+    }
+    else {
       select.value =
         "";
     }
+
 
     renderOptions();
     sync();
   }
 
 
+  /*
+  --------------------------------------------------
+  Events
+  --------------------------------------------------
+  */
+
   trigger.addEventListener(
     "click",
     event => {
+      event.preventDefault();
       event.stopPropagation();
 
-      if (
-        shell.classList.contains(
-          "is-open"
-        )
-      ) {
+      if (isOpen) {
         close();
-      } else {
-        open();
+
+        return;
       }
+
+      open();
+    }
+  );
+
+
+  backdrop.addEventListener(
+    "click",
+    () => {
+      close();
+    }
+  );
+
+
+  closeButton.addEventListener(
+    "click",
+    () => {
+      close();
     }
   );
 
@@ -459,19 +741,90 @@ export function createReceiveSelect({
   );
 
 
-  document.addEventListener(
-    "pointerdown",
+  picker.addEventListener(
+    "keydown",
     event => {
       if (
-        !shell.contains(
-          event.target
-        )
+        event.key ===
+        "Escape"
       ) {
+        event.preventDefault();
+
         close();
+
+        return;
+      }
+
+      if (
+        event.key !==
+        "Tab"
+      ) {
+        return;
+      }
+
+
+      const focusable =
+        Array
+          .from(
+            panel.querySelectorAll(
+              [
+                "button:not([disabled])",
+                "input:not([disabled])",
+                "[tabindex]:not([tabindex='-1'])"
+              ].join(",")
+            )
+          )
+          .filter(
+            element =>
+              !element.hidden
+          );
+
+
+      if (!focusable.length) {
+        return;
+      }
+
+
+      const first =
+        focusable[0];
+
+      const last =
+        focusable[
+          focusable.length - 1
+        ];
+
+
+      if (
+        event.shiftKey &&
+        document.activeElement ===
+          first
+      ) {
+        event.preventDefault();
+
+        last.focus();
+
+        return;
+      }
+
+
+      if (
+        !event.shiftKey &&
+        document.activeElement ===
+          last
+      ) {
+        event.preventDefault();
+
+        first.focus();
       }
     }
   );
 
+
+  /*
+  --------------------------------------------------
+  Initial state
+  --------------------------------------------------
+  */
 
   setOptions(
     options
@@ -485,8 +838,15 @@ export function createReceiveSelect({
     input:
       select,
 
+    picker,
+
     setOptions,
+
     sync,
+
+    open,
+
+    close,
 
     focus() {
       trigger.focus();
