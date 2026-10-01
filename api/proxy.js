@@ -84,6 +84,7 @@ const ALLOWED =
     */
 
     "receive",
+    "receive/pricing-preview",
     "receive/settlement/create",
 
     /*
@@ -120,11 +121,12 @@ const CLERK_AUTH_ENDPOINTS =
 
     /*
     --------------------------------------------------
-    Receive create
+    Receive authenticated endpoints
     --------------------------------------------------
     */
 
-    "receive"
+    "receive",
+    "receive/pricing-preview"
   ]);
 
 function normalizeEndpoint(value) {
@@ -498,9 +500,9 @@ Upstream timeout policy
 Most proxy endpoints keep the original 15-second
 upstream budget.
 
-session/quote may require sequential funding,
-transformation, and execution pricing calls, so it
-receives a larger safety ceiling.
+session/quote and receive/pricing-preview may require
+sequential funding, transformation, and execution
+pricing calls, so they receive a larger safety ceiling.
 
 This is only a transport safety limit. It is not the
 target latency for the customer quote flow.
@@ -510,10 +512,16 @@ target latency for the customer quote flow.
 function resolveUpstreamTimeoutMs(
   endpoint
 ) {
-  return endpoint ===
-    "session/quote"
-    ? SESSION_QUOTE_TIMEOUT_MS
-    : DEFAULT_UPSTREAM_TIMEOUT_MS;
+  if (
+    endpoint ===
+      "session/quote" ||
+    endpoint ===
+      "receive/pricing-preview"
+  ) {
+    return SESSION_QUOTE_TIMEOUT_MS;
+  }
+
+  return DEFAULT_UPSTREAM_TIMEOUT_MS;
 }
 
 function resolvePartnerConfig(
