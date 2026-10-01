@@ -5,6 +5,10 @@ import {
 } from "./receive-api.js";
 
 import {
+  createReceiveSelect
+} from "./receive-select.js";
+
+import {
   createPricingViewModel,
   formatRouteLimitMessage,
   renderPricing,
@@ -40,55 +44,118 @@ function setHidden(
 }
 
 
-function getSelectedOption(
-  select
+function getSourceMarkets() {
+  const markets =
+    globalThis
+      ?.UNIBRIDGE_COUNTRY_OPTIONS
+      ?.source;
+
+  if (!Array.isArray(markets)) {
+    return [];
+  }
+
+  return markets
+    .map(
+      market => ({
+        value:
+          normalizeUpper(
+            market?.value
+          ),
+
+        label:
+          normalizeString(
+            market?.label
+          ),
+
+        flag:
+          normalizeString(
+            market?.flag
+          ),
+
+        currency:
+          normalizeUpper(
+            market?.currency
+          )
+      })
+    )
+    .filter(
+      market =>
+        market.value &&
+        market.label
+    );
+}
+
+
+function getSourceMarket(
+  sourceCountry
 ) {
-  if (
-    !select ||
-    select.selectedIndex < 0
-  ) {
+  const normalized =
+    normalizeUpper(
+      sourceCountry
+    );
+
+  if (!normalized) {
     return null;
   }
 
   return (
-    select.options[
-      select.selectedIndex
-    ] ||
+    getSourceMarkets()
+      .find(
+        market =>
+          market.value ===
+          normalized
+      ) ||
     null
   );
 }
 
 
 function getSourceCurrency(
-  select
+  sourceCountry
 ) {
-  const option =
-    getSelectedOption(
-      select
-    );
-
   return normalizeUpper(
-    option?.dataset?.currency
+    getSourceMarket(
+      sourceCountry
+    )?.currency
   );
 }
 
 
 function getSourceLabel(
-  select
+  sourceCountry
 ) {
-  const option =
-    getSelectedOption(
-      select
+  const market =
+    getSourceMarket(
+      sourceCountry
     );
 
   return (
     normalizeString(
-      option?.textContent
+      market?.label
     ) ||
     normalizeUpper(
-      select?.value
+      sourceCountry
     )
   );
+}
+
+
+function buildSourceOptions() {
+  return getSourceMarkets()
+    .map(
+      market => ({
+        value:
+          market.value,
+
+        label:
+          [
+            market.flag,
+            market.label
+          ]
+            .filter(Boolean)
+            .join(" ")
+      })
+    );
 }
 
 
@@ -172,6 +239,24 @@ export function createReceiveRateFlow({
     false;
 
 
+  const rateSourceSelect =
+    els?.rateSourceCountry
+      ? createReceiveSelect({
+          select:
+            els.rateSourceCountry,
+
+          placeholder:
+            "Choose a country",
+
+          options:
+            buildSourceOptions(),
+
+          searchable:
+            false
+        })
+      : null;
+
+
   function clearMessage() {
     if (!els?.rateMessage) {
       return;
@@ -237,6 +322,14 @@ export function createReceiveRateFlow({
   }
 
 
+  function syncSourceOptions() {
+    rateSourceSelect
+      ?.setOptions(
+        buildSourceOptions()
+      );
+  }
+
+
   function syncCurrency() {
     if (!els?.rateCurrency) {
       return;
@@ -244,7 +337,9 @@ export function createReceiveRateFlow({
 
     els.rateCurrency.textContent =
       getSourceCurrency(
-        els?.rateSourceCountry
+        els
+          ?.rateSourceCountry
+          ?.value
       );
   }
 
@@ -257,6 +352,8 @@ export function createReceiveRateFlow({
     clearMessage();
     clearPricing();
     setLoading(false);
+
+    syncSourceOptions();
     syncCurrency();
 
     setHidden(
@@ -270,6 +367,17 @@ export function createReceiveRateFlow({
 
     window.requestAnimationFrame(
       () => {
+        if (
+          !els
+            ?.rateSourceCountry
+            ?.value
+        ) {
+          rateSourceSelect
+            ?.focus();
+
+          return;
+        }
+
         els?.rateAmount
           ?.focus();
       }
@@ -313,23 +421,20 @@ export function createReceiveRateFlow({
     const sourceCountry =
       normalizeUpper(
         payload?.source_country ??
-        els?.rateSourceCountry
+        els
+          ?.rateSourceCountry
           ?.value
       );
 
     const sourceCurrency =
-      normalizeUpper(
-        payload?.fiat_currency
-      ) ||
       getSourceCurrency(
-        els?.rateSourceCountry
+        sourceCountry
       );
 
     const sourceLabel =
       getSourceLabel(
-        els?.rateSourceCountry
-      ) ||
-      sourceCountry;
+        sourceCountry
+      );
 
     const destinationLabel =
       getDestinationLabel(
@@ -384,13 +489,15 @@ export function createReceiveRateFlow({
 
     const sourceCountry =
       normalizeUpper(
-        els?.rateSourceCountry
+        els
+          ?.rateSourceCountry
           ?.value
       );
 
     const amount =
       normalizeString(
-        els?.rateAmount
+        els
+          ?.rateAmount
           ?.value
       );
 
@@ -398,6 +505,9 @@ export function createReceiveRateFlow({
       showMessage(
         "Choose where the sender is paying from."
       );
+
+      rateSourceSelect
+        ?.focus();
 
       return;
     }
@@ -504,6 +614,14 @@ export function createReceiveRateFlow({
         "";
     }
 
+    if (els?.rateSourceCountry) {
+      els.rateSourceCountry.value =
+        "";
+    }
+
+    syncSourceOptions();
+    syncCurrency();
+
     clearMessage();
     clearPricing();
 
@@ -536,6 +654,9 @@ export function createReceiveRateFlow({
     setLoading(false);
     clearMessage();
     clearPricing();
+
+    syncSourceOptions();
+    syncCurrency();
 
     setHidden(
       els?.rateOpenButton,
@@ -616,7 +737,8 @@ export function createReceiveRateFlow({
         if (
           event.key ===
             "Escape" &&
-          !els?.rateSheet
+          !els
+            ?.rateSheet
             ?.hidden
         ) {
           close();
@@ -625,6 +747,8 @@ export function createReceiveRateFlow({
     );
 
     setLoading(false);
+
+    syncSourceOptions();
     syncCurrency();
 
     setHidden(
