@@ -21,30 +21,9 @@
 
 /*
 --------------------------------------------------
-Base
+Utilities
 --------------------------------------------------
 */
-
-html,
-body {
-  min-height: 100%;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-  font-family: Inter, Arial, sans-serif;
-  background: #000E2D;
-  color: #ffffff;
-}
 
 .hidden {
   display: none !important;
@@ -53,31 +32,17 @@ body {
 
 /*
 --------------------------------------------------
-Page shell
+Surface layout
 --------------------------------------------------
 */
-
-.page {
-  position: relative;
-  width: min(100%, 440px);
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 18px;
-  padding-top: max(18px, env(safe-area-inset-top));
-  padding-bottom: max(40px, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  text-align: center;
-  overflow: visible;
-}
 
 .hero {
   position: relative;
   z-index: 2;
-  width: min(100%, 420px);
+
+  width: 100%;
+  max-width: 420px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,23 +52,31 @@ Page shell
 .card {
   position: relative;
   z-index: 10;
-  width: min(100%, 440px);
+
+  width: 100%;
+  max-width: 440px;
+
   margin-top: 8px;
   padding: 14px;
+
   border: 1px solid rgba(94, 234, 212, 0.26);
   border-radius: 20px;
+
   background:
     linear-gradient(
       180deg,
       rgba(9, 34, 72, 0.22) 0%,
       rgba(0, 14, 45, 0.12) 100%
     );
+
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.24),
     inset 0 1px 0 rgba(255, 255, 255, 0.13),
     inset 0 0 26px rgba(94, 234, 212, 0.045);
+
   backdrop-filter: blur(4.5px) saturate(125%);
   -webkit-backdrop-filter: blur(4.5px) saturate(125%);
+
   text-align: left;
   overflow: visible;
 }
@@ -122,17 +95,22 @@ Hero
 
 .eyebrow {
   margin: 0;
+
   color: #5eead4;
+
   font-size: 11px;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.12em;
+
   text-transform: uppercase;
 }
 
 h1 {
   margin: 0;
+
   color: #ffffff;
+
   font-size: 31px;
   line-height: 1.08;
   letter-spacing: -0.035em;
@@ -140,8 +118,11 @@ h1 {
 
 .subtitle {
   margin: 0;
+
   max-width: 420px;
+
   color: rgba(255, 255, 255, 0.76);
+
   font-size: 15px;
   line-height: 1.5;
 }
@@ -160,8 +141,10 @@ Entry layout
 
 .entry-header {
   padding: 12px;
+
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 16px;
+
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -171,7 +154,9 @@ Entry layout
 
 .entry-header h2 {
   margin: 0;
+
   color: #ffffff;
+
   font-size: 15px;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -179,7 +164,9 @@ Entry layout
 
 .entry-header p {
   margin: 6px 0 0;
+
   color: rgba(255, 255, 255, 0.72);
+
   font-size: 12px;
   line-height: 1.45;
 }
@@ -203,28 +190,45 @@ Progress
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
   gap: 6px;
   margin: 0 0 10px;
-  font-size: 10px;
+
   color: rgba(255, 255, 255, 0.46);
+
+  font-size: 10px;
 }
 
 .step {
+  min-width: 0;
+
   display: block;
+
   padding: 7px 2px;
+
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 999px;
+
   background: rgba(255, 255, 255, 0.05);
+
   text-align: center;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .step.active {
   border-color: rgba(94, 234, 212, 0.45);
+
   background: #5eead4;
   color: #04111f;
+
   font-weight: 900;
-  box-shadow: 0 10px 24px rgba(20, 184, 166, 0.16);
+
+  box-shadow:
+    0 10px 24px rgba(20, 184, 166, 0.16);
 }
 
 
@@ -236,21 +240,28 @@ Summary
 
 .summary-box {
   padding: 12px;
+
   border: 1px solid rgba(45, 212, 191, 0.22);
   border-radius: 16px;
+
   background: rgba(20, 184, 166, 0.08);
   color: rgba(255, 255, 255, 0.72);
+
   font-size: 12px;
   line-height: 1.5;
 }
 
 .summary-box div {
   min-width: 0;
+
   padding: 8px 10px;
   margin: 0 0 7px;
+
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 13px;
+
   background: rgba(255, 255, 255, 0.05);
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -263,23 +274,31 @@ Summary
 
 .summary-box strong {
   color: rgba(255, 255, 255, 0.52);
+
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
+
   white-space: nowrap;
 }
 
 .summary-box span {
+  min-width: 0;
+
   color: rgba(255, 255, 255, 0.92);
+
   font-size: 11px;
   font-weight: 700;
+
   text-align: right;
   overflow-wrap: anywhere;
 }
 
 .summary-box .primary-summary-row {
   align-items: flex-start;
+
   border-color: rgba(94, 234, 212, 0.26);
+
   background: rgba(20, 184, 166, 0.11);
 }
 
@@ -299,6 +318,7 @@ Summary
 
 .summary-box .summary-note-row span {
   max-width: 65%;
+
   text-align: right;
   font-weight: 650;
 }
@@ -323,8 +343,11 @@ Destination boxes
 
 #amountLimitHint {
   display: none;
+
   margin-top: 7px;
+
   color: #ff8f8f;
+
   font-size: 11px;
   line-height: 1.35;
   font-weight: 800;
@@ -332,7 +355,9 @@ Destination boxes
 
 h3 {
   margin: 16px 0 8px;
+
   color: #ffffff;
+
   font-size: 14px;
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -341,7 +366,9 @@ h3 {
 
 .muted {
   margin-top: 9px;
+
   color: rgba(255, 255, 255, 0.72);
+
   font-size: 11px;
   line-height: 1.45;
 }
@@ -355,13 +382,17 @@ Status
 
 .status-box {
   padding: 10px 12px;
+
   border: 1px solid rgba(45, 212, 191, 0.22);
   border-radius: 14px;
+
   background: rgba(20, 184, 166, 0.08);
   color: rgba(255, 255, 255, 0.72);
+
   font-size: 12px;
   line-height: 1.45;
-  word-break: break-word;
+
+  overflow-wrap: anywhere;
 }
 
 .status-box:empty {
@@ -388,10 +419,13 @@ Disclaimer
 .disclaimer {
   margin-top: 0;
   padding: 11px 12px;
+
   border: 1px solid rgba(251, 191, 36, 0.25);
   border-radius: 14px;
+
   background: rgba(251, 191, 36, 0.09);
   color: #fde68a;
+
   font-size: 11px;
   font-weight: 700;
   line-height: 1.45;
@@ -404,19 +438,11 @@ Disclaimer
 
 /*
 --------------------------------------------------
-Responsive
+Mobile
 --------------------------------------------------
 */
 
 @media (max-width: 430px) {
-  .page {
-    width: min(100%, 392px);
-    gap: 12px;
-    padding: 14px;
-    padding-top: max(14px, env(safe-area-inset-top));
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-  }
-
   h1 {
     font-size: 29px;
   }
@@ -426,15 +452,18 @@ Responsive
   }
 
   .card {
-    width: min(100%, 392px);
+    max-width: 392px;
+
     margin-top: 6px;
     padding: 13px;
+
     background:
       linear-gradient(
         180deg,
         rgba(9, 34, 72, 0.22) 0%,
         rgba(0, 14, 45, 0.12) 100%
       );
+
     backdrop-filter: blur(4px) saturate(124%);
     -webkit-backdrop-filter: blur(4px) saturate(124%);
   }
