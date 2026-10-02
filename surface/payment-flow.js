@@ -894,29 +894,41 @@ export function createPaymentFlow({
     const fundingReturn =
       isFundingReturn();
 
-    if (
-      sessionIdFromUrl &&
-      fundingReturn
-    ) {
-      cleanupFundingReturnUrl();
 
-      resetFlowState();
-      resetUiToStart();
-      resetStatusMemory();
+    /*
+    --------------------------------------------------
+    Preserve the session from the provider return URL
+    before cleaning the URL.
 
-      setStatus(
-        ""
-      );
-
-      refreshLimitUi();
-
-      return;
-    }
+    The settlement itself remains authoritative through
+    the persisted settlement id and backend status.
+    --------------------------------------------------
+    */
 
     if (sessionIdFromUrl) {
       state.sessionId =
         sessionIdFromUrl;
     }
+
+
+    /*
+    --------------------------------------------------
+    Funding provider return
+
+    Clean the temporary return parameters, but do NOT
+    reset or stop the flow here.
+
+    Continue below into persisted settlement recovery.
+    --------------------------------------------------
+    */
+
+    if (
+      sessionIdFromUrl &&
+      fundingReturn
+    ) {
+      cleanupFundingReturnUrl();
+    }
+
 
     const saved =
       getPersistedSurfaceSettlement();
