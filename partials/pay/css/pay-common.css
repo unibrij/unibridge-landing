@@ -39,8 +39,11 @@ body {
 .pay-page-shell {
   position: relative;
   width: 100%;
+
   min-height: 100vh;
   min-height: 100svh;
+  min-height: 100dvh;
+
   margin: 0;
   padding: 18px;
 
@@ -158,6 +161,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   min-height: 32px;
   padding: 0 13px;
 
@@ -387,7 +391,8 @@ body {
     left: auto;
     right: auto;
 
-    width: min(100%, 392px);
+    width: 100%;
+    max-width: 392px;
 
     justify-content: center;
     margin: 0 0 4px;
@@ -411,11 +416,14 @@ body {
   #pay-history,
   #pay-guide,
   #pay-footer {
-    width: min(100%, 392px);
+    width: 100%;
+    max-width: 392px;
   }
 
   .pay-navigation {
-    width: min(100%, 392px);
+    width: 100%;
+    max-width: 392px;
+
     margin-top: 2px;
     margin-bottom: 12px;
   }
