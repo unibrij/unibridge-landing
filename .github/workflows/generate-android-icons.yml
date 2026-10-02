@@ -1,0 +1,73 @@
+name: Generate Android app icons
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-icons:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      - name: Create Android icon directories
+        run: |
+          mkdir -p unibridge-android/app/src/main/res/mipmap-mdpi
+          mkdir -p unibridge-android/app/src/main/res/mipmap-hdpi
+          mkdir -p unibridge-android/app/src/main/res/mipmap-xhdpi
+          mkdir -p unibridge-android/app/src/main/res/mipmap-xxhdpi
+          mkdir -p unibridge-android/app/src/main/res/mipmap-xxxhdpi
+
+      - name: Generate Android launcher icons
+        run: |
+          SOURCE="public/icons/social/unibridge-android-icon-source.png"
+          RES="unibridge-android/app/src/main/res"
+
+          convert "$SOURCE" -resize 48x48 \
+            "$RES/mipmap-mdpi/ic_launcher.png"
+
+          convert "$SOURCE" -resize 72x72 \
+            "$RES/mipmap-hdpi/ic_launcher.png"
+
+          convert "$SOURCE" -resize 96x96 \
+            "$RES/mipmap-xhdpi/ic_launcher.png"
+
+          convert "$SOURCE" -resize 144x144 \
+            "$RES/mipmap-xxhdpi/ic_launcher.png"
+
+          convert "$SOURCE" -resize 192x192 \
+            "$RES/mipmap-xxxhdpi/ic_launcher.png"
+
+      - name: Generate round launcher icons
+        run: |
+          RES="unibridge-android/app/src/main/res"
+
+          cp "$RES/mipmap-mdpi/ic_launcher.png" \
+             "$RES/mipmap-mdpi/ic_launcher_round.png"
+
+          cp "$RES/mipmap-hdpi/ic_launcher.png" \
+             "$RES/mipmap-hdpi/ic_launcher_round.png"
+
+          cp "$RES/mipmap-xhdpi/ic_launcher.png" \
+             "$RES/mipmap-xhdpi/ic_launcher_round.png"
+
+          cp "$RES/mipmap-xxhdpi/ic_launcher.png" \
+             "$RES/mipmap-xxhdpi/ic_launcher_round.png"
+
+          cp "$RES/mipmap-xxxhdpi/ic_launcher.png" \
+             "$RES/mipmap-xxxhdpi/ic_launcher_round.png"
+
+      - name: Commit generated Android icons
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Generate Android app icons"
+          file_pattern: unibridge-android/app/src/main/res/mipmap-*/*.png
