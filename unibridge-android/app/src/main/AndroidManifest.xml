@@ -14,6 +14,10 @@
         android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
         android:theme="@style/AppTheme">
 
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements" />
+
         <activity
             android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
             android:exported="false">
