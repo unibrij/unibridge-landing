@@ -29,7 +29,7 @@ jobs:
 
       - name: Generate Android launcher icons
         run: |
-          SOURCE="public/icons/social/unibridge-android-icon-source.png"
+          SOURCE="public/icons/social/unibridge-android-icon-source-clean.png"
           RES="unibridge-android/app/src/main/res"
 
           convert "$SOURCE" -resize 48x48 \
@@ -69,5 +69,5 @@ jobs:
       - name: Commit generated Android icons
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Generate Android app icons"
+          commit_message: "Regenerate Android launcher icons from clean source"
           file_pattern: unibridge-android/app/src/main/res/mipmap-*/*.png
