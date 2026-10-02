@@ -1,8 +1,9 @@
 {
-  "name": "Pay with UniBridge",
+  "id": "/",
+  "name": "UniBridge",
   "short_name": "UniBridge",
-  "description": "Access supported payout routes with wallet, bank transfer, or card funding.",
-  "start_url": "/pay",
+  "description": "Send, receive, and manage cross-border payments with UniBridge.",
+  "start_url": "/pay/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000E2D",
