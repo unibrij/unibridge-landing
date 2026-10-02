@@ -2,6 +2,21 @@ plugins {
     id "com.android.application"
 }
 
+def keystoreFile =
+    System.getenv("ANDROID_KEYSTORE_FILE")
+
+def keystorePassword =
+    System.getenv("ANDROID_KEYSTORE_PASSWORD")
+
+def releaseKeyPassword =
+    System.getenv("ANDROID_KEY_PASSWORD")
+
+def hasReleaseSigning =
+    keystoreFile &&
+    keystorePassword &&
+    releaseKeyPassword
+
+
 android {
     namespace "io.unibrij.app"
 
@@ -15,6 +30,36 @@ android {
 
         versionCode 1
         versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(
+                    keystoreFile
+                )
+
+                storePassword =
+                    keystorePassword
+
+                keyAlias =
+                    "unibridge"
+
+                keyPassword =
+                    releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (hasReleaseSigning) {
+                signingConfig =
+                    signingConfigs.release
+            }
+
+            minifyEnabled false
+        }
     }
 }
 
