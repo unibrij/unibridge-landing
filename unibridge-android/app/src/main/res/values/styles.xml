@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <style
+        name="AppTheme"
+        parent="@android:style/Theme.Material.Light.NoActionBar">
+
+        <item name="android:windowBackground">
+            @color/unibridge_navy
+        </item>
+
+        <item name="android:statusBarColor">
+            @color/unibridge_navy
+        </item>
+
+        <item name="android:navigationBarColor">
+            @color/unibridge_navy
+        </item>
+
+    </style>
+
+</resources>
