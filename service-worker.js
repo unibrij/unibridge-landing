@@ -1,38 +1,90 @@
-// service-worker.js
+// unibridge-landing/service-worker.js
 
 const CACHE_NAME =
-  "unibridge-pay-shell-v1";
+  "unibridge-shell-v2";
 
 const CACHE_PREFIX =
-  "unibridge-pay-shell-";
+  "unibridge-shell-";
+
+const LEGACY_CACHE_PREFIXES = [
+  "unibridge-pay-shell-"
+];
+
+const SHELL_ASSETS = [
+  "/pay/",
+  "/surface/",
+  "/receive/",
+  "/manifest.webmanifest",
+  "/connect/icons/app/ub-app-icon-192.png",
+  "/connect/icons/app/ub-app-icon-512.png"
+];
+
+
+/*
+--------------------------------------------------
+Request helpers
+--------------------------------------------------
+*/
+
+function getRequestUrl(request) {
+  try {
+    return new URL(
+      request.url
+    );
+  }
+  catch {
+    return null;
+  }
+}
+
+
+function isSameOriginRequest(
+  request
+) {
+  const url =
+    getRequestUrl(
+      request
+    );
+
+  return Boolean(
+    url &&
+    url.origin ===
+      self.location.origin
+  );
+}
 
 
 function isConnectRequest(
   request
 ) {
-  try {
-    const url =
-      new URL(
-        request.url
-      );
-
-    return (
-      url.origin ===
-        self.location.origin &&
-      (
-        url.pathname ===
-          "/connect" ||
-        url.pathname.startsWith(
-          "/connect/"
-        )
-      )
+  const url =
+    getRequestUrl(
+      request
     );
-  }
-  catch {
+
+  if (!url) {
     return false;
   }
+
+  return (
+    url.origin ===
+      self.location.origin &&
+    (
+      url.pathname ===
+        "/connect" ||
+      url.pathname.startsWith(
+        "/connect/"
+      )
+    )
+  );
 }
 
+
+/*
+--------------------------------------------------
+Install
+--------------------------------------------------
+*/
 
 self.addEventListener(
   "install",
@@ -47,29 +99,26 @@ self.addEventListener(
           )
           .then(
             cache =>
-              Promise.allSettled([
-                cache.add(
-                  "/pay"
-                ),
-
-                cache.add(
-                  "/surface/manifest.webmanifest"
-                ),
-
-                cache.add(
-                  "/connect/icons/app/ub-app-icon-192.png"
-                ),
-
-                cache.add(
-                  "/connect/icons/app/ub-app-icon-512.png"
+              Promise.allSettled(
+                SHELL_ASSETS.map(
+                  asset =>
+                    cache.add(
+                      asset
+                    )
                 )
-              ])
+              )
           )
       ])
     );
   }
 );
 
+
+/*
+--------------------------------------------------
+Activate
+--------------------------------------------------
+*/
 
 self.addEventListener(
   "activate",
@@ -83,12 +132,30 @@ self.addEventListener(
               Promise.all(
                 keys
                   .filter(
-                    key =>
-                      key.startsWith(
-                        CACHE_PREFIX
-                      ) &&
-                      key !==
+                    key => {
+                      if (
+                        key ===
                         CACHE_NAME
+                      ) {
+                        return false;
+                      }
+
+                      if (
+                        key.startsWith(
+                          CACHE_PREFIX
+                        )
+                      ) {
+                        return true;
+                      }
+
+                      return LEGACY_CACHE_PREFIXES
+                        .some(
+                          prefix =>
+                            key.startsWith(
+                              prefix
+                            )
+                        );
+                    }
                   )
                   .map(
                     key =>
@@ -106,6 +173,12 @@ self.addEventListener(
 );
 
 
+/*
+--------------------------------------------------
+Fetch
+--------------------------------------------------
+*/
+
 self.addEventListener(
   "fetch",
   event => {
@@ -117,10 +190,24 @@ self.addEventListener(
     }
 
     /*
+     * Do not interfere with third-party/provider
+     * requests. The root worker only handles
+     * UniBridge same-origin resources.
+     */
+    if (
+      !isSameOriginRequest(
+        event.request
+      )
+    ) {
+      return;
+    }
+
+    /*
      * Connect owns its own deployment lifecycle.
      *
-     * The root PWA worker must never intercept
-     * Connect HTML, JavaScript, CSS or assets.
+     * It remains part of the UniBridge app/TWA,
+     * but the root worker must not intercept its
+     * HTML, JavaScript, CSS or assets.
      */
     if (
       isConnectRequest(
@@ -130,6 +217,13 @@ self.addEventListener(
       return;
     }
 
+    /*
+     * Network first.
+     *
+     * UniBridge is not an offline financial app.
+     * Cached shell resources are used only when
+     * the live network request fails.
+     */
     event.respondWith(
       fetch(
         event.request
