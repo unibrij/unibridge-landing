@@ -4,4 +4,14 @@
     <string name="app_name">
         UniBridge
     </string>
+
+    <string name="asset_statements">
+        [{
+          \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+          \"target\": {
+            \"namespace\": \"web\",
+            \"site\": \"https://unibrij.io\"
+          }
+        }]
+    </string>
 </resources>
