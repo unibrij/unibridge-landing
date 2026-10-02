@@ -5,9 +5,9 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "ANDROID_PACKAGE_NAME",
+      "package_name": "io.unibrij.app",
       "sha256_cert_fingerprints": [
-        "ANDROID_SIGNING_SHA256"
+        "4E:7C:B7:B0:E6:BB:5D:E6:E7:6C:34:C3:B2:E5:CA:8C:73:23:0F:F6:70:9C:63:66:9C:F6:1E:36:8C:EE:74:93"
       ]
     }
   }
