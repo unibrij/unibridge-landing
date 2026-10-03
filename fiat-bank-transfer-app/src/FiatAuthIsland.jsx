@@ -350,6 +350,7 @@ export function FiatAuthIsland() {
         <SignedOut>
           <SignIn
             routing="hash"
+            oauthFlow="popup"
             forceRedirectUrl={returnUrl}
             signUpForceRedirectUrl={returnUrl}
             appearance={{
