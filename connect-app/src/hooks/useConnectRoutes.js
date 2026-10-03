@@ -79,7 +79,7 @@ function findRouteById(
   const normalizedRouteId =
     normalizeString(
       routeId
-    );
+    ).toLowerCase();
 
   if (!normalizedRouteId) {
     return null;
@@ -87,11 +87,31 @@ function findRouteById(
 
   return (
     routes.find(
-      route =>
-        getRouteId(
-          route
-        ) ===
-        normalizedRouteId
+      route => {
+        const primaryRouteId =
+          getRouteId(
+            route
+          ).toLowerCase();
+
+        if (
+          primaryRouteId ===
+          normalizedRouteId
+        ) {
+          return true;
+        }
+
+        return Array.isArray(
+          route?.member_route_ids
+        )
+          ? route.member_route_ids.some(
+              memberRouteId =>
+                normalizeString(
+                  memberRouteId
+                ).toLowerCase() ===
+                  normalizedRouteId
+            )
+          : false;
+      }
     ) ||
     null
   );
