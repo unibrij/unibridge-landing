@@ -133,13 +133,6 @@ function resolvePayoutDate(
 /*
 --------------------------------------------------
 Shared status presentation
-
-History statuses are canonical payout lifecycle
-statuses.
-
-The visual treatment is intentionally provider-
-agnostic and maps those statuses into the existing
-shared History CSS states.
 --------------------------------------------------
 */
 
@@ -473,6 +466,84 @@ function buildRecipientIdentity(
     recipientSummary
   );
 
+  const settlementId =
+    resolveSettlementId(
+      item
+    );
+
+  if (
+    settlementId &&
+    shouldShowReference(
+      item
+    )
+  ) {
+    const referenceButton =
+      createElement(
+        "button",
+        {
+          className:
+            "history-reference-button",
+
+          text:
+            "Copy ref"
+        }
+      );
+
+    referenceButton.type =
+      "button";
+
+    referenceButton.setAttribute(
+      "aria-label",
+      "Copy payout reference"
+    );
+
+    referenceButton.addEventListener(
+      "click",
+      async () => {
+        referenceButton.disabled =
+          true;
+
+        try {
+          await copyTextToClipboard(
+            settlementId
+          );
+
+          referenceButton.textContent =
+            "Copied";
+
+          globalThis.setTimeout(
+            () => {
+              referenceButton.textContent =
+                "Copy ref";
+
+              referenceButton.disabled =
+                false;
+            },
+            1400
+          );
+        }
+        catch (
+          error
+        ) {
+          console.error(
+            "PAYOUT_REFERENCE_COPY_FAILED",
+            error
+          );
+
+          referenceButton.textContent =
+            "Copy ref";
+
+          referenceButton.disabled =
+            false;
+        }
+      }
+    );
+
+    recipientText.appendChild(
+      referenceButton
+    );
+  }
+
   recipientIdentity.append(
     avatar,
     recipientText
@@ -699,84 +770,6 @@ function buildPayoutActions({
 
     actions.appendChild(
       receiptButton
-    );
-  }
-
-  const settlementId =
-    resolveSettlementId(
-      item
-    );
-
-  if (
-    settlementId &&
-    shouldShowReference(
-      item
-    )
-  ) {
-    const referenceButton =
-      createElement(
-        "button",
-        {
-          className:
-            "history-reference-button",
-
-          text:
-            "Copy ref"
-        }
-      );
-
-    referenceButton.type =
-      "button";
-
-    referenceButton.setAttribute(
-      "aria-label",
-      "Copy payout reference"
-    );
-
-    referenceButton.addEventListener(
-      "click",
-      async () => {
-        referenceButton.disabled =
-          true;
-
-        try {
-          await copyTextToClipboard(
-            settlementId
-          );
-
-          referenceButton.textContent =
-            "Copied";
-
-          globalThis.setTimeout(
-            () => {
-              referenceButton.textContent =
-                "Copy ref";
-
-              referenceButton.disabled =
-                false;
-            },
-            1400
-          );
-        }
-        catch (
-          error
-        ) {
-          console.error(
-            "PAYOUT_REFERENCE_COPY_FAILED",
-            error
-          );
-
-          referenceButton.textContent =
-            "Copy ref";
-
-          referenceButton.disabled =
-            false;
-        }
-      }
-    );
-
-    actions.appendChild(
-      referenceButton
     );
   }
 
