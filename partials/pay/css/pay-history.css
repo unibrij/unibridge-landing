@@ -295,6 +295,45 @@
   transform: none;
 }
 
+.history-reference-button {
+  grid-column: 1 / -1;
+  justify-self: end;
+
+  min-height: 26px;
+  padding: 0 2px;
+
+  border: 0;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.48);
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.history-reference-button:hover {
+  color: rgba(153, 246, 228, 0.88);
+}
+
+.history-reference-button:active {
+  opacity: 0.72;
+}
+
+.history-reference-button:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
 /* --------------------------------------------------
    State cards
 -------------------------------------------------- */
