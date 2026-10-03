@@ -71,11 +71,6 @@
     href="/shared/pricing/pricing.css"
   />
 
-  <link
-    rel="stylesheet"
-    href="/partials/pay/css/pay-country-select.css?v=2"
-  />
-
   <style>
     .sr-only {
       position: absolute;
@@ -89,6 +84,11 @@
       border: 0;
     }
 
+    #surfaceApp {
+      width: min(100%, 440px);
+      min-width: 0;
+    }
+
     #pay-guide {
       display: none !important;
       visibility: hidden !important;
@@ -96,6 +96,13 @@
       max-height: 0 !important;
       overflow: hidden !important;
       pointer-events: none !important;
+    }
+
+    @media (max-width: 430px) {
+      #surfaceApp {
+        width: 100%;
+        max-width: 392px;
+      }
     }
   </style>
 </head>
