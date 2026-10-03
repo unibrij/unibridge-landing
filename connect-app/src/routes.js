@@ -64,7 +64,10 @@ export const ROUTES = [
 
 
 function normalizeString(value) {
-  return String(value || "").trim();
+  return String(
+    value ||
+    ""
+  ).trim();
 }
 
 
@@ -259,25 +262,56 @@ function isConnectVisibleRoute(
 }
 
 
-function hasRoute(
-  routeId,
-  routes = []
+function routeMatchesId(
+  route = {},
+  routeId
 ) {
   const normalizedRouteId =
     normalizeLower(
       routeId
     );
 
+  if (!normalizedRouteId) {
+    return false;
+  }
+
+  if (
+    normalizeLower(
+      route.id
+    ) ===
+      normalizedRouteId ||
+    normalizeLower(
+      route.route_id
+    ) ===
+      normalizedRouteId
+  ) {
+    return true;
+  }
+
+  return Array.isArray(
+    route.member_route_ids
+  )
+    ? route.member_route_ids.some(
+        id =>
+          normalizeLower(
+            id
+          ) ===
+            normalizedRouteId
+      )
+    : false;
+}
+
+
+function hasRoute(
+  routeId,
+  routes = []
+) {
   return routes.some(
     route =>
-      normalizeLower(
-        route.id
-      ) ===
-        normalizedRouteId ||
-      normalizeLower(
-        route.route_id
-      ) ===
-        normalizedRouteId
+      routeMatchesId(
+        route,
+        routeId
+      )
   );
 }
 
@@ -572,6 +606,154 @@ export function normalizeBackendRoute(
 }
 
 
+/*
+--------------------------------------------------
+Group equivalent backend capabilities
+--------------------------------------------------
+
+Asset is intentionally excluded from the group key.
+
+Example:
+
+PH / InstaPay / Polygon / CoinsPH / USDC
+PH / InstaPay / Polygon / CoinsPH / USDT
+
+becomes one displayed Connect route with:
+
+assets: ["USDC", "USDT"]
+--------------------------------------------------
+*/
+
+function getRouteGroupKey(
+  route = {}
+) {
+  const country =
+    getRouteCountry(
+      route
+    );
+
+  const rail =
+    normalizeLower(
+      route.payout_rail ||
+      route.payoutRail ||
+      route.rail
+    );
+
+  const network =
+    normalizeLower(
+      route.network
+    );
+
+  const executor =
+    normalizeLower(
+      route.executor ||
+      route.execution_provider ||
+      route.executionProvider ||
+      route.provider
+    );
+
+  if (
+    !country ||
+    !rail ||
+    !network ||
+    !executor
+  ) {
+    return "";
+  }
+
+  return [
+    country,
+    rail,
+    network,
+    executor
+  ].join(":");
+}
+
+
+function groupEquivalentRoutes(
+  routes = []
+) {
+  const result =
+    [];
+
+  const groups =
+    new Map();
+
+  routes.forEach(
+    route => {
+      const key =
+        getRouteGroupKey(
+          route
+        );
+
+      if (!key) {
+        result.push(
+          route
+        );
+
+        return;
+      }
+
+      const existing =
+        groups.get(
+          key
+        );
+
+      if (!existing) {
+        const groupedRoute = {
+          ...route,
+
+          assets:
+            uniqueValues([
+              ...(route.assets || []),
+              route.asset
+            ]),
+
+          member_route_ids:
+            [
+              route.route_id ||
+              route.id
+            ].filter(Boolean)
+        };
+
+        groups.set(
+          key,
+          groupedRoute
+        );
+
+        result.push(
+          groupedRoute
+        );
+
+        return;
+      }
+
+      existing.assets =
+        uniqueValues([
+          ...(existing.assets || []),
+          ...(route.assets || []),
+          route.asset
+        ]);
+
+      existing.member_route_ids =
+        Array.from(
+          new Set([
+            ...(
+              existing.member_route_ids ||
+              []
+            ),
+
+            route.route_id ||
+            route.id
+          ].filter(Boolean))
+        );
+    }
+  );
+
+  return result;
+}
+
+
 export function normalizeBackendRoutes(
   routes = []
 ) {
@@ -589,6 +771,11 @@ export function normalizeBackendRoutes(
       isConnectVisibleRoute
     );
 
+  const grouped =
+    groupEquivalentRoutes(
+      visible
+    );
+
   /*
    * A successful backend response is authoritative.
    *
@@ -597,7 +784,7 @@ export function normalizeBackendRoutes(
    * route-discovery failure path only.
    */
   return appendComingSoonRoutes(
-    visible
+    grouped
   );
 }
 
@@ -609,10 +796,10 @@ export function getRouteById(
   return (
     routes.find(
       route =>
-        route.id ===
-          routeId ||
-        route.route_id ===
+        routeMatchesId(
+          route,
           routeId
+        )
     ) ||
     routes.find(
       route =>
