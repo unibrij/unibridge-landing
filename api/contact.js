@@ -1,5 +1,8 @@
 import nodemailer from "nodemailer";
 
+const SUPPORT_EMAIL =
+  "support@unibrij.io";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -227,6 +230,12 @@ export default async function handler(req, res) {
     /*
     --------------------------------------------------
     Mail transport
+
+    Authentication stays on the real mailbox:
+    ceo@unibrij.io
+
+    support@unibrij.io is used only as the
+    verified Send mail as address.
     --------------------------------------------------
     */
 
@@ -261,7 +270,7 @@ export default async function handler(req, res) {
 
     await transporter.sendMail({
       from:
-        `"UniBridge Contact" <${process.env.MAIL_USER}>`,
+        `"UniBridge Contact" <${SUPPORT_EMAIL}>`,
 
       to:
         process.env.TO_EMAIL,
@@ -330,10 +339,13 @@ ${cleanMessage}
 
     await transporter.sendMail({
       from:
-        `"UniBridge" <${process.env.MAIL_USER}>`,
+        `"UniBridge" <${SUPPORT_EMAIL}>`,
 
       to:
         cleanEmail,
+
+      replyTo:
+        SUPPORT_EMAIL,
 
       subject:
         "We received your request – UniBridge",
