@@ -16,6 +16,24 @@ import {
 
 /*
 --------------------------------------------------
+Shared payout states
+--------------------------------------------------
+*/
+
+const COMPLETED_STATUSES =
+  new Set([
+    "completed",
+    "complete",
+    "executed",
+    "success",
+    "succeeded",
+    "payout_completed",
+    "execution_completed"
+  ]);
+
+
+/*
+--------------------------------------------------
 DOM helpers
 --------------------------------------------------
 */
@@ -92,6 +110,16 @@ function resolveReceiptId(
 }
 
 
+function resolveSettlementId(
+  item
+) {
+  return String(
+    item?.settlement_id ||
+    ""
+  ).trim();
+}
+
+
 function resolvePayoutDate(
   item
 ) {
@@ -123,17 +151,6 @@ function resolveStatusClass(
       status
     );
 
-  const completedStatuses =
-    new Set([
-      "completed",
-      "complete",
-      "executed",
-      "success",
-      "succeeded",
-      "payout_completed",
-      "execution_completed"
-    ]);
-
   const failedStatuses =
     new Set([
       "failed",
@@ -141,7 +158,7 @@ function resolveStatusClass(
     ]);
 
   if (
-    completedStatuses.has(
+    COMPLETED_STATUSES.has(
       normalized
     )
   ) {
@@ -157,6 +174,100 @@ function resolveStatusClass(
   }
 
   return "is-pending";
+}
+
+
+function shouldShowReference(
+  item
+) {
+  const normalized =
+    normalizeStatus(
+      item?.status
+    );
+
+  return !COMPLETED_STATUSES.has(
+    normalized
+  );
+}
+
+
+/*
+--------------------------------------------------
+Clipboard
+--------------------------------------------------
+*/
+
+async function copyTextToClipboard(
+  value
+) {
+  const text =
+    String(
+      value ||
+      ""
+    ).trim();
+
+  if (!text) {
+    throw new Error(
+      "clipboard_value_required"
+    );
+  }
+
+  if (
+    navigator?.clipboard &&
+    typeof navigator
+      .clipboard
+      .writeText ===
+        "function"
+  ) {
+    await navigator
+      .clipboard
+      .writeText(
+        text
+      );
+
+    return;
+  }
+
+  const textarea =
+    document.createElement(
+      "textarea"
+    );
+
+  textarea.value =
+    text;
+
+  textarea.setAttribute(
+    "readonly",
+    ""
+  );
+
+  textarea.style.position =
+    "fixed";
+
+  textarea.style.opacity =
+    "0";
+
+  textarea.style.pointerEvents =
+    "none";
+
+  document.body.appendChild(
+    textarea
+  );
+
+  textarea.select();
+
+  const copied =
+    document.execCommand(
+      "copy"
+    );
+
+  textarea.remove();
+
+  if (!copied) {
+    throw new Error(
+      "clipboard_copy_failed"
+    );
+  }
 }
 
 
@@ -588,6 +699,84 @@ function buildPayoutActions({
 
     actions.appendChild(
       receiptButton
+    );
+  }
+
+  const settlementId =
+    resolveSettlementId(
+      item
+    );
+
+  if (
+    settlementId &&
+    shouldShowReference(
+      item
+    )
+  ) {
+    const referenceButton =
+      createElement(
+        "button",
+        {
+          className:
+            "history-reference-button",
+
+          text:
+            "Copy ref"
+        }
+      );
+
+    referenceButton.type =
+      "button";
+
+    referenceButton.setAttribute(
+      "aria-label",
+      "Copy payout reference"
+    );
+
+    referenceButton.addEventListener(
+      "click",
+      async () => {
+        referenceButton.disabled =
+          true;
+
+        try {
+          await copyTextToClipboard(
+            settlementId
+          );
+
+          referenceButton.textContent =
+            "Copied";
+
+          globalThis.setTimeout(
+            () => {
+              referenceButton.textContent =
+                "Copy ref";
+
+              referenceButton.disabled =
+                false;
+            },
+            1400
+          );
+        }
+        catch (
+          error
+        ) {
+          console.error(
+            "PAYOUT_REFERENCE_COPY_FAILED",
+            error
+          );
+
+          referenceButton.textContent =
+            "Copy ref";
+
+          referenceButton.disabled =
+            false;
+        }
+      }
+    );
+
+    actions.appendChild(
+      referenceButton
     );
   }
 
