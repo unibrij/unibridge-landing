@@ -19,6 +19,106 @@ export function normalizeStatus(
 }
 
 
+const COMPLETED_STATUSES =
+  new Set([
+    "completed",
+    "complete",
+    "executed",
+    "success",
+    "succeeded",
+    "payout_completed",
+    "execution_completed"
+  ]);
+
+
+export function shouldShowReference(
+  item
+) {
+  const normalized =
+    normalizeStatus(
+      item?.status
+    );
+
+  return !COMPLETED_STATUSES.has(
+    normalized
+  );
+}
+
+
+export async function copyTextToClipboard(
+  value
+) {
+  const text =
+    normalizeString(
+      value
+    );
+
+  if (!text) {
+    return false;
+  }
+
+  try {
+    if (
+      navigator?.clipboard?.writeText
+    ) {
+      await navigator
+        .clipboard
+        .writeText(
+          text
+        );
+
+      return true;
+    }
+  }
+  catch {
+    // Fall through to legacy copy.
+  }
+
+  const textarea =
+    document.createElement(
+      "textarea"
+    );
+
+  textarea.value =
+    text;
+
+  textarea.setAttribute(
+    "readonly",
+    ""
+  );
+
+  textarea.style.position =
+    "fixed";
+
+  textarea.style.opacity =
+    "0";
+
+  document.body.appendChild(
+    textarea
+  );
+
+  textarea.select();
+
+  let copied =
+    false;
+
+  try {
+    copied =
+      document.execCommand(
+        "copy"
+      );
+  }
+  catch {
+    copied =
+      false;
+  }
+
+  textarea.remove();
+
+  return copied;
+}
+
+
 export function normalizeWalletAddress(
   value
 ) {
