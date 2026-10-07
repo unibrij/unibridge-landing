@@ -443,6 +443,13 @@ export default function HistoryPage({
                               )}
                             </span>
 
+                            <span className="history-payout-date">
+                              {formatDate(
+                                payout
+                                  ?.created_at
+                              )}
+                            </span>
+
                             {showReference ? (
                               <button
                                 type="button"
@@ -461,13 +468,6 @@ export default function HistoryPage({
                                   : "Copy ref"}
                               </button>
                             ) : null}
-
-                            <span className="history-payout-date">
-                              {formatDate(
-                                payout
-                                  ?.created_at
-                              )}
-                            </span>
                           </div>
                         </div>
 
