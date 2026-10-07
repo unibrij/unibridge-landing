@@ -15,6 +15,7 @@ import {
 import {
   buildRecipientSummary,
   buildRepeatUrl,
+  copyTextToClipboard,
   formatAmount,
   formatDate,
   formatStatus,
@@ -22,6 +23,7 @@ import {
   getRecipientLabel,
   normalizeStatus,
   normalizeString,
+  shouldShowReference,
   triggerBlobDownload
 } from "./history/historyUtils.js";
 
@@ -65,6 +67,50 @@ export default function HistoryPage({
     downloadingReceiptId,
     setDownloadingReceiptId
   ] = useState(null);
+
+  const [
+    copiedReferenceId,
+    setCopiedReferenceId
+  ] = useState(null);
+
+
+  async function handleCopyReference({
+    settlementId
+  }) {
+    const reference =
+      normalizeString(
+        settlementId
+      );
+
+    if (!reference) {
+      return;
+    }
+
+    const copied =
+      await copyTextToClipboard(
+        reference
+      );
+
+    if (!copied) {
+      return;
+    }
+
+    setCopiedReferenceId(
+      reference
+    );
+
+    globalThis.setTimeout(
+      () => {
+        setCopiedReferenceId(
+          current =>
+            current === reference
+              ? null
+              : current
+        );
+      },
+      1400
+    );
+  }
 
 
   async function handleDownloadReceipt({
@@ -320,9 +366,30 @@ export default function HistoryPage({
                         ?.payout_intent_id
                     );
 
+                  const settlementId =
+                    normalizeString(
+                      payout
+                        ?.settlement_id
+                    );
+
                   const repeatUrl =
                     buildRepeatUrl(
                       payout
+                    );
+
+                  const showReference =
+                    Boolean(
+                      settlementId &&
+                      shouldShowReference(
+                        payout
+                      )
+                    );
+
+                  const isReferenceCopied =
+                    Boolean(
+                      settlementId &&
+                      copiedReferenceId ===
+                        settlementId
                     );
 
                   const canDownloadReceipt =
@@ -375,6 +442,25 @@ export default function HistoryPage({
                                 payout
                               )}
                             </span>
+
+                            {showReference ? (
+                              <button
+                                type="button"
+                                className="history-reference-button"
+                                disabled={
+                                  isReferenceCopied
+                                }
+                                onClick={() =>
+                                  handleCopyReference({
+                                    settlementId
+                                  })
+                                }
+                              >
+                                {isReferenceCopied
+                                  ? "Copied"
+                                  : "Copy ref"}
+                              </button>
+                            ) : null}
 
                             <span className="history-payout-date">
                               {formatDate(
