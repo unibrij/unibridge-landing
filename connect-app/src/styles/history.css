@@ -230,6 +230,47 @@
    History actions
 -------------------------------------------------- */
 
+.history-reference-button {
+  width: fit-content;
+  min-height: 20px;
+  margin: 1px 0 0;
+  padding: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  border: 0;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.48);
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.history-reference-button:hover {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.history-reference-button:active {
+  opacity: 0.72;
+}
+
+.history-reference-button:disabled {
+  opacity: 0.62;
+  cursor: default;
+}
+
 .history-secondary-button {
   flex: 0 0 auto;
   display: inline-flex;
