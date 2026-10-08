@@ -1,4 +1,3 @@
-// fiat-bank-transfer-app/src/AccountSettings.jsx
 
 import {
   useEffect,
@@ -252,8 +251,7 @@ async function resolveBearerToken(
   try {
     token =
       await getToken({
-        skipCache:
-          true
+        skipCache: true
       });
   } catch {
     token =
@@ -291,8 +289,7 @@ async function parseResponse(
         );
     } catch {
       data = {
-        raw:
-          text
+        raw: text
       };
     }
   }
@@ -303,7 +300,9 @@ async function parseResponse(
         data?.error?.message
       ) ||
       normalizeString(
-        data?.error
+        typeof data?.error === "string"
+          ? data.error
+          : ""
       ) ||
       normalizeString(
         data?.message
@@ -384,38 +383,29 @@ export function AccountSettings({
     setDeleteError
   ] = useState("");
 
+  const [
+    deleteSucceeded,
+    setDeleteSucceeded
+  ] = useState(false);
+
 
   useEffect(() => {
     if (!open) {
-      setConfirmDelete(
-        false
-      );
-
-      setDeleteError(
-        ""
-      );
-
+      setConfirmDelete(false);
+      setDeleteError("");
       return;
     }
 
-    let active =
-      true;
+    let active = true;
 
     async function loadAccount() {
-      setLoading(
-        true
-      );
-
-      setLoadFailed(
-        false
-      );
+      setLoading(true);
+      setLoadFailed(false);
 
       try {
         const result =
           await accountRequest({
-            method:
-              "GET",
-
+            method: "GET",
             getToken
           });
 
@@ -433,20 +423,11 @@ export function AccountSettings({
           return;
         }
 
-        setAccount(
-          null
-        );
-
-        setLoadFailed(
-          true
-        );
+        setAccount(null);
+        setLoadFailed(true);
       } finally {
-        if (
-          active
-        ) {
-          setLoading(
-            false
-          );
+        if (active) {
+          setLoading(false);
         }
       }
     }
@@ -454,8 +435,7 @@ export function AccountSettings({
     loadAccount();
 
     return () => {
-      active =
-        false;
+      active = false;
     };
   }, [
     open,
@@ -472,21 +452,14 @@ export function AccountSettings({
       event
     ) {
       if (
-        event.key !==
-        "Escape"
+        event.key !== "Escape" ||
+        deleting
       ) {
         return;
       }
 
-      if (deleting) {
-        return;
-      }
-
       if (confirmDelete) {
-        setConfirmDelete(
-          false
-        );
-
+        setConfirmDelete(false);
         return;
       }
 
@@ -512,6 +485,53 @@ export function AccountSettings({
   ]);
 
 
+  async function handleDeleteAccount() {
+    if (
+      deleting ||
+      deleteSucceeded
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await accountRequest({
+        method: "DELETE",
+        getToken
+      });
+    } catch (error) {
+      setDeleteError(
+        normalizeString(
+          error?.message
+        ) ||
+        "Unable to delete account."
+      );
+
+      setDeleting(false);
+      return;
+    }
+
+    setDeleteSucceeded(true);
+
+    try {
+      if (
+        typeof onSwitchAccount ===
+        "function"
+      ) {
+        await onSwitchAccount();
+      }
+    } catch {
+      // Deletion succeeded; account switching failed.
+    }
+
+    window.location.replace(
+      "/surface/"
+    );
+  }
+
+
   if (!open) {
     return null;
   }
@@ -526,10 +546,8 @@ export function AccountSettings({
     );
 
   const verificationStatus =
-    account
-      ?.verification_status ??
-    account
-      ?.kyc_status ??
+    account?.verification_status ??
+    account?.kyc_status ??
     null;
 
   const verificationLabel =
@@ -542,43 +560,6 @@ export function AccountSettings({
           );
 
 
-  async function handleDeleteAccount() {
-    if (deleting) {
-      return;
-    }
-
-    setDeleting(
-      true
-    );
-
-    setDeleteError(
-      ""
-    );
-
-    try {
-      await accountRequest({
-        method:
-          "DELETE",
-
-        getToken
-      });
-
-      await onSwitchAccount?.();
-    } catch (error) {
-      setDeleteError(
-        normalizeString(
-          error?.message
-        ) ||
-        "Unable to delete account."
-      );
-
-      setDeleting(
-        false
-      );
-    }
-  }
-
-
   return (
     <div
       className="account-settings-overlay"
@@ -586,7 +567,7 @@ export function AccountSettings({
       onMouseDown={(event) => {
         if (
           event.target ===
-          event.currentTarget &&
+            event.currentTarget &&
           !deleting
         ) {
           onClose?.();
@@ -613,6 +594,7 @@ export function AccountSettings({
           <button
             type="button"
             className="account-settings-close"
+            disabled={deleting}
             onClick={() => {
               if (!deleting) {
                 onClose?.();
@@ -675,7 +657,7 @@ export function AccountSettings({
                     </span>
 
                     <strong>
-                      {accountEmail}
+                      {accountEmail || "Unavailable"}
                     </strong>
                   </div>
                 </div>
@@ -684,6 +666,7 @@ export function AccountSettings({
               <button
                 type="button"
                 className="account-settings-action"
+                disabled={deleting}
                 onClick={() => {
                   onSwitchAccount?.();
                 }}
@@ -710,14 +693,10 @@ export function AccountSettings({
               <button
                 type="button"
                 className="account-settings-delete-action"
+                disabled={deleting}
                 onClick={() => {
-                  setDeleteError(
-                    ""
-                  );
-
-                  setConfirmDelete(
-                    true
-                  );
+                  setDeleteError("");
+                  setConfirmDelete(true);
                 }}
               >
                 <TrashIcon />
@@ -765,13 +744,8 @@ export function AccountSettings({
                 className="account-settings-cancel-button"
                 disabled={deleting}
                 onClick={() => {
-                  setDeleteError(
-                    ""
-                  );
-
-                  setConfirmDelete(
-                    false
-                  );
+                  setDeleteError("");
+                  setConfirmDelete(false);
                 }}
               >
                 Cancel
@@ -780,7 +754,10 @@ export function AccountSettings({
               <button
                 type="button"
                 className="account-settings-confirm-delete"
-                disabled={deleting}
+                disabled={
+                  deleting ||
+                  deleteSucceeded
+                }
                 onClick={handleDeleteAccount}
               >
                 {deleting
