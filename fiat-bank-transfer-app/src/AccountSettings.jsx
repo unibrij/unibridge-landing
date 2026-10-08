@@ -1,796 +1,301 @@
-// fiat-bank-transfer-app/src/AccountSettings.jsx
+/* fiat/bank-transfer/app/assets/fiat-auth.css */
 
-import {
-  useEffect,
-  useState
-} from "react";
-
-import "./account-settings.css";
-
-
-function normalizeString(value) {
-  return String(
-    value || ""
-  ).trim();
+body.fiat-auth-required #entryBox,
+body.fiat-auth-required #fundingBox {
+  display: none !important;
 }
 
-
-function normalizeVerificationStatus(
-  value
-) {
-  const status =
-    normalizeString(
-      value
-    ).toLowerCase();
-
-  if (
-    status === "passed" ||
-    status === "verified" ||
-    status === "approved"
-  ) {
-    return "verified";
-  }
-
-  if (
-    status === "pending" ||
-    status === "in_review" ||
-    status === "in review"
-  ) {
-    return "pending";
-  }
-
-  if (
-    status === "failed" ||
-    status === "declined"
-  ) {
-    return "failed";
-  }
-
-  if (
-    status === "not_started" ||
-    status === "not started" ||
-    status === "unverified"
-  ) {
-    return "not_verified";
-  }
-
-  return "unknown";
+/* In auth mode, remove the old bank-transfer card completely.
+   The only visible card should be Clerk's glass card. */
+body.fiat-auth-required .card {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-
-function getVerificationLabel(
-  status
-) {
-  switch (
-    normalizeVerificationStatus(
-      status
-    )
-  ) {
-    case "verified":
-      return "Verified";
-
-    case "pending":
-      return "Pending";
-
-    case "failed":
-      return "Verification failed";
-
-    case "not_verified":
-      return "Not verified";
-
-    default:
-      return "Unavailable";
-  }
+.fiat-auth-gate {
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
+.fiat-auth-loading,
+.fiat-auth-warning {
+  margin: 0 auto;
+  max-width: 320px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
 
-function getVerificationClassName(
-  status
-) {
-  const normalized =
-    normalizeVerificationStatus(
-      status
+.fiat-auth-loading {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.fiat-auth-warning {
+  color: #fbbf24;
+}
+
+.fiat-auth-session-bar {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.28) 0%,
+      rgba(0, 14, 45, 0.18) 100%
     );
-
-  return [
-    "account-settings-status",
-    `account-settings-status-${normalized}`
-  ].join(" ");
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px) saturate(132%);
+  -webkit-backdrop-filter: blur(10px) saturate(132%);
 }
 
-
-function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M6 6l12 12M18 6 6 18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+.fiat-auth-session-bar span {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.3;
 }
 
-
-function AccountIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <circle
-        cx="12"
-        cy="8"
-        r="3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-
-      <path
-        d="M5.5 19c.8-3.2 3-5 6.5-5s5.7 1.8 6.5 5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+.fiat-auth-session-bar strong {
+  display: block;
+  max-width: 210px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
-
-function MailIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect
-        x="3.5"
-        y="5.5"
-        width="17"
-        height="13"
-        rx="2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-
-      <path
-        d="m5 7 7 5 7-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+.fiat-auth-session-actions {
+  flex: 0 0 auto;
 }
 
-
-function LogoutIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M10 5H6.5A2.5 2.5 0 0 0 4 7.5v9A2.5 2.5 0 0 0 6.5 19H10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M14 8l4 4-4 4M18 12H9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+.fiat-auth-settings-button {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5eead4;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: none;
 }
 
-
-function TrashIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width="20"
-      height="20"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M4.5 7h15M9 7V4.5h6V7M7 7l.8 12h8.4L17 7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+.fiat-auth-settings-button:hover {
+  background: rgba(20, 184, 166, 0.08);
+  color: #99f6e4;
 }
 
+.fiat-auth-settings-button:focus-visible {
+  outline: 2px solid rgba(94, 234, 212, 0.55);
+  outline-offset: 3px;
+}
 
-async function resolveBearerToken(
-  getToken
-) {
-  if (
-    typeof getToken !==
-    "function"
-  ) {
-    throw new Error(
-      "account_auth_unavailable"
-    );
+.fiat-auth-settings-button:active {
+  transform: scale(0.94);
+}
+
+.fiat-auth-settings-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.fiat-auth-clerk-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Clerk root */
+.fiat-auth-clerk-panel :where(.cl-rootBox) {
+  width: 100%;
+}
+
+/* Remove Clerk outer solid shell */
+.fiat-auth-clerk-panel :where(.cl-cardBox) {
+  width: 100%;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Main Clerk glass card */
+.fiat-auth-clerk-panel :where(.cl-card) {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  border-radius: 20px;
+  border: 1px solid rgba(94, 234, 212, 0.16);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 34, 72, 0.30) 0%,
+      rgba(0, 14, 45, 0.18) 100%
+    ) !important;
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 0 24px rgba(94, 234, 212, 0.035) !important;
+  color: #ffffff;
+  backdrop-filter: blur(10px) saturate(132%);
+  -webkit-backdrop-filter: blur(10px) saturate(132%);
+}
+
+/* Header */
+.fiat-auth-clerk-panel :where(.cl-headerTitle) {
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 27px;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.fiat-auth-clerk-panel :where(.cl-headerSubtitle),
+.fiat-auth-clerk-panel :where(.cl-dividerText),
+.fiat-auth-clerk-panel :where(.cl-formFieldLabel),
+.fiat-auth-clerk-panel :where(.cl-footerActionText) {
+  color: rgba(255, 255, 255, 0.72);
+  font-family: inherit;
+}
+
+.fiat-auth-clerk-panel :where(.cl-dividerLine) {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* Inputs */
+.fiat-auth-clerk-panel :where(.cl-formFieldInput) {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.fiat-auth-clerk-panel :where(.cl-formFieldInput::placeholder) {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.fiat-auth-clerk-panel :where(.cl-formFieldInput:focus) {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+/* Primary button */
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary) {
+  min-height: 48px;
+  border-radius: 14px;
+  background: #14b8a6;
+  color: #04111f;
+  font-family: inherit;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.18);
+}
+
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary:hover) {
+  background: #20c997;
+}
+
+.fiat-auth-clerk-panel :where(.cl-formButtonPrimary:active) {
+  transform: scale(0.98);
+}
+
+/* Google button */
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButton) {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButton:hover) {
+  background: rgba(255, 255, 255, 0.085);
+}
+
+.fiat-auth-clerk-panel :where(.cl-socialButtonsBlockButtonText) {
+  color: #ffffff;
+  font-family: inherit;
+  font-weight: 800;
+}
+
+/* Footer */
+.fiat-auth-clerk-panel :where(.cl-footer) {
+  border-radius: 0 0 20px 20px;
+  background: rgba(0, 14, 45, 0.12) !important;
+}
+
+.fiat-auth-clerk-panel :where(.cl-footerActionLink) {
+  color: #5eead4;
+  font-family: inherit;
+  font-weight: 800;
+}
+
+.fiat-auth-clerk-panel :where(.cl-footerActionLink:hover) {
+  color: #99f6e4;
+}
+
+/* Clerk badge / development mode area */
+.fiat-auth-clerk-panel :where(.cl-internal-b3fm6y),
+.fiat-auth-clerk-panel :where(.cl-internal-uyu30o) {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+/* Mobile fit */
+@media (max-width: 430px) {
+  .fiat-auth-gate {
+    width: min(100%, 392px);
   }
 
-  let token = null;
-
-  try {
-    token =
-      await getToken({
-        skipCache:
-          true
-      });
-  } catch {
-    token =
-      await getToken();
+  .fiat-auth-session-bar {
+    padding: 11px 12px;
+    border-radius: 15px;
+    gap: 10px;
   }
 
-  const normalized =
-    normalizeString(
-      token
-    );
-
-  if (!normalized) {
-    throw new Error(
-      "account_auth_token_missing"
-    );
+  .fiat-auth-session-bar strong {
+    max-width: 180px;
+    font-size: 12px;
   }
 
-  return normalized;
-}
-
-
-async function parseResponse(
-  response
-) {
-  const text =
-    await response.text();
-
-  let data = {};
-
-  if (text) {
-    try {
-      data =
-        JSON.parse(
-          text
-        );
-    } catch {
-      data = {
-        raw:
-          text
-      };
-    }
+  .fiat-auth-clerk-panel :where(.cl-card) {
+    border-radius: 18px;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(9, 34, 72, 0.26) 0%,
+        rgba(0, 14, 45, 0.16) 100%
+      ) !important;
+    backdrop-filter: blur(8px) saturate(130%);
+    -webkit-backdrop-filter: blur(8px) saturate(130%);
   }
 
-  if (!response.ok) {
-    const message =
-      normalizeString(
-        data?.error?.message
-      ) ||
-      normalizeString(
-        data?.error
-      ) ||
-      normalizeString(
-        data?.message
-      ) ||
-      "account_request_failed";
-
-    throw new Error(
-      message
-    );
+  .fiat-auth-clerk-panel :where(.cl-headerTitle) {
+    font-size: 25px;
   }
-
-  return data;
-}
-
-
-async function accountRequest({
-  method,
-  getToken
-} = {}) {
-  const token =
-    await resolveBearerToken(
-      getToken
-    );
-
-  const response =
-    await fetch(
-      "/api/proxy?endpoint=account",
-      {
-        method,
-
-        headers: {
-          authorization:
-            `Bearer ${token}`
-        }
-      }
-    );
-
-  return parseResponse(
-    response
-  );
-}
-
-
-export function AccountSettings({
-  open = false,
-  email,
-  getToken,
-  onClose,
-  onSwitchAccount
-} = {}) {
-  const [
-    account,
-    setAccount
-  ] = useState(null);
-
-  const [
-    loading,
-    setLoading
-  ] = useState(false);
-
-  const [
-    loadFailed,
-    setLoadFailed
-  ] = useState(false);
-
-  const [
-    confirmDelete,
-    setConfirmDelete
-  ] = useState(false);
-
-  const [
-    deleting,
-    setDeleting
-  ] = useState(false);
-
-  const [
-    deleteError,
-    setDeleteError
-  ] = useState("");
-
-
-  useEffect(() => {
-    if (!open) {
-      setConfirmDelete(
-        false
-      );
-
-      setDeleteError(
-        ""
-      );
-
-      return;
-    }
-
-    let active =
-      true;
-
-    async function loadAccount() {
-      setLoading(
-        true
-      );
-
-      setLoadFailed(
-        false
-      );
-
-      try {
-        const result =
-          await accountRequest({
-            method:
-              "GET",
-
-            getToken
-          });
-
-        if (!active) {
-          return;
-        }
-
-        setAccount(
-          result?.account ||
-          result ||
-          null
-        );
-      } catch {
-        if (!active) {
-          return;
-        }
-
-        setAccount(
-          null
-        );
-
-        setLoadFailed(
-          true
-        );
-      } finally {
-        if (
-          active
-        ) {
-          setLoading(
-            false
-          );
-        }
-      }
-    }
-
-    loadAccount();
-
-    return () => {
-      active =
-        false;
-    };
-  }, [
-    open,
-    getToken
-  ]);
-
-
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    function handleKeyDown(
-      event
-    ) {
-      if (
-        event.key !==
-        "Escape"
-      ) {
-        return;
-      }
-
-      if (deleting) {
-        return;
-      }
-
-      if (confirmDelete) {
-        setConfirmDelete(
-          false
-        );
-
-        return;
-      }
-
-      onClose?.();
-    }
-
-    window.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
-    };
-  }, [
-    open,
-    confirmDelete,
-    deleting,
-    onClose
-  ]);
-
-
-  if (!open) {
-    return null;
-  }
-
-
-  const accountEmail =
-    normalizeString(
-      account?.email
-    ) ||
-    normalizeString(
-      email
-    );
-
-  const verificationStatus =
-    account
-      ?.verification_status ??
-    account
-      ?.kyc_status ??
-    null;
-
-  const verificationLabel =
-    loading
-      ? "Loading…"
-      : loadFailed
-        ? "Unavailable"
-        : getVerificationLabel(
-            verificationStatus
-          );
-
-
-  async function handleDeleteAccount() {
-    if (deleting) {
-      return;
-    }
-
-    setDeleting(
-      true
-    );
-
-    setDeleteError(
-      ""
-    );
-
-    try {
-      await accountRequest({
-        method:
-          "DELETE",
-
-        getToken
-      });
-
-      await onSwitchAccount?.();
-    } catch (error) {
-      setDeleteError(
-        normalizeString(
-          error?.message
-        ) ||
-        "Unable to delete account."
-      );
-
-      setDeleting(
-        false
-      );
-    }
-  }
-
-
-  return (
-    <div
-      className="account-settings-overlay"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (
-          event.target ===
-          event.currentTarget &&
-          !deleting
-        ) {
-          onClose?.();
-        }
-      }}
-    >
-      <section
-        className="account-settings-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="accountSettingsTitle"
-      >
-        <header className="account-settings-header">
-          <div>
-            <span className="account-settings-eyebrow">
-              UniBridge
-            </span>
-
-            <h2 id="accountSettingsTitle">
-              Settings
-            </h2>
-          </div>
-
-          <button
-            type="button"
-            className="account-settings-close"
-            onClick={() => {
-              if (!deleting) {
-                onClose?.();
-              }
-            }}
-            aria-label="Close settings"
-          >
-            <CloseIcon />
-          </button>
-        </header>
-
-
-        {!confirmDelete ? (
-          <div className="account-settings-content">
-            <section className="account-settings-section">
-              <h3>
-                Profile
-              </h3>
-
-              <div className="account-settings-card">
-                <div className="account-settings-row">
-                  <div className="account-settings-row-icon">
-                    <AccountIcon />
-                  </div>
-
-                  <div className="account-settings-row-copy">
-                    <span>
-                      Verification status
-                    </span>
-
-                    <strong
-                      className={
-                        getVerificationClassName(
-                          verificationStatus
-                        )
-                      }
-                    >
-                      {verificationLabel}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-
-            <section className="account-settings-section">
-              <h3>
-                Account
-              </h3>
-
-              <div className="account-settings-card">
-                <div className="account-settings-row">
-                  <div className="account-settings-row-icon">
-                    <MailIcon />
-                  </div>
-
-                  <div className="account-settings-row-copy">
-                    <span>
-                      Email
-                    </span>
-
-                    <strong>
-                      {accountEmail}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="account-settings-action"
-                onClick={() => {
-                  onSwitchAccount?.();
-                }}
-              >
-                <LogoutIcon />
-
-                <span>
-                  Use another account
-                </span>
-              </button>
-            </section>
-
-
-            <section
-              className="
-                account-settings-section
-                account-settings-danger-section
-              "
-            >
-              <h3>
-                Danger zone
-              </h3>
-
-              <button
-                type="button"
-                className="account-settings-delete-action"
-                onClick={() => {
-                  setDeleteError(
-                    ""
-                  );
-
-                  setConfirmDelete(
-                    true
-                  );
-                }}
-              >
-                <TrashIcon />
-
-                <span>
-                  Delete account
-                </span>
-              </button>
-            </section>
-          </div>
-        ) : (
-          <div className="account-settings-delete-confirmation">
-            <div className="account-settings-delete-icon">
-              <TrashIcon />
-            </div>
-
-            <h3>
-              Delete account?
-            </h3>
-
-            <p>
-              Your active UniBridge account access
-              will be removed.
-            </p>
-
-            <p className="account-settings-delete-note">
-              Historical transaction records may be
-              retained where required for compliance,
-              reconciliation, fraud prevention, or
-              dispute handling.
-            </p>
-
-            {deleteError ? (
-              <p
-                className="account-settings-delete-error"
-                role="alert"
-              >
-                {deleteError}
-              </p>
-            ) : null}
-
-            <div className="account-settings-delete-actions">
-              <button
-                type="button"
-                className="account-settings-cancel-button"
-                disabled={deleting}
-                onClick={() => {
-                  setDeleteError(
-                    ""
-                  );
-
-                  setConfirmDelete(
-                    false
-                  );
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                className="account-settings-confirm-delete"
-                disabled={deleting}
-                onClick={handleDeleteAccount}
-              >
-                {deleting
-                  ? "Deleting…"
-                  : "Delete account"}
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
-    </div>
-  );
 }
