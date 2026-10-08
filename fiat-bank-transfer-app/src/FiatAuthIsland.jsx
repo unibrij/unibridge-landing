@@ -425,7 +425,6 @@ export function FiatAuthIsland() {
         <AccountSettings
           open={settingsOpen}
           email={email}
-          authSubjectId={authSubjectId}
           getToken={getToken}
           onClose={closeSettings}
           onSwitchAccount={useAnotherAccount}
