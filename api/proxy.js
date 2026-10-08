@@ -21,6 +21,8 @@ const SESSION_QUOTE_TIMEOUT_MS =
 
 const ALLOWED =
   new Set([
+    "account",
+
     "session/register",
     "fiat/session/register",
     "session/resolve",
@@ -113,6 +115,8 @@ const ALLOWED =
 
 const CLERK_AUTH_ENDPOINTS =
   new Set([
+    "account",
+
     "fiat/session/register",
     "fiat/kyc/create",
     "fiat/kyc/shared/create",
@@ -419,6 +423,28 @@ function getAllowedMethod(
   return "POST";
 }
 
+function isAllowedMethod(
+  endpoint,
+  method
+) {
+  if (
+    endpoint ===
+    "account"
+  ) {
+    return (
+      method === "GET" ||
+      method === "DELETE"
+    );
+  }
+
+  return (
+    method ===
+    getAllowedMethod(
+      endpoint
+    )
+  );
+}
+
 function normalizeForwardedFor(
   value
 ) {
@@ -611,11 +637,6 @@ export default async function handler(
         });
     }
 
-    const expectedMethod =
-      getAllowedMethod(
-        endpoint
-      );
-
     const incomingMethod =
       String(
         req.method ||
@@ -623,8 +644,10 @@ export default async function handler(
       ).toUpperCase();
 
     if (
-      incomingMethod !==
-      expectedMethod
+      !isAllowedMethod(
+        endpoint,
+        incomingMethod
+      )
     ) {
       return res
         .status(
