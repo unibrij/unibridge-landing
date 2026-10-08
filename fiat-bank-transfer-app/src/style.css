@@ -1,3 +1,4 @@
+
 body.fiat-auth-required #entryBox,
 body.fiat-auth-required #fundingBox {
   display: none !important;
@@ -86,26 +87,42 @@ body.fiat-auth-required .card {
 
 .fiat-auth-settings-button {
   flex: 0 0 auto;
-  border: 1px solid rgba(94, 234, 212, 0.22);
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
-  padding: 8px 11px;
+  background: transparent;
   color: #5eead4;
-  background: rgba(255, 255, 255, 0.045);
   font: inherit;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.fiat-auth-settings-button:hover {
+  background: rgba(20, 184, 166, 0.08);
+  color: #99f6e4;
+}
+
+.fiat-auth-settings-button:focus-visible {
+  outline: 2px solid rgba(94, 234, 212, 0.55);
+  outline-offset: 3px;
 }
 
 .fiat-auth-settings-button:active {
-  transform: scale(0.98);
+  transform: scale(0.94);
 }
 
 .fiat-auth-settings-button svg {
   display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .fiat-auth-clerk-panel {
@@ -263,11 +280,6 @@ body.fiat-auth-required .card {
   .fiat-auth-session-bar strong {
     max-width: 180px;
     font-size: 12px;
-  }
-
-  .fiat-auth-settings-button {
-    padding: 8px 10px;
-    font-size: 10.5px;
   }
 
   .fiat-auth-clerk-panel :where(.cl-card) {
