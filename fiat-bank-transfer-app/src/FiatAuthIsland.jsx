@@ -1,7 +1,8 @@
 // fiat-bank-transfer-app/src/FiatAuthIsland.jsx
 
 import {
-  useEffect
+  useEffect,
+  useState
 } from "react";
 
 import {
@@ -11,6 +12,11 @@ import {
   useClerk,
   useUser
 } from "@clerk/clerk-react";
+
+import {
+  AccountSettings
+} from "./AccountSettings.jsx";
+
 
 const PROFILE_KEY =
   "unibridge_fiat_customer_profile";
@@ -24,9 +30,11 @@ const AUTH_EVENT =
 const AUTH_REQUIRED_CLASS =
   "fiat-auth-required";
 
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
+
 
 function readStoredProfile() {
   const raw =
@@ -44,6 +52,7 @@ function readStoredProfile() {
     return {};
   }
 }
+
 
 function writeAuthToProfile({
   email,
@@ -93,11 +102,13 @@ function writeAuthToProfile({
   );
 }
 
+
 function clearFiatAuthSession() {
   window.sessionStorage.removeItem(
     PROFILE_KEY
   );
 }
+
 
 function resolvePrimaryEmail(user) {
   return (
@@ -110,6 +121,7 @@ function resolvePrimaryEmail(user) {
     null
   );
 }
+
 
 function resolveAuthSubjectId({
   userId,
@@ -126,6 +138,7 @@ function resolveAuthSubjectId({
   );
 }
 
+
 function resolveReturnUrl() {
   return (
     window.location.origin +
@@ -134,9 +147,11 @@ function resolveReturnUrl() {
   );
 }
 
+
 function resolvePayUrl() {
   return `${window.location.origin}/pay`;
 }
+
 
 function setAuthRequiredClass(required) {
   document.body.classList.toggle(
@@ -144,6 +159,63 @@ function setAuthRequiredClass(required) {
     Boolean(required)
   );
 }
+
+
+function SettingsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="
+          M19.1 13.5
+          a7.8 7.8 0 0 0 .05-1
+          7.8 7.8 0 0 0-.05-1
+          l2-1.55
+          -2-3.46
+          -2.45.98
+          a7.7 7.7 0 0 0-1.72-1
+          L14.55 4
+          h-4
+          l-.38 2.47
+          a7.7 7.7 0 0 0-1.72 1
+          L6 6.49
+          4 9.95
+          6 11.5
+          a7.8 7.8 0 0 0-.05 1
+          7.8 7.8 0 0 0 .05 1
+          L4 15.05
+          l2 3.46
+          2.45-.98
+          a7.7 7.7 0 0 0 1.72 1
+          l.38 2.47
+          h4
+          l.38-2.47
+          a7.7 7.7 0 0 0 1.72-1
+          l2.45.98
+          2-3.46
+          -2-1.55Z
+        "
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 
 export function FiatAuthIsland() {
   const {
@@ -160,6 +232,11 @@ export function FiatAuthIsland() {
   const {
     user
   } = useUser();
+
+  const [
+    settingsOpen,
+    setSettingsOpen
+  ] = useState(false);
 
   const email =
     resolvePrimaryEmail(
@@ -182,6 +259,7 @@ export function FiatAuthIsland() {
       email &&
       authSubjectId
     );
+
 
   useEffect(() => {
     window[AUTH_BRIDGE_KEY] = {
@@ -228,6 +306,7 @@ export function FiatAuthIsland() {
     getToken
   ]);
 
+
   useEffect(() => {
     setAuthRequiredClass(
       !isReady
@@ -241,6 +320,7 @@ export function FiatAuthIsland() {
   }, [
     isReady
   ]);
+
 
   useEffect(() => {
     if (
@@ -265,7 +345,26 @@ export function FiatAuthIsland() {
     authSubjectId
   ]);
 
+
+  function openSettings() {
+    setSettingsOpen(
+      true
+    );
+  }
+
+
+  function closeSettings() {
+    setSettingsOpen(
+      false
+    );
+  }
+
+
   async function useAnotherAccount() {
+    setSettingsOpen(
+      false
+    );
+
     clearFiatAuthSession();
 
     const payUrl =
@@ -283,28 +382,58 @@ export function FiatAuthIsland() {
     }
   }
 
+
   if (isReady) {
     return (
-      <section className="fiat-auth-session-bar">
-        <div>
-          <span>
-            Signed in as
-          </span>
+      <>
+        <section className="fiat-auth-session-bar">
+          <div className="fiat-auth-session-identity">
+            <span>
+              Signed in as
+            </span>
 
-          <strong>
-            {email}
-          </strong>
-        </div>
+            <strong>
+              {email}
+            </strong>
+          </div>
 
-        <button
-          type="button"
-          onClick={useAnotherAccount}
-        >
-          Use another account
-        </button>
-      </section>
+          <div className="fiat-auth-session-actions">
+            <button
+              type="button"
+              onClick={useAnotherAccount}
+            >
+              Use another account
+            </button>
+
+            <button
+              type="button"
+              className="fiat-auth-settings-button"
+              onClick={openSettings}
+              aria-label="Account settings"
+              aria-expanded={
+                settingsOpen
+                  ? "true"
+                  : "false"
+              }
+              title="Account settings"
+            >
+              <SettingsIcon />
+            </button>
+          </div>
+        </section>
+
+        <AccountSettings
+          open={settingsOpen}
+          email={email}
+          authSubjectId={authSubjectId}
+          getToken={getToken}
+          onClose={closeSettings}
+          onSwitchAccount={useAnotherAccount}
+        />
+      </>
     );
   }
+
 
   if (
     isLoaded &&
@@ -320,6 +449,7 @@ export function FiatAuthIsland() {
     );
   }
 
+
   if (
     isLoaded &&
     isSignedIn &&
@@ -334,6 +464,7 @@ export function FiatAuthIsland() {
     );
   }
 
+
   if (!isLoaded) {
     return (
       <section className="fiat-auth-gate">
@@ -343,6 +474,7 @@ export function FiatAuthIsland() {
       </section>
     );
   }
+
 
   return (
     <section className="fiat-auth-gate">
