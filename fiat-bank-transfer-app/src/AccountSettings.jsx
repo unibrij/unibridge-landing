@@ -5,6 +5,8 @@ import {
   useState
 } from "react";
 
+import "./account-settings.css";
+
 
 function normalizeString(value) {
   return String(
