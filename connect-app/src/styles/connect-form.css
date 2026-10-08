@@ -165,7 +165,48 @@ p {
 .wallet-connect-row {
   width: min(100%, 440px);
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+
+.wallet-settings-button {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #5eead4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.wallet-settings-button:hover {
+  background: rgba(20, 184, 166, 0.08);
+  color: #99f6e4;
+}
+
+.wallet-settings-button:focus-visible {
+  outline: 2px solid rgba(94, 234, 212, 0.55);
+  outline-offset: 3px;
+}
+
+.wallet-settings-button:active {
+  transform: scale(0.94);
+}
+
+.wallet-settings-button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .wallet-button {
