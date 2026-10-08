@@ -80,7 +80,11 @@ body.fiat-auth-required .card {
   line-height: 1.35;
 }
 
-.fiat-auth-session-bar button {
+.fiat-auth-session-actions {
+  flex: 0 0 auto;
+}
+
+.fiat-auth-settings-button {
   flex: 0 0 auto;
   border: 1px solid rgba(94, 234, 212, 0.22);
   border-radius: 999px;
@@ -91,10 +95,17 @@ body.fiat-auth-required .card {
   font-size: 11px;
   font-weight: 800;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.fiat-auth-session-bar button:active {
+.fiat-auth-settings-button:active {
   transform: scale(0.98);
+}
+
+.fiat-auth-settings-button svg {
+  display: block;
 }
 
 .fiat-auth-clerk-panel {
@@ -254,7 +265,7 @@ body.fiat-auth-required .card {
     font-size: 12px;
   }
 
-  .fiat-auth-session-bar button {
+  .fiat-auth-settings-button {
     padding: 8px 10px;
     font-size: 10.5px;
   }
