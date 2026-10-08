@@ -8,3 +8,4 @@ export * from "./api/payoutIntent.js";
 export * from "./api/history.js";
 export * from "./api/funding.js";
 export * from "./api/receipts.js";
+export * from "./api/account.js";
