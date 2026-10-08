@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -10,7 +11,7 @@
 
   <meta
     name="description"
-    content="Contact UniBridge for support, partnerships, security, media, or general questions."
+    content="Contact UniBridge for support, partnerships, security, media, general questions, or account deletion requests."
   />
 
   <meta property="og:title" content="Contact UniBridge" />
@@ -217,6 +218,70 @@
       line-height: 1.62;
     }
 
+    /* Account deletion — discreet informational section */
+
+    .account-deletion {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      max-width: 470px;
+      margin-top: 34px;
+      padding: 22px 20px;
+      border: 1px solid rgba(0, 51, 102, 0.055);
+      border-radius: 16px;
+      background: rgba(232, 241, 249, 0.62);
+    }
+
+    .account-deletion-icon {
+      display: inline-flex;
+      width: 44px;
+      height: 44px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 13px;
+      background: rgba(0, 51, 102, 0.055);
+      color: var(--navy);
+    }
+
+    .account-deletion-icon svg {
+      width: 21px;
+      height: 21px;
+      stroke-width: 1.8;
+    }
+
+    .account-deletion h2 {
+      margin: 1px 0 8px;
+      color: var(--navy);
+      font-size: 1rem;
+      line-height: 1.4;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .account-deletion p {
+      margin: 0;
+      color: #4f6174;
+      font-size: 0.88rem;
+      line-height: 1.65;
+    }
+
+    .account-deletion p + p {
+      margin-top: 10px;
+    }
+
+    .account-deletion a {
+      color: var(--navy);
+      font-weight: 650;
+      text-decoration: underline;
+      text-decoration-color: rgba(0, 51, 102, 0.3);
+      text-underline-offset: 3px;
+    }
+
+    .account-deletion a:hover {
+      color: var(--teal-dark);
+    }
+
     .contact-form {
       background: #ffffff;
       border: 1px solid rgba(0, 51, 102, 0.08);
@@ -373,7 +438,8 @@
 
       .contact-copy h1,
       .contact-copy > p,
-      .contact-points {
+      .contact-points,
+      .account-deletion {
         max-width: 680px;
       }
     }
@@ -422,6 +488,33 @@
 
       .contact-point p {
         font-size: 0.92rem;
+      }
+
+      .account-deletion {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 12px;
+        margin-top: 28px;
+        padding: 18px 15px;
+        border-radius: 14px;
+      }
+
+      .account-deletion-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+      }
+
+      .account-deletion-icon svg {
+        width: 19px;
+        height: 19px;
+      }
+
+      .account-deletion h2 {
+        font-size: 0.94rem;
+      }
+
+      .account-deletion p {
+        font-size: 0.84rem;
       }
 
       .contact-form {
@@ -559,6 +652,62 @@
               </div>
 
             </div>
+
+            <!-- Account deletion information -->
+
+            <section
+              class="account-deletion"
+              aria-labelledby="account-deletion-title"
+            >
+
+              <div
+                class="account-deletion-icon"
+                aria-hidden="true"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 6h18"></path>
+                  <path d="M8 6V4h8v2"></path>
+                  <path d="M5 6l1 15h12l1-15"></path>
+                  <path d="M10 10v7"></path>
+                  <path d="M14 10v7"></path>
+                </svg>
+              </div>
+
+              <div>
+                <h2 id="account-deletion-title">
+                  Need to delete your UniBridge account?
+                </h2>
+
+                <p>
+                  You can delete your account directly from
+                  your UniBridge account settings. Alternatively,
+                  use this contact form to request deletion of
+                  your account and associated data. Enter
+                  "Account deletion request" in the message field.
+                  We may need to verify your identity before
+                  processing your request.
+                </p>
+
+                <p>
+                  Certain transaction and compliance records
+                  may be retained where legally required.
+                  See our
+                  <a href="/privacy.html">
+                    Privacy Policy
+                  </a>
+                  for details.
+                </p>
+              </div>
+
+            </section>
+
           </div>
 
           <div class="contact-form fade-in">
