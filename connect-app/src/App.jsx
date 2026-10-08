@@ -1160,6 +1160,14 @@ export default function App() {
           <a href="/legal.html">
             Terms
           </a>
+
+          <span aria-hidden="true">
+            |
+          </span>
+
+          <a href="/contact.html">
+            Support
+          </a>
         </nav>
       </footer>
     </main>
