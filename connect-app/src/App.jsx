@@ -8,6 +8,7 @@ import {
 
 import {
   useAccount,
+  useDisconnect,
   useWalletClient,
   useSwitchChain,
   usePublicClient
@@ -93,6 +94,87 @@ import HistoryPage
 import PayoutReviewManager
   from "./components/PayoutReviewManager";
 
+import WalletAccountSettings
+  from "./components/WalletAccountSettings";
+
+
+function SettingsIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <path
+        d="
+          M19.4 15
+          a1.7 1.7 0 0 0 .34 1.88
+          l.06.06
+          a2 2 0 1 1-2.83 2.83
+          l-.06-.06
+          A1.7 1.7 0 0 0 15 19.4
+          a1.7 1.7 0 0 0-1 .6
+          1.7 1.7 0 0 0-.4 1.1
+          V21
+          a2 2 0 1 1-4 0
+          v-.09
+          A1.7 1.7 0 0 0 8.6 19.4
+          a1.7 1.7 0 0 0-1.88.34
+          l-.06.06
+          a2 2 0 1 1-2.83-2.83
+          l.06-.06
+          A1.7 1.7 0 0 0 4.6 15
+          a1.7 1.7 0 0 0-.6-1
+          1.7 1.7 0 0 0-1.1-.4
+          H3
+          a2 2 0 1 1 0-4
+          h.09
+          A1.7 1.7 0 0 0 4.6 8.6
+          a1.7 1.7 0 0 0-.34-1.88
+          l-.06-.06
+          a2 2 0 1 1 2.83-2.83
+          l.06.06
+          A1.7 1.7 0 0 0 9 4.6
+          a1.7 1.7 0 0 0 1-.6
+          1.7 1.7 0 0 0 .4-1.1
+          V3
+          a2 2 0 1 1 4 0
+          v.09
+          A1.7 1.7 0 0 0 15.4 4.6
+          a1.7 1.7 0 0 0 1.88-.34
+          l.06-.06
+          a2 2 0 1 1 2.83 2.83
+          l-.06.06
+          A1.7 1.7 0 0 0 19.4 9
+          a1.7 1.7 0 0 0 .6 1
+          1.7 1.7 0 0 0 1.1.4
+          H21
+          a2 2 0 1 1 0 4
+          h-.09
+          A1.7 1.7 0 0 0 19.4 15
+          Z
+        "
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 
 export default function App() {
   useAppKit();
@@ -104,6 +186,10 @@ export default function App() {
   } = useAccount();
 
   const {
+    disconnectAsync
+  } = useDisconnect();
+
+  const {
     data: walletClient
   } = useWalletClient();
 
@@ -113,6 +199,11 @@ export default function App() {
   const {
     switchChainAsync
   } = useSwitchChain();
+
+  const [
+    walletSettingsOpen,
+    setWalletSettingsOpen
+  ] = useState(false);
 
   /*
    * URL state belongs to this mounted Connect entry.
@@ -334,6 +425,40 @@ export default function App() {
     address,
     writeDebug
   });
+
+  /*
+   * Account deletion succeeded in Core.
+   *
+   * Browser state is only cleanup from this point
+   * onward. It must not redefine deletion success.
+   */
+  const handleWalletAccountDeleted =
+    useCallback(
+      async () => {
+        setWalletSettingsOpen(
+          false
+        );
+
+        clearStoredFlow();
+
+        clearReceiveContext();
+
+        resetConnectSession();
+
+        try {
+          await disconnectAsync();
+        } finally {
+          window.location.replace(
+            "/connect/"
+          );
+        }
+      },
+      [
+        clearReceiveContext,
+        disconnectAsync,
+        resetConnectSession
+      ]
+    );
 
   /*
    * Authoritative payout-attempt lifecycle.
@@ -824,6 +949,25 @@ export default function App() {
           }
         >
           <appkit-button />
+
+          {isConnected && (
+            <button
+              type="button"
+              className="wallet-settings-button"
+              aria-label="Account settings"
+              onClick={
+                event => {
+                  event.stopPropagation();
+
+                  setWalletSettingsOpen(
+                    true
+                  );
+                }
+              }
+            >
+              <SettingsIcon />
+            </button>
+          )}
         </div>
       )}
 
@@ -973,6 +1117,28 @@ export default function App() {
             )}
         </>
       )}
+
+      <WalletAccountSettings
+        open={
+          walletSettingsOpen &&
+          isConnected
+        }
+        walletAddress={
+          address
+        }
+        walletClient={
+          walletClient
+        }
+        onClose={
+          () =>
+            setWalletSettingsOpen(
+              false
+            )
+        }
+        onDeleted={
+          handleWalletAccountDeleted
+        }
+      />
 
       <footer className="connect-lite-footer">
         <span>
