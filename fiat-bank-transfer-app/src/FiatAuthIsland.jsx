@@ -400,13 +400,6 @@ export function FiatAuthIsland() {
           <div className="fiat-auth-session-actions">
             <button
               type="button"
-              onClick={useAnotherAccount}
-            >
-              Use another account
-            </button>
-
-            <button
-              type="button"
               className="fiat-auth-settings-button"
               onClick={openSettings}
               aria-label="Account settings"
