@@ -14,7 +14,7 @@ const QR_DARK_COLOR =
   "#0A3B8F";
 
 const QR_LOGO_URL =
-  "/public/icons/social/1000233245-removebg-preview.png";
+  "/public/icons/social/unibridge-android-icon-source-clean.png";
 
 const QR_LOGO_SIZE_RATIO =
   0.18;
