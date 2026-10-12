@@ -1,31 +1,30 @@
-// unibridge-landing/receive/receive-qr.js
+
+ // unibridge-landing/receive/receive-qr.js
 
 const QR_RENDER_SIZE = 768;
 const QR_DISPLAY_SIZE = 230;
 const QR_QUIET_ZONE_MODULES = 4;
 
 const QR_DARK_COLOR = "#0A3B8F";
-const QR_LOGO_URL =
-  "/connect/icons/app/ub-app-icon-512.png";
 
-const QR_CENTER_RESERVE_RATIO = 0.20;
-const QR_LOGO_CROP_RATIO = 1;
-const QR_LOGO_INSET_RATIO = 0.04;
+const QR_LOGO_URL =
+  "/public/icons/social/1000231567-removebg-preview.png";
+
+const QR_CENTER_RESERVE_RATIO = 0.18;
+const QR_LOGO_SIZE_RATIO = 0.90;
+const QR_LOGO_CLEAR_RATIO = 0.05;
+const QR_LOGO_ALPHA_THRESHOLD = 35;
 
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const image = new Image();
 
-    image.onload = () => {
-      resolve(image);
-    };
+    image.onload = () => resolve(image);
 
-    image.onerror = () => {
-      reject(
-        new Error("QR logo unavailable.")
-      );
-    };
+    image.onerror = () => reject(
+      new Error("QR logo unavailable.")
+    );
 
     image.src = src;
   });
@@ -34,20 +33,13 @@ function loadImage(src) {
 
 function getQrModuleCount(qrCode) {
   const moduleCount = Number(
-    qrCode
-      ?._oQRCode
-      ?.getModuleCount
-      ?.()
+    qrCode?._oQRCode?.getModuleCount?.()
   );
 
-  if (
-    Number.isFinite(moduleCount) &&
+  return Number.isFinite(moduleCount) &&
     moduleCount > 0
-  ) {
-    return moduleCount;
-  }
-
-  return null;
+    ? moduleCount
+    : null;
 }
 
 
@@ -55,21 +47,15 @@ function getCenterReservation(
   canvas,
   moduleCount
 ) {
-  if (
-    !canvas ||
-    !moduleCount
-  ) {
+  if (!canvas || !moduleCount) {
     return null;
   }
 
   let reserveModules = Math.floor(
-    moduleCount *
-    QR_CENTER_RESERVE_RATIO
+    moduleCount * QR_CENTER_RESERVE_RATIO
   );
 
-  if (
-    reserveModules % 2 === 0
-  ) {
+  if (reserveModules % 2 === 0) {
     reserveModules -= 1;
   }
 
@@ -79,38 +65,26 @@ function getCenterReservation(
   );
 
   const startModule = Math.floor(
-    (
-      moduleCount -
-      reserveModules
-    ) / 2
+    (moduleCount - reserveModules) / 2
   );
 
   const endModule =
-    startModule +
-    reserveModules;
+    startModule + reserveModules;
 
   const x1 = Math.round(
-    canvas.width *
-    startModule /
-    moduleCount
+    canvas.width * startModule / moduleCount
   );
 
   const y1 = Math.round(
-    canvas.height *
-    startModule /
-    moduleCount
+    canvas.height * startModule / moduleCount
   );
 
   const x2 = Math.round(
-    canvas.width *
-    endModule /
-    moduleCount
+    canvas.width * endModule / moduleCount
   );
 
   const y2 = Math.round(
-    canvas.height *
-    endModule /
-    moduleCount
+    canvas.height * endModule / moduleCount
   );
 
   return {
@@ -122,44 +96,40 @@ function getCenterReservation(
 }
 
 
+/*
+--------------------------------------------------
+Prepare center reservation
+--------------------------------------------------
+
+No white circle or square is drawn.
+
+The reservation only defines the
+maximum logo placement area.
+--------------------------------------------------
+*/
+
 function reserveQrCenter(
   canvas,
   moduleCount
 ) {
-  const reservation =
-    getCenterReservation(
-      canvas,
-      moduleCount
-    );
-
-  if (!reservation) {
-    return null;
-  }
-
-  const context =
-    canvas.getContext("2d");
-
-  if (!context) {
-    return null;
-  }
-
-  context.save();
-
-  context.fillStyle =
-    "#ffffff";
-
-  context.fillRect(
-    reservation.x,
-    reservation.y,
-    reservation.width,
-    reservation.height
+  return getCenterReservation(
+    canvas,
+    moduleCount
   );
-
-  context.restore();
-
-  return reservation;
 }
 
+
+/*
+--------------------------------------------------
+Draw UniBridge logo
+--------------------------------------------------
+
+- Transparent logo
+- No circular badge
+- No square badge
+- White clearance follows the logo silhouette
+--------------------------------------------------
+*/
 
 function drawQrLogo(
   canvas,
@@ -186,18 +156,8 @@ function drawQrLogo(
     reservation.height
   );
 
-  const inset = Math.max(
-    2,
-    Math.round(
-      reservationSize *
-      QR_LOGO_INSET_RATIO
-    )
-  );
-
-  const logoSize = Math.max(
-    1,
-    reservationSize -
-    inset * 2
+  const logoSize = Math.round(
+    reservationSize * QR_LOGO_SIZE_RATIO
   );
 
   const logoX = Math.round(
@@ -211,42 +171,115 @@ function drawQrLogo(
   );
 
   const imageWidth =
-    image.naturalWidth ||
-    image.width;
+    image.naturalWidth || image.width;
 
   const imageHeight =
-    image.naturalHeight ||
-    image.height;
+    image.naturalHeight || image.height;
 
-  const sourceSize = Math.round(
-    Math.min(
-      imageWidth,
-      imageHeight
-    ) *
-    QR_LOGO_CROP_RATIO
+  const sourceSize = Math.min(
+    imageWidth,
+    imageHeight
   );
 
   const sourceX = Math.round(
-    (
-      imageWidth -
-      sourceSize
-    ) / 2
+    (imageWidth - sourceSize) / 2
   );
 
   const sourceY = Math.round(
-    (
-      imageHeight -
-      sourceSize
-    ) / 2
+    (imageHeight - sourceSize) / 2
   );
+
+  const radius = Math.max(
+    2,
+    Math.round(
+      logoSize * QR_LOGO_CLEAR_RATIO
+    )
+  );
+
+  const maskSize =
+    logoSize + radius * 2;
+
+  const mask =
+    document.createElement("canvas");
+
+  mask.width = maskSize;
+  mask.height = maskSize;
+
+  const maskContext =
+    mask.getContext("2d");
+
+  if (!maskContext) {
+    return;
+  }
+
+  maskContext.imageSmoothingEnabled = true;
+
+  /*
+  Expand the visible logo silhouette
+  to create a small white separation.
+  */
+
+  for (
+    let dy = -radius;
+    dy <= radius;
+    dy++
+  ) {
+    for (
+      let dx = -radius;
+      dx <= radius;
+      dx++
+    ) {
+      if (
+        dx * dx + dy * dy >
+        radius * radius
+      ) {
+        continue;
+      }
+
+      maskContext.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceSize,
+        sourceSize,
+        radius + dx,
+        radius + dy,
+        logoSize,
+        logoSize
+      );
+    }
+  }
+
+  /*
+  Convert the expanded silhouette
+  to opaque white.
+  */
+
+  maskContext.globalCompositeOperation =
+    "source-in";
+
+  maskContext.fillStyle = "#ffffff";
+
+  maskContext.fillRect(
+    0,
+    0,
+    maskSize,
+    maskSize
+  );
+
+  maskContext.globalCompositeOperation =
+    "source-over";
 
   context.save();
 
-  context.imageSmoothingEnabled =
-    true;
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
 
-  context.imageSmoothingQuality =
-    "high";
+  context.drawImage(
+    mask,
+    logoX - radius,
+    logoY - radius
+  );
 
   context.drawImage(
     image,
@@ -264,6 +297,12 @@ function drawQrLogo(
 }
 
 
+/*
+--------------------------------------------------
+Add QR quiet zone
+--------------------------------------------------
+*/
+
 function addQrQuietZone(
   sourceCanvas,
   moduleCount
@@ -279,10 +318,7 @@ function addQrQuietZone(
 
   const quietZone = moduleCount
     ? Math.ceil(
-        (
-          sourceSize /
-          moduleCount
-        ) *
+        (sourceSize / moduleCount) *
         QR_QUIET_ZONE_MODULES
       )
     : Math.ceil(
@@ -290,13 +326,10 @@ function addQrQuietZone(
       );
 
   const outputSize =
-    sourceSize +
-    quietZone * 2;
+    sourceSize + quietZone * 2;
 
   const canvas =
-    document.createElement(
-      "canvas"
-    );
+    document.createElement("canvas");
 
   canvas.width = outputSize;
   canvas.height = outputSize;
@@ -310,11 +343,8 @@ function addQrQuietZone(
 
   context.save();
 
-  context.imageSmoothingEnabled =
-    false;
-
-  context.fillStyle =
-    "#ffffff";
+  context.imageSmoothingEnabled = false;
+  context.fillStyle = "#ffffff";
 
   context.fillRect(
     0,
@@ -334,15 +364,18 @@ function addQrQuietZone(
   canvas.style.width =
     `${QR_DISPLAY_SIZE}px`;
 
-  canvas.style.height =
-    "auto";
-
-  canvas.style.maxWidth =
-    "100%";
+  canvas.style.height = "auto";
+  canvas.style.maxWidth = "100%";
 
   return canvas;
 }
 
+
+/*
+--------------------------------------------------
+Render Receive QR
+--------------------------------------------------
+*/
 
 export async function renderReceiveQr({
   root,
@@ -355,13 +388,17 @@ export async function renderReceiveQr({
   root.innerHTML = "";
 
   if (
-    typeof window.QRCode !==
-    "function"
+    typeof window.QRCode !== "function"
   ) {
-    root.textContent =
-      "QR unavailable";
+    root.textContent = "QR unavailable";
     return;
   }
+
+  const highLevel =
+    window.QRCode?.CorrectLevel?.H;
+
+  const supportsH =
+    typeof highLevel === "number";
 
   const options = {
     text: value,
@@ -371,22 +408,12 @@ export async function renderReceiveQr({
     colorLight: "#ffffff"
   };
 
-  if (
-    window.QRCode
-      ?.CorrectLevel
-      ?.H !== undefined
-  ) {
-    options.correctLevel =
-      window.QRCode
-        .CorrectLevel
-        .H;
+  if (supportsH) {
+    options.correctLevel = highLevel;
   }
 
   const qrCode =
-    new window.QRCode(
-      root,
-      options
-    );
+    new window.QRCode(root, options);
 
   const sourceCanvas =
     root.querySelector("canvas");
@@ -398,12 +425,11 @@ export async function renderReceiveQr({
   const moduleCount =
     getQrModuleCount(qrCode);
 
-  if (moduleCount) {
+  if (supportsH && moduleCount) {
     try {
-      const logo =
-        await loadImage(
-          QR_LOGO_URL
-        );
+      const logo = await loadImage(
+        QR_LOGO_URL
+      );
 
       const reservation =
         reserveQrCenter(
@@ -436,11 +462,8 @@ export async function renderReceiveQr({
     sourceCanvas.style.width =
       `${QR_DISPLAY_SIZE}px`;
 
-    sourceCanvas.style.height =
-      "auto";
-
-    sourceCanvas.style.maxWidth =
-      "100%";
+    sourceCanvas.style.height = "auto";
+    sourceCanvas.style.maxWidth = "100%";
 
     return;
   }
@@ -450,23 +473,24 @@ export async function renderReceiveQr({
 }
 
 
+/*
+--------------------------------------------------
+Export QR as PNG
+--------------------------------------------------
+*/
+
 function canvasToBlob(canvas) {
   return new Promise(resolve => {
     if (
       !canvas ||
-      typeof canvas.toBlob !==
-        "function"
+      typeof canvas.toBlob !== "function"
     ) {
       resolve(null);
       return;
     }
 
     canvas.toBlob(
-      blob => {
-        resolve(
-          blob || null
-        );
-      },
+      blob => resolve(blob || null),
       "image/png"
     );
   });
@@ -477,18 +501,14 @@ export async function buildReceiveQrShareFile(
   root
 ) {
   const canvas =
-    root?.querySelector?.(
-      "canvas"
-    );
+    root?.querySelector?.("canvas");
 
   if (!canvas) {
     return null;
   }
 
   const blob =
-    await canvasToBlob(
-      canvas
-    );
+    await canvasToBlob(canvas);
 
   if (!blob) {
     return null;
