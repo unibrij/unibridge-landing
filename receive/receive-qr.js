@@ -11,7 +11,7 @@ const QR_LOGO_URL =
   "/public/icons/social/unibridge-qr-logo-navy.png";
 
 const QR_CENTER_RESERVE_RATIO = 0.18;
-const QR_LOGO_SIZE_RATIO = 0.90;
+const QR_LOGO_SIZE_RATIO = 1.00;
 const QR_LOGO_CLEAR_RATIO = 0.05;
 const QR_LOGO_ALPHA_THRESHOLD = 35;
 
