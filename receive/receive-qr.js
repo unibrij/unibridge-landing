@@ -8,7 +8,7 @@ const QR_QUIET_ZONE_MODULES = 4;
 const QR_DARK_COLOR = "#0A3B8F";
 
 const QR_LOGO_URL =
-  "/public/icons/social/unibridge-qr-logo-navy.png";
+  "/public/icons/social/unibridge-qr-logo-navy1.png";
 
 const QR_CENTER_RESERVE_RATIO = 0.28;
 const QR_LOGO_SIZE_RATIO = 1.00;
