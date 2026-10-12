@@ -1,3 +1,4 @@
+
 /* unibridge-landing/receive/styles.css */
 
 :root {
@@ -804,35 +805,25 @@ Created QR
   display: grid;
   place-items: center;
 
-  width:
-    min(
-      100%,
-      258px
-    );
-
-  min-height: 250px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
 
   box-sizing: border-box;
 
-  margin:
-    4px
-    auto
-    16px;
+  margin: 4px auto 16px;
+  padding: 0;
 
-  padding: 12px;
+  border: 0;
+  border-radius: 12px;
 
-  border:
-    1px solid
-    rgba(94, 234, 212, 0.26);
-
-  border-radius: 18px;
-
-  background:
-    rgba(255, 255, 255, 0.96);
+  background: #ffffff;
 
   box-shadow:
     0 18px 44px
     rgba(0, 0, 0, 0.22);
+
+  overflow: hidden;
 }
 
 .receive-qr canvas,
@@ -840,14 +831,8 @@ Created QR
 .receive-qr svg {
   display: block;
 
-  width:
-    min(
-      100%,
-      230px
-    );
-
+  width: min(100%, 230px);
   max-width: 230px;
-
   height: auto;
 }
 
@@ -1472,16 +1457,6 @@ Very small phones
 
   .receive-card {
     padding: 12px;
-  }
-
-  .receive-qr {
-    width:
-      min(
-        100%,
-        250px
-      );
-
-    padding: 9px;
   }
 }
 
