@@ -5,7 +5,7 @@ const QR_RENDER_SIZE = 768;
 const QR_DISPLAY_SIZE = 230;
 const QR_QUIET_ZONE_MODULES = 4;
 
-const QR_DARK_COLOR = "#0A3B8F";
+const QR_DARK_COLOR = "#082F73";
 
 const QR_LOGO_URL =
   "/public/icons/social/unibridge-qr-logo-navy.png";
