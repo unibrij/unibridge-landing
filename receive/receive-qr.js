@@ -6,7 +6,7 @@ const QR_QUIET_ZONE_MODULES = 4;
 
 const QR_DARK_COLOR = "#0A3B8F";
 const QR_LOGO_URL =
-  "/icons/social/unibridge-android-icon-source-clean.png";
+  "/public/icons/social/unibridge-android-icon-source-clean.png";
 
 const QR_CENTER_RESERVE_RATIO = 0.20;
 const QR_LOGO_CROP_RATIO = 1;
