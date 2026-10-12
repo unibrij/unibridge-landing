@@ -12,8 +12,6 @@ const QR_LOGO_URL =
 
 const QR_CENTER_RESERVE_RATIO = 0.18;
 const QR_LOGO_SIZE_RATIO = 1.00;
-const QR_LOGO_CLEAR_RATIO = 0.05;
-const QR_LOGO_ALPHA_THRESHOLD = 35;
 
 
 function loadImage(src) {
@@ -42,6 +40,19 @@ function getQrModuleCount(qrCode) {
     : null;
 }
 
+
+/*
+--------------------------------------------------
+Calculate logo placement
+--------------------------------------------------
+
+No white circle.
+No white square.
+No artificial clearance.
+
+The reservation defines placement only.
+--------------------------------------------------
+*/
 
 function getCenterReservation(
   canvas,
@@ -98,36 +109,13 @@ function getCenterReservation(
 
 /*
 --------------------------------------------------
-Prepare center reservation
---------------------------------------------------
-
-No white circle or square is drawn.
-
-The reservation only defines the
-maximum logo placement area.
---------------------------------------------------
-*/
-
-function reserveQrCenter(
-  canvas,
-  moduleCount
-) {
-  return getCenterReservation(
-    canvas,
-    moduleCount
-  );
-}
-
-
-/*
---------------------------------------------------
 Draw UniBridge logo
 --------------------------------------------------
 
-- Transparent logo
-- No circular badge
-- No square badge
-- White clearance follows the logo silhouette
+Use the original navy-background logo.
+
+No white mask or clearance is applied.
+The image is centered over the QR.
 --------------------------------------------------
 */
 
@@ -189,97 +177,10 @@ function drawQrLogo(
     (imageHeight - sourceSize) / 2
   );
 
-  const radius = Math.max(
-    2,
-    Math.round(
-      logoSize * QR_LOGO_CLEAR_RATIO
-    )
-  );
-
-  const maskSize =
-    logoSize + radius * 2;
-
-  const mask =
-    document.createElement("canvas");
-
-  mask.width = maskSize;
-  mask.height = maskSize;
-
-  const maskContext =
-    mask.getContext("2d");
-
-  if (!maskContext) {
-    return;
-  }
-
-  maskContext.imageSmoothingEnabled = true;
-
-  /*
-  Expand the visible logo silhouette
-  to create a small white separation.
-  */
-
-  for (
-    let dy = -radius;
-    dy <= radius;
-    dy++
-  ) {
-    for (
-      let dx = -radius;
-      dx <= radius;
-      dx++
-    ) {
-      if (
-        dx * dx + dy * dy >
-        radius * radius
-      ) {
-        continue;
-      }
-
-      maskContext.drawImage(
-        image,
-        sourceX,
-        sourceY,
-        sourceSize,
-        sourceSize,
-        radius + dx,
-        radius + dy,
-        logoSize,
-        logoSize
-      );
-    }
-  }
-
-  /*
-  Convert the expanded silhouette
-  to opaque white.
-  */
-
-  maskContext.globalCompositeOperation =
-    "source-in";
-
-  maskContext.fillStyle = "#ffffff";
-
-  maskContext.fillRect(
-    0,
-    0,
-    maskSize,
-    maskSize
-  );
-
-  maskContext.globalCompositeOperation =
-    "source-over";
-
   context.save();
 
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
-
-  context.drawImage(
-    mask,
-    logoX - radius,
-    logoY - radius
-  );
 
   context.drawImage(
     image,
@@ -432,7 +333,7 @@ export async function renderReceiveQr({
       );
 
       const reservation =
-        reserveQrCenter(
+        getCenterReservation(
           sourceCanvas,
           moduleCount
         );
