@@ -204,12 +204,26 @@ header {
 }
 
 /* ================================
-   Footer — App copyright
+   Footer — Company identity
+================================ */
+
+.footer-app .footer-app-company {
+  margin: 20px 0 12px;
+  max-width: 300px;
+
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* ================================
+   Footer — Copyright
 ================================ */
 
 .footer-app .footer-app-copyright {
-  margin: 20px 0 0;
-  max-width: 260px;
+  margin: 0;
+  max-width: 300px;
 
   color: rgba(255, 255, 255, 0.48);
   font-size: 12px;
@@ -254,8 +268,27 @@ header {
   pointer-events: none;
 }
 
+/* ================================
+   Footer — Resource descriptions
+================================ */
+
 .footer-resources li {
-  margin-bottom: 13px;
+  margin-bottom: 22px;
+}
+
+.footer-resources li:last-child {
+  margin-bottom: 0;
+}
+
+.footer-link-note {
+  display: block;
+  margin-top: 6px;
+  max-width: 300px;
+
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 400;
 }
 
 /* ================================
@@ -425,10 +458,16 @@ header {
     max-width: 100%;
   }
 
-  .footer-app .footer-app-copyright {
-    margin-top: 16px;
+  .footer-app .footer-app-company {
+    margin: 18px 0 10px;
+    max-width: 300px;
     font-size: 11px;
-    max-width: 260px;
+  }
+
+  .footer-app .footer-app-copyright {
+    margin: 0;
+    max-width: 300px;
+    font-size: 11px;
   }
 
   .footer-bottom {
