@@ -1,3 +1,5 @@
+
+<!-- pay/start/index.html -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -66,6 +68,23 @@
       rel="stylesheet"
       href="/pay/start/pay-start.css"
     />
+
+    <style>
+      .ui-modules-loading #payStartAgentCard,
+      .ui-agent-detached #payStartAgentCard {
+        display: none !important;
+      }
+
+      .ui-modules-loading .pay-start-options,
+      .ui-agent-detached .pay-start-options {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    </style>
+
+    <script>
+      // Hide the Agent entry until its public visibility is known.
+      document.documentElement.classList.add("ui-modules-loading");
+    </script>
   </head>
 
   <body>
@@ -84,7 +103,10 @@
         class="pay-start-options"
         aria-label="Choose how to start"
       >
-        <article class="pay-start-card pay-start-card-primary">
+        <article
+          id="payStartAgentCard"
+          class="pay-start-card pay-start-card-primary"
+        >
           <div class="pay-start-card-top">
             <div class="pay-start-card-icon" aria-hidden="true">
               ✦
@@ -166,5 +188,40 @@
     </main>
 
     <script src="/partials/pay/js/pay-includes.js?v=6"></script>
+
+    <script>
+      (async function applyAgentPublishing() {
+        const root = document.documentElement;
+
+        try {
+          const response = await fetch(
+            "https://unibridge-v2-1066944028362.us-central1.run.app/v2/options/ui-modules",
+            {
+              headers: { Accept: "application/json" },
+              cache: "no-store",
+              signal: AbortSignal.timeout(3000)
+            }
+          );
+
+          if (!response.ok) return;
+
+          const data = await response.json();
+
+          if (
+            data?.ok !== true ||
+            typeof data.modules?.agent !== "boolean"
+          ) return;
+
+          root.classList.toggle(
+            "ui-agent-detached",
+            !data.modules.agent
+          );
+        } catch {
+          // Keep the original public options if settings cannot be read.
+        } finally {
+          root.classList.remove("ui-modules-loading");
+        }
+      })();
+    </script>
   </body>
 </html>
