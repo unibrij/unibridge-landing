@@ -1,3 +1,4 @@
+
 // unibridge-landing/receive/receive-public.js
 
 import {
@@ -12,6 +13,11 @@ import {
 import {
   formatRailLabel
 } from "./receive-catalog.js";
+
+
+// Public publishing flags only. Never use admin credentials in the Landing.
+const UI_MODULES_URL =
+  "https://unibridge-v2-1066944028362.us-central1.run.app/v2/options/ui-modules";
 
 
 function normalizeString(value) {
@@ -70,6 +76,54 @@ export function createReceivePublicFlow({
 
   let profile = null;
   let eventsBound = false;
+
+  const uiOptions = [
+    ["surface", els.fiatButton],
+    ["wallet", els.walletButton],
+    ["agent", els.agentButton]
+  ];
+
+
+  async function applyUiModules() {
+    // Keep entry buttons hidden until publishing states are known.
+    for (const [, button] of uiOptions) {
+      setHidden(button, true);
+      if (button) button.disabled = true;
+    }
+
+    let modules = null;
+
+    try {
+      const response = await fetch(UI_MODULES_URL, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: AbortSignal.timeout(3000)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data?.ok === true && data.modules) {
+          modules = data.modules;
+        }
+      }
+    } catch {
+      // Preserve original options if settings cannot be read.
+      console.warn("UI_MODULES_UNAVAILABLE");
+    } finally {
+      for (const [moduleId, button] of uiOptions) {
+        const value = modules?.[moduleId];
+        const published =
+          typeof value === "boolean" ? value : true;
+
+        setHidden(button, !published);
+
+        if (button) {
+          button.disabled = !published;
+        }
+      }
+    }
+  }
 
 
   function clearError() {
@@ -204,6 +258,8 @@ export function createReceivePublicFlow({
 
 
   async function init(token) {
+    void applyUiModules();
+
     showOnly?.(
       "receivePublicView"
     );
