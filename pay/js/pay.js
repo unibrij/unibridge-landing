@@ -1,5 +1,5 @@
 
- // pay/js/pay.js
+// pay/js/pay.js
 
 const UNIBRIDGE_PAY_AGENT_URL =
   "/pay/agent/";
@@ -50,6 +50,10 @@ async function applyUiModules() {
   } catch {
     // If the public settings API is unavailable, keep the current Pay options.
     console.warn("UI_MODULES_UNAVAILABLE");
+  } finally {
+    document.documentElement.classList.remove(
+      "ui-modules-loading"
+    );
   }
 }
 
