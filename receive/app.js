@@ -1,4 +1,5 @@
-// unibridge-landing/receive/app.js
+
+ // unibridge-landing/receive/app.js
 
 import {
   extractReceiveToken
@@ -19,6 +20,10 @@ import {
 import {
   createReceiveRateFlow
 } from "./receive-rate.js";
+
+import {
+  trackReceiveEntry
+} from "./receive-analytics.js";
 
 
 const els = {
@@ -241,6 +246,30 @@ async function init(token) {
 const initialToken =
   extractReceiveToken();
 
+
+/*
+--------------------------------------------------
+Receive Analytics
+
+Track entry-page visits only.
+
+- No event for public QR links.
+- Does not wait for the analytics request.
+- Does not block Receive initialization.
+- Backend handles daily deduplication.
+--------------------------------------------------
+*/
+
+if (!initialToken) {
+  void trackReceiveEntry();
+}
+
+
+/*
+--------------------------------------------------
+Initialize Receive
+--------------------------------------------------
+*/
 
 init(initialToken)
   .catch(error => {
