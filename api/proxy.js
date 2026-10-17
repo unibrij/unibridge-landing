@@ -1,4 +1,5 @@
-// unibridge-landing/api/proxy.js
+
+ // unibridge-landing/api/proxy.js
 
 import crypto from "crypto";
 
@@ -86,6 +87,7 @@ const ALLOWED =
     */
 
     "receive",
+    "receive/events",
     "receive/pricing-preview",
     "receive/settlement/create",
 
