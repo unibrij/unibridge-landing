@@ -1,3 +1,4 @@
+
 /* partials/pay/css/pay-common.css */
 
 html,
@@ -33,10 +34,11 @@ body {
 }
 
 /* --------------------------------------------------
-   Page shell — mirrors Connect
+   Page shell — shared layout
 -------------------------------------------------- */
 
-.pay-page-shell {
+.pay-page-shell,
+.page.pay-page-shell {
   position: relative;
   width: 100%;
 
@@ -53,12 +55,16 @@ body {
   justify-content: center;
   gap: 14px;
 
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* The document handles vertical scrolling. */
+  overflow-x: clip;
 
   text-align: center;
   background: #000e2d;
 }
+
+/* --------------------------------------------------
+   Background — decorative only
+-------------------------------------------------- */
 
 .pay-page-shell::before {
   content: "";
@@ -120,21 +126,24 @@ body {
 }
 
 /* --------------------------------------------------
-   Brand — mirrors Connect
+   Brand — follows document scrolling
 -------------------------------------------------- */
 
 #pay-brand {
-  position: fixed;
-  top: max(18px, env(safe-area-inset-top));
-  left: 28px;
-  right: 28px;
-  z-index: 20;
-  width: auto;
+  position: relative;
+  inset: auto;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+
   pointer-events: none;
 }
 
 .pay-brandbar {
   width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -345,18 +354,72 @@ body {
 }
 
 /* --------------------------------------------------
-   Responsive — copied from Connect
+   Desktop layout
+
+   Header top
+   Content centered
+   Footer bottom
+
+   Original left/right alignment preserved.
 -------------------------------------------------- */
 
-@media (max-width: 900px) {
-  .pay-brandbar-logo {
-    width: 220px;
-    max-width: 58vw;
+@media (min-width: 901px) {
+  .pay-page-shell,
+  .page.pay-page-shell {
+    padding: 24px 28px 18px;
+  }
+
+  #pay-brand {
+    margin-bottom: auto;
+  }
+
+  #pay-footer {
+    margin-top: auto;
   }
 }
 
+/* --------------------------------------------------
+   Responsive — Tablet / Mobile
+-------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .pay-page-shell,
+  .page.pay-page-shell {
+    justify-content: flex-start;
+
+    padding-top:
+      max(24px, env(safe-area-inset-top));
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom));
+  }
+
+  #pay-brand {
+    max-width: 440px;
+    margin-bottom: 8px;
+  }
+
+  .pay-brandbar {
+    justify-content: center;
+  }
+
+  .pay-brandbar-logo {
+    width: 180px;
+    max-width: 58vw;
+  }
+
+  .pay-domain-pill {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------
+   Responsive — Small mobile
+-------------------------------------------------- */
+
 @media (max-width: 430px) {
-  .pay-page-shell {
+  .pay-page-shell,
+  .page.pay-page-shell {
     gap: 12px;
     padding: 14px;
     justify-content: flex-start;
@@ -454,6 +517,10 @@ body {
     padding-bottom: 10px;
   }
 }
+
+/* --------------------------------------------------
+   Responsive — Narrow mobile
+-------------------------------------------------- */
 
 @media (max-width: 360px) {
   .pay-brandbar-logo {
