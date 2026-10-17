@@ -79,6 +79,7 @@ const ALLOWED =
     "options/coinsph/ph-payout-channels",
     "options/elementpay/ng-banks",
     "options/ramp-source-availability",
+    "options/executor-availability",
 
     /*
     --------------------------------------------------
@@ -404,6 +405,8 @@ function getAllowedMethod(
       "options/elementpay/ng-banks" ||
     endpoint ===
       "options/ramp-source-availability" ||
+    endpoint ===
+      "options/executor-availability" ||
     endpoint ===
       "fiat/bridge-tos/ping" ||
     endpoint ===
