@@ -1,0 +1,229 @@
+
+/* shared/app-install/app-install.css */
+
+/* -----------------------------------------
+   UniBridge Google Play Banner
+   Inline, responsive, non-intrusive
+----------------------------------------- */
+
+.ub-play-banner {
+  position: relative;
+  z-index: 3;
+
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  flex: 0 0 auto;
+
+  width: min(100%, 440px);
+  min-width: 0;
+
+  margin: 6px auto 12px;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 14px;
+
+  background: #092248;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12);
+
+  color: #ffffff;
+  text-align: left;
+
+  font-family: Inter, Arial, sans-serif;
+}
+
+/* -----------------------------------------
+   Light variant — Landing / About
+----------------------------------------- */
+
+.ub-play-banner--site {
+  margin: 12px auto;
+
+  background: #ffffff;
+
+  border-color:
+    rgba(11, 18, 48, 0.13);
+
+  box-shadow:
+    0 5px 18px rgba(11, 18, 48, 0.08);
+
+  color: #0b1230;
+}
+
+/* -----------------------------------------
+   App icon
+----------------------------------------- */
+
+.ub-play-banner__icon {
+  display: block;
+
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 36px;
+
+  border-radius: 9px;
+
+  object-fit: cover;
+}
+
+/* -----------------------------------------
+   Text content
+----------------------------------------- */
+
+.ub-play-banner__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ub-play-banner__title {
+  display: block;
+
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.ub-play-banner__description {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.35;
+
+  color: rgba(255, 255, 255, 0.73);
+}
+
+.ub-play-banner--site
+.ub-play-banner__description {
+  color: #5a6c7d;
+}
+
+/* -----------------------------------------
+   Google Play CTA
+----------------------------------------- */
+
+.ub-play-banner__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  min-height: 44px;
+  padding: 0 11px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #14b8a6;
+  color: #00172b;
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease;
+}
+
+.ub-play-banner__link:hover {
+  background: #2dd4bf;
+  color: #00172b;
+  text-decoration: none;
+}
+
+/* -----------------------------------------
+   Dismiss button
+----------------------------------------- */
+
+.ub-play-banner__dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 32px;
+
+  width: 32px;
+  min-height: 44px;
+
+  padding: 0;
+  border: 0;
+
+  background: transparent;
+
+  color: currentColor;
+  opacity: 0.72;
+
+  font-size: 21px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    opacity 160ms ease;
+}
+
+.ub-play-banner__dismiss:hover {
+  opacity: 1;
+}
+
+/* -----------------------------------------
+   Keyboard accessibility
+----------------------------------------- */
+
+.ub-play-banner__link:focus-visible,
+.ub-play-banner__dismiss:focus-visible {
+  outline: 2px solid #5eead4;
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------
+   Narrow mobile — 360px and below
+----------------------------------------- */
+
+@media (max-width: 360px) {
+  .ub-play-banner {
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .ub-play-banner__icon {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .ub-play-banner__link {
+    padding-inline: 8px;
+  }
+
+  .ub-play-banner__dismiss {
+    flex-basis: 28px;
+    width: 28px;
+  }
+}
+
+/* -----------------------------------------
+   Reduced motion
+----------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ub-play-banner__link,
+  .ub-play-banner__dismiss {
+    transition: none;
+  }
+}
