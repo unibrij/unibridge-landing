@@ -1,0 +1,140 @@
+
+/* receive/css/responsive.css */
+
+/*
+--------------------------------------------------
+Hidden
+--------------------------------------------------
+*/
+
+[hidden] {
+  display: none !important;
+}
+
+
+/*
+--------------------------------------------------
+Mobile input sizing
+--------------------------------------------------
+*/
+
+@media (max-width: 430px) {
+  .receive-field input,
+  .receive-field select,
+  .receive-field textarea,
+  .receive-link-input,
+  .country-select-trigger,
+  .country-select-search,
+  .country-select-option {
+    font-size: 16px;
+  }
+}
+
+
+/*
+--------------------------------------------------
+Very small phones
+--------------------------------------------------
+*/
+
+@media (max-width: 360px) {
+  .receive-header h2 {
+    font-size: 23px;
+  }
+
+  .receive-card {
+    padding: 12px;
+  }
+}
+
+
+/*
+--------------------------------------------------
+Larger screens
+Progressive enhancement from mobile
+--------------------------------------------------
+*/
+
+@media (min-width: 431px) {
+  .receive-view {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .receive-card {
+    width: 100%;
+    max-width: 440px;
+
+    margin-top: 8px;
+    padding: 14px;
+
+    backdrop-filter:
+      blur(8px)
+      saturate(125%);
+
+    -webkit-backdrop-filter:
+      blur(8px)
+      saturate(125%);
+  }
+
+  .receive-header {
+    margin-bottom: 16px;
+  }
+
+  .receive-header h2 {
+    font-size: 28px;
+  }
+
+  .receive-header > p:not(.receive-eyebrow) {
+    font-size: 14px;
+  }
+
+  .receive-result-actions {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+  .receive-rate-sheet {
+    padding:
+      16px
+      16px
+      max(
+        16px,
+        env(safe-area-inset-bottom)
+      );
+  }
+
+  .receive-rate-panel {
+    width:
+      min(
+        100%,
+        440px
+      );
+
+    max-height:
+      min(
+        82dvh,
+        720px
+      );
+
+    padding:
+      10px
+      16px
+      18px;
+
+    border:
+      1px solid
+      rgba(94, 234, 212, 0.24);
+
+    border-radius:
+      22px
+      22px
+      18px
+      18px;
+  }
+
+  .receive-rate-header h2 {
+    font-size: 22px;
+  }
+}
