@@ -1,4 +1,5 @@
-// unibridge-landing/surface/app.js
+
+ // unibridge-landing/surface/app.js
 
 import {
   buildKycPayload as buildGenericKycPayload
@@ -43,6 +44,10 @@ import {
 import {
   createRampAvailability
 } from "./ramp-availability.js";
+
+import {
+  createSurfaceExecutorAvailability
+} from "./executor-availability.js";
 
 
 let initPromise = null;
@@ -455,6 +460,28 @@ async function init() {
 
 
   /* =========================
+     EXECUTOR AVAILABILITY
+  ========================= */
+
+  const executorAvailability =
+    createSurfaceExecutorAvailability({
+      state,
+      quoteBox,
+      getValue,
+      setStatus,
+
+      getReceiverCountry() {
+        return String(
+          (receiveBound
+            ? surfaceContext.getReceiveDestinationCountry()
+            : getValue("country")?.value) ?? ""
+        ).trim().toUpperCase();
+      },
+
+      continueFlow: paymentFlow.continueFlow
+    });
+
+  /* =========================
      PWA
   ========================= */
 
@@ -484,18 +511,20 @@ async function init() {
   paymentFlow
     .bindLifecycleEvents();
 
+  executorAvailability.bind();
+
 
   sendBtn.onclick =
     quoteFlow.startFlow;
 
   if (continueBtn) {
     continueBtn.onclick =
-      paymentFlow.continueFlow;
+      executorAvailability.guardedContinue;
   }
 
   if (coinsPhContinueBtn) {
     coinsPhContinueBtn.onclick =
-      paymentFlow.continueFlow;
+      executorAvailability.guardedContinue;
   }
 }
 
