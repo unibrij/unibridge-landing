@@ -1,3 +1,4 @@
+
 <!-- unibridge-landing/receive/index.html -->
 
 <!DOCTYPE html>
@@ -65,7 +66,7 @@
 
   <link
     rel="stylesheet"
-    href="/receive/styles.css?v=3"
+    href="/receive/styles.css?v=4"
   />
 
   <link
@@ -163,15 +164,30 @@
           class="receive-section"
           hidden
         >
-          <div class="receive-section-heading">
-            <h3>
-              Receiving details
-            </h3>
+          <div class="receive-privacy-note">
+            <div
+              class="receive-privacy-icon"
+              aria-hidden="true"
+            >
+              &#128274;
+            </div>
 
-            <p>
-              Enter the account or wallet details where
-              you want to receive the payout.
-            </p>
+            <div>
+              <h3>
+                Your payout details stay private.
+              </h3>
+
+              <p>
+                Enter the bank account or wallet where
+                you'd like to receive your money.
+              </p>
+
+              <p class="receive-privacy-emphasis">
+                Your sender only needs your
+                <strong>UB Code</strong>
+                — not your bank or wallet details.
+              </p>
+            </div>
           </div>
 
           <div
@@ -218,6 +234,11 @@
           >
             Create receive link
           </button>
+
+          <p class="receive-create-hint">
+            Your UB Code lets others send you money
+            without asking for your account details.
+          </p>
         </div>
 
       </section>
