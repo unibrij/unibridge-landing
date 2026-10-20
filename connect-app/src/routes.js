@@ -1,3 +1,4 @@
+
 // connect-app/src/routes.js
 
 export const FALLBACK_ROUTES = [
@@ -24,42 +25,8 @@ export const FALLBACK_ROUTES = [
   }
 ];
 
-const COMING_SOON_ROUTES = [
-  {
-    id: "mx_spei_coming_soon",
-    route_id: "mx_spei_coming_soon",
-    label: "Mexico SPEI — Coming soon",
-    country: "MX",
-    rail: "SPEI",
-    payout_rail: "spei",
-    network: "polygon",
-    asset: "USDC",
-    assets: ["USDC"],
-    disabled: true,
-    comingSoon: true,
-    status: "coming_soon",
-    beneficiaryFields: []
-  },
-  {
-    id: "in_upi_coming_soon",
-    route_id: "in_upi_coming_soon",
-    label: "India UPI — Coming soon",
-    country: "IN",
-    rail: "UPI",
-    payout_rail: "upi",
-    network: "polygon",
-    asset: "USDC",
-    assets: ["USDC"],
-    disabled: true,
-    comingSoon: true,
-    status: "coming_soon",
-    beneficiaryFields: []
-  }
-];
-
 export const ROUTES = [
-  ...FALLBACK_ROUTES,
-  ...COMING_SOON_ROUTES
+  ...FALLBACK_ROUTES
 ];
 
 
@@ -299,45 +266,6 @@ function routeMatchesId(
             normalizedRouteId
       )
     : false;
-}
-
-
-function hasRoute(
-  routeId,
-  routes = []
-) {
-  return routes.some(
-    route =>
-      routeMatchesId(
-        route,
-        routeId
-      )
-  );
-}
-
-
-function appendComingSoonRoutes(
-  routes = []
-) {
-  const result =
-    [...routes];
-
-  COMING_SOON_ROUTES.forEach(
-    route => {
-      if (
-        !hasRoute(
-          route.id,
-          result
-        )
-      ) {
-        result.push(
-          route
-        );
-      }
-    }
-  );
-
-  return result;
 }
 
 
@@ -783,9 +711,7 @@ export function normalizeBackendRoutes(
    * no live routes. Local fallbacks belong to the
    * route-discovery failure path only.
    */
-  return appendComingSoonRoutes(
-    grouped
-  );
+  return grouped;
 }
 
 
