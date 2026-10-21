@@ -1,51 +1,52 @@
 
-/* receive/css/privacy.css */
+/* unibridge-landing/receive/css/privacy.css */
 
 /*
 --------------------------------------------------
-Receive privacy reassurance — compact
+Receive privacy reassurance — subtle and compact
 --------------------------------------------------
 */
 
 .receive-privacy-note {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 8px;
 
-  margin: 0 0 12px;
-  padding: 10px 12px;
+  margin: 10px 0 14px;
+  padding: 8px 10px;
 
-  border: 1px solid rgba(94, 234, 212, 0.28);
-  border-radius: 12px;
-  background: rgba(20, 184, 166, 0.08);
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
 
   text-align: left;
 }
 
 .receive-privacy-icon {
   flex: 0 0 auto;
-  font-size: 19px;
-  line-height: 1.2;
+  font-size: 15px;
+  line-height: 1.35;
 }
 
 .receive-privacy-note h3 {
-  margin: 0 0 4px;
-  color: #ffffff;
-  font-size: 13px;
-  line-height: 1.3;
-  font-weight: 750;
+  margin: 0 0 2px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 650;
 }
 
 .receive-privacy-note p {
   margin: 0;
   color: var(--receive-muted);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .receive-privacy-note .receive-privacy-emphasis {
-  margin-top: 6px;
-  color: rgba(255, 255, 255, 0.92);
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .receive-privacy-emphasis strong {
