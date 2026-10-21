@@ -1,4 +1,5 @@
 
+
  // unibridge-landing/receive/receive-create.js
 
 import {
@@ -85,11 +86,6 @@ export function createReceiveCreateFlow({
   let creating = false;
   let createVersion = 0;
 
-  const privacyNote =
-    document.getElementById(
-      "receivePrivacyNote"
-    );
-
   const authBackdrop =
     document.getElementById(
       "receiveAuthBackdrop"
@@ -107,21 +103,6 @@ export function createReceiveCreateFlow({
           placeholder: "Choose receiving method"
         })
       : null;
-
-
-  /*
-  --------------------------------------------------
-  Privacy reassurance
-  --------------------------------------------------
-  */
-
-  function syncPrivacyUi() {
-    setHidden(
-      privacyNote,
-      !beneficiaryReady ||
-      !selectedRoute
-    );
-  }
 
 
   /*
@@ -210,8 +191,6 @@ export function createReceiveCreateFlow({
       els?.beneficiarySection,
       true
     );
-
-    syncPrivacyUi();
   }
 
 
@@ -277,8 +256,6 @@ export function createReceiveCreateFlow({
         els?.beneficiarySection,
         false
       );
-
-      syncPrivacyUi();
     }
     catch (error) {
       beneficiaryReady = false;
@@ -288,8 +265,6 @@ export function createReceiveCreateFlow({
       ) {
         return;
       }
-
-      syncPrivacyUi();
 
       showCreateError?.(
         error?.message ||
@@ -642,7 +617,6 @@ export function createReceiveCreateFlow({
 
     bindEvents();
     syncAuthUi();
-    syncPrivacyUi();
 
     const payload =
       await loadReceiveCatalog();
