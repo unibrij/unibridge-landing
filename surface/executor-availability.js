@@ -1,10 +1,8 @@
 
- // unibridge-landing/surface/executor-availability.js
+// unibridge-landing/surface/executor-availability.js
 
 import {
-  loadExecutorAvailability,
-  getExecutorAvailability,
-  describeExecutorAvailability
+  getExecutorAvailability
 } from "/shared/executor-availability/index.js";
 
 
@@ -16,26 +14,69 @@ export function createSurfaceExecutorAvailability({
   continueFlow,
   setStatus
 }) {
-  const notice = document.createElement("div");
-  notice.className = "status-box";
+  const notice = document.createElement("section");
+  notice.className = "ub-executor-notice";
   notice.setAttribute("role", "status");
   notice.setAttribute("aria-live", "polite");
   notice.hidden = true;
-  quoteBox.before(notice);
+
+  // Display the notice above Get quote.
+  const quoteButton =
+    getValue("sendBtn") ||
+    document.getElementById("sendBtn");
+
+  (quoteButton || quoteBox).before(notice);
 
   let refreshId = 0;
   let checking = false;
 
   function show(result) {
-    const visible =
-      !state.settlementId &&
-      result &&
-      result.status !== "live";
+    const status = !state.settlementId
+      ? result?.status
+      : null;
 
-    notice.hidden = !visible;
-    notice.textContent = visible
-      ? [result.label, result.message].filter(Boolean).join(" — ")
-      : "";
+    if (!status || status === "live") {
+      notice.hidden = true;
+      notice.replaceChildren();
+      return;
+    }
+
+    notice.dataset.status = status;
+
+    const icon = document.createElement("span");
+    icon.className = "ub-executor-notice__icon";
+    icon.setAttribute("aria-hidden", "true");
+
+    icon.textContent =
+      status === "testing" ? "⚠" :
+      status === "paused" ? "⛔" : "ⓘ";
+
+    const content = document.createElement("div");
+    content.className = "ub-executor-notice__content";
+
+    const label = document.createElement("span");
+    label.className = "ub-executor-notice__tag";
+
+    label.textContent =
+      status === "testing" ? "TESTING" :
+      status === "paused" ? "PAUSED" : "UNVERIFIED";
+
+    const heading = document.createElement("strong");
+    heading.className = "ub-executor-notice__heading";
+
+    heading.textContent =
+      status === "paused"
+        ? "Route unavailable"
+        : result.label || "Availability not verified";
+
+    const message = document.createElement("p");
+    message.className = "ub-executor-notice__message";
+    message.textContent = result.message || "";
+
+    content.append(label, heading, message);
+
+    notice.replaceChildren(icon, content);
+    notice.hidden = false;
   }
 
   async function refresh() {
@@ -43,38 +84,34 @@ export function createSurfaceExecutorAvailability({
     const country = getReceiverCountry();
     const route = state.currentRouteQuote?.route ?? null;
 
-    if (!country || state.settlementId) {
+    // Availability belongs to the selected executor,
+    // never to the destination country as a whole.
+    if (
+      !country ||
+      !route?.executor ||
+      state.settlementId
+    ) {
       show(null);
       return;
     }
 
-    let availability = null;
+    let availability;
 
-    if (route) {
+    try {
       availability = await getExecutorAvailability({
         executor_id: route.executor,
         country
       });
-    } else {
-      // Before quoting, show a country-level notice only
-      // when every registered executor has the same status.
-      try {
-        const states = await loadExecutorAvailability();
-        const matches = [...states.values()].filter(
-          item => item.country === country
-        );
-
-        if (
-          matches.length &&
-          matches.every(item => item.status === matches[0].status)
-        ) {
-          availability = describeExecutorAvailability(matches[0].status);
-        }
-      } catch {
-        availability = describeExecutorAvailability("unknown");
-      }
+    } catch {
+      availability = {
+        status: "unknown",
+        label: "Availability not verified",
+        message: "Payout route availability could not be verified.",
+        available: null
+      };
     }
 
+    // Ignore stale results when the user changes the route.
     if (
       id !== refreshId ||
       country !== getReceiverCountry() ||
@@ -90,7 +127,7 @@ export function createSurfaceExecutorAvailability({
   async function guardedContinue() {
     if (checking || state.processing) return;
 
-    // A created settlement can always resume its existing funding.
+    // Existing settlements may resume their funding.
     if (state.settlementId || state.pendingWidgetUrl) {
       return continueFlow();
     }
@@ -115,7 +152,7 @@ export function createSurfaceExecutorAvailability({
         force: true
       });
 
-      // Ignore a result from a quote the user has since changed.
+      // Ignore stale quotes or changed destinations.
       if (
         route !== state.currentRouteQuote?.route ||
         country !== getReceiverCountry() ||
@@ -144,12 +181,31 @@ export function createSurfaceExecutorAvailability({
   }
 
   function bind() {
-    getValue("country")?.addEventListener("change", refresh);
-    getValue("source_country")?.addEventListener("change", refresh);
-    getValue("amount")?.addEventListener("input", refresh);
-    window.addEventListener("unibridge:quote", refresh);
+    getValue("country")?.addEventListener(
+      "change",
+      refresh
+    );
+
+    getValue("source_country")?.addEventListener(
+      "change",
+      refresh
+    );
+
+    getValue("amount")?.addEventListener(
+      "input",
+      refresh
+    );
+
+    window.addEventListener(
+      "unibridge:quote",
+      refresh
+    );
+
     void refresh();
   }
 
-  return { bind, guardedContinue };
+  return {
+    bind,
+    guardedContinue
+  };
 }
