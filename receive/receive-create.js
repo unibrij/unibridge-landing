@@ -1,4 +1,5 @@
-// unibridge-landing/receive/receive-create.js
+
+ // unibridge-landing/receive/receive-create.js
 
 import {
   loadReceiveCatalog,
@@ -40,13 +41,11 @@ function setHidden(element, hidden) {
     return;
   }
 
-  element.hidden =
-    Boolean(hidden);
+  element.hidden = Boolean(hidden);
 }
 
 function readAuthBridge() {
-  const bridge =
-    window[AUTH_BRIDGE_KEY];
+  const bridge = window[AUTH_BRIDGE_KEY];
 
   return bridge &&
     typeof bridge === "object"
@@ -55,8 +54,7 @@ function readAuthBridge() {
 }
 
 function isSignedIn() {
-  const bridge =
-    readAuthBridge();
+  const bridge = readAuthBridge();
 
   return Boolean(
     bridge?.isLoaded &&
@@ -82,43 +80,77 @@ export function createReceiveCreateFlow({
   let fieldRenderVersion = 0;
   let eventsBound = false;
 
+  let authRequested = false;
+  let pendingCreate = null;
+  let creating = false;
+  let createVersion = 0;
+
   const railSelect =
     els?.payoutRail
       ? createReceiveSelect({
-          select:
-            els.payoutRail,
-
-          placeholder:
-            "Choose receiving method"
+          select: els.payoutRail,
+          placeholder: "Choose receiving method"
         })
       : null;
 
 
   function syncAuthUi() {
-    const signedIn =
-      isSignedIn();
+    const signedIn = isSignedIn();
 
     setHidden(
       els?.authSection,
-      signedIn
+      signedIn || !authRequested
     );
 
     return signedIn;
   }
 
 
+  function revealAuth() {
+    authRequested = true;
+
+    syncAuthUi();
+
+    if (!isSignedIn()) {
+      els?.authSection
+        ?.scrollIntoView?.({
+          behavior: "smooth",
+          block: "center"
+        });
+    }
+  }
+
+
+  function invalidatePendingCreate({
+    hideAuth = false
+  } = {}) {
+    createVersion += 1;
+    pendingCreate = null;
+
+    if (hideAuth) {
+      authRequested = false;
+    }
+
+    syncAuthUi();
+  }
+
+
   function resetBeneficiary() {
     fieldRenderVersion += 1;
+
     selectedRoute = null;
     beneficiaryReady = false;
+
+    // Changing route invalidates the previous
+    // request without interrupting Clerk login.
+    invalidatePendingCreate();
 
     cancelReceiveFieldRender(
       els?.beneficiaryFields
     );
 
     if (els?.beneficiaryFields) {
-      els.beneficiaryFields.innerHTML =
-        "";
+      els.beneficiaryFields.innerHTML = "";
     }
 
     setHidden(
@@ -129,9 +161,7 @@ export function createReceiveCreateFlow({
 
 
   function resetRail() {
-    railSelect?.setOptions(
-      []
-    );
+    railSelect?.setOptions([]);
 
     setHidden(
       els?.railSection,
@@ -146,33 +176,27 @@ export function createReceiveCreateFlow({
     clearCreateError?.();
     resetBeneficiary();
 
-    const country =
-      normalizeUpper(
-        els?.destinationCountry
-          ?.value
-      );
+    const country = normalizeUpper(
+      els?.destinationCountry?.value
+    );
 
-    const rail =
-      normalizeString(
-        els?.payoutRail
-          ?.value
-      );
+    const rail = normalizeString(
+      els?.payoutRail?.value
+    );
 
-    selectedRoute =
-      findReceiveRoute(
-        catalog,
-        {
-          country,
-          rail
-        }
-      );
+    selectedRoute = findReceiveRoute(
+      catalog,
+      {
+        country,
+        rail
+      }
+    );
 
     if (!selectedRoute) {
       return;
     }
 
-    const route =
-      selectedRoute;
+    const route = selectedRoute;
 
     beneficiaryReady = false;
 
@@ -181,17 +205,13 @@ export function createReceiveCreateFlow({
 
     try {
       await renderReceiveFields({
-        root:
-          els?.beneficiaryFields,
-
+        root: els?.beneficiaryFields,
         route
       });
 
       if (
-        renderVersion !==
-          fieldRenderVersion ||
-        selectedRoute !==
-          route
+        renderVersion !== fieldRenderVersion ||
+        selectedRoute !== route
       ) {
         return;
       }
@@ -207,8 +227,7 @@ export function createReceiveCreateFlow({
       beneficiaryReady = false;
 
       if (
-        renderVersion !==
-          fieldRenderVersion
+        renderVersion !== fieldRenderVersion
       ) {
         return;
       }
@@ -225,11 +244,9 @@ export function createReceiveCreateFlow({
     clearCreateError?.();
     resetRail();
 
-    const country =
-      normalizeUpper(
-        els?.destinationCountry
-          ?.value
-      );
+    const country = normalizeUpper(
+      els?.destinationCountry?.value
+    );
 
     if (
       !country ||
@@ -238,28 +255,20 @@ export function createReceiveCreateFlow({
       return;
     }
 
-    const rails =
-      railsForCountry(
-        catalog,
-        country
-      );
+    const rails = railsForCountry(
+      catalog,
+      country
+    );
 
     if (!rails.length) {
       return;
     }
 
     railSelect?.setOptions(
-      rails.map(
-        rail => ({
-          value:
-            rail,
-
-          label:
-            formatRailLabel(
-              rail
-            )
-        })
-      )
+      rails.map(rail => ({
+        value: rail,
+        label: formatRailLabel(rail)
+      }))
     );
 
     setHidden(
@@ -268,8 +277,7 @@ export function createReceiveCreateFlow({
     );
 
     if (rails.length === 1) {
-      els.payoutRail.value =
-        rails[0];
+      els.payoutRail.value = rails[0];
 
       railSelect?.sync();
 
@@ -278,7 +286,71 @@ export function createReceiveCreateFlow({
   }
 
 
+  async function submitCreate(request) {
+    if (
+      creating ||
+      !request ||
+      !isSignedIn()
+    ) {
+      return;
+    }
+
+    if (
+      request.version !== createVersion
+    ) {
+      return;
+    }
+
+    if (!els?.createButton) {
+      return;
+    }
+
+    creating = true;
+    pendingCreate = null;
+
+    const originalText =
+      els.createButton.textContent;
+
+    els.createButton.disabled = true;
+    els.createButton.textContent = "Creating…";
+
+    try {
+      const result =
+        await createReceiveProfile({
+          routeId: request.routeId,
+          beneficiary: request.beneficiary
+        });
+
+      authRequested = false;
+      syncAuthUi();
+
+      if (
+        typeof onCreated === "function"
+      ) {
+        await onCreated(result);
+      }
+    }
+    catch (error) {
+      showCreateError?.(
+        error?.message ||
+        "Unable to create receive link."
+      );
+    }
+    finally {
+      creating = false;
+
+      els.createButton.disabled = false;
+      els.createButton.textContent =
+        originalText;
+    }
+  }
+
+
   async function handleCreate() {
+    if (creating) {
+      return;
+    }
+
     clearCreateError?.();
 
     if (!selectedRoute) {
@@ -300,82 +372,92 @@ export function createReceiveCreateFlow({
     let beneficiary;
 
     try {
-      beneficiary =
-        collectReceiveBeneficiary(
-          els?.beneficiaryFields
-        );
-    }
-    catch (error) {
-      showCreateError?.(
-        error?.message
+      beneficiary = collectReceiveBeneficiary(
+        els?.beneficiaryFields
       );
-
-      return;
-    }
-
-    if (!syncAuthUi()) {
-      return;
-    }
-
-    if (!els?.createButton) {
-      return;
-    }
-
-    const originalText =
-      els.createButton
-        .textContent;
-
-    els.createButton.disabled =
-      true;
-
-    els.createButton.textContent =
-      "Creating…";
-
-    try {
-      const result =
-        await createReceiveProfile({
-          routeId:
-            selectedRoute
-              .route_id,
-
-          beneficiary
-        });
-
-      if (
-        typeof onCreated ===
-        "function"
-      ) {
-        await onCreated(
-          result
-        );
-      }
     }
     catch (error) {
       showCreateError?.(
         error?.message ||
+        "Enter valid receiving details."
+      );
+
+      return;
+    }
+
+    const request = {
+      routeId: selectedRoute.route_id,
+      beneficiary,
+      version: ++createVersion
+    };
+
+    if (!isSignedIn()) {
+      pendingCreate = request;
+
+      revealAuth();
+
+      return;
+    }
+
+    pendingCreate = null;
+
+    await submitCreate(request);
+  }
+
+
+  function handleAuthUpdated() {
+    const signedIn = syncAuthUi();
+
+    if (
+      !signedIn ||
+      !pendingCreate ||
+      creating
+    ) {
+      return;
+    }
+
+    const request = pendingCreate;
+
+    submitCreate(request).catch(error => {
+      showCreateError?.(
+        error?.message ||
         "Unable to create receive link."
       );
-    }
-    finally {
-      els.createButton.disabled =
-        false;
+    });
+  }
 
-      els.createButton.textContent =
-        originalText;
+
+  function handleBeneficiaryEdit() {
+    clearCreateError?.();
+
+    if (!pendingCreate) {
+      return;
     }
+
+    // Cancel automatic creation using
+    // previously entered payout details.
+    //
+    // Do not hide or reset Clerk.
+    // Let authentication finish normally.
+    //
+    // Once signed in, the user can click
+    // Create my UB Code again.
+    invalidatePendingCreate();
   }
 
 
   function reset() {
     clearCreateError?.();
 
+    invalidatePendingCreate({
+      hideAuth: true
+    });
+
     if (els?.destinationCountry) {
-      els.destinationCountry.value =
-        "";
+      els.destinationCountry.value = "";
     }
 
     resetRail();
-    syncAuthUi();
 
     showOnly?.(
       "receiveCreateView"
@@ -388,8 +470,7 @@ export function createReceiveCreateFlow({
       return;
     }
 
-    eventsBound =
-      true;
+    eventsBound = true;
 
     els?.destinationCountry
       ?.addEventListener(
@@ -422,17 +503,13 @@ export function createReceiveCreateFlow({
     els?.beneficiaryFields
       ?.addEventListener(
         "input",
-        () => {
-          clearCreateError?.();
-        }
+        handleBeneficiaryEdit
       );
 
     els?.beneficiaryFields
       ?.addEventListener(
         "change",
-        () => {
-          clearCreateError?.();
-        }
+        handleBeneficiaryEdit
       );
 
     els?.createButton
@@ -443,7 +520,7 @@ export function createReceiveCreateFlow({
 
     window.addEventListener(
       AUTH_EVENT,
-      syncAuthUi
+      handleAuthUpdated
     );
   }
 
@@ -453,16 +530,18 @@ export function createReceiveCreateFlow({
       "receiveCreateView"
     );
 
+    authRequested = false;
+    pendingCreate = null;
+
     bindEvents();
     syncAuthUi();
 
     const payload =
       await loadReceiveCatalog();
 
-    catalog =
-      buildReceiveCatalog(
-        payload
-      );
+    catalog = buildReceiveCatalog(
+      payload
+    );
 
     if (!catalog.length) {
       throw new Error(
