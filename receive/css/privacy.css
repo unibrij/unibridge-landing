@@ -7,12 +7,12 @@ Receive privacy reassurance — subtle and compact
 --------------------------------------------------
 */
 
-.receive-privacy-note {
+#receivePrivacyNote.receive-privacy-note {
   display: flex;
   align-items: flex-start;
   gap: 8px;
 
-  margin: 10px 0 14px;
+  margin: 0 0 14px;
   padding: 8px 10px;
 
   border: 0;
@@ -23,13 +23,35 @@ Receive privacy reassurance — subtle and compact
   text-align: left;
 }
 
-.receive-privacy-icon {
+/*
+--------------------------------------------------
+Spacing below beneficiary fields
+--------------------------------------------------
+*/
+
+#receiveBeneficiaryFields + #receivePrivacyNote {
+  margin-top: 22px;
+}
+
+/*
+--------------------------------------------------
+Privacy icon
+--------------------------------------------------
+*/
+
+#receivePrivacyNote .receive-privacy-icon {
   flex: 0 0 auto;
   font-size: 15px;
   line-height: 1.35;
 }
 
-.receive-privacy-note h3 {
+/*
+--------------------------------------------------
+Privacy text
+--------------------------------------------------
+*/
+
+#receivePrivacyNote h3 {
   margin: 0 0 2px;
   color: rgba(255, 255, 255, 0.9);
   font-size: 12px;
@@ -37,21 +59,37 @@ Receive privacy reassurance — subtle and compact
   font-weight: 650;
 }
 
-.receive-privacy-note p {
+#receivePrivacyNote p {
   margin: 0;
   color: var(--receive-muted);
   font-size: 11px;
   line-height: 1.4;
 }
 
-.receive-privacy-note .receive-privacy-emphasis {
+#receivePrivacyNote .receive-privacy-emphasis {
   margin-top: 4px;
   color: rgba(255, 255, 255, 0.9);
 }
 
-.receive-privacy-emphasis strong {
+#receivePrivacyNote .receive-privacy-emphasis strong {
   color: var(--receive-accent-soft);
 }
+
+/*
+--------------------------------------------------
+Hidden state
+--------------------------------------------------
+*/
+
+#receivePrivacyNote[hidden] {
+  display: none;
+}
+
+/*
+--------------------------------------------------
+Create hint
+--------------------------------------------------
+*/
 
 .receive-create-hint {
   margin: 0;
