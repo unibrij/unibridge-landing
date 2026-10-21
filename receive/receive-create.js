@@ -85,6 +85,21 @@ export function createReceiveCreateFlow({
   let creating = false;
   let createVersion = 0;
 
+  const privacyNote =
+    document.getElementById(
+      "receivePrivacyNote"
+    );
+
+  const authBackdrop =
+    document.getElementById(
+      "receiveAuthBackdrop"
+    );
+
+  const authCloseButton =
+    document.getElementById(
+      "receiveAuthCloseButton"
+    );
+
   const railSelect =
     els?.payoutRail
       ? createReceiveSelect({
@@ -93,6 +108,27 @@ export function createReceiveCreateFlow({
         })
       : null;
 
+
+  /*
+  --------------------------------------------------
+  Privacy reassurance
+  --------------------------------------------------
+  */
+
+  function syncPrivacyUi() {
+    setHidden(
+      privacyNote,
+      !beneficiaryReady ||
+      !selectedRoute
+    );
+  }
+
+
+  /*
+  --------------------------------------------------
+  Clerk authentication modal
+  --------------------------------------------------
+  */
 
   function syncAuthUi() {
     const signedIn = isSignedIn();
@@ -108,15 +144,26 @@ export function createReceiveCreateFlow({
 
   function revealAuth() {
     authRequested = true;
+    syncAuthUi();
+  }
+
+
+  function closeAuth() {
+    authRequested = false;
+    pendingCreate = null;
+    createVersion += 1;
 
     syncAuthUi();
+  }
 
-    if (!isSignedIn()) {
-      els?.authSection
-        ?.scrollIntoView?.({
-          behavior: "smooth",
-          block: "center"
-        });
+
+  function handleAuthKeydown(event) {
+    if (
+      event.key === "Escape" &&
+      authRequested &&
+      !isSignedIn()
+    ) {
+      closeAuth();
     }
   }
 
@@ -135,14 +182,20 @@ export function createReceiveCreateFlow({
   }
 
 
+  /*
+  --------------------------------------------------
+  Beneficiary and route selection
+  --------------------------------------------------
+  */
+
   function resetBeneficiary() {
     fieldRenderVersion += 1;
 
     selectedRoute = null;
     beneficiaryReady = false;
 
-    // Changing route invalidates the previous
-    // request without interrupting Clerk login.
+    // Route changes invalidate the pending
+    // request without interrupting Clerk.
     invalidatePendingCreate();
 
     cancelReceiveFieldRender(
@@ -157,6 +210,8 @@ export function createReceiveCreateFlow({
       els?.beneficiarySection,
       true
     );
+
+    syncPrivacyUi();
   }
 
 
@@ -222,6 +277,8 @@ export function createReceiveCreateFlow({
         els?.beneficiarySection,
         false
       );
+
+      syncPrivacyUi();
     }
     catch (error) {
       beneficiaryReady = false;
@@ -231,6 +288,8 @@ export function createReceiveCreateFlow({
       ) {
         return;
       }
+
+      syncPrivacyUi();
 
       showCreateError?.(
         error?.message ||
@@ -286,6 +345,12 @@ export function createReceiveCreateFlow({
   }
 
 
+  /*
+  --------------------------------------------------
+  Create receive profile
+  --------------------------------------------------
+  */
+
   async function submitCreate(request) {
     if (
       creating ||
@@ -331,6 +396,9 @@ export function createReceiveCreateFlow({
       }
     }
     catch (error) {
+      authRequested = false;
+      syncAuthUi();
+
       showCreateError?.(
         error?.message ||
         "Unable to create receive link."
@@ -405,6 +473,12 @@ export function createReceiveCreateFlow({
   }
 
 
+  /*
+  --------------------------------------------------
+  Authentication completion
+  --------------------------------------------------
+  */
+
   function handleAuthUpdated() {
     const signedIn = syncAuthUi();
 
@@ -437,14 +511,18 @@ export function createReceiveCreateFlow({
     // Cancel automatic creation using
     // previously entered payout details.
     //
-    // Do not hide or reset Clerk.
-    // Let authentication finish normally.
-    //
-    // Once signed in, the user can click
+    // Keep Clerk authentication running.
+    // After sign-in, the user can click
     // Create my UB Code again.
     invalidatePendingCreate();
   }
 
+
+  /*
+  --------------------------------------------------
+  Reset
+  --------------------------------------------------
+  */
 
   function reset() {
     clearCreateError?.();
@@ -464,6 +542,12 @@ export function createReceiveCreateFlow({
     );
   }
 
+
+  /*
+  --------------------------------------------------
+  Event bindings
+  --------------------------------------------------
+  */
 
   function bindEvents() {
     if (eventsBound) {
@@ -518,12 +602,35 @@ export function createReceiveCreateFlow({
         handleCreate
       );
 
+    authCloseButton
+      ?.addEventListener(
+        "click",
+        closeAuth
+      );
+
+    authBackdrop
+      ?.addEventListener(
+        "click",
+        closeAuth
+      );
+
+    document.addEventListener(
+      "keydown",
+      handleAuthKeydown
+    );
+
     window.addEventListener(
       AUTH_EVENT,
       handleAuthUpdated
     );
   }
 
+
+  /*
+  --------------------------------------------------
+  Initialization
+  --------------------------------------------------
+  */
 
   async function init() {
     showOnly?.(
@@ -535,6 +642,7 @@ export function createReceiveCreateFlow({
 
     bindEvents();
     syncAuthUi();
+    syncPrivacyUi();
 
     const payload =
       await loadReceiveCatalog();
