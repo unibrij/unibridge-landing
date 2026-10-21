@@ -31,7 +31,6 @@ export function createReceiveCreateFlow({
 } = {}) {
   let pendingCreate = null;
   let creating = false;
-  let restoring = false;
   let initialized = false;
   let initializing = false;
 
@@ -104,7 +103,6 @@ export function createReceiveCreateFlow({
   async function submitCreate(request) {
     if (
       creating ||
-      restoring ||
       !request ||
       !isSignedIn() ||
       request.version !== createVersion ||
@@ -162,7 +160,6 @@ export function createReceiveCreateFlow({
 
   function handleAuthenticated() {
     if (
-      restoring ||
       creating ||
       !pendingCreate
     ) {
@@ -194,7 +191,6 @@ export function createReceiveCreateFlow({
           force: true
         });
 
-        // Cancel any active restoration.
         formController.cancelRestore();
       }
     });
@@ -207,7 +203,7 @@ export function createReceiveCreateFlow({
   */
 
   async function handleCreate() {
-    if (creating || restoring || initializing) {
+    if (creating || initializing) {
       return;
     }
 
@@ -245,69 +241,6 @@ export function createReceiveCreateFlow({
     clearPendingCreate();
 
     await submitCreate(request);
-  }
-
-
-  /*
-  --------------------------------------------------
-  Restore after Clerk redirect
-  --------------------------------------------------
-  */
-
-  async function restorePendingCreate(saved) {
-    if (!saved || creating || restoring) {
-      return;
-    }
-
-    const version = ++createVersion;
-
-    restoring = true;
-
-    let restoredRequest = null;
-
-    try {
-      const details =
-        await formController.restore(saved);
-
-      if (version !== createVersion) {
-        return;
-      }
-
-      restoredRequest = {
-        ...details,
-        version
-      };
-
-      pendingCreate = restoredRequest;
-
-      if (!isSignedIn()) {
-        authController.revealAuth();
-      }
-    } catch (error) {
-      if (version === createVersion) {
-        pendingCreate = null;
-        clearPendingCreate();
-
-        authController.hideAuth();
-
-        showCreateError?.(
-          error?.message ||
-          "Unable to restore receiving details."
-        );
-      }
-    } finally {
-      restoring = false;
-    }
-
-    // Clerk may have completed while
-    // the form was being restored.
-    if (
-      version === createVersion &&
-      restoredRequest &&
-      isSignedIn()
-    ) {
-      await submitCreate(restoredRequest);
-    }
   }
 
 
@@ -377,7 +310,6 @@ export function createReceiveCreateFlow({
     if (
       initialized ||
       initializing ||
-      restoring ||
       creating
     ) {
       authController.syncAuthUi();
@@ -411,8 +343,19 @@ export function createReceiveCreateFlow({
 
       initialized = true;
 
+      // Resume directly from the saved request.
+      // No need to rebuild beneficiary fields.
       if (saved) {
-        await restorePendingCreate(saved);
+        pendingCreate = {
+          ...saved,
+          version: ++createVersion
+        };
+
+        if (isSignedIn()) {
+          await submitCreate(pendingCreate);
+        } else {
+          authController.revealAuth();
+        }
       } else {
         await formController.handleCountryChange();
       }
