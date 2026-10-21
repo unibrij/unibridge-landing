@@ -1,5 +1,7 @@
 
-/* partials/pay/css/pay-common.css */
+/* unibridge-landing/partials/pay/css/pay-common.css */
+
+@import url("./executor-availability.css?v=1");
 
 html,
 body {
