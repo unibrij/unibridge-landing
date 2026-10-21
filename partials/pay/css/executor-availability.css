@@ -1,0 +1,109 @@
+
+/* unibridge-landing/partials/pay/css/executor-availability.css */
+
+/* -----------------------------------------
+   Executor Availability Notice
+   Live Testing / Paused / Unknown
+----------------------------------------- */
+
+.ub-executor-notice {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 16px 0;
+  padding: 18px 16px;
+  border: 1px solid var(--ub-notice-accent);
+  border-left: 7px solid var(--ub-notice-accent);
+  border-radius: 16px;
+  background: var(--ub-notice-bg);
+  box-shadow: 0 0 20px var(--ub-notice-glow);
+  color: #f8fafc;
+}
+
+.ub-executor-notice[hidden] {
+  display: none !important;
+}
+
+.ub-executor-notice[data-status="testing"] {
+  --ub-notice-accent: #fbbf24;
+  --ub-notice-bg: linear-gradient(
+    105deg,
+    #332910 0%,
+    #222323 100%
+  );
+  --ub-notice-glow: rgba(251, 191, 36, 0.14);
+}
+
+.ub-executor-notice[data-status="paused"] {
+  --ub-notice-accent: #ff4757;
+  --ub-notice-bg: linear-gradient(
+    105deg,
+    #3b1420 0%,
+    #231a2e 100%
+  );
+  --ub-notice-glow: rgba(255, 71, 87, 0.16);
+}
+
+.ub-executor-notice[data-status="unknown"] {
+  --ub-notice-accent: #93a4b8;
+  --ub-notice-bg: #17263d;
+  --ub-notice-glow: transparent;
+}
+
+.ub-executor-notice__icon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ub-notice-accent);
+  border-radius: 50%;
+  color: var(--ub-notice-accent);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.ub-executor-notice__content {
+  min-width: 0;
+}
+
+.ub-executor-notice__tag {
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--ub-notice-accent);
+  color: #08152c;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.ub-executor-notice__heading {
+  display: block;
+  margin: 8px 0;
+  font-size: 19px;
+  line-height: 1.25;
+  font-weight: 750;
+}
+
+.ub-executor-notice__message {
+  margin: 0;
+  color: #e1e7ef;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 390px) {
+  .ub-executor-notice {
+    gap: 12px;
+    padding: 15px 12px;
+  }
+
+  .ub-executor-notice__icon {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 21px;
+  }
+}
