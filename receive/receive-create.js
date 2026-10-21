@@ -1,6 +1,5 @@
 
-
- // unibridge-landing/receive/receive-create.js
+// unibridge-landing/receive/receive-create.js
 
 import {
   loadReceiveCatalog,
@@ -8,64 +7,20 @@ import {
 } from "./receive-api.js";
 
 import {
-  buildReceiveCatalog,
-  railsForCountry,
-  findReceiveRoute,
-  formatRailLabel,
-  renderReceiveFields,
-  collectReceiveBeneficiary,
-  cancelReceiveFieldRender
+  buildReceiveCatalog
 } from "./receive-form.js";
 
 import {
-  createReceiveSelect
-} from "./receive-select.js";
+  createReceiveAuthController,
+  isSignedIn,
+  savePendingCreate,
+  readPendingCreate,
+  clearPendingCreate
+} from "./create/receive-create-auth.js";
 
-
-const AUTH_BRIDGE_KEY =
-  "__fiatClerkAuth";
-
-const AUTH_EVENT =
-  "fiat-clerk-auth-updated";
-
-
-function normalizeString(value) {
-  return String(value ?? "").trim();
-}
-
-function normalizeUpper(value) {
-  return normalizeString(value).toUpperCase();
-}
-
-function setHidden(element, hidden) {
-  if (!element) {
-    return;
-  }
-
-  element.hidden = Boolean(hidden);
-}
-
-function readAuthBridge() {
-  const bridge = window[AUTH_BRIDGE_KEY];
-
-  return bridge &&
-    typeof bridge === "object"
-      ? bridge
-      : null;
-}
-
-function isSignedIn() {
-  const bridge = readAuthBridge();
-
-  return Boolean(
-    bridge?.isLoaded &&
-    bridge?.isSignedIn &&
-    normalizeString(
-      bridge?.auth_subject_id ||
-      bridge?.userId
-    )
-  );
-}
+import {
+  createReceiveFormController
+} from "./create/receive-create-form.js";
 
 
 export function createReceiveCreateFlow({
@@ -75,16 +30,15 @@ export function createReceiveCreateFlow({
   showCreateError,
   onCreated
 } = {}) {
-  let catalog = [];
-  let selectedRoute = null;
-  let beneficiaryReady = false;
-  let fieldRenderVersion = 0;
-  let eventsBound = false;
-
-  let authRequested = false;
   let pendingCreate = null;
   let creating = false;
+  let restoring = false;
+  let initialized = false;
+  let initializing = false;
+
   let createVersion = 0;
+  let initVersion = 0;
+  let eventsBound = false;
 
   const authBackdrop =
     document.getElementById(
@@ -96,263 +50,83 @@ export function createReceiveCreateFlow({
       "receiveAuthCloseButton"
     );
 
-  const railSelect =
-    els?.payoutRail
-      ? createReceiveSelect({
-          select: els.payoutRail,
-          placeholder: "Choose receiving method"
-        })
-      : null;
-
 
   /*
   --------------------------------------------------
-  Clerk authentication modal
+  Pending request lifecycle
   --------------------------------------------------
   */
-
-  function syncAuthUi() {
-    const signedIn = isSignedIn();
-
-    setHidden(
-      els?.authSection,
-      signedIn || !authRequested
-    );
-
-    return signedIn;
-  }
-
-
-  function revealAuth() {
-    authRequested = true;
-    syncAuthUi();
-  }
-
-
-  function closeAuth() {
-    authRequested = false;
-    pendingCreate = null;
-    createVersion += 1;
-
-    syncAuthUi();
-  }
-
-
-  function handleAuthKeydown(event) {
-    if (
-      event.key === "Escape" &&
-      authRequested &&
-      !isSignedIn()
-    ) {
-      closeAuth();
-    }
-  }
-
 
   function invalidatePendingCreate({
-    hideAuth = false
+    hideAuth = false,
+    force = false
   } = {}) {
-    createVersion += 1;
-    pendingCreate = null;
+    const hasPending =
+      Boolean(pendingCreate) ||
+      Boolean(readPendingCreate());
 
-    if (hideAuth) {
-      authRequested = false;
+    if (force || hasPending) {
+      createVersion += 1;
     }
 
-    syncAuthUi();
+    pendingCreate = null;
+    clearPendingCreate();
+
+    if (hideAuth) {
+      authController.hideAuth();
+    }
   }
 
 
   /*
   --------------------------------------------------
-  Beneficiary and route selection
+  Form controller
   --------------------------------------------------
   */
 
-  function resetBeneficiary() {
-    fieldRenderVersion += 1;
+  const formController =
+    createReceiveFormController({
+      els,
+      clearCreateError,
+      showCreateError,
 
-    selectedRoute = null;
-    beneficiaryReady = false;
-
-    // Route changes invalidate the pending
-    // request without interrupting Clerk.
-    invalidatePendingCreate();
-
-    cancelReceiveFieldRender(
-      els?.beneficiaryFields
-    );
-
-    if (els?.beneficiaryFields) {
-      els.beneficiaryFields.innerHTML = "";
-    }
-
-    setHidden(
-      els?.beneficiarySection,
-      true
-    );
-  }
-
-
-  function resetRail() {
-    railSelect?.setOptions([]);
-
-    setHidden(
-      els?.railSection,
-      true
-    );
-
-    resetBeneficiary();
-  }
-
-
-  async function handleRailChange() {
-    clearCreateError?.();
-    resetBeneficiary();
-
-    const country = normalizeUpper(
-      els?.destinationCountry?.value
-    );
-
-    const rail = normalizeString(
-      els?.payoutRail?.value
-    );
-
-    selectedRoute = findReceiveRoute(
-      catalog,
-      {
-        country,
-        rail
+      onInvalidatePending: () => {
+        invalidatePendingCreate();
       }
-    );
-
-    if (!selectedRoute) {
-      return;
-    }
-
-    const route = selectedRoute;
-
-    beneficiaryReady = false;
-
-    const renderVersion =
-      ++fieldRenderVersion;
-
-    try {
-      await renderReceiveFields({
-        root: els?.beneficiaryFields,
-        route
-      });
-
-      if (
-        renderVersion !== fieldRenderVersion ||
-        selectedRoute !== route
-      ) {
-        return;
-      }
-
-      beneficiaryReady = true;
-
-      setHidden(
-        els?.beneficiarySection,
-        false
-      );
-    }
-    catch (error) {
-      beneficiaryReady = false;
-
-      if (
-        renderVersion !== fieldRenderVersion
-      ) {
-        return;
-      }
-
-      showCreateError?.(
-        error?.message ||
-        "Unable to load receiving details."
-      );
-    }
-  }
-
-
-  async function handleCountryChange() {
-    clearCreateError?.();
-    resetRail();
-
-    const country = normalizeUpper(
-      els?.destinationCountry?.value
-    );
-
-    if (
-      !country ||
-      !els?.payoutRail
-    ) {
-      return;
-    }
-
-    const rails = railsForCountry(
-      catalog,
-      country
-    );
-
-    if (!rails.length) {
-      return;
-    }
-
-    railSelect?.setOptions(
-      rails.map(rail => ({
-        value: rail,
-        label: formatRailLabel(rail)
-      }))
-    );
-
-    setHidden(
-      els.railSection,
-      false
-    );
-
-    if (rails.length === 1) {
-      els.payoutRail.value = rails[0];
-
-      railSelect?.sync();
-
-      await handleRailChange();
-    }
-  }
+    });
 
 
   /*
   --------------------------------------------------
-  Create receive profile
+  Submit
   --------------------------------------------------
   */
 
   async function submitCreate(request) {
     if (
       creating ||
+      restoring ||
       !request ||
-      !isSignedIn()
+      !isSignedIn() ||
+      request.version !== createVersion ||
+      !els?.createButton
     ) {
-      return;
-    }
-
-    if (
-      request.version !== createVersion
-    ) {
-      return;
-    }
-
-    if (!els?.createButton) {
       return;
     }
 
     creating = true;
+
+    // Consume before POST to prevent
+    // duplicate submissions from Clerk events.
     pendingCreate = null;
+    clearPendingCreate();
 
     const originalText =
       els.createButton.textContent;
 
     els.createButton.disabled = true;
-    els.createButton.textContent = "Creating…";
+    els.createButton.textContent =
+      "Creating…";
 
     try {
       const result =
@@ -361,25 +135,17 @@ export function createReceiveCreateFlow({
           beneficiary: request.beneficiary
         });
 
-      authRequested = false;
-      syncAuthUi();
+      authController.hideAuth();
 
-      if (
-        typeof onCreated === "function"
-      ) {
-        await onCreated(result);
-      }
-    }
-    catch (error) {
-      authRequested = false;
-      syncAuthUi();
+      await onCreated?.(result);
+    } catch (error) {
+      authController.hideAuth();
 
       showCreateError?.(
         error?.message ||
         "Unable to create receive link."
       );
-    }
-    finally {
+    } finally {
       creating = false;
 
       els.createButton.disabled = false;
@@ -389,37 +155,71 @@ export function createReceiveCreateFlow({
   }
 
 
+  /*
+  --------------------------------------------------
+  Authentication completion
+  --------------------------------------------------
+  */
+
+  function handleAuthenticated() {
+    if (
+      restoring ||
+      creating ||
+      !pendingCreate
+    ) {
+      return;
+    }
+
+    submitCreate(pendingCreate).catch(
+      error => {
+        showCreateError?.(
+          error?.message ||
+          "Unable to create receive link."
+        );
+      }
+    );
+  }
+
+
+  const authController =
+    createReceiveAuthController({
+      authSection: els?.authSection,
+      authBackdrop,
+      authCloseButton,
+
+      onAuthenticated:
+        handleAuthenticated,
+
+      onCancel: () => {
+        invalidatePendingCreate({
+          force: true
+        });
+
+        // Cancel any active restoration.
+        formController.cancelRestore();
+      }
+    });
+
+
+  /*
+  --------------------------------------------------
+  Create button
+  --------------------------------------------------
+  */
+
   async function handleCreate() {
-    if (creating) {
+    if (creating || restoring || initializing) {
       return;
     }
 
     clearCreateError?.();
 
-    if (!selectedRoute) {
-      showCreateError?.(
-        "Choose a receiving method."
-      );
-
-      return;
-    }
-
-    if (!beneficiaryReady) {
-      showCreateError?.(
-        "Receiving details are still loading."
-      );
-
-      return;
-    }
-
-    let beneficiary;
+    let details;
 
     try {
-      beneficiary = collectReceiveBeneficiary(
-        els?.beneficiaryFields
-      );
-    }
-    catch (error) {
+      details =
+        formController.collectRequest();
+    } catch (error) {
       showCreateError?.(
         error?.message ||
         "Enter valid receiving details."
@@ -429,20 +229,21 @@ export function createReceiveCreateFlow({
     }
 
     const request = {
-      routeId: selectedRoute.route_id,
-      beneficiary,
+      ...details,
       version: ++createVersion
     };
 
     if (!isSignedIn()) {
       pendingCreate = request;
 
-      revealAuth();
+      savePendingCreate(request);
 
+      authController.revealAuth();
       return;
     }
 
     pendingCreate = null;
+    clearPendingCreate();
 
     await submitCreate(request);
   }
@@ -450,46 +251,64 @@ export function createReceiveCreateFlow({
 
   /*
   --------------------------------------------------
-  Authentication completion
+  Restore after Clerk redirect
   --------------------------------------------------
   */
 
-  function handleAuthUpdated() {
-    const signedIn = syncAuthUi();
+  async function restorePendingCreate(saved) {
+    if (!saved || creating || restoring) {
+      return;
+    }
 
+    const version = ++createVersion;
+
+    restoring = true;
+
+    let restoredRequest = null;
+
+    try {
+      const details =
+        await formController.restore(saved);
+
+      if (version !== createVersion) {
+        return;
+      }
+
+      restoredRequest = {
+        ...details,
+        version
+      };
+
+      pendingCreate = restoredRequest;
+
+      if (!isSignedIn()) {
+        authController.revealAuth();
+      }
+    } catch (error) {
+      if (version === createVersion) {
+        pendingCreate = null;
+        clearPendingCreate();
+
+        authController.hideAuth();
+
+        showCreateError?.(
+          error?.message ||
+          "Unable to restore receiving details."
+        );
+      }
+    } finally {
+      restoring = false;
+    }
+
+    // Clerk may have completed while
+    // the form was being restored.
     if (
-      !signedIn ||
-      !pendingCreate ||
-      creating
+      version === createVersion &&
+      restoredRequest &&
+      isSignedIn()
     ) {
-      return;
+      await submitCreate(restoredRequest);
     }
-
-    const request = pendingCreate;
-
-    submitCreate(request).catch(error => {
-      showCreateError?.(
-        error?.message ||
-        "Unable to create receive link."
-      );
-    });
-  }
-
-
-  function handleBeneficiaryEdit() {
-    clearCreateError?.();
-
-    if (!pendingCreate) {
-      return;
-    }
-
-    // Cancel automatic creation using
-    // previously entered payout details.
-    //
-    // Keep Clerk authentication running.
-    // After sign-in, the user can click
-    // Create my UB Code again.
-    invalidatePendingCreate();
   }
 
 
@@ -502,15 +321,15 @@ export function createReceiveCreateFlow({
   function reset() {
     clearCreateError?.();
 
+    initVersion += 1;
+    initialized = false;
+
     invalidatePendingCreate({
-      hideAuth: true
+      hideAuth: true,
+      force: true
     });
 
-    if (els?.destinationCountry) {
-      els.destinationCountry.value = "";
-    }
-
-    resetRail();
+    formController.reset();
 
     showOnly?.(
       "receiveCreateView"
@@ -531,72 +350,12 @@ export function createReceiveCreateFlow({
 
     eventsBound = true;
 
-    els?.destinationCountry
-      ?.addEventListener(
-        "change",
-        () => {
-          handleCountryChange()
-            .catch(error => {
-              showCreateError?.(
-                error?.message ||
-                "Unable to update receiving route."
-              );
-            });
-        }
-      );
+    formController.bindEvents();
+    authController.bindEvents();
 
-    els?.payoutRail
-      ?.addEventListener(
-        "change",
-        () => {
-          handleRailChange()
-            .catch(error => {
-              showCreateError?.(
-                error?.message ||
-                "Unable to load receiving details."
-              );
-            });
-        }
-      );
-
-    els?.beneficiaryFields
-      ?.addEventListener(
-        "input",
-        handleBeneficiaryEdit
-      );
-
-    els?.beneficiaryFields
-      ?.addEventListener(
-        "change",
-        handleBeneficiaryEdit
-      );
-
-    els?.createButton
-      ?.addEventListener(
-        "click",
-        handleCreate
-      );
-
-    authCloseButton
-      ?.addEventListener(
-        "click",
-        closeAuth
-      );
-
-    authBackdrop
-      ?.addEventListener(
-        "click",
-        closeAuth
-      );
-
-    document.addEventListener(
-      "keydown",
-      handleAuthKeydown
-    );
-
-    window.addEventListener(
-      AUTH_EVENT,
-      handleAuthUpdated
+    els?.createButton?.addEventListener(
+      "click",
+      handleCreate
     );
   }
 
@@ -612,26 +371,61 @@ export function createReceiveCreateFlow({
       "receiveCreateView"
     );
 
-    authRequested = false;
-    pendingCreate = null;
-
     bindEvents();
-    syncAuthUi();
 
-    const payload =
-      await loadReceiveCatalog();
-
-    catalog = buildReceiveCatalog(
-      payload
-    );
-
-    if (!catalog.length) {
-      throw new Error(
-        "No receive routes are currently available."
-      );
+    // Repeated init must not interrupt
+    // an active form or Clerk session.
+    if (
+      initialized ||
+      initializing ||
+      restoring ||
+      creating
+    ) {
+      authController.syncAuthUi();
+      return;
     }
 
-    await handleCountryChange();
+    const version = ++initVersion;
+
+    initializing = true;
+
+    try {
+      const saved = readPendingCreate();
+
+      const payload =
+        await loadReceiveCatalog();
+
+      if (version !== initVersion) {
+        return;
+      }
+
+      const catalog =
+        buildReceiveCatalog(payload);
+
+      if (!catalog.length) {
+        throw new Error(
+          "No receive routes are currently available."
+        );
+      }
+
+      formController.setCatalog(catalog);
+
+      initialized = true;
+
+      if (saved) {
+        await restorePendingCreate(saved);
+      } else {
+        await formController.handleCountryChange();
+      }
+
+      if (version !== initVersion) {
+        return;
+      }
+
+      authController.syncAuthUi();
+    } finally {
+      initializing = false;
+    }
   }
 
 
