@@ -66,7 +66,7 @@
 
   <link
     rel="stylesheet"
-    href="/receive/styles.css?v=4"
+    href="/receive/styles.css?v=5"
   />
 
   <link
@@ -164,25 +164,6 @@
           class="receive-section"
           hidden
         >
-          <div class="receive-privacy-note">
-            <div
-              class="receive-privacy-icon"
-              aria-hidden="true"
-            >
-              &#128274;
-            </div>
-
-            <div>
-              <h3>
-                Your payout details stay private.
-              </h3>
-
-              <p>
-                UniBridge never asks for your bank password, PIN, or verification codes.
-              </p>
-            </div>
-          </div>
-
           <div
             id="receiveBeneficiaryFields"
             class="receive-beneficiary-fields"
@@ -190,25 +171,31 @@
         </section>
 
 
-        <!-- RECEIVE AUTH -->
+        <!-- RECEIVE PRIVACY REASSURANCE -->
 
-        <section
-          id="receiveAuthSection"
-          class="receive-section"
+        <div
+          id="receivePrivacyNote"
+          class="receive-privacy-note"
           hidden
         >
-          <div class="receive-section-heading">
+          <div
+            class="receive-privacy-icon"
+            aria-hidden="true"
+          >
+            &#128274;
+          </div>
+
+          <div>
             <h3>
-              Sign in to continue
+              Your payout details stay private.
             </h3>
 
             <p>
-              Sign in to create and manage your receive link.
+              UniBridge never asks for your bank password,
+              PIN, or verification codes.
             </p>
           </div>
-
-          <section id="fiatReactRoot"></section>
-        </section>
+        </div>
 
 
         <div
@@ -230,6 +217,51 @@
         </div>
 
       </section>
+    </section>
+
+
+    <!-- RECEIVE AUTH MODAL -->
+
+    <section
+      id="receiveAuthSection"
+      class="receive-auth-modal"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receiveAuthTitle"
+    >
+      <button
+        id="receiveAuthBackdrop"
+        class="receive-auth-backdrop"
+        type="button"
+        aria-label="Close sign in"
+      ></button>
+
+      <div class="receive-auth-panel">
+
+        <button
+          id="receiveAuthCloseButton"
+          class="receive-auth-close"
+          type="button"
+          aria-label="Close"
+        >
+          &times;
+        </button>
+
+        <div class="receive-auth-heading">
+          <h3 id="receiveAuthTitle">
+            Sign in to continue
+          </h3>
+
+          <p>
+            Create and save your UB Code
+            with your secure UniBridge account.
+          </p>
+        </div>
+
+        <section id="fiatReactRoot"></section>
+
+      </div>
     </section>
 
 
