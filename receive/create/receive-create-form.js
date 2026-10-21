@@ -40,7 +40,9 @@ export function createReceiveFormController({
   let catalog = [];
   let selectedRoute = null;
   let beneficiaryReady = false;
+
   let fieldRenderVersion = 0;
+  let restoreVersion = 0;
   let restoring = false;
   let eventsBound = false;
 
@@ -117,7 +119,7 @@ export function createReceiveFormController({
     }
 
     const route = selectedRoute;
-    const renderVersion = ++fieldRenderVersion;
+    const version = ++fieldRenderVersion;
 
     try {
       await renderReceiveFields({
@@ -126,7 +128,7 @@ export function createReceiveFormController({
       });
 
       if (
-        renderVersion !== fieldRenderVersion ||
+        version !== fieldRenderVersion ||
         selectedRoute !== route
       ) {
         return;
@@ -139,7 +141,7 @@ export function createReceiveFormController({
         false
       );
     } catch (error) {
-      if (renderVersion !== fieldRenderVersion) {
+      if (version !== fieldRenderVersion) {
         return;
       }
 
@@ -208,11 +210,6 @@ export function createReceiveFormController({
       );
     }
 
-    const beneficiary =
-      collectReceiveBeneficiary(
-        els?.beneficiaryFields
-      );
-
     return {
       routeId: selectedRoute.route_id,
       country: normalizeUpper(
@@ -221,17 +218,39 @@ export function createReceiveFormController({
       rail: normalizeString(
         els?.payoutRail?.value
       ),
-      beneficiary
+      beneficiary: collectReceiveBeneficiary(
+        els?.beneficiaryFields
+      )
     };
   }
 
 
+  function cancelRestore() {
+    restoreVersion += 1;
+    restoring = false;
+    fieldRenderVersion += 1;
+
+    cancelReceiveFieldRender(
+      els?.beneficiaryFields
+    );
+  }
+
+
   async function restore(saved) {
+    const version = ++restoreVersion;
     restoring = true;
 
+    function assertCurrent() {
+      if (version !== restoreVersion) {
+        throw new Error(
+          "Receive form restoration cancelled."
+        );
+      }
+    }
+
     try {
-      const country = normalizeUpper(saved.country);
-      const rail = normalizeString(saved.rail);
+      const country = normalizeUpper(saved?.country);
+      const rail = normalizeString(saved?.rail);
 
       const route = findReceiveRoute(
         catalog,
@@ -241,7 +260,7 @@ export function createReceiveFormController({
       if (
         !route ||
         normalizeString(route.route_id) !==
-          normalizeString(saved.routeId)
+          normalizeString(saved?.routeId)
       ) {
         throw new Error(
           "Receiving method changed. Please select it again."
@@ -250,11 +269,8 @@ export function createReceiveFormController({
 
       els.destinationCountry.value = country;
 
-      els.destinationCountry.dispatchEvent(
-        new Event("change", { bubbles: true })
-      );
-
       await handleCountryChange();
+      assertCurrent();
 
       if (
         normalizeUpper(
@@ -285,6 +301,8 @@ export function createReceiveFormController({
       ) {
         await handleRailChange();
       }
+
+      assertCurrent();
 
       if (
         !beneficiaryReady ||
@@ -327,6 +345,8 @@ export function createReceiveFormController({
         }
       }
 
+      assertCurrent();
+
       const beneficiary =
         collectReceiveBeneficiary(
           els.beneficiaryFields
@@ -359,17 +379,16 @@ export function createReceiveFormController({
         beneficiary
       };
     } finally {
-      restoring = false;
+      if (version === restoreVersion) {
+        restoring = false;
+      }
     }
   }
 
 
   function handleBeneficiaryEdit() {
     clearCreateError?.();
-
-    if (!restoring) {
-      onInvalidatePending?.();
-    }
+    invalidatePending();
   }
 
 
@@ -383,7 +402,8 @@ export function createReceiveFormController({
     els?.destinationCountry?.addEventListener(
       "change",
       () => {
-        if (restoring) return;
+        cancelRestore();
+        onInvalidatePending?.();
 
         handleCountryChange().catch(error => {
           showCreateError?.(
@@ -397,7 +417,8 @@ export function createReceiveFormController({
     els?.payoutRail?.addEventListener(
       "change",
       () => {
-        if (restoring) return;
+        cancelRestore();
+        onInvalidatePending?.();
 
         handleRailChange().catch(error => {
           showCreateError?.(
@@ -421,6 +442,8 @@ export function createReceiveFormController({
 
 
   function reset() {
+    cancelRestore();
+
     if (els?.destinationCountry) {
       els.destinationCountry.value = "";
     }
@@ -442,6 +465,7 @@ export function createReceiveFormController({
     handleCountryChange,
     collectRequest,
     restore,
+    cancelRestore,
     reset
   };
 }
