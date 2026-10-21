@@ -3,20 +3,20 @@
 
 /*
 --------------------------------------------------
-Receive privacy reassurance
+Receive privacy reassurance — compact
 --------------------------------------------------
 */
 
 .receive-privacy-note {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 9px;
 
-  margin: 0 0 14px;
-  padding: 13px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
 
   border: 1px solid rgba(94, 234, 212, 0.28);
-  border-radius: 14px;
+  border-radius: 12px;
   background: rgba(20, 184, 166, 0.08);
 
   text-align: left;
@@ -24,27 +24,27 @@ Receive privacy reassurance
 
 .receive-privacy-icon {
   flex: 0 0 auto;
-  font-size: 23px;
-  line-height: 1.3;
+  font-size: 19px;
+  line-height: 1.2;
 }
 
 .receive-privacy-note h3 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: #ffffff;
-  font-size: 14px;
-  line-height: 1.35;
-  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 750;
 }
 
 .receive-privacy-note p {
   margin: 0;
   color: var(--receive-muted);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .receive-privacy-note .receive-privacy-emphasis {
-  margin-top: 8px;
+  margin-top: 6px;
   color: rgba(255, 255, 255, 0.92);
 }
 
