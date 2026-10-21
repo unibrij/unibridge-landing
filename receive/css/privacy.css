@@ -12,7 +12,7 @@ Receive privacy reassurance — subtle and compact
   align-items: flex-start;
   gap: 8px;
 
-  margin: 0 0 14px;
+  margin: 22px 0 0;
   padding: 8px 10px;
 
   border: 0;
@@ -21,16 +21,6 @@ Receive privacy reassurance — subtle and compact
   box-shadow: none;
 
   text-align: left;
-}
-
-/*
---------------------------------------------------
-Spacing below beneficiary fields
---------------------------------------------------
-*/
-
-#receiveBeneficiaryFields + #receivePrivacyNote {
-  margin-top: 22px;
 }
 
 /*
