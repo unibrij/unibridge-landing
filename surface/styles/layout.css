@@ -1,3 +1,4 @@
+
 /* surface/styles/layout.css */
 
 :root {
@@ -381,13 +382,12 @@ Status
 */
 
 .status-box {
-  padding: 10px 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
 
-  border: 1px solid rgba(45, 212, 191, 0.22);
-  border-radius: 14px;
-
-  background: rgba(20, 184, 166, 0.08);
-  color: rgba(255, 255, 255, 0.72);
+  background: transparent;
+  color: #ffffff;
 
   font-size: 12px;
   line-height: 1.45;
@@ -399,14 +399,90 @@ Status
   display: none;
 }
 
-.status-success {
-  color: #99f6e4;
-  font-weight: 850;
+.status-box.is-info,
+.status-box.is-success,
+.status-box.is-error {
+  padding: 12px 13px;
+
+  border: 1px solid rgba(94, 234, 212, 0.20);
+  border-radius: 16px;
+
+  background: rgba(9, 34, 72, 0.36);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
-.status-error {
-  color: #ff8f8f;
-  font-weight: 850;
+.status-box.is-success {
+  border-color: rgba(45, 212, 191, 0.30);
+  background: rgba(20, 184, 166, 0.10);
+}
+
+.status-box.is-error {
+  border-color: rgba(248, 113, 113, 0.32);
+  background: rgba(127, 29, 29, 0.18);
+}
+
+.status-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.status-icon {
+  flex: 0 0 28px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(94, 234, 212, 0.13);
+  color: #99f6e4;
+
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.status-box.is-error .status-icon {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+.status-box.is-success .status-icon {
+  background: rgba(20, 184, 166, 0.20);
+  color: #99f6e4;
+}
+
+.status-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-title {
+  margin: 0 0 4px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.status-message {
+  color: rgba(255, 255, 255, 0.76);
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.status-box.is-error .status-message {
+  color: #fecaca;
 }
 
 
