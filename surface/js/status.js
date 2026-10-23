@@ -1,7 +1,31 @@
-// unibrij/unibridge-landing/surface/js/status.js
+
+ // surface/js/status.js
 
 window.UnibridgeStatus = (() => {
-  let lastStatusKey = null;
+  let statusMemory = new WeakMap();
+
+  const ERROR_MESSAGES = {
+    saber_kyc_blocked: [
+      "Verification needs attention",
+      "We couldn't confirm your verification for this transfer. Please contact support if the issue continues."
+    ],
+    kyc_required: [
+      "Verification required",
+      "Please complete identity verification to continue."
+    ],
+    kyc_pending: [
+      "Verification in progress",
+      "Your verification is still being reviewed."
+    ],
+    kyc_in_review: [
+      "Verification in progress",
+      "Your verification is still being reviewed."
+    ],
+    kyc_rejected: [
+      "Verification needs attention",
+      "Please review your verification details or contact support."
+    ]
+  };
 
   function extractErrorMessage(msg) {
     if (!msg) return "";
@@ -26,29 +50,107 @@ window.UnibridgeStatus = (() => {
       return msg.raw;
     }
 
-    try {
-      return JSON.stringify(msg);
-    } catch {
-      return String(msg);
-    }
+    return "";
   }
 
   function resetStatusMemory() {
-    lastStatusKey = null;
+    statusMemory = new WeakMap();
   }
 
   function setStatus(statusBox, msg, type) {
-    const text = extractErrorMessage(msg) || "";
-    const key = `${type || ""}::${text}`;
+    if (!statusBox) return;
 
-    if (key === lastStatusKey) return;
-    lastStatusKey = key;
+    const raw = extractErrorMessage(msg).trim();
 
-    statusBox.innerText = text;
-    statusBox.className = "";
+    const variant =
+      type === "error" || type === "success"
+        ? type
+        : "info";
 
-    if (type === "error") statusBox.classList.add("status-error");
-    if (type === "success") statusBox.classList.add("status-success");
+    const code = String(
+      msg?.code ||
+      msg?.error?.code ||
+      (
+        typeof msg?.error === "string"
+          ? msg.error
+          : ""
+      ) ||
+      raw
+    ).trim().toLowerCase();
+
+    const key = `${variant}::${code}::${raw}`;
+
+    if (!raw && !code) {
+      statusMemory.delete(statusBox);
+      statusBox.replaceChildren();
+      statusBox.className = "status-box";
+      return;
+    }
+
+    if (
+      statusMemory.get(statusBox) === key &&
+      statusBox.classList.contains(`is-${variant}`) &&
+      statusBox.querySelector(".status-content")
+    ) {
+      return;
+    }
+
+    statusBox.replaceChildren();
+    statusBox.className = "status-box";
+    statusBox.classList.add(`is-${variant}`);
+
+    statusBox.setAttribute(
+      "role",
+      variant === "error" ? "alert" : "status"
+    );
+
+    const known =
+      variant === "error"
+        ? ERROR_MESSAGES[code]
+        : null;
+
+    const title =
+      variant === "error"
+        ? (known?.[0] || "Something needs attention")
+        : variant === "success"
+          ? "Done"
+          : "Status update";
+
+    const message =
+      variant === "error"
+        ? (
+            known?.[1] ||
+            "We couldn't complete this step. Please check your transfer status or contact support."
+          )
+        : raw;
+
+    const content = document.createElement("div");
+    content.className = "status-content";
+
+    const icon = document.createElement("span");
+    icon.className = "status-icon";
+    icon.setAttribute("aria-hidden", "true");
+
+    icon.textContent =
+      variant === "error" ? "!" :
+      variant === "success" ? "✓" : "i";
+
+    const copy = document.createElement("div");
+    copy.className = "status-copy";
+
+    const heading = document.createElement("div");
+    heading.className = "status-title";
+    heading.textContent = title;
+
+    const description = document.createElement("div");
+    description.className = "status-message";
+    description.textContent = message;
+
+    copy.append(heading, description);
+    content.append(icon, copy);
+    statusBox.appendChild(content);
+
+    statusMemory.set(statusBox, key);
   }
 
   function getSettlementViewState(status) {
@@ -80,15 +182,11 @@ window.UnibridgeStatus = (() => {
 
     if (!s) return;
 
-    const viewState =
-      getSettlementViewState(s);
+    const viewState = getSettlementViewState(s);
 
     /*
-    ------------------------------------------------
     User signing is no longer canonical.
-    Keep sign button disabled in all public states.
-    Manual fallback is now admin-side, not user-side.
-    ------------------------------------------------
+    Manual fallback remains admin-side.
     */
 
     if (signBtn) {
