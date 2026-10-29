@@ -1,5 +1,5 @@
 
- // unibridge-landing/api/proxy.js
+// unibridge-landing/api/proxy.js
 
 import crypto from "crypto";
 
@@ -19,6 +19,21 @@ const DEFAULT_UPSTREAM_TIMEOUT_MS =
 
 const SESSION_QUOTE_TIMEOUT_MS =
   70000;
+
+const EXTHAND_TIMEOUT_MS =
+  45000;
+
+const EXTHAND_START_ENDPOINT =
+  "fiat/connected-bank/exthand/start";
+
+const EXTHAND_REFRESH_ENDPOINT =
+  "fiat/connected-bank/exthand/refresh";
+
+const EXTHAND_ENDPOINTS =
+  new Set([
+    EXTHAND_START_ENDPOINT,
+    EXTHAND_REFRESH_ENDPOINT
+  ]);
 
 const ALLOWED =
   new Set([
@@ -60,6 +75,17 @@ const ALLOWED =
     "fiat/bridge-customer/create",
     "fiat/bridge-bank-transfer/create",
     "fiat/bridge-tos/ping",
+
+    /*
+    --------------------------------------------------
+    Fiat bank-transfer / Exthand PIS
+
+    Trial: Fiat -> Bank Transfer only.
+    --------------------------------------------------
+    */
+
+    EXTHAND_START_ENDPOINT,
+    EXTHAND_REFRESH_ENDPOINT,
 
     /*
     --------------------------------------------------
@@ -125,6 +151,15 @@ const CLERK_AUTH_ENDPOINTS =
     "fiat/kyc/shared/create",
     "fiat/transak-virtual-account/create",
     "fiat/payout-history",
+
+    /*
+    --------------------------------------------------
+    Exthand authenticated endpoints
+    --------------------------------------------------
+    */
+
+    EXTHAND_START_ENDPOINT,
+    EXTHAND_REFRESH_ENDPOINT,
 
     /*
     --------------------------------------------------
@@ -526,17 +561,15 @@ function attachClerkAuthorization({
 /*
 --------------------------------------------------
 Upstream timeout policy
---------------------------------------------------
 
-Most proxy endpoints keep the original 15-second
-upstream budget.
+Most endpoints retain the 15-second budget.
 
-session/quote and receive/pricing-preview may require
-sequential funding, transformation, and execution
-pricing calls, so they receive a larger safety ceiling.
+Quote and Receive pricing retain 70 seconds.
 
-This is only a transport safety limit. It is not the
-target latency for the customer quote flow.
+Exthand start and refresh use 45 seconds.
+
+A timeout during Exthand initiation is ambiguous.
+The frontend must never automatically retry /start.
 --------------------------------------------------
 */
 
@@ -550,6 +583,14 @@ function resolveUpstreamTimeoutMs(
       "receive/pricing-preview"
   ) {
     return SESSION_QUOTE_TIMEOUT_MS;
+  }
+
+  if (
+    EXTHAND_ENDPOINTS.has(
+      endpoint
+    )
+  ) {
+    return EXTHAND_TIMEOUT_MS;
   }
 
   return DEFAULT_UPSTREAM_TIMEOUT_MS;
@@ -627,6 +668,34 @@ export default async function handler(
       resolvePartnerConfig(
         req
       );
+
+    /*
+    --------------------------------------------------
+    Exthand trial scope
+
+    Only the Fiat Bank Transfer partner may use
+    these proxy endpoints during the trial.
+
+    Upstream Clerk authentication remains mandatory.
+    --------------------------------------------------
+    */
+
+    if (
+      EXTHAND_ENDPOINTS.has(
+        endpoint
+      ) &&
+      partnerConfig.partner_id !==
+        "fiat_bank_transfer"
+    ) {
+      return res
+        .status(
+          403
+        )
+        .json({
+          error:
+            "exthand_fiat_only"
+        });
+    }
 
     if (
       !API_BASE ||
