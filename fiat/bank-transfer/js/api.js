@@ -1,3 +1,4 @@
+
 // fiat/bank-transfer/js/api.js
 
 import {
@@ -264,6 +265,75 @@ export function createBridgeBankTransfer({
       settlement_id,
       source_country,
       source_rail
+    }
+  );
+}
+
+
+/*
+--------------------------------------------------
+Exthand / Connected Bank
+
+Trial integration:
+Fiat -> Bank Transfer only.
+
+Bridge remains the funding and reconciliation
+authority.
+
+Exthand initiates a bank payment into the
+existing Bridge deposit instructions.
+
+The bank country is independent of the sender's
+country of residence.
+
+Never initiate a payment automatically or repeat
+/start after an ambiguous submission.
+--------------------------------------------------
+*/
+
+export async function startExthandBankPayment({
+  settlement_id,
+  connector_id,
+  bank_country
+} = {}) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
+  return postJson(
+    "fiat/connected-bank/exthand/start",
+    {
+      settlement_id,
+      connector_id,
+      bank_country
+    },
+    {
+      headers:
+        authHeaders
+    }
+  );
+}
+
+
+/*
+ * Read the latest Exthand payment state.
+ *
+ * This does not create another payment and does
+ * not confirm that Bridge received the funds.
+ */
+export async function refreshExthandBankPayment({
+  settlement_id
+} = {}) {
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
+  return postJson(
+    "fiat/connected-bank/exthand/refresh",
+    {
+      settlement_id
+    },
+    {
+      headers:
+        authHeaders
     }
   );
 }
