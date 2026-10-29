@@ -1,3 +1,4 @@
+
 // fiat/bank-transfer/js/instructions.js
 
 import {
@@ -253,6 +254,12 @@ export function renderBankInstructions(
         <div class="bank-instructions-note">
           Important: send the exact amount and use the deposit message/reference exactly as shown.
         </div>
+
+        <section
+          class="bank-connected-payment hidden"
+          data-exthand-mount
+          aria-label="Pay directly from your bank"
+        ></section>
       </div>
     `;
 
@@ -262,6 +269,24 @@ export function renderBankInstructions(
 
   attachCopyHandlers(
     instructionsBox
+  );
+
+  /*
+   * Exthand trial: Fiat Bank Transfer only.
+   *
+   * The controller validates funding eligibility
+   * and mounts the bank selector when appropriate.
+   *
+   * No payment is initiated here.
+   */
+  instructionsBox.dispatchEvent(
+    new CustomEvent(
+      "unibridge:exthand:instructions-ready",
+      {
+        bubbles: true,
+        detail: { funding }
+      }
+    )
   );
 
   return true;
