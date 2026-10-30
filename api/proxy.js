@@ -1,4 +1,3 @@
-
 // unibridge-landing/api/proxy.js
 
 import crypto from "crypto";
@@ -29,10 +28,14 @@ const EXTHAND_START_ENDPOINT =
 const EXTHAND_REFRESH_ENDPOINT =
   "fiat/connected-bank/exthand/refresh";
 
+const EXTHAND_BANKS_ENDPOINT =
+  "fiat/connected-bank/exthand/banks";
+
 const EXTHAND_ENDPOINTS =
   new Set([
     EXTHAND_START_ENDPOINT,
-    EXTHAND_REFRESH_ENDPOINT
+    EXTHAND_REFRESH_ENDPOINT,
+    EXTHAND_BANKS_ENDPOINT
   ]);
 
 const ALLOWED =
@@ -86,6 +89,7 @@ const ALLOWED =
 
     EXTHAND_START_ENDPOINT,
     EXTHAND_REFRESH_ENDPOINT,
+    EXTHAND_BANKS_ENDPOINT,
 
     /*
     --------------------------------------------------
@@ -160,6 +164,7 @@ const CLERK_AUTH_ENDPOINTS =
 
     EXTHAND_START_ENDPOINT,
     EXTHAND_REFRESH_ENDPOINT,
+    EXTHAND_BANKS_ENDPOINT,
 
     /*
     --------------------------------------------------
@@ -446,6 +451,8 @@ function getAllowedMethod(
       "fiat/bridge-tos/ping" ||
     endpoint ===
       "fiat/payout-history" ||
+    endpoint ===
+      EXTHAND_BANKS_ENDPOINT ||
     isRepeatPayoutEndpoint(
       endpoint
     )
@@ -566,7 +573,7 @@ Most endpoints retain the 15-second budget.
 
 Quote and Receive pricing retain 70 seconds.
 
-Exthand start and refresh use 45 seconds.
+Exthand endpoints use 45 seconds.
 
 A timeout during Exthand initiation is ambiguous.
 The frontend must never automatically retry /start.
