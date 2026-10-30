@@ -1,44 +1,25 @@
-
 // fiat/bank-transfer/js/api.js
 
 import {
   buildClerkAuthorizationHeader
 } from "../../../shared/pay/auth/clerkAuth.js";
 
-async function parseJsonResponse(
-  response
-) {
-  const body =
-    await response
-      .json()
-      .catch(
-        () => ({})
-      );
+async function parseJsonResponse(response) {
+  const body = await response
+    .json()
+    .catch(() => ({}));
 
   /*
-    Important:
-
-    Some backend routes intentionally return non-2xx
-    HTTP status with ok:true to describe a controlled
-    business state, for example:
-
-    - bridge_customer_kyc_pending
-    - bridge_customer_rejected
-    - bridge_customer_tos_pending
-
-    These must reach the flow layer instead of being
-    converted into generic request_failed_409 errors.
-  */
-
+   * Controlled business states may return
+   * non-2xx HTTP responses with ok:true.
+   */
   if (
     !response.ok &&
     body?.ok === true
   ) {
     return {
       ...body,
-
-      http_status:
-        response.status
+      http_status: response.status
     };
   }
 
@@ -52,36 +33,18 @@ async function parseJsonResponse(
       body?.state ||
       `request_failed_${response.status}`;
 
-    const error =
-      new Error(
-        body?.message ||
-        errorCode
-      );
+    const error = new Error(
+      body?.message ||
+      errorCode
+    );
 
-    error.code =
-      errorCode;
-
-    error.status =
-      response.status;
-
-    error.body =
-      body;
-
-    error.reason =
-      body?.reason ||
-      null;
-
-    error.state =
-      body?.state ||
-      null;
-
-    error.retryable =
-      body?.retryable ??
-      null;
-
-    error.pending =
-      body?.pending ??
-      null;
+    error.code = errorCode;
+    error.status = response.status;
+    error.body = body;
+    error.reason = body?.reason || null;
+    error.state = body?.state || null;
+    error.retryable = body?.retryable ?? null;
+    error.pending = body?.pending ?? null;
 
     throw error;
   }
@@ -89,32 +52,17 @@ async function parseJsonResponse(
   return body;
 }
 
-function normalizeEndpoint(
-  endpoint
-) {
-  return String(
-    endpoint ||
-    ""
-  )
-    .replace(
-      /^\/+/,
-      ""
-    )
-    .replace(
-      /^v2\//,
-      ""
-    );
+function normalizeEndpoint(endpoint) {
+  return String(endpoint || "")
+    .replace(/^\/+/, "")
+    .replace(/^v2\//, "");
 }
 
-function buildProxyUrl(
-  endpoint
-) {
+function buildProxyUrl(endpoint) {
   return (
     "/api/proxy?partner=fiat_bank_transfer&endpoint=" +
     encodeURIComponent(
-      normalizeEndpoint(
-        endpoint
-      )
+      normalizeEndpoint(endpoint)
     )
   );
 }
@@ -122,77 +70,45 @@ function buildProxyUrl(
 async function postJson(
   endpoint,
   payload = {},
-  {
-    headers = {}
-  } = {}
+  { headers = {} } = {}
 ) {
-  const response =
-    await fetch(
-      buildProxyUrl(
-        endpoint
-      ),
-      {
-        method:
-          "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Accept:
-            "application/json",
-
-          ...headers
-        },
-
-        body:
-          JSON.stringify(
-            payload
-          )
-      }
-    );
-
-  return parseJsonResponse(
-    response
+  const response = await fetch(
+    buildProxyUrl(endpoint),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...headers
+      },
+      body: JSON.stringify(payload)
+    }
   );
+
+  return parseJsonResponse(response);
 }
 
 async function getJson(
   endpoint,
-  {
-    headers = {}
-  } = {}
+  { headers = {} } = {}
 ) {
-  const response =
-    await fetch(
-      buildProxyUrl(
-        endpoint
-      ),
-      {
-        method:
-          "GET",
-
-        headers: {
-          Accept:
-            "application/json",
-
-          ...headers
-        }
+  const response = await fetch(
+    buildProxyUrl(endpoint),
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        ...headers
       }
-    );
-
-  return parseJsonResponse(
-    response
+    }
   );
-}
 
+  return parseJsonResponse(response);
+}
 
 /*
 --------------------------------------------------
 Fiat KYC
-
-Authenticated through Clerk because the backend KYC
-route resolves canonical Customer Context.
 --------------------------------------------------
 */
 
@@ -216,12 +132,10 @@ export async function createFiatKyc({
       source_rail
     },
     {
-      headers:
-        authHeaders
+      headers: authHeaders
     }
   );
 }
-
 
 /*
 --------------------------------------------------
@@ -234,9 +148,7 @@ export function createBridgeTos({
 }) {
   return postJson(
     "fiat/bridge-tos/create",
-    {
-      settlement_id
-    }
+    { settlement_id }
   );
 }
 
@@ -248,7 +160,6 @@ export function createBridgeCustomer({
     "fiat/bridge-customer/create",
     {
       settlement_id,
-
       ...customer
     }
   );
@@ -269,7 +180,6 @@ export function createBridgeBankTransfer({
   );
 }
 
-
 /*
 --------------------------------------------------
 Exthand / Connected Bank
@@ -283,14 +193,66 @@ authority.
 Exthand initiates a bank payment into the
 existing Bridge deposit instructions.
 
-The bank country is independent of the sender's
-country of residence.
-
-Never initiate a payment automatically or repeat
-/start after an ambiguous submission.
+Never initiate automatically or repeat /start
+after an ambiguous submission.
 --------------------------------------------------
 */
 
+/*
+ * Read available bank connectors.
+ *
+ * No settlement changes.
+ * No payment initiation.
+ *
+ * countryCode is the bank account country,
+ * not necessarily the sender's residence.
+ */
+export async function loadExthandBanks({
+  countryCode
+} = {}) {
+  const country = String(
+    countryCode ?? ""
+  ).trim().toUpperCase();
+
+  if (!/^[A-Z]{2}$/.test(country)) {
+    const error = new Error(
+      "exthand_country_code_invalid"
+    );
+
+    error.code =
+      "exthand_country_code_invalid";
+
+    throw error;
+  }
+
+  const authHeaders =
+    await buildClerkAuthorizationHeader();
+
+  const url =
+    buildProxyUrl(
+      "fiat/connected-bank/exthand/banks"
+    ) +
+    "&countryCode=" +
+    encodeURIComponent(country);
+
+  const response = await fetch(url, {
+    method: "GET",
+
+    headers: {
+      Accept: "application/json",
+      ...authHeaders
+    }
+  });
+
+  return parseJsonResponse(response);
+}
+
+/*
+ * Start one bank payment.
+ *
+ * The selector owns its attempt lock.
+ * Backend owns the authoritative initiation guard.
+ */
 export async function startExthandBankPayment({
   settlement_id,
   connector_id,
@@ -307,18 +269,16 @@ export async function startExthandBankPayment({
       bank_country
     },
     {
-      headers:
-        authHeaders
+      headers: authHeaders
     }
   );
 }
 
-
 /*
  * Read the latest Exthand payment state.
  *
- * This does not create another payment and does
- * not confirm that Bridge received the funds.
+ * Does not create another payment.
+ * Does not confirm Bridge fund receipt.
  */
 export async function refreshExthandBankPayment({
   settlement_id
@@ -332,12 +292,10 @@ export async function refreshExthandBankPayment({
       settlement_id
     },
     {
-      headers:
-        authHeaders
+      headers: authHeaders
     }
   );
 }
-
 
 /*
 --------------------------------------------------
@@ -351,16 +309,12 @@ Do not send:
   email
   userIdentifier
 
-The backend derives canonical Customer Context from
-the authenticated Clerk request.
+The backend derives canonical Customer Context.
 
-The Transak sender boundary owns:
-
+Transak sender boundary owns:
   customerContext.identity.email
-    ->
-  userIdentifier
-    ->
-  x-user-identifier
+    -> userIdentifier
+    -> x-user-identifier
 --------------------------------------------------
 */
 
@@ -378,12 +332,10 @@ export async function createTransakVirtualAccount({
       source_rail
     },
     {
-      headers:
-        authHeaders
+      headers: authHeaders
     }
   );
 }
-
 
 /*
 --------------------------------------------------
