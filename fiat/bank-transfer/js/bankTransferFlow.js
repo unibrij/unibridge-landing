@@ -60,12 +60,19 @@ import {
   applyRepeatRoutePrefill
 } from "./repeatPayout.js";
 
+import {
+  loadExthandBanks
+} from "./api.js";
+
+import {
+  createExthandBankSelector
+} from "./exthandBankSelector.js";
+
 
 const FIAT_CONTEXT_KEY =
   "unibridge_fiat_context";
 
-let initPromise =
-  null;
+let initPromise = null;
 
 
 /*
@@ -80,27 +87,20 @@ function readFiatContext() {
   );
 }
 
-
 function readFiatContextObject() {
-  const raw =
-    readFiatContext();
+  const raw = readFiatContext();
 
   if (!raw) {
     return {};
   }
 
   try {
-    return (
-      JSON.parse(
-        raw
-      ) || {}
-    );
+    return JSON.parse(raw) || {};
   }
   catch {
     return {};
   }
 }
-
 
 function readFiatContextStartedAt() {
   const context =
@@ -115,13 +115,11 @@ function readFiatContextStartedAt() {
   );
 }
 
-
 function hasFiatContext() {
   return Boolean(
     readFiatContext()
   );
 }
-
 
 function hasEntryContext() {
   return (
@@ -138,10 +136,8 @@ Navigation
 */
 
 function goToPayEntry() {
-  window.location.href =
-    "/pay";
+  window.location.href = "/pay";
 }
-
 
 function startNewTransfer() {
   clearStoredState();
@@ -205,7 +201,6 @@ async function init() {
     repeatSource:
       null
   };
-
 
   const quoteBox =
     document.getElementById(
@@ -336,6 +331,36 @@ async function init() {
   });
 
   hideCustomerProfileForm();
+
+
+  /*
+  ------------------------------------------------
+  Exthand / Connected Bank
+
+  Trial: Fiat -> Bank Transfer only.
+
+  Register the selector once before any funding
+  instructions can be rendered.
+
+  instructions.js dispatches the ready event
+  whenever Bridge instructions are rendered.
+
+  Do not mount from persisted funding here,
+  before the authenticated owner is verified.
+
+  The selector never initiates payment on mount.
+  --------------------------------------------------
+  */
+
+  createExthandBankSelector({
+    instructionsBox,
+
+    getSettlementId:
+      () => state.settlement_id,
+
+    loadBanks:
+      loadExthandBanks
+  });
 
 
   /*
