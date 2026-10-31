@@ -1,20 +1,23 @@
 
 /* fiat/bank-transfer/styles/exthand.css */
 
-/* Exthand — bank payment selector */
+/* Allow the shared dropdowns to expand */
+.bank-instructions-card:has(
+  [data-exthand-mount]:not(.hidden)
+) {
+  overflow: visible;
+}
 
+/* Exthand payment section */
 [data-exthand-mount] {
   display: grid;
   gap: 12px;
   min-width: 0;
   margin-top: 14px;
   padding: 14px;
-
-  border: 1px solid rgba(94, 234, 212, 0.24);
+  border: 1px solid rgba(94, 234, 212, .24);
   border-radius: 17px;
-
-  background: rgba(20, 184, 166, 0.055);
-
+  background: rgba(20, 184, 166, .055);
   color: var(--bt-text, #fff);
   font-size: 12px;
   text-align: left;
@@ -35,77 +38,30 @@
   line-height: 1.6;
 }
 
-[data-exthand-mount] > label {
+/* Shared destination selector containers */
+[data-exthand-mount] .destination-field {
   display: grid;
   gap: 7px;
   min-width: 0;
+}
 
-  color: rgba(255, 255, 255, 0.76);
+[data-exthand-mount] .destination-field-label {
+  color: rgba(255, 255, 255, .76);
   font-size: 12px;
   font-weight: 650;
 }
 
-[data-exthand-mount] select {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 46px;
-  box-sizing: border-box;
-
-  padding: 11px 35px 11px 12px;
-
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 13px;
-
-  background: rgba(255, 255, 255, 0.075);
-  color: #fff;
-
-  font: inherit;
-  font-size: 13px;
-
-  appearance: none;
-  -webkit-appearance: none;
-
-  cursor: pointer;
-  outline: none;
-
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235eead4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-position: right 12px center;
-  background-repeat: no-repeat;
-}
-
-[data-exthand-mount] select option {
-  background: #071a35;
-  color: #fff;
-}
-
-[data-exthand-mount] select:focus {
-  border-color: rgba(94, 234, 212, 0.65);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
-}
-
-[data-exthand-mount] select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* Payment actions */
 [data-exthand-mount] > button {
   width: 100%;
   min-height: 45px;
   box-sizing: border-box;
   padding: 11px 13px;
-
   border-radius: 13px;
-
   font: inherit;
   font-size: 12px;
   font-weight: 800;
-
   cursor: pointer;
-  transition:
-    background 150ms ease,
-    opacity 150ms ease;
 }
 
 [data-exthand-mount] [data-bank-pay] {
@@ -114,26 +70,23 @@
   color: #04111f;
 }
 
-[data-exthand-mount] [data-bank-pay]:not(:disabled):hover {
-  background: var(--bt-accent-soft, #5eead4);
-}
-
 [data-exthand-mount] [data-bank-refresh] {
-  border: 1px solid rgba(94, 234, 212, 0.3);
-  background: rgba(20, 184, 166, 0.07);
+  border: 1px solid rgba(94, 234, 212, .3);
+  background: rgba(20, 184, 166, .07);
   color: var(--bt-accent-soft, #5eead4);
 }
 
 [data-exthand-mount] > button:disabled {
-  opacity: 0.5;
+  opacity: .5;
   cursor: not-allowed;
 }
 
 [data-exthand-mount] > button:focus-visible {
-  outline: 2px solid var(--bt-accent-soft);
+  outline: 2px solid var(--bt-accent-soft, #5eead4);
   outline-offset: 3px;
 }
 
+/* Payment status */
 [data-exthand-mount] [data-bank-message] {
   margin: 0;
   color: var(--bt-muted);
@@ -150,30 +103,24 @@
 [data-exthand-mount] [data-bank-next] a {
   display: block;
   padding: 12px;
-
-  border: 1px solid rgba(94, 234, 212, 0.34);
+  border: 1px solid rgba(94, 234, 212, .34);
   border-radius: 12px;
-
-  background: rgba(20, 184, 166, 0.12);
+  background: rgba(20, 184, 166, .12);
   color: var(--bt-accent-soft, #5eead4);
-
   font-size: 12px;
   font-weight: 800;
-  line-height: 1.5;
   text-align: center;
   text-decoration: none;
   overflow-wrap: anywhere;
 }
 
+/* Double-payment warning */
 [data-exthand-mount] > p:last-child {
   padding: 11px 12px;
-
-  border: 1px solid rgba(251, 191, 36, 0.22);
+  border: 1px solid rgba(251, 191, 36, .22);
   border-radius: 12px;
-
-  background: rgba(251, 191, 36, 0.07);
+  background: rgba(251, 191, 36, .07);
   color: #fde68a;
-
   font-size: 11px;
   line-height: 1.5;
 }
