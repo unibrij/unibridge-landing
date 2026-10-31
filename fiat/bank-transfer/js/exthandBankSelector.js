@@ -585,15 +585,19 @@ export function createExthandBankSelector({
           error?.code ===
           "exthand_submission_missing"
         ) {
-          paymentAbsent = true;
+          if (!pendingStarts.has(settlementId)) {
+            forgetAttempt(settlementId);
+          }
+
+          paymentAbsent = !hasAttempt(settlementId);
 
           setMessage(
-            hasAttempt(settlementId)
-              ? (
+            paymentAbsent
+              ? "Select your bank to continue."
+              : (
                   "A previous payment attempt could " +
                   "not be confirmed. Do not retry."
                 )
-              : "Select your bank to continue."
           );
         } else {
           setMessage(
