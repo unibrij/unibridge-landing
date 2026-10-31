@@ -1,9 +1,14 @@
-// fiat/bank-transfer/js/exthandBankSelector.js
+
+/* fiat/bank-transfer/js/exthandBankSelector.js */
 
 import {
   startExthandBankPayment,
   refreshExthandBankPayment
 } from "./api.js";
+
+import {
+  createDestinationSelect
+} from "../../../shared/pay/destination/selectRenderer.js";
 
 const ATTEMPT_PREFIX = "ub_exthand_attempt:";
 
@@ -42,17 +47,9 @@ const SEPA_COUNTRIES = {
   LI: "Liechtenstein"
 };
 
-function str(value) {
-  return String(value ?? "").trim();
-}
-
-function lower(value) {
-  return str(value).toLowerCase();
-}
-
-function upper(value) {
-  return str(value).toUpperCase();
-}
+const str = value => String(value ?? "").trim();
+const lower = value => str(value).toLowerCase();
+const upper = value => str(value).toUpperCase();
 
 function resolveInstructions(funding) {
   return [
@@ -78,20 +75,15 @@ function resolveEligibility(funding) {
     provider !== "bridge" ||
     (
       funding?.sender_id &&
-      lower(funding.sender_id) !==
-        "bridge_bank_transfer"
+      lower(funding.sender_id) !== "bridge_bank_transfer"
     ) ||
     !str(funding?.bridge_transfer_id)
   ) {
     return null;
   }
 
-  const instructions =
-    resolveInstructions(funding);
-
-  if (!instructions) {
-    return null;
-  }
+  const instructions = resolveInstructions(funding);
+  if (!instructions) return null;
 
   const rail = lower(
     funding.source_rail ||
@@ -114,8 +106,7 @@ function resolveEligibility(funding) {
     ) {
       return null;
     }
-  }
-  else if (rail === "faster_payments") {
+  } else if (rail === "faster_payments") {
     if (
       currency !== "GBP" ||
       !str(
@@ -130,8 +121,7 @@ function resolveEligibility(funding) {
     ) {
       return null;
     }
-  }
-  else {
+  } else {
     return null;
   }
 
@@ -139,49 +129,45 @@ function resolveEligibility(funding) {
 }
 
 function normalizeBanks(response) {
-  const items =
-    Array.isArray(response)
-      ? response
-      : Array.isArray(response?.banks)
-        ? response.banks
-        : Array.isArray(response?.data?.banks)
-          ? response.data.banks
-          : Array.isArray(response?.data)
-            ? response.data
-            : [];
+  const items = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.banks)
+      ? response.banks
+      : Array.isArray(response?.data?.banks)
+        ? response.data.banks
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
 
   const seen = new Set();
 
-  return items
-    .map(item => ({
-      id: Number(
-        item?.connectorId ??
-        item?.connector_id ??
-        item?.id
-      ),
-      name: str(
-        item?.name ||
-        item?.bankName ||
-        item?.bank_name ||
-        item?.displayName
-      )
-    }))
-    .filter(bank => {
-      if (
-        !Number.isSafeInteger(bank.id) ||
-        bank.id <= 0 ||
-        !bank.name ||
-        seen.has(bank.id)
-      ) {
-        return false;
-      }
+  return items.map(item => ({
+    id: Number(
+      item?.connectorId ??
+      item?.connectorID ??
+      item?.connector_id ??
+      item?.id
+    ),
+    name: str(
+      item?.fullname ||
+      item?.name ||
+      item?.bankName ||
+      item?.bank_name ||
+      item?.displayName
+    )
+  })).filter(item => {
+    if (
+      !Number.isSafeInteger(item.id) ||
+      item.id <= 0 ||
+      !item.name ||
+      seen.has(item.id)
+    ) {
+      return false;
+    }
 
-      seen.add(bank.id);
-      return true;
-    })
-    .sort((a, b) =>
-      a.name.localeCompare(b.name)
-    );
+    seen.add(item.id);
+    return true;
+  }).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function safeUrl(value) {
@@ -191,8 +177,7 @@ function safeUrl(value) {
     return url.protocol === "https:"
       ? url.href
       : null;
-  }
-  catch {
+  } catch {
     return null;
   }
 }
@@ -234,9 +219,7 @@ function paymentMessage(result) {
     );
   }
 
-  if (
-    flow.flow_state === "unsupported_interaction"
-  ) {
+  if (flow.flow_state === "unsupported_interaction") {
     return (
       "This bank requires an unsupported interaction. " +
       "Do not initiate another payment."
@@ -256,6 +239,44 @@ function paymentMessage(result) {
   );
 }
 
+function createSelector(field, options) {
+  return createDestinationSelect({
+    field,
+    options,
+    applyCommonAttributes(select) {
+      select.name = field.name;
+    }
+  });
+}
+
+function closeSelector(selector) {
+  if (!selector?.element.classList.contains("is-open")) {
+    return;
+  }
+
+  selector.element
+    .querySelector(".destination-select-trigger")
+    ?.click();
+}
+
+function setSelectorDisabled(selector, disabled) {
+  if (!selector) return;
+
+  selector.input.disabled = disabled;
+
+  const trigger = selector.element.querySelector(
+    ".destination-select-trigger"
+  );
+
+  if (disabled) {
+    closeSelector(selector);
+  }
+
+  if (trigger) {
+    trigger.disabled = disabled;
+  }
+}
+
 export function createExthandBankSelector({
   instructionsBox,
   getSettlementId,
@@ -266,13 +287,12 @@ export function createExthandBankSelector({
     !instructionsBox ||
     typeof getSettlementId !== "function"
   ) {
-    throw new Error(
-      "exthand_selector_context_missing"
-    );
+    throw new Error("exthand_selector_context_missing");
   }
 
   let destroyed = false;
   let revision = 0;
+  let cleanupSelectors = null;
 
   const attempted = new Set();
   const pendingStarts = new Set();
@@ -286,8 +306,7 @@ export function createExthandBankSelector({
       return window.localStorage.getItem(
         ATTEMPT_PREFIX + settlementId
       ) === "1";
-    }
-    catch {
+    } catch {
       return false;
     }
   }
@@ -300,22 +319,24 @@ export function createExthandBankSelector({
         ATTEMPT_PREFIX + settlementId,
         "1"
       );
-    }
-    catch {
+    } catch {
       // Keep the in-memory lock.
     }
   }
 
   function mount(funding) {
+    if (cleanupSelectors) {
+      cleanupSelectors();
+      cleanupSelectors = null;
+    }
+
     const current = ++revision;
 
-    const element =
-      instructionsBox.querySelector(
-        "[data-exthand-mount]"
-      );
+    const element = instructionsBox.querySelector(
+      "[data-exthand-mount]"
+    );
 
-    const eligibility =
-      resolveEligibility(funding);
+    const eligibility = resolveEligibility(funding);
 
     if (
       !element ||
@@ -325,12 +346,8 @@ export function createExthandBankSelector({
       return;
     }
 
-    const settlementId =
-      str(getSettlementId());
-
-    if (!settlementId) {
-      return;
-    }
+    const settlementId = str(getSettlementId());
+    if (!settlementId) return;
 
     const countries =
       eligibility.rail === "faster_payments"
@@ -352,23 +369,23 @@ export function createExthandBankSelector({
       <h4>Pay directly from your bank</h4>
 
       <p>
-        Select the country where your bank account
-        is held, then choose your bank.
+        Choose your bank and authorize your
+        payment securely.
       </p>
 
-      <label>
-        Bank country
-        <select data-bank-country>
-          <option value="">Select country</option>
-        </select>
-      </label>
+      <div class="destination-field">
+        <label class="destination-field-label">
+          Bank country
+        </label>
+        <div data-bank-country-slot></div>
+      </div>
 
-      <label>
-        Bank
-        <select data-bank-select disabled>
-          <option value="">Select bank</option>
-        </select>
-      </label>
+      <div class="destination-field">
+        <label class="destination-field-label">
+          Your bank
+        </label>
+        <div data-bank-select-slot></div>
+      </div>
 
       <button type="button" data-bank-pay disabled>
         Continue to bank
@@ -378,11 +395,8 @@ export function createExthandBankSelector({
         Check payment status
       </button>
 
-      <p
-        data-bank-message
-        role="status"
-        aria-live="polite"
-      ></p>
+      <p data-bank-message role="status"
+        aria-live="polite"></p>
 
       <div data-bank-next></div>
 
@@ -392,23 +406,77 @@ export function createExthandBankSelector({
       </p>
     `;
 
-    const country =
-      element.querySelector("[data-bank-country]");
+    const find = selector =>
+      element.querySelector(selector);
 
-    const bank =
-      element.querySelector("[data-bank-select]");
+    const countrySlot = find(
+      "[data-bank-country-slot]"
+    );
 
-    const pay =
-      element.querySelector("[data-bank-pay]");
+    const bankSlot = find(
+      "[data-bank-select-slot]"
+    );
 
-    const refresh =
-      element.querySelector("[data-bank-refresh]");
+    const pay = find("[data-bank-pay]");
+    const refresh = find("[data-bank-refresh]");
+    const message = find("[data-bank-message]");
+    const next = find("[data-bank-next]");
 
-    const message =
-      element.querySelector("[data-bank-message]");
+    const countrySelector = createSelector(
+      {
+        name: "exthand_bank_country",
+        label: "Bank country",
+        placeholder: "Select country",
+        searchable: false
+      },
+      Object.entries(countries).map(
+        ([code, name]) => ({
+          value: code,
+          label: name
+        })
+      )
+    );
 
-    const next =
-      element.querySelector("[data-bank-next]");
+    countrySlot.append(countrySelector.element);
+
+    let bankSelector = null;
+
+    function replaceBankSelector(banks = []) {
+      closeSelector(bankSelector);
+
+      const selector = createSelector(
+        {
+          name: "exthand_bank",
+          label: "Bank",
+          placeholder: "Select bank",
+          searchable: true
+        },
+        banks.map(item => ({
+          value: String(item.id),
+          label: item.name
+        }))
+      );
+
+      bankSelector = selector;
+      bankSlot.replaceChildren(selector.element);
+
+      selector.input.addEventListener(
+        "change",
+        updatePayButton
+      );
+
+      setSelectorDisabled(selector, banks.length === 0);
+      updatePayButton();
+    }
+
+    cleanupSelectors = () => {
+      closeSelector(countrySelector);
+      closeSelector(bankSelector);
+    };
+
+    const country = countrySelector.input;
+
+    const getBank = () => bankSelector?.input;
 
     function setMessage(value) {
       if (isCurrent()) {
@@ -417,9 +485,7 @@ export function createExthandBankSelector({
     }
 
     function updatePayButton() {
-      if (!isCurrent()) {
-        return;
-      }
+      if (!isCurrent()) return;
 
       pay.disabled =
         checking ||
@@ -427,28 +493,21 @@ export function createExthandBankSelector({
         !paymentAbsent ||
         hasAttempt(settlementId) ||
         !country.value ||
-        !bank.value;
+        !getBank()?.value;
     }
 
     function renderResult(result) {
-      if (!isCurrent()) {
-        return;
-      }
+      if (!isCurrent()) return;
 
       setMessage(paymentMessage(result));
       next.replaceChildren();
 
       const flow = result?.flow || {};
 
-      if (isTerminalFlow(flow)) {
-        return;
-      }
+      if (isTerminalFlow(flow)) return;
 
       const action = flow.next_action;
-
-      if (action?.type !== "redirect") {
-        return;
-      }
+      if (action?.type !== "redirect") return;
 
       const url = safeUrl(action.url);
 
@@ -457,13 +516,10 @@ export function createExthandBankSelector({
           "Invalid bank authorization link. " +
           "Do not retry payment."
         );
-
         return;
       }
 
-      const link =
-        document.createElement("a");
-
+      const link = document.createElement("a");
       link.href = url;
       link.textContent =
         "Open your bank to approve payment";
@@ -499,17 +555,12 @@ export function createExthandBankSelector({
             settlement_id: settlementId
           });
 
-        if (!isCurrent()) {
-          return;
-        }
+        if (!isCurrent()) return;
 
         rememberAttempt(settlementId);
         renderResult(result);
-      }
-      catch (error) {
-        if (!isCurrent()) {
-          return;
-        }
+      } catch (error) {
+        if (!isCurrent()) return;
 
         if (
           error?.code ===
@@ -525,15 +576,13 @@ export function createExthandBankSelector({
                 )
               : "Select your bank to continue."
           );
-        }
-        else {
+        } else {
           setMessage(
             "Unable to verify payment status. " +
             "Bank payment remains disabled."
           );
         }
-      }
-      finally {
+      } finally {
         checking = false;
 
         if (isCurrent()) {
@@ -543,25 +592,15 @@ export function createExthandBankSelector({
       }
     }
 
-    for (const [code, name] of
-      Object.entries(countries)) {
-      country.add(new Option(name, code));
-    }
+    replaceBankSelector();
 
     country.addEventListener("change", async () => {
       const request = ++requestSequence;
       const countryCode = country.value;
 
-      bank.replaceChildren(
-        new Option("Select bank", "")
-      );
+      replaceBankSelector();
 
-      bank.disabled = true;
-      updatePayButton();
-
-      if (!countryCode) {
-        return;
-      }
+      if (!countryCode) return;
 
       setMessage("Loading banks…");
 
@@ -580,21 +619,14 @@ export function createExthandBankSelector({
           return;
         }
 
-        for (const item of banks) {
-          bank.add(
-            new Option(item.name, String(item.id))
-          );
-        }
-
-        bank.disabled = banks.length === 0;
+        replaceBankSelector(banks);
 
         setMessage(
           banks.length
             ? "Select your bank to continue."
             : "No banks available for this country."
         );
-      }
-      catch {
+      } catch {
         if (
           isCurrent() &&
           request === requestSequence
@@ -605,23 +637,10 @@ export function createExthandBankSelector({
           );
         }
       }
-      finally {
-        if (
-          isCurrent() &&
-          request === requestSequence
-        ) {
-          updatePayButton();
-        }
-      }
     });
 
-    bank.addEventListener(
-      "change",
-      updatePayButton
-    );
-
     pay.addEventListener("click", async () => {
-      const connectorId = Number(bank.value);
+      const connectorId = Number(getBank()?.value);
       const bankCountry = country.value;
 
       if (
@@ -649,8 +668,9 @@ export function createExthandBankSelector({
       paymentAbsent = false;
 
       pay.disabled = true;
-      country.disabled = true;
-      bank.disabled = true;
+
+      setSelectorDisabled(countrySelector, true);
+      setSelectorDisabled(bankSelector, true);
 
       setMessage("Contacting your bank…");
 
@@ -662,9 +682,7 @@ export function createExthandBankSelector({
             bank_country: bankCountry
           });
 
-        if (!isCurrent()) {
-          return;
-        }
+        if (!isCurrent()) return;
 
         if (result?.started === false) {
           await refreshExistingPayment();
@@ -672,15 +690,13 @@ export function createExthandBankSelector({
         }
 
         renderResult(result);
-      }
-      catch {
+      } catch {
         setMessage(
           "Payment initiation could not be " +
           "confirmed. Do not retry. " +
           "Use Check payment status."
         );
-      }
-      finally {
+      } finally {
         pendingStarts.delete(settlementId);
 
         if (isCurrent()) {
@@ -697,8 +713,7 @@ export function createExthandBankSelector({
           });
 
         renderResult(result);
-      }
-      catch {
+      } catch {
         setMessage(
           "A previous payment exists, but its " +
           "status is unavailable. Do not retry."
@@ -706,13 +721,9 @@ export function createExthandBankSelector({
       }
     }
 
-    refresh.addEventListener(
-      "click",
-      checkStatus
-    );
+    refresh.addEventListener("click", checkStatus);
 
     element.classList.remove("hidden");
-
     checkStatus();
   }
 
@@ -728,15 +739,18 @@ export function createExthandBankSelector({
   if (typeof getFunding === "function") {
     const existing = getFunding();
 
-    if (existing) {
-      mount(existing);
-    }
+    if (existing) mount(existing);
   }
 
   return {
     destroy() {
       destroyed = true;
       ++revision;
+
+      if (cleanupSelectors) {
+        cleanupSelectors();
+        cleanupSelectors = null;
+      }
 
       instructionsBox.removeEventListener(
         "unibridge:exthand:instructions-ready",
