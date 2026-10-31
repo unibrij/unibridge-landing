@@ -324,6 +324,18 @@ export function createExthandBankSelector({
     }
   }
 
+  function forgetAttempt(settlementId) {
+    attempted.delete(settlementId);
+
+    try {
+      window.localStorage.removeItem(
+        ATTEMPT_PREFIX + settlementId
+      );
+    } catch {
+      // In-memory lock already cleared.
+    }
+  }
+
   function mount(funding) {
     if (cleanupSelectors) {
       cleanupSelectors();
@@ -440,9 +452,12 @@ export function createExthandBankSelector({
     countrySlot.append(countrySelector.element);
 
     let bankSelector = null;
+    let availableBankCount = 0;
 
     function replaceBankSelector(banks = []) {
       closeSelector(bankSelector);
+
+      availableBankCount = banks.length;
 
       const selector = createSelector(
         {
@@ -465,7 +480,11 @@ export function createExthandBankSelector({
         updatePayButton
       );
 
-      setSelectorDisabled(selector, banks.length === 0);
+      setSelectorDisabled(
+        selector,
+        availableBankCount === 0
+      );
+
       updatePayButton();
     }
 
@@ -592,6 +611,38 @@ export function createExthandBankSelector({
       }
     }
 
+    /*
+     * A pre-initiation rejection alone does not
+     * prove absence of an older payment attempt.
+     *
+     * Require both:
+     * 1. Explicit safe-to-retry from /start.
+     * 2. Fresh /refresh confirming no submission.
+     *
+     * Any unknown result keeps the attempt lock.
+     */
+    async function confirmSafePreInitiationFailure(error) {
+      if (
+        error?.body?.initiation_safe_to_retry !== true
+      ) {
+        return false;
+      }
+
+      try {
+        await refreshExthandBankPayment({
+          settlement_id: settlementId
+        });
+
+        // A stored submission exists.
+        return false;
+      } catch (refreshError) {
+        return (
+          refreshError?.code ===
+          "exthand_submission_missing"
+        );
+      }
+    }
+
     replaceBankSelector();
 
     country.addEventListener("change", async () => {
@@ -643,12 +694,22 @@ export function createExthandBankSelector({
       const connectorId = Number(getBank()?.value);
       const bankCountry = country.value;
 
+      /*
+       * Capture the lock state BEFORE creating
+       * this invocation's attempt.
+       *
+       * A pre-existing lock must never be
+       * cleared by this handler.
+       */
+      const hadAttemptBeforeStart =
+        hasAttempt(settlementId);
+
       if (
         !isCurrent() ||
         checking ||
         pendingStarts.has(settlementId) ||
         !paymentAbsent ||
-        hasAttempt(settlementId) ||
+        hadAttemptBeforeStart ||
         !Number.isSafeInteger(connectorId) ||
         connectorId <= 0 ||
         !Object.prototype.hasOwnProperty.call(
@@ -660,8 +721,12 @@ export function createExthandBankSelector({
       }
 
       /*
+       * This handler owns the new local lock.
        * Lock before the non-idempotent request.
        */
+      const ownsCurrentAttempt =
+        !hadAttemptBeforeStart;
+
       rememberAttempt(settlementId);
       pendingStarts.add(settlementId);
 
@@ -690,12 +755,53 @@ export function createExthandBankSelector({
         }
 
         renderResult(result);
-      } catch {
-        setMessage(
-          "Payment initiation could not be " +
-          "confirmed. Do not retry. " +
-          "Use Check payment status."
-        );
+      } catch (error) {
+        /*
+         * Only an attempt created in this
+         * handler can become eligible for
+         * local lock release.
+         */
+        const safeToRetry =
+          ownsCurrentAttempt &&
+          await confirmSafePreInitiationFailure(
+            error
+          );
+
+        if (!isCurrent()) return;
+
+        if (safeToRetry) {
+          /*
+           * /start confirmed a pre-initiation
+           * rejection, and /refresh found no
+           * stored Exthand submission.
+           *
+           * Clear only this invocation's lock.
+           */
+          forgetAttempt(settlementId);
+
+          paymentAbsent = true;
+
+          setSelectorDisabled(
+            countrySelector,
+            false
+          );
+
+          setSelectorDisabled(
+            bankSelector,
+            availableBankCount === 0
+          );
+
+          setMessage(
+            "Bank payment could not be started. " +
+            "You may select another bank."
+          );
+        } else {
+          setMessage(
+            "Payment initiation could not be " +
+            "confirmed. Do not retry. " +
+            "Use Check payment status."
+          );
+        }
       } finally {
         pendingStarts.delete(settlementId);
 
