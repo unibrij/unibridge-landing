@@ -174,9 +174,7 @@ function safeUrl(value) {
   try {
     const url = new URL(str(value));
 
-    return url.protocol === "https:" &&
-      !url.username &&
-      !url.password
+    return url.protocol === "https:"
       ? url.href
       : null;
   } catch {
@@ -196,14 +194,6 @@ function isTerminalFlow(flow = {}) {
 function paymentMessage(result) {
   const flow = result?.flow || {};
   const payment = flow.payment || {};
-
-  if (result?.outcome === "gateway_consent_required") {
-    return (
-      "Bank authorization is required. " +
-      "Open the secure link below to continue. " +
-      "Do not make a separate manual payment."
-    );
-  }
 
   if (payment.state === "accepted") {
     return (
@@ -238,9 +228,8 @@ function paymentMessage(result) {
 
   if (result?.started === false) {
     return (
-      "Bank authorization or account discovery " +
-      "is pending. Check its status before " +
-      "taking further action."
+      "A previous bank payment attempt exists. " +
+      "Check its status before taking further action."
     );
   }
 
@@ -261,7 +250,7 @@ function createSelector(field, options) {
 }
 
 function closeSelector(selector) {
-  if (!selector?.element?.classList.contains("is-open")) {
+  if (!selector?.element.classList.contains("is-open")) {
     return;
   }
 
@@ -560,12 +549,7 @@ export function createExthandBankSelector({
 
     /*
      * Backend is authoritative.
-     *
-     * A missing payment submission does not
-     * prove that no earlier authorization or
-     * payment attempt exists.
-     *
-     * Preserve all existing attempt locks.
+     * Unknown outcomes remain locked.
      */
     async function checkStatus() {
       if (
@@ -601,17 +585,18 @@ export function createExthandBankSelector({
           error?.code ===
           "exthand_submission_missing"
         ) {
-          paymentAbsent =
-            !hasAttempt(settlementId) &&
-            !pendingStarts.has(settlementId);
+          if (!pendingStarts.has(settlementId)) {
+            forgetAttempt(settlementId);
+          }
+
+          paymentAbsent = !hasAttempt(settlementId);
 
           setMessage(
             paymentAbsent
               ? "Select your bank to continue."
               : (
-                  "A previous bank authorization or " +
-                  "payment attempt could not be " +
-                  "confirmed. Do not retry."
+                  "A previous payment attempt could " +
+                  "not be confirmed. Do not retry."
                 )
           );
         } else {
@@ -768,21 +753,6 @@ export function createExthandBankSelector({
 
         if (!isCurrent()) return;
 
-        /*
-         * Gateway consent is not payment
-         * initiation.
-         *
-         * started:false can contain a valid
-         * authorization redirect.
-         */
-        if (
-          result?.outcome ===
-          "gateway_consent_required"
-        ) {
-          renderResult(result);
-          return;
-        }
-
         if (result?.started === false) {
           await refreshExistingPayment();
           return;
@@ -852,17 +822,11 @@ export function createExthandBankSelector({
             settlement_id: settlementId
           });
 
-        if (!isCurrent()) return;
-
-        rememberAttempt(settlementId);
         renderResult(result);
       } catch {
-        if (!isCurrent()) return;
-
         setMessage(
-          "A previous bank authorization or " +
-          "payment state could not be verified. " +
-          "Do not retry."
+          "A previous payment exists, but its " +
+          "status is unavailable. Do not retry."
         );
       }
     }
