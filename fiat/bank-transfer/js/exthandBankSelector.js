@@ -446,7 +446,6 @@ export function createExthandBankSelector({
           value: code,
           label: name
         }))
-      )
     );
 
     countrySlot.append(countrySelector.element);
@@ -752,6 +751,16 @@ export function createExthandBankSelector({
           });
 
         if (!isCurrent()) return;
+
+        // Preserve gateway consent redirects even
+        // when payment initiation has not started.
+        if (
+          result?.outcome ===
+          "gateway_consent_required"
+        ) {
+          renderResult(result);
+          return;
+        }
 
         if (result?.started === false) {
           await refreshExistingPayment();
