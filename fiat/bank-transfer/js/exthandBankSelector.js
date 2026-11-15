@@ -1,4 +1,7 @@
+
+//
 // fiat/bank-transfer/js/exthandBankSelector.js
+//
 
 import {
   startExthandBankPayment,
@@ -449,7 +452,15 @@ export function createExthandBankSelector({
             bank_country: bankCountry
           });
 
-        if (result?.started === false) {
+        if (
+          result?.outcome === "gateway_consent_required"
+        ) {
+          /*
+           * Preserve the Gateway consent redirect.
+           * No payment initiation has occurred yet.
+           */
+          resultToApply = result;
+        } else if (result?.started === false) {
           /*
            * An existing attempt must be checked,
            * never started again automatically.
