@@ -64,6 +64,12 @@ export function hasPaymentFlow(result) {
     return false;
   }
 
+  // Discovery may contain flow_state and
+  // next_action without payment initiation.
+  if (isDiscovery(result)) {
+    return false;
+  }
+
   return Boolean(
     flow.payment ||
     flow.flow_state ||
