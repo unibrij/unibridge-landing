@@ -147,7 +147,7 @@ export function createBankSelectorView({
 
     <div class="destination-field">
       <label class="destination-field-label">
-      Your bank
+        Your bank
       </label>
       <div data-bank-select-slot></div>
     </div>
@@ -342,11 +342,16 @@ export function createBankSelectorView({
       return;
     }
 
+    // Gateway consent redirects must be read
+    // directly from the top-level flow.
     // Payment actions take precedence over
     // earlier discovery redirects.
-    const action = hasPaymentFlow(result)
-      ? flow.next_action
-      : getDiscovery(result)?.next_action;
+    const action =
+      result?.outcome === "gateway_consent_required"
+        ? flow.next_action
+        : hasPaymentFlow(result)
+          ? flow.next_action
+          : getDiscovery(result)?.next_action;
 
     if (action?.type !== "redirect") {
       return;
