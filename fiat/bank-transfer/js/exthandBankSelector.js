@@ -23,8 +23,6 @@ import {
   normalizeBanks
 } from "./bankSelectorView.js";
 
-const ATTEMPT_PREFIX = "ub_exthand_attempt:";
-
 const str = value =>
   String(value ?? "").trim();
 
@@ -51,45 +49,7 @@ export function createExthandBankSelector({
   let cleanupSelectors = null;
   let currentStatusCheck = null;
 
-  const attempted = new Set();
   const pendingStarts = new Set();
-
-  function hasAttempt(id) {
-    if (attempted.has(id)) return true;
-
-    try {
-      return window.localStorage.getItem(
-        ATTEMPT_PREFIX + id
-      ) === "1";
-    } catch {
-      return false;
-    }
-  }
-
-  function rememberAttempt(id) {
-    attempted.add(id);
-
-    try {
-      window.localStorage.setItem(
-        ATTEMPT_PREFIX + id,
-        "1"
-      );
-    } catch {
-      // In-memory protection remains active.
-    }
-  }
-
-  function forgetAttempt(id) {
-    attempted.delete(id);
-
-    try {
-      window.localStorage.removeItem(
-        ATTEMPT_PREFIX + id
-      );
-    } catch {
-      // Backend remains authoritative.
-    }
-  }
 
   function mount(funding) {
     const current = ++revision;
@@ -144,8 +104,15 @@ export function createExthandBankSelector({
     const busy = () =>
       checking || pendingStarts.has(id);
 
+    /*
+     * Backend status is the only authority
+     * for starting a new payment.
+     *
+     * Local state prevents concurrent requests
+     * but never permanently locks a settlement.
+     */
     const canStartNew = () =>
-      paymentAbsent && !hasAttempt(id);
+      paymentAbsent;
 
     function canContinueDiscovery() {
       if (
@@ -241,15 +208,14 @@ export function createExthandBankSelector({
       clearPaymentPermission();
 
       if (safeToRetry(result)) {
-        // A confirmed retry is applied only after
-        // any pending local start has finished.
+        /*
+         * A confirmed retry is applied only
+         * after any pending start has finished.
+         */
         if (!pendingStarts.has(id)) {
-          forgetAttempt(id);
           paymentAbsent = true;
         }
       } else if (isDiscovery(result)) {
-        rememberAttempt(id);
-
         const discovery =
           result?.account_discovery ||
           result?.discovery ||
@@ -266,11 +232,13 @@ export function createExthandBankSelector({
 
         ready = discoveryReady(result);
         selectionRequired = needsSelection(result);
-      } else {
-        // Unknown and payment states stay locked.
-        rememberAttempt(id);
       }
 
+      /*
+       * Unknown or active payment states
+       * remain locked until Backend confirms
+       * that a new attempt is permitted.
+       */
       view.renderResult(result);
 
       if (
@@ -458,10 +426,6 @@ export function createExthandBankSelector({
         return;
       }
 
-      const ownsAttempt =
-        !continuing && !hasAttempt(id);
-
-      rememberAttempt(id);
       pendingStarts.add(id);
 
       invalidateBankRequests();
@@ -486,8 +450,10 @@ export function createExthandBankSelector({
           });
 
         if (result?.started === false) {
-          // An existing attempt must be checked,
-          // never started again automatically.
+          /*
+           * An existing attempt must be checked,
+           * never started again automatically.
+           */
           resultToApply =
             await refreshExthandBankPayment({
               settlement_id: id
@@ -496,9 +462,12 @@ export function createExthandBankSelector({
           resultToApply = result;
         }
       } catch (error) {
-        const safeResult = ownsAttempt
-          ? await confirmSafeFailure(error)
-          : null;
+        /*
+         * A retry is accepted only after the
+         * Backend explicitly confirms it.
+         */
+        const safeResult =
+          await confirmSafeFailure(error);
 
         if (safeResult) {
           resultToApply = safeResult;
@@ -513,8 +482,6 @@ export function createExthandBankSelector({
 
         if (isCurrent()) {
           if (resultToApply) {
-            // The local lock is now released.
-            // Apply the backend result exactly once.
             applyStatus(resultToApply);
 
             if (
