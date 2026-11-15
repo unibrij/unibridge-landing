@@ -1,5 +1,5 @@
 
-/* fiat/bank-transfer/js/exthandBankSelector.js */
+// fiat/bank-transfer/js/exthandBankSelector.js
 
 import {
   startExthandBankPayment,
@@ -182,6 +182,59 @@ function safeUrl(value) {
   }
 }
 
+function getDiscovery(result) {
+  const discovery =
+    result?.account_discovery ||
+    result?.discovery;
+
+  return discovery &&
+    typeof discovery === "object" &&
+    !Array.isArray(discovery)
+      ? discovery
+      : null;
+}
+
+function getDiscoveryStatus(result) {
+  return str(
+    getDiscovery(result)?.status ||
+    result?.discovery_status
+  );
+}
+
+function hasStoredSubmission(result) {
+  const submission =
+    result?.connected_bank_submission;
+
+  return Boolean(
+    submission &&
+    typeof submission === "object" &&
+    !Array.isArray(submission) &&
+    Object.keys(submission).length > 0
+  );
+}
+
+function isPaymentNotStarted(result) {
+  return result?.outcome === "payment_not_started";
+}
+
+function isDiscoveryResult(result) {
+  return Boolean(
+    getDiscoveryStatus(result) ||
+    result?.outcome === "account_discovery_status" ||
+    result?.outcome ===
+      "account_discovery_already_completed"
+  );
+}
+
+function isDiscoveryReady(result) {
+  return getDiscoveryStatus(result) === "accounts_ready";
+}
+
+function needsAccountSelection(result) {
+  return getDiscoveryStatus(result) ===
+    "accounts_selection_required";
+}
+
 function isTerminalFlow(flow = {}) {
   return (
     flow.payment?.terminal === true ||
@@ -192,6 +245,83 @@ function isTerminalFlow(flow = {}) {
 }
 
 function paymentMessage(result) {
+  if (isPaymentNotStarted(result)) {
+    return "Select your bank to continue.";
+  }
+
+  if (needsAccountSelection(result)) {
+    return (
+      "Bank authorization completed. " +
+      "Select the account to use before " +
+      "continuing with payment."
+    );
+  }
+
+  if (isDiscoveryReady(result)) {
+    return (
+      "Bank account authorization completed. " +
+      "Continue to initiate your bank payment."
+    );
+  }
+
+  if (isDiscoveryResult(result)) {
+    const discovery = getDiscovery(result) || {};
+    const status = getDiscoveryStatus(result);
+
+    if (status === "redirect") {
+      return (
+        "Complete bank authorization, then " +
+        "check its status."
+      );
+    }
+
+    if (status === "decoupled") {
+      return (
+        "Approve access in your banking app, " +
+        "then check its status."
+      );
+    }
+
+    if (
+      status === "initiation_unknown" ||
+      status === "finalization_unknown"
+    ) {
+      return (
+        "Bank authorization outcome is uncertain. " +
+        "Do not start another attempt."
+      );
+    }
+
+    if (
+      status === "initiation_rejected" ||
+      status === "error"
+    ) {
+      return (
+        "Bank authorization could not be completed. " +
+        "Check its status before trying again."
+      );
+    }
+
+    if (status === "retry") {
+      return (
+        "Bank authorization requires continuation. " +
+        "Check its status before taking further action."
+      );
+    }
+
+    if (discovery.status) {
+      return (
+        "Bank authorization is in progress. " +
+        "Check its status."
+      );
+    }
+
+    return (
+      "Bank authorization status is pending. " +
+      "Check its status."
+    );
+  }
+
   const flow = result?.flow || {};
   const payment = flow.payment || {};
 
@@ -368,6 +498,9 @@ export function createExthandBankSelector({
 
     let checking = false;
     let paymentAbsent = false;
+    let discoveryReady = false;
+    let accountSelectionRequired = false;
+    let activeDiscovery = null;
     let requestSequence = 0;
 
     const isCurrent = () =>
@@ -502,16 +635,58 @@ export function createExthandBankSelector({
       }
     }
 
+    function canContinueDiscovery() {
+      if (
+        !discoveryReady ||
+        accountSelectionRequired ||
+        !activeDiscovery
+      ) {
+        return false;
+      }
+
+      const connectorId = Number(
+        activeDiscovery.connector_id
+      );
+
+      const bankCountry = str(
+        activeDiscovery.bank_country
+      );
+
+      return (
+        Number.isSafeInteger(connectorId) &&
+        connectorId > 0 &&
+        Object.prototype.hasOwnProperty.call(
+          countries,
+          bankCountry
+        )
+      );
+    }
+
     function updatePayButton() {
       if (!isCurrent()) return;
 
-      pay.disabled =
+      const busy =
         checking ||
-        pendingStarts.has(settlementId) ||
-        !paymentAbsent ||
-        hasAttempt(settlementId) ||
-        !country.value ||
-        !getBank()?.value;
+        pendingStarts.has(settlementId);
+
+      const newPaymentAllowed =
+        paymentAbsent &&
+        !hasAttempt(settlementId) &&
+        Boolean(country.value) &&
+        Boolean(getBank()?.value);
+
+      pay.disabled =
+        busy ||
+        !(
+          newPaymentAllowed ||
+          canContinueDiscovery()
+        );
+
+      if (canContinueDiscovery()) {
+        pay.textContent = "Continue bank payment";
+      } else {
+        pay.textContent = "Continue to bank";
+      }
     }
 
     function renderResult(result) {
@@ -524,7 +699,10 @@ export function createExthandBankSelector({
 
       if (isTerminalFlow(flow)) return;
 
-      const action = flow.next_action;
+      const action =
+        flow.next_action ||
+        getDiscovery(result)?.next_action;
+
       if (action?.type !== "redirect") return;
 
       const url = safeUrl(action.url);
@@ -547,9 +725,51 @@ export function createExthandBankSelector({
     }
 
     /*
-     * Backend is authoritative.
-     * Unknown outcomes remain locked.
+     * Refresh results determine whether a
+     * NEW attempt may begin or an existing
+     * discovery may be continued.
+     *
+     * A local attempt lock is not removed
+     * merely because refresh reports no payment.
      */
+    function applyStatus(result) {
+      paymentAbsent = false;
+      discoveryReady = false;
+      accountSelectionRequired = false;
+      activeDiscovery = null;
+
+      if (isPaymentNotStarted(result)) {
+        if (!hasAttempt(settlementId)) {
+          paymentAbsent = true;
+        }
+      } else if (isDiscoveryResult(result)) {
+        rememberAttempt(settlementId);
+
+        activeDiscovery = getDiscovery(result);
+
+        discoveryReady = isDiscoveryReady(result);
+
+        accountSelectionRequired =
+          needsAccountSelection(result);
+      } else {
+        rememberAttempt(settlementId);
+      }
+
+      renderResult(result);
+
+      if (
+        isPaymentNotStarted(result) &&
+        hasAttempt(settlementId)
+      ) {
+        setMessage(
+          "A previous attempt could not be " +
+          "confirmed. Do not retry automatically."
+        );
+      }
+
+      updatePayButton();
+    }
+
     async function checkStatus() {
       if (
         checking ||
@@ -561,6 +781,7 @@ export function createExthandBankSelector({
 
       checking = true;
       paymentAbsent = false;
+      discoveryReady = false;
 
       refresh.disabled = true;
       updatePayButton();
@@ -575,8 +796,7 @@ export function createExthandBankSelector({
 
         if (!isCurrent()) return;
 
-        rememberAttempt(settlementId);
-        renderResult(result);
+        applyStatus(result);
       } catch (error) {
         if (!isCurrent()) return;
 
@@ -584,20 +804,18 @@ export function createExthandBankSelector({
           error?.code ===
           "exthand_submission_missing"
         ) {
-          if (!pendingStarts.has(settlementId)) {
-            forgetAttempt(settlementId);
+          if (!hasAttempt(settlementId)) {
+            paymentAbsent = true;
+
+            setMessage(
+              "Select your bank to continue."
+            );
+          } else {
+            setMessage(
+              "A previous payment attempt could " +
+              "not be confirmed. Do not retry."
+            );
           }
-
-          paymentAbsent = !hasAttempt(settlementId);
-
-          setMessage(
-            paymentAbsent
-              ? "Select your bank to continue."
-              : (
-                  "A previous payment attempt could " +
-                  "not be confirmed. Do not retry."
-                )
-          );
         } else {
           setMessage(
             "Unable to verify payment status. " +
@@ -615,14 +833,11 @@ export function createExthandBankSelector({
     }
 
     /*
-     * A pre-initiation rejection alone does not
-     * prove absence of an older payment attempt.
+     * A safe-to-retry flag from /start is
+     * necessary but not sufficient.
      *
-     * Require both:
-     * 1. Explicit safe-to-retry from /start.
-     * 2. Fresh /refresh confirming no submission.
-     *
-     * Any unknown result keeps the attempt lock.
+     * Refresh must also confirm the absence
+     * of discovery and payment state.
      */
     async function confirmSafePreInitiationFailure(error) {
       if (
@@ -632,17 +847,18 @@ export function createExthandBankSelector({
       }
 
       try {
-        await refreshExthandBankPayment({
-          settlement_id: settlementId
-        });
+        const result =
+          await refreshExthandBankPayment({
+            settlement_id: settlementId
+          });
 
-        // A stored submission exists.
-        return false;
-      } catch (refreshError) {
         return (
-          refreshError?.code ===
-          "exthand_submission_missing"
+          isPaymentNotStarted(result) &&
+          !isDiscoveryResult(result) &&
+          !hasStoredSubmission(result)
         );
+      } catch {
+        return false;
       }
     }
 
@@ -694,16 +910,17 @@ export function createExthandBankSelector({
     });
 
     pay.addEventListener("click", async () => {
-      const connectorId = Number(getBank()?.value);
-      const bankCountry = country.value;
+      const continuingDiscovery =
+        canContinueDiscovery();
 
-      /*
-       * Capture the lock state BEFORE creating
-       * this invocation's attempt.
-       *
-       * A pre-existing lock must never be
-       * cleared by this handler.
-       */
+      const connectorId = continuingDiscovery
+        ? Number(activeDiscovery.connector_id)
+        : Number(getBank()?.value);
+
+      const bankCountry = continuingDiscovery
+        ? str(activeDiscovery.bank_country)
+        : country.value;
+
       const hadAttemptBeforeStart =
         hasAttempt(settlementId);
 
@@ -711,8 +928,13 @@ export function createExthandBankSelector({
         !isCurrent() ||
         checking ||
         pendingStarts.has(settlementId) ||
-        !paymentAbsent ||
-        hadAttemptBeforeStart ||
+        (
+          !continuingDiscovery &&
+          (
+            !paymentAbsent ||
+            hadAttemptBeforeStart
+          )
+        ) ||
         !Number.isSafeInteger(connectorId) ||
         connectorId <= 0 ||
         !Object.prototype.hasOwnProperty.call(
@@ -724,23 +946,32 @@ export function createExthandBankSelector({
       }
 
       /*
-       * This handler owns the new local lock.
-       * Lock before the non-idempotent request.
+       * Only the new-attempt path may own
+       * a releasable local attempt lock.
+       *
+       * Continuing authorized discovery
+       * must never clear an existing lock.
        */
       const ownsCurrentAttempt =
+        !continuingDiscovery &&
         !hadAttemptBeforeStart;
 
       rememberAttempt(settlementId);
       pendingStarts.add(settlementId);
 
       paymentAbsent = false;
+      discoveryReady = false;
 
       pay.disabled = true;
 
       setSelectorDisabled(countrySelector, true);
       setSelectorDisabled(bankSelector, true);
 
-      setMessage("Contacting your bank…");
+      setMessage(
+        continuingDiscovery
+          ? "Continuing bank payment…"
+          : "Contacting your bank…"
+      );
 
       try {
         const result =
@@ -752,28 +983,13 @@ export function createExthandBankSelector({
 
         if (!isCurrent()) return;
 
-        // Preserve gateway consent redirects even
-        // when payment initiation has not started.
-        if (
-          result?.outcome ===
-          "gateway_consent_required"
-        ) {
-          renderResult(result);
-          return;
-        }
-
         if (result?.started === false) {
           await refreshExistingPayment();
           return;
         }
 
-        renderResult(result);
+        applyStatus(result);
       } catch (error) {
-        /*
-         * Only an attempt created in this
-         * handler can become eligible for
-         * local lock release.
-         */
         const safeToRetry =
           ownsCurrentAttempt &&
           await confirmSafePreInitiationFailure(
@@ -783,16 +999,11 @@ export function createExthandBankSelector({
         if (!isCurrent()) return;
 
         if (safeToRetry) {
-          /*
-           * /start confirmed a pre-initiation
-           * rejection, and /refresh found no
-           * stored Exthand submission.
-           *
-           * Clear only this invocation's lock.
-           */
           forgetAttempt(settlementId);
 
           paymentAbsent = true;
+          activeDiscovery = null;
+          accountSelectionRequired = false;
 
           setSelectorDisabled(
             countrySelector,
@@ -831,8 +1042,12 @@ export function createExthandBankSelector({
             settlement_id: settlementId
           });
 
-        renderResult(result);
+        if (!isCurrent()) return;
+
+        applyStatus(result);
       } catch {
+        if (!isCurrent()) return;
+
         setMessage(
           "A previous payment exists, but its " +
           "status is unavailable. Do not retry."
