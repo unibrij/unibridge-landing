@@ -1,5 +1,5 @@
 
-// fiat/bank-transfer/js/exthandBankSelector.js
+ // fiat/bank-transfer/js/exthandBankSelector.js
 
 import {
   startExthandBankPayment,
@@ -174,7 +174,11 @@ function safeUrl(value) {
   try {
     const url = new URL(str(value));
 
-    return url.protocol === "https:"
+    return (
+      url.protocol === "https:" &&
+      !url.username &&
+      !url.password
+    )
       ? url.href
       : null;
   } catch {
@@ -220,14 +224,21 @@ function isPaymentNotStarted(result) {
 function isDiscoveryResult(result) {
   return Boolean(
     getDiscoveryStatus(result) ||
-    result?.outcome === "account_discovery_status" ||
-    result?.outcome ===
-      "account_discovery_already_completed"
+    [
+      "account_discovery_started",
+      "account_discovery_already_started",
+      "account_discovery_status",
+      "account_discovery_already_completed",
+      "account_discovery_updated"
+    ].includes(result?.outcome)
   );
 }
 
 function isDiscoveryReady(result) {
-  return getDiscoveryStatus(result) === "accounts_ready";
+  return (
+    getDiscoveryStatus(result) === "accounts_ready" &&
+    getDiscovery(result)?.account_ready === true
+  );
 }
 
 function needsAccountSelection(result) {
@@ -252,7 +263,7 @@ function paymentMessage(result) {
   if (needsAccountSelection(result)) {
     return (
       "Bank authorization completed. " +
-      "Select the account to use before " +
+      "Account selection is required before " +
       "continuing with payment."
     );
   }
@@ -265,7 +276,6 @@ function paymentMessage(result) {
   }
 
   if (isDiscoveryResult(result)) {
-    const discovery = getDiscovery(result) || {};
     const status = getDiscoveryStatus(result);
 
     if (status === "redirect") {
@@ -284,11 +294,13 @@ function paymentMessage(result) {
 
     if (
       status === "initiation_unknown" ||
-      status === "finalization_unknown"
+      status === "finalization_unknown" ||
+      status === "initiating" ||
+      status === "finalizing"
     ) {
       return (
-        "Bank authorization outcome is uncertain. " +
-        "Do not start another attempt."
+        "Bank authorization outcome is not yet " +
+        "confirmed. Do not start another attempt."
       );
     }
 
@@ -298,7 +310,14 @@ function paymentMessage(result) {
     ) {
       return (
         "Bank authorization could not be completed. " +
-        "Check its status before trying again."
+        "Check its status before taking further action."
+      );
+    }
+
+    if (status === "interaction_required") {
+      return (
+        "This bank requires an unsupported " +
+        "authorization interaction."
       );
     }
 
@@ -309,15 +328,8 @@ function paymentMessage(result) {
       );
     }
 
-    if (discovery.status) {
-      return (
-        "Bank authorization is in progress. " +
-        "Check its status."
-      );
-    }
-
     return (
-      "Bank authorization status is pending. " +
+      "Bank authorization is in progress. " +
       "Check its status."
     );
   }
@@ -586,6 +598,32 @@ export function createExthandBankSelector({
     let bankSelector = null;
     let availableBankCount = 0;
 
+    const country = countrySelector.input;
+    const getBank = () => bankSelector?.input;
+
+    const canStartNew = () =>
+      paymentAbsent &&
+      !hasAttempt(settlementId);
+
+    function syncSelectors() {
+      if (!isCurrent()) return;
+
+      const enabled =
+        !checking &&
+        !pendingStarts.has(settlementId) &&
+        canStartNew();
+
+      setSelectorDisabled(
+        countrySelector,
+        !enabled
+      );
+
+      setSelectorDisabled(
+        bankSelector,
+        !enabled || availableBankCount === 0
+      );
+    }
+
     function replaceBankSelector(banks = []) {
       closeSelector(bankSelector);
 
@@ -612,11 +650,7 @@ export function createExthandBankSelector({
         updatePayButton
       );
 
-      setSelectorDisabled(
-        selector,
-        availableBankCount === 0
-      );
-
+      syncSelectors();
       updatePayButton();
     }
 
@@ -625,16 +659,23 @@ export function createExthandBankSelector({
       closeSelector(bankSelector);
     };
 
-    const country = countrySelector.input;
-
-    const getBank = () => bankSelector?.input;
-
     function setMessage(value) {
       if (isCurrent()) {
         message.textContent = value;
       }
     }
 
+    /*
+     * discoveryResult() exposes:
+     *
+     * - account_discovery.status
+     * - account_discovery.account_ready
+     * - connector_id and bank_country through
+     *   buildResult() at the top level.
+     *
+     * Do not read connector context from the
+     * account_discovery summary.
+     */
     function canContinueDiscovery() {
       if (
         !discoveryReady ||
@@ -648,7 +689,7 @@ export function createExthandBankSelector({
         activeDiscovery.connector_id
       );
 
-      const bankCountry = str(
+      const bankCountry = upper(
         activeDiscovery.bank_country
       );
 
@@ -670,23 +711,23 @@ export function createExthandBankSelector({
         pendingStarts.has(settlementId);
 
       const newPaymentAllowed =
-        paymentAbsent &&
-        !hasAttempt(settlementId) &&
+        canStartNew() &&
         Boolean(country.value) &&
         Boolean(getBank()?.value);
+
+      const continueAllowed =
+        canContinueDiscovery();
 
       pay.disabled =
         busy ||
         !(
           newPaymentAllowed ||
-          canContinueDiscovery()
+          continueAllowed
         );
 
-      if (canContinueDiscovery()) {
-        pay.textContent = "Continue bank payment";
-      } else {
-        pay.textContent = "Continue to bank";
-      }
+      pay.textContent = continueAllowed
+        ? "Continue bank payment"
+        : "Continue to bank";
     }
 
     function renderResult(result) {
@@ -724,14 +765,6 @@ export function createExthandBankSelector({
       next.append(link);
     }
 
-    /*
-     * Refresh results determine whether a
-     * NEW attempt may begin or an existing
-     * discovery may be continued.
-     *
-     * A local attempt lock is not removed
-     * merely because refresh reports no payment.
-     */
     function applyStatus(result) {
       paymentAbsent = false;
       discoveryReady = false;
@@ -745,9 +778,15 @@ export function createExthandBankSelector({
       } else if (isDiscoveryResult(result)) {
         rememberAttempt(settlementId);
 
-        activeDiscovery = getDiscovery(result);
+        activeDiscovery = {
+          connector_id:
+            result?.connector_id,
+          bank_country:
+            result?.bank_country
+        };
 
-        discoveryReady = isDiscoveryReady(result);
+        discoveryReady =
+          isDiscoveryReady(result);
 
         accountSelectionRequired =
           needsAccountSelection(result);
@@ -767,6 +806,7 @@ export function createExthandBankSelector({
         );
       }
 
+      syncSelectors();
       updatePayButton();
     }
 
@@ -784,6 +824,7 @@ export function createExthandBankSelector({
       discoveryReady = false;
 
       refresh.disabled = true;
+      syncSelectors();
       updatePayButton();
 
       setMessage("Checking bank payment status…");
@@ -827,18 +868,12 @@ export function createExthandBankSelector({
 
         if (isCurrent()) {
           refresh.disabled = false;
+          syncSelectors();
           updatePayButton();
         }
       }
     }
 
-    /*
-     * A safe-to-retry flag from /start is
-     * necessary but not sufficient.
-     *
-     * Refresh must also confirm the absence
-     * of discovery and payment state.
-     */
     async function confirmSafePreInitiationFailure(error) {
       if (
         error?.body?.initiation_safe_to_retry !== true
@@ -918,7 +953,7 @@ export function createExthandBankSelector({
         : Number(getBank()?.value);
 
       const bankCountry = continuingDiscovery
-        ? str(activeDiscovery.bank_country)
+        ? upper(activeDiscovery.bank_country)
         : country.value;
 
       const hadAttemptBeforeStart =
@@ -945,13 +980,6 @@ export function createExthandBankSelector({
         return;
       }
 
-      /*
-       * Only the new-attempt path may own
-       * a releasable local attempt lock.
-       *
-       * Continuing authorized discovery
-       * must never clear an existing lock.
-       */
       const ownsCurrentAttempt =
         !continuingDiscovery &&
         !hadAttemptBeforeStart;
@@ -962,10 +990,8 @@ export function createExthandBankSelector({
       paymentAbsent = false;
       discoveryReady = false;
 
-      pay.disabled = true;
-
-      setSelectorDisabled(countrySelector, true);
-      setSelectorDisabled(bankSelector, true);
+      syncSelectors();
+      updatePayButton();
 
       setMessage(
         continuingDiscovery
@@ -1005,16 +1031,6 @@ export function createExthandBankSelector({
           activeDiscovery = null;
           accountSelectionRequired = false;
 
-          setSelectorDisabled(
-            countrySelector,
-            false
-          );
-
-          setSelectorDisabled(
-            bankSelector,
-            availableBankCount === 0
-          );
-
           setMessage(
             "Bank payment could not be started. " +
             "You may select another bank."
@@ -1030,6 +1046,7 @@ export function createExthandBankSelector({
         pendingStarts.delete(settlementId);
 
         if (isCurrent()) {
+          syncSelectors();
           updatePayButton();
         }
       }
