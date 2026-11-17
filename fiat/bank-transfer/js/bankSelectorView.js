@@ -6,9 +6,7 @@ import {
 
 import {
   validConnectorId,
-  hasPaymentFlow,
   terminalFlow,
-  getDiscovery,
   paymentMessage
 } from "./paymentRules.js";
 
@@ -342,16 +340,11 @@ export function createBankSelectorView({
       return;
     }
 
-    // Gateway consent redirects must be read
-    // directly from the top-level flow.
-    // Payment actions take precedence over
-    // earlier discovery redirects.
-    const action =
-      result?.outcome === "gateway_consent_required"
-        ? flow.next_action
-        : hasPaymentFlow(result)
-          ? flow.next_action
-          : getDiscovery(result)?.next_action;
+    // The backend exposes the next action
+    // through the top-level flow for Gateway
+    // Consent, Account Discovery and Payment
+    // Initiation.
+    const action = flow.next_action;
 
     if (action?.type !== "redirect") {
       return;
