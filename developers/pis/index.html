@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore UniBridge bank discovery, payment initiation, and fiat collection and settlement models.">
-  <title>Payment Initiation & Fiat Collection | UniBridge</title>
+  <meta name="description" content="Explore UniBridge bank discovery, payment initiation, fiat collection into partner or infrastructure-provided accounts, and optional stablecoin settlement.">
+  <title>Fiat Collection &amp; Payment Initiation | UniBridge</title>
   <link rel="icon" href="/favicon.png" type="image/png">
 
   <style>
@@ -60,11 +60,18 @@
     }
 
     .brand {
-      font-weight: 800;
-      font-size: 22px;
-      letter-spacing: -.7px;
-      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
       text-decoration: none;
+    }
+
+    .brand-logo {
+      display: block;
+      width: auto;
+      height: 32px;
+      max-width: 180px;
+      object-fit: contain;
     }
 
     .nav small {
@@ -148,7 +155,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
     }
 
@@ -249,6 +256,15 @@
         padding: 48px 0 38px;
       }
 
+      .nav {
+        padding: 15px 0;
+      }
+
+      .brand-logo {
+        height: 28px;
+        max-width: 160px;
+      }
+
       .nav small {
         display: none;
       }
@@ -260,7 +276,20 @@
 
   <header>
     <div class="wrap nav">
-      <a class="brand" href="/">UniBridge</a>
+      <a
+        class="brand"
+        href="/"
+        aria-label="UniBridge Home"
+      >
+        <img
+          class="brand-logo"
+          src="/public/icons/social/unibridge-orbit-lockup-dark.png"
+          alt="UniBridge"
+          width="180"
+          height="32"
+        >
+      </a>
+
       <small>Developer documentation · Fiat collection</small>
     </div>
   </header>
@@ -269,12 +298,14 @@
     <div class="wrap">
       <div class="eyebrow">Developer documentation</div>
 
-      <h1>Payment Initiation &amp; Fiat Collection</h1>
+      <h1>Fiat Collection &amp; Payment Initiation</h1>
 
       <p>
-        Explore bank connectivity, payment initiation,
-        and collection models available through UniBridge
-        and its infrastructure partners.
+        Explore bank connectivity and PIS-powered fiat
+        collection into partner-designated accounts or
+        virtual accounts provisioned through UniBridge's
+        infrastructure partners, with optional settlement
+        capabilities.
       </p>
 
       <span class="tag">Public integration overview</span>
@@ -288,23 +319,29 @@
 
       <p>
         UniBridge connects bank payment initiation with
-        fiat collection and settlement infrastructure,
-        enabling partners to build collection flows
-        around their operational requirements.
+        fiat collection infrastructure, enabling partners
+        to collect funds into agreed destination accounts
+        without requiring a single account-provisioning model.
+      </p>
+
+      <p>
+        Collection accounts may be provided by the partner
+        or provisioned through UniBridge's infrastructure
+        partners, depending on the integration requirements.
       </p>
 
       <p>
         Partners can explore bank connectivity through
         the public Bank Discovery API and evaluate
-        the collection and settlement models described below.
+        the collection models described below.
       </p>
 
       <div class="note">
         <strong>API availability:</strong>
         Bank Discovery is publicly accessible without
-        authentication. Payment initiation and settlement
-        integrations require partner-specific configuration
-        and authorization.
+        authentication. Payment initiation, account
+        configuration, and settlement integrations require
+        partner-specific authorization and configuration.
       </div>
     </section>
 
@@ -406,9 +443,10 @@
       <h2>2. Payment Initiation (PIS)</h2>
 
       <p>
-        UniBridge integrates with bank connectivity
-        infrastructure to support payment initiation
-        from eligible customer bank accounts.
+        Payment initiation is a component of the UniBridge
+        fiat collection flow. It enables eligible customers
+        to authorize bank payments toward an agreed
+        collection destination.
       </p>
 
       <h3>Integration flow</h3>
@@ -421,7 +459,7 @@
       <p>
         <strong>2. Payment initiation:</strong>
         A payment request is prepared for the selected
-        institution and collection destination.
+        institution and configured collection destination.
       </p>
 
       <p>
@@ -440,8 +478,9 @@
 
       <p>
         Partner API specifications, authentication
-        requirements, and payment status handling
-        are shared as part of the integration process.
+        requirements, destination account configuration,
+        and payment status handling are shared as part
+        of the integration process.
       </p>
 
       <p class="muted">
@@ -451,56 +490,62 @@
     </section>
 
     <section class="card" id="models">
-      <h2>3. Collection and settlement models</h2>
+      <h2>3. Fiat collection models</h2>
 
       <p>
-        UniBridge supports different integration approaches
-        depending on the partner's collection and settlement needs.
+        UniBridge supports two collection approaches,
+        depending on who provides the destination account.
+        Both use payment initiation as part of the
+        collection flow.
       </p>
 
       <div class="grid">
 
         <div class="mini">
-          <h3>Standalone PIS</h3>
+          <h3>Partner-Provided Accounts</h3>
 
-          <span class="pill">Integration option</span>
+          <span class="pill">Collection model</span>
 
           <p>
-            Bank payment initiation using an agreed
-            collection destination and payment flow.
+            Fiat collection into an agreed account
+            designated by the partner, including
+            eligible existing virtual accounts,
+            subject to destination account support
+            and integration requirements.
           </p>
         </div>
 
         <div class="mini">
-          <h3>PIS + Virtual Accounts</h3>
+          <h3>UniBridge-Provided Virtual Accounts</h3>
 
           <span class="pill future">Partner configuration</span>
 
           <p>
             Fiat collection into virtual accounts
             provisioned through UniBridge's
-            infrastructure partners.
-          </p>
-        </div>
-
-        <div class="mini">
-          <h3>PIS + Stablecoin Settlement</h3>
-
-          <span class="pill future">Partner configuration</span>
-
-          <p>
-            Fiat collection and conversion into
-            stablecoins, with settlement to a
-            wallet designated by the partner.
+            infrastructure partners, subject to
+            account availability, onboarding,
+            and compliance requirements.
           </p>
         </div>
 
       </div>
 
+      <h3>Optional stablecoin settlement</h3>
+
+      <p>
+        Depending on the selected collection model
+        and supported infrastructure, collected fiat
+        may be converted into stablecoins and settled
+        to a wallet designated by the partner.
+      </p>
+
       <p class="muted">
-        Availability depends on supported jurisdictions,
+        Collection and settlement availability depends
+        on supported jurisdictions, banking connectivity,
         infrastructure capabilities, compliance requirements,
-        and commercial arrangements.
+        and commercial arrangements. Stablecoin settlement
+        is not implied by bank payment authorization alone.
       </p>
     </section>
 
@@ -513,16 +558,17 @@
       </p>
 
       <p>
-        Once the preferred collection model is identified,
-        UniBridge can provide the relevant integration
-        specifications and coordinate the technical
-        and operational requirements.
+        The next step is to identify the preferred
+        collection destination: an eligible account
+        provided by the partner or a virtual account
+        provisioned through UniBridge's infrastructure.
       </p>
 
       <p>
-        The integration can be structured around
-        standalone payment initiation, virtual account
-        collection, or stablecoin settlement.
+        UniBridge can then coordinate the relevant
+        integration specifications, payment initiation
+        requirements, account configuration, and
+        optional settlement arrangements.
       </p>
     </section>
 
