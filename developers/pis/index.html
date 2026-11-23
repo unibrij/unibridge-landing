@@ -1,0 +1,539 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore UniBridge bank discovery, payment initiation, and fiat collection and settlement models.">
+  <title>Payment Initiation & Fiat Collection | UniBridge</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #003366;
+      --ink: #152338;
+      --muted: #5d6d80;
+      --teal: #008f7b;
+      --line: #e2e9ef;
+      --bg: #f7fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font: 16px/1.65 Inter, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    a {
+      color: var(--navy);
+      overflow-wrap: anywhere;
+    }
+
+    a:hover {
+      color: var(--teal);
+    }
+
+    .wrap {
+      max-width: 1020px;
+      margin: auto;
+      padding: 0 24px;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 0;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -.7px;
+      color: var(--navy);
+      text-decoration: none;
+    }
+
+    .nav small {
+      color: var(--muted);
+    }
+
+    .hero {
+      padding: 70px 0 52px;
+      background: linear-gradient(120deg, #082f56, #064879);
+      color: #fff;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .13em;
+      font-size: 12px;
+      font-weight: 800;
+      color: #7ce5d2;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 50px);
+      line-height: 1.12;
+      letter-spacing: -1.3px;
+      margin: 15px 0;
+    }
+
+    .hero p {
+      max-width: 720px;
+      color: #e0eaf3;
+      font-size: 18px;
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid #ffffff5c;
+      border-radius: 100px;
+      padding: 5px 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    main {
+      padding: 40px 0 70px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 24px #002b4a08;
+    }
+
+    h2 {
+      font-size: 24px;
+      letter-spacing: -.4px;
+      margin: 0 0 14px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 24px 0 8px;
+    }
+
+    p {
+      margin: 10px 0 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .note {
+      border-left: 3px solid var(--teal);
+      background: #eef9f6;
+      padding: 13px 16px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 17px;
+    }
+
+    .mini h3 {
+      margin: 0 0 8px;
+    }
+
+    .mini p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .pill {
+      display: inline-block;
+      background: #e7f4f1;
+      color: #006b5b;
+      padding: 2px 9px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pill.future {
+      background: #edf1f6;
+      color: #45566a;
+    }
+
+    pre {
+      overflow: auto;
+      background: #10253a;
+      color: #eaf5fc;
+      border-radius: 11px;
+      padding: 17px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular,
+        Consolas, monospace;
+      font-size: .92em;
+      overflow-wrap: anywhere;
+    }
+
+    .endpoint {
+      background: #f2f6fa;
+      padding: 12px 15px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+
+    .method {
+      color: #007a60;
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    .button {
+      display: inline-block;
+      background: var(--navy);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .button:hover {
+      background: #06558b;
+      color: #fff;
+    }
+
+    footer {
+      padding: 25px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 700px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .hero {
+        padding: 48px 0 38px;
+      }
+
+      .nav small {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="/">UniBridge</a>
+      <small>Developer documentation · Fiat collection</small>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Developer documentation</div>
+
+      <h1>Payment Initiation &amp; Fiat Collection</h1>
+
+      <p>
+        Explore bank connectivity, payment initiation,
+        and collection models available through UniBridge
+        and its infrastructure partners.
+      </p>
+
+      <span class="tag">Public integration overview</span>
+    </div>
+  </section>
+
+  <main class="wrap">
+
+    <section class="card" id="overview">
+      <h2>Integration overview</h2>
+
+      <p>
+        UniBridge connects bank payment initiation with
+        fiat collection and settlement infrastructure,
+        enabling partners to build collection flows
+        around their operational requirements.
+      </p>
+
+      <p>
+        Partners can explore bank connectivity through
+        the public Bank Discovery API and evaluate
+        the collection and settlement models described below.
+      </p>
+
+      <div class="note">
+        <strong>API availability:</strong>
+        Bank Discovery is publicly accessible without
+        authentication. Payment initiation and settlement
+        integrations require partner-specific configuration
+        and authorization.
+      </div>
+    </section>
+
+    <section class="card" id="bank-discovery">
+      <h2>1. Public Bank Discovery API</h2>
+
+      <p>
+        Retrieve available institutions for a country
+        using its two-letter ISO country code.
+      </p>
+
+      <h3>Base URL</h3>
+
+      <div class="endpoint">
+        <code>https://unibridge-v2-1066944028362.us-central1.run.app</code>
+      </div>
+
+      <h3>Endpoint</h3>
+
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <code>/v2/fiat/connected-bank/exthand/public-banks?countryCode=GB</code>
+      </div>
+
+      <h3>Country parameter</h3>
+
+      <p>
+        Use the <code>countryCode</code> parameter
+        to explore different countries.
+        Examples include <code>GB</code> (United Kingdom),
+        <code>DE</code> (Germany),
+        <code>FR</code> (France),
+        and <code>NL</code> (Netherlands).
+      </p>
+
+      <p class="muted">
+        Country codes are query examples.
+        Actual bank coverage depends on the connectivity provider.
+      </p>
+
+      <h3>Request example</h3>
+
+      <pre><code>curl 'https://unibridge-v2-1066944028362.us-central1.run.app/v2/fiat/connected-bank/exthand/public-banks?countryCode=GB'</code></pre>
+
+      <h3>Example response</h3>
+
+      <pre><code>{
+  "ok": true,
+  "countryCode": "GB",
+  "banks": [
+    {
+      "connectorId": 9,
+      "name": "Revolut"
+    },
+    {
+      "connectorId": 2265,
+      "name": "Wise"
+    }
+  ]
+}</code></pre>
+
+      <p class="muted">
+        Abridged example from a successful UK query.
+        The live response may include additional institutions.
+      </p>
+
+      <h3>Response fields</h3>
+
+      <p>
+        <code>ok</code> — Indicates request success.
+      </p>
+
+      <p>
+        <code>countryCode</code> — Requested country.
+      </p>
+
+      <p>
+        <code>banks</code> — Array of institutions containing
+        <code>connectorId</code> and <code>name</code>.
+      </p>
+
+      <p>
+        Invalid country codes return an error response.
+        Temporary provider failures may also result in an error.
+        Bank discovery does not initiate a payment.
+      </p>
+
+      <a
+        class="button"
+        href="https://unibridge-v2-1066944028362.us-central1.run.app/v2/fiat/connected-bank/exthand/public-banks?countryCode=GB"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Explore Live Bank Discovery
+      </a>
+    </section>
+
+    <section class="card" id="pis">
+      <h2>2. Payment Initiation (PIS)</h2>
+
+      <p>
+        UniBridge integrates with bank connectivity
+        infrastructure to support payment initiation
+        from eligible customer bank accounts.
+      </p>
+
+      <h3>Integration flow</h3>
+
+      <p>
+        <strong>1. Bank selection:</strong>
+        The customer selects an available financial institution.
+      </p>
+
+      <p>
+        <strong>2. Payment initiation:</strong>
+        A payment request is prepared for the selected
+        institution and collection destination.
+      </p>
+
+      <p>
+        <strong>3. Bank authorization:</strong>
+        The customer completes the required authorization
+        through the supported bank flow.
+      </p>
+
+      <p>
+        <strong>4. Payment status:</strong>
+        The integration tracks the payment initiation
+        outcome and the available downstream status.
+      </p>
+
+      <h3>Partner integration</h3>
+
+      <p>
+        Partner API specifications, authentication
+        requirements, and payment status handling
+        are shared as part of the integration process.
+      </p>
+
+      <p class="muted">
+        Bank authorization does not by itself guarantee
+        successful settlement or receipt of funds.
+      </p>
+    </section>
+
+    <section class="card" id="models">
+      <h2>3. Collection and settlement models</h2>
+
+      <p>
+        UniBridge supports different integration approaches
+        depending on the partner's collection and settlement needs.
+      </p>
+
+      <div class="grid">
+
+        <div class="mini">
+          <h3>Standalone PIS</h3>
+
+          <span class="pill">Integration option</span>
+
+          <p>
+            Bank payment initiation using an agreed
+            collection destination and payment flow.
+          </p>
+        </div>
+
+        <div class="mini">
+          <h3>PIS + Virtual Accounts</h3>
+
+          <span class="pill future">Partner configuration</span>
+
+          <p>
+            Fiat collection into virtual accounts
+            provisioned through UniBridge's
+            infrastructure partners.
+          </p>
+        </div>
+
+        <div class="mini">
+          <h3>PIS + Stablecoin Settlement</h3>
+
+          <span class="pill future">Partner configuration</span>
+
+          <p>
+            Fiat collection and conversion into
+            stablecoins, with settlement to a
+            wallet designated by the partner.
+          </p>
+        </div>
+
+      </div>
+
+      <p class="muted">
+        Availability depends on supported jurisdictions,
+        infrastructure capabilities, compliance requirements,
+        and commercial arrangements.
+      </p>
+    </section>
+
+    <section class="card" id="next-steps">
+      <h2>4. Integration next steps</h2>
+
+      <p>
+        Partners can begin by exploring the public
+        Bank Discovery API to review available institutions.
+      </p>
+
+      <p>
+        Once the preferred collection model is identified,
+        UniBridge can provide the relevant integration
+        specifications and coordinate the technical
+        and operational requirements.
+      </p>
+
+      <p>
+        The integration can be structured around
+        standalone payment initiation, virtual account
+        collection, or stablecoin settlement.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      © UniBridge · Developer documentation ·
+      <a href="/">Return to UniBridge</a>
+    </div>
+  </footer>
+
+</body>
+</html>
